@@ -24,9 +24,9 @@ Building on Windows
 
 2. Download and install `CMake <http://www.cmake.org/cmake/resources/software.html>`_ (>= v2.8.10)
 
-3. Run CMake on this directory, choose the correct Visual Studio version for the Generator.
+3. Run CMake on ``%MUJINCLIENTGIT%``, choose the correct Visual Studio version for the Generator.
 
-.. image:: docs/build_cmake.png
+.. image:: https://raw.github.com/mujin/controllerclientcpp/master/docs/build_cmake.png
 
 4. Open the **build/mujincontrollerclientcpp.sln** solution and compile the **ALL_BUILD** project.
 
@@ -62,7 +62,7 @@ Patch lib/CMakeLists.txt:122 with::
 
   set_target_properties(${LIB_NAME} PROPERTIES IMPORT_SUFFIX "_imp.lib" OUTPUT_NAME "libcurl-vc100-mt")
 
-and line 126 with::
+and replace line 126 with::
 
   if(WIN32 AND NOT CURL_STATICLIB)
     install(TARGETS ${LIB_NAME} RUNTIME DESTINATION bin LIBRARY DESTINATION bin ARCHIVE DESTINATION lib)
