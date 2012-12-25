@@ -10,9 +10,13 @@ In the following documentation %MUJINCLIENTGIT% means the root directory where t
 Running on Windows
 ------------------
 
-Need to put the following folder in the PATH environment variable::
+By default, library is installed in ``C:\Program Files\mujincontrollerclient``.
 
-  %MUJINCLIENTGIT%\msvc_binaries\vcXX\bin
+The ``bin`` directory holds all the DLLs and several sample exe programs. 
+
+In order to use the library, link with ``lib\mujincontrollerclient-vcXX-mt.lib`` and add ``include`` in the MSVC include directories.
+
+Need to put ``C:\Program Files\mujincontrollerclient\bin`` in the PATH environment variable, or register all the DLLs with windows system.
 
 Building on Windows
 -------------------
@@ -27,6 +31,8 @@ Building on Windows
 3. Run CMake on ``%MUJINCLIENTGIT%``, choose the correct Visual Studio version for the Generator.
 
 .. image:: https://raw.github.com/mujin/controllerclientcpp/master/docs/build_cmake.png
+
+  Can modify the ``CMAKE_INSTALL_PREFIX`` variable in order to change the install directory. Default is ``C:\Program Files``
 
 4. Open the **build/mujincontrollerclientcpp.sln** solution and compile the **ALL_BUILD** project.
 
@@ -80,12 +86,6 @@ Several libraries are being managed in this repository. If necessary, get upgrad
   There is a default included boost (v1.44) if one cannot be detected.
 
 2. 
-
-
-Using Library
--------------
-
-Once installed, the **mujincontrollerclient-vcXX-mt.dll** and **mujincontrollerclient-vcXX-mt.lib** will be generated.
 
 Technologies
 ------------

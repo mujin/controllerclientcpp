@@ -88,6 +88,9 @@ if( MSVC )
   endif()
   set(MUJINCLIENT_LIBRARY_SUFFIX "${MUJINCLIENT_SOVERSION}-${MSVC_PREFIX}-mt" CACHE STRING "Suffix to append to library names")
   
+  # install all DLLs
+  install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/msvc_binaries/${MSVC_PREFIX}/bin/" DESTINATION bin FILES_MATCHING PATTERN "*.dll")
+
   # force multi-threaded DLL boost
   set(Boost_USE_MULTITHREAD ON)
   set(Boost_USE_STATIC_LIBS OFF)
