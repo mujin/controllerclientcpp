@@ -36,7 +36,15 @@ Building on Windows
 
 4. Open the **build/mujincontrollerclientcpp.sln** solution and compile the **ALL_BUILD** project.
 
-5. In order to Install into ``c:\Program Files``, compile the **INSTALL** project
+.. image:: https://raw.github.com/mujin/controllerclientcpp/master/docs/build_visualstudio.png
+
+5. In order to Install into ``c:\Program Files``, compile the **INSTALL** project.
+
+ - Can also automated building and installing the project using the Visual Studio Command Prompt::
+
+    cd %MUJINCLIENTGIT%\build
+    msbuild mujincontrollerclient.sln /p:Configuration=Release
+    msbuild INSTALL.vcxproj /p:Configuration=Release
 
 Building OpenSSL
 ================
@@ -44,29 +52,31 @@ Building OpenSSL
 If OpenSSL libraries do not exist for the specific Visual Studio version
 
 
-- Download and Install `Starberry Perl <http://strawberryperl.com/>`_
+1. Download and Install `Starberry Perl <http://strawberryperl.com/>`_
 
-- Download and Install `NASM <http://sourceforge.net/projects/nasm/files/Win32%20binaries/2.07/nasm-2.07-installer.exe/download>`_
+2. Download and Install `NASM <http://sourceforge.net/projects/nasm/files/Win32%20binaries/2.07/nasm-2.07-installer.exe/download>`_
 
  - add ``C:\Program Files\NASM`` to the **PATH** variable.
 
-- Uncompress **openssl-1.0.1c.tar.gz**.
+3. Uncompress **openssl-1.0.1c.tar.gz**.
 
-- Open the Visual Studio Command Prompt, cd into ``openssl-1.0.1c``, set the XX depending on the VC++ version, and run::
+4. Open the Visual Studio Command Prompt, cd into ``openssl-1.0.1c``, set the XX depending on the VC++ version, and run::
 
   perl Configure VC-WIN32 --prefix=%MUJINCLIENTGIT%\msvc_binaries\vcXX
   ms\do_nasm
   nmake -f ms\ntdll.mak
   nmake -f ms\ntdll.mak install
 
-- The final binaries should be in the ``msvc_binaries\vcXX\lib`` folder.
+5. The final binaries should be in the ``msvc_binaries\vcXX\lib`` folder.
 
 Building libcurl
 ================
 
-- Uncompress ``curl-7.28.1-patched.tar.gz``
+If libcurl libraries do not exist for the specific Visual Studio version
 
-- In the Visual Studio Command Prompt and cd into ``%MUJINCLIENTGIT%/curl-7.28.1``. Create and compile the project with the following command::
+1. Uncompress ``curl-7.28.1-patched.tar.gz``
+
+2. In the Visual Studio Command Prompt and cd into ``%MUJINCLIENTGIT%/curl-7.28.1``. Create and compile the project with the following command::
 
   mkdir buildvc100
   cd buildvc100
@@ -85,16 +95,25 @@ Several libraries are being managed in this repository. If necessary, get upgrad
  
   There is a default included boost (v1.44) if one cannot be detected.
 
-2. 
+2. - `cURL <http://curl.haxx.se/libcurl/>`_
+ - The patches applied to curl are written in ``curl-7.28.1.patches``
 
-Technologies
-------------
+3. - `OpenSSL <http://www.openssl.org>`_
+ - Once updated, cURL has to be recompiled just to make sure the symbols match.
 
-- `OpenSSL <http://www.openssl.org>`_
+Licenses
+--------
 
- - Have to insert the following statement in commercial products: ``This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit. (http://www.openssl.org/)``
+MUJIN Controller C++ Client is Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 
-- `cURL <http://curl.haxx.se/libcurl/>`_
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+
+Since OpenSSL is included, have to insert the following statement in commercial products::
+
+  This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit. (http://www.openssl.org/)
+
 
 Other Possible Clients
 ======================
