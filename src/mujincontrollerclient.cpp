@@ -36,7 +36,7 @@ void testfn()
     CURLcode res;
     curl = curl_easy_init();
     if(curl) {
-        curl_easy_setopt(curl, CURLOPT_URL, "https://controller.mujin.co.jp/");
+        curl_easy_setopt(curl, CURLOPT_URL, "http://www.google.com/");//"https://controller.mujin.co.jp/");
 
 //#ifdef SKIP_PEER_VERIFICATION
 //        /*
