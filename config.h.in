@@ -1,0 +1,52 @@
+/** \file config.h
+    \brief Defines MUJIN Controller Client installation-specific information.
+*/
+#ifndef MUJINCLIENT_DEFINITIONS_H
+#define MUJINCLIENT_DEFINITIONS_H
+
+#if defined(_WIN32) || defined(__CYGWIN__) || defined(_MSC_VER)
+  #define MUJINCLIENT_HELPER_DLL_IMPORT __declspec(dllimport)
+  #define MUJINCLIENT_HELPER_DLL_EXPORT __declspec(dllexport)
+  #define MUJINCLIENT_HELPER_DLL_LOCAL
+#else
+  #if __GNUC__ >= 4
+    #define MUJINCLIENT_HELPER_DLL_IMPORT __attribute__ ((visibility("default")))
+    #define MUJINCLIENT_HELPER_DLL_EXPORT __attribute__ ((visibility("default")))
+    #define MUJINCLIENT_HELPER_DLL_LOCAL  __attribute__ ((visibility("hidden")))
+  #else
+    #define MUJINCLIENT_HELPER_DLL_IMPORT
+    #define MUJINCLIENT_HELPER_DLL_EXPORT
+    #define MUJINCLIENT_HELPER_DLL_LOCAL
+  #endif
+#endif
+
+// Now we use the generic helper definitions above to define MUJINCLIENT_API and MUJINCLIENT_LOCAL.
+// MUJINCLIENT_API is used for the public API symbols. It either DLL imports or DLL exports (or does nothing for static build)
+// MUJINCLIENT_LOCAL is used for non-api symbols.
+#if defined(MUJINCLIENT_DLL) || defined(MUJINCLIENT_CORE_DLL) // defined if OpenRAVE is compiled as a DLL
+  #ifdef MUJINCLIENT_DLL_EXPORTS // defined if we are building the OpenRAVE DLL (instead of using it)
+    #define MUJINCLIENT_API MUJINCLIENT_HELPER_DLL_EXPORT
+  #else
+    #define MUJINCLIENT_API MUJINCLIENT_HELPER_DLL_IMPORT
+  #endif // MUJINCLIENT_DLL_EXPORTS
+  #define MUJINCLIENT_LOCAL MUJINCLIENT_HELPER_DLL_LOCAL
+#else // MUJINCLIENT_DLL is not defined: this means OpenRAVE is a static lib.
+  #define MUJINCLIENT_API
+  #define MUJINCLIENT_LOCAL
+#endif // MUJINCLIENT_DLL
+
+#define MUJINCLIENT_VERSION_MAJOR @MUJINCLIENT_VERSION_MAJOR@
+#define MUJINCLIENT_VERSION_MINOR @MUJINCLIENT_VERSION_MINOR@
+#define MUJINCLIENT_VERSION_PATCH @MUJINCLIENT_VERSION_PATCH@
+#define MUJINCLIENT_VERSION_COMBINED(major, minor, patch) (((major) << 16) | ((minor) << 8) | (patch))
+#define MUJINCLIENT_VERSION MUJINCLIENT_VERSION_COMBINED(MUJINCLIENT_VERSION_MAJOR, MUJINCLIENT_VERSION_MINOR, MUJINCLIENT_VERSION_PATCH)
+#define MUJINCLIENT_VERSION_EXTRACT_MAJOR(version) (((version)>>16)&0xff)
+#define MUJINCLIENT_VERSION_EXTRACT_MINOR(version) (((version)>>8)&0xff)
+#define MUJINCLIENT_VERSION_EXTRACT_PATCH(version) (((version))&0xff)
+#define MUJINCLIENT_VERSION_STRING "@MUJINCLIENT_VERSION_MAJOR@.@MUJINCLIENT_VERSION_MINOR@.@MUJINCLIENT_VERSION_PATCH@"
+#define MUJINCLIENT_VERSION_STRING_FORMAT(version) boost::str(boost::format("%s.%s.%s")%(MUJINCLIENT_VERSION_EXTRACT_MAJOR(version))%(MUJINCLIENT_VERSION_EXTRACT_MINOR(version))%(MUJINCLIENT_VERSION_EXTRACT_PATCH(version)))
+
+#define MUJINCLIENT_VERSION_GE(major1, minor1, patch1, major2, minor2, patch2) (MUJINCLIENT_VERSION_COMBINED(major1, minor1, patch1) >= MUJINCLIENT_VERSION_COMBINED(major2, minor2, patch2))
+#define MUJINCLIENT_VERSION_MINIMUM(major, minor, patch) MUJINCLIENT_VERSION_GE(MUJINCLIENT_VERSION_MAJOR, MUJINCLIENT_VERSION_MINOR, MUJINCLIENT_VERSION_PATCH, major, minor, patch)
+
+#endif
