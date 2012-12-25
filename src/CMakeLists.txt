@@ -1,4 +1,5 @@
-include_directories(${MUJINCLIENT_INCLUDE_LOCAL_DIRS})
+include_directories(${MUJINCLIENT_INCLUDE_LOCAL_DIRS} ${CURL_INCLUDE_DIRS})
+link_directories(${MUJINCLIENT_LINK_DIRS})
 
 add_library(mujincontrollerclient SHARED mujincontrollerclient.cpp)
 set_target_properties(mujincontrollerclient PROPERTIES COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} -DMUJINCLIENT_DLL_EXPORTS -DMUJINCLIENT_DLL" LINK_FLAGS ""
@@ -7,9 +8,8 @@ set_target_properties(mujincontrollerclient PROPERTIES COMPILE_FLAGS "${EXTRA_CO
   VERSION ${MUJINCLIENT_VERSION}
   CLEAN_DIRECT_OUTPUT 1
   )
-target_link_libraries(mujincontrollerclient)
+target_link_libraries(mujincontrollerclient ${CURL_LIBRARIES})
 install(TARGETS mujincontrollerclient RUNTIME DESTINATION bin LIBRARY DESTINATION bin ARCHIVE DESTINATION lib${LIB_SUFFIX})
-
 
 add_executable(mujinclienttest mujinclienttest.cpp)
 set_target_properties(mujinclienttest PROPERTIES COMPILE_FLAGS "${Boost_CFLAGS} -DMUJINCLIENT_CORE_DLL" LINK_FLAGS "")

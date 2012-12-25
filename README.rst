@@ -3,7 +3,16 @@ MUJIN Controller C++ Client Library
 
 This is an open-source client library communicating with the MUJIN Controller WebAPI.
 
-Uses `libcurl <http://curl.haxx.se/libcurl/>`_ for communication. `C Bindings <http://curl.haxx.se/libcurl/c/>`_ and `C++ Bindings <http://www.curlpp.org>`_
+Uses  for communication. `C Bindings <http://curl.haxx.se/libcurl/c/>`_ and `C++ Bindings <http://www.curlpp.org>`_
+
+Technologies
+------------
+
+- `OpenSSL <http://www.openssl.org>`_
+
+ - Have to insert the following statement in commercial products: ``This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit. (http://www.openssl.org/)``
+
+- `cURL <http://curl.haxx.se/libcurl/>`_
 
 Building on Windows
 -------------------
@@ -13,21 +22,60 @@ Building on Windows
  - (Optional for nice graphical interface) Download and install  `TortoiseGit <http://code.google.com/p/tortoisegit/wiki/Download>`_ 
  - Checkout the following git repository **https://github.com/mujin/controllerclientcpp.git**
 
-2. Download and install `CMake <http://www.cmake.org/cmake/resources/software.html>`_
+2. Download and install `CMake <http://www.cmake.org/cmake/resources/software.html>`_ (>= v2.8.10)
 
-3. `Download and install boost <http://www.boostpro.com/download/>`_ (any version >= 1.40 is fine).
+3. Run CMake on this directory, choose the correct Visual Studio version for the Generator.
+
+.. image:: docs/build_cmake.png
+
+4. Open the **build/mujincontrollerclientcpp.sln** solution and compile the **ALL_BUILD** project.
+
+5. In order to Install into ``c:\Program Files``, compile the **INSTALL** project
+
+Building OpenSSL
+================
+
+If OpenSSL libraries do not exist for the specific Visual Studio version
+
+
+- Download and Install `Starberry Perl <http://strawberryperl.com/>`_
+
+- Download and Install `NASM <http://sourceforge.net/projects/nasm/files/Win32%20binaries/2.07/nasm-2.07-installer.exe/download>`_
+
+ - add ``C:\Program Files\NASM`` to the **PATH** variable.
+
+- uncompress **openssl-1.0.1c.tar.gz**.
+
+- Open the Visual Studio Command Prompt, cd into ``openssl-1.0.1c``, set the XX depending on the VC++ version, and run::
+
+  perl Configure VC-WIN32 --prefix=%MUJINCLIENTGIT%\msvc_binaries\vcXX
+  ms\do_nasm
+  nmake -f ms\ntdll.mak
+  nmake -f ms\ntdll.mak install
+
+- The final binaries should be in the ``msvc_binaries\vcXX\lib`` folder.
+
+Building libcurl
+================
+
+Make the visual studio project with the following command::
+
+  cmake -DOPENSSL_ROOT_DIR=%MUJINCLIENTGIT%\msvc_binaries\vcXX -DCMAKE_REQUIRED_INCLUDES=%MUJINCLIENTGIT%\msvc_binaries\vcXX\include -DBUILD_CURL_TESTS=OFF -DCURL_USE_ARES=OFF -DCURL_STATICLIB=OFF -DCMAKE_INSTALL_PREFIX=%MUJINCLIENTGIT%\msvc_binaries\vcXX ..
+
+
+Updating the Windows Libraries
+------------------------------
+
+Several libraries are being managed in this repository. If necessary, get upgraded versions from the following places:
+
+1. `boost <http://www.boostpro.com/download/>`_ (any version >= 1.40 is fine).
  - Select Multi-threaded DLL libraries.
  - No extra libraries need to be selected, only the header files.
  
   There is a default included boost (v1.44) if one cannot be detected.
 
-4. Run CMake on this directory, choose the correct Visual Studio version for the Generator.
+2. 
 
-.. image:: docs/build_cmake.png
-
-5. Open the **build/mujincontrollerclientcpp.sln** solution and compile the **ALL_BUILD** project.
-
-6. In order to Install into ``c:\Program Files``, compile the **INSTALL** project
 
 Using Library
 -------------

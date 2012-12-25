@@ -107,10 +107,9 @@ if(NOT MSVC71 AND NOT MSVC80)
   endif()
   set(Boost_ADDITIONAL_VERSIONS "1.46.1" "1.45" "1.44" "1.43" "1.42" "1.41" "1.40" "1.39" "1.38" "1.37.0" "1.37" "1.35.0" "1.34.1" "1.34.0" "1.34" "1.33.1" "1.33.0" "1.33" ${Boost_ADDITIONAL_VERSIONS})
   find_package(Boost COMPONENTS filesystem system thread date_time)
-else()
-  # have to rely on local boost and a hack
-  add_definitions(-DTEMP_SPIRIT_HACK)
 endif()
+
+set(MUJINCLIENT_LINK_DIRS)
 
 if( Boost_FOUND )
   include_directories(${Boost_INCLUDE_DIRS})
@@ -169,13 +168,18 @@ if( CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX )
   add_definitions("-fno-strict-aliasing -Wall")
 endif( CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX )
 
-# optional in case boost is used
-find_package(Boost)
-include_directories(${Boost_INCLUDE_DIRS})
-link_directories(${Boost_LIBRARY_DIRS})
-
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/mujincontrollerclient/config.h IMMEDIATE @ONLY)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
+
+find_package(CURL)
+if( NOT CURL_FOUND )
+  if( MSVC )
+    set(CURL_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/msvc_binaries/${MSVC_PREFIX}/include")
+    set(CURL_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/msvc_binaries/${MSVC_PREFIX}/bin/libcurl-vc100-mt.dll")
+  else()
+    message(FATAL_ERROR "could not find CURL library")
+  endif()
+endif()
 
 file(GLOB mujin_header_files ${CMAKE_CURRENT_SOURCE_DIR}/include/mujincontrollerclient/*.h)
 install(FILES ${mujin_header_files} ${CMAKE_CURRENT_BINARY_DIR}/include/mujincontrollerclient/config.h DESTINATION include/mujincontrollerclient)
