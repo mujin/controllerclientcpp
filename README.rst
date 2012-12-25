@@ -29,6 +29,11 @@ Building on Windows
 
 6. In order to Install into ``c:\Program Files``, compile the **INSTALL** project
 
+Using Library
+-------------
+
+Once installed, the **mujincontrollerclient-vcXX-mt.dll** and **mujincontrollerclient-vcXX-mt.lib** will be generated.
+
 Other Possible Clients
 ----------------------
 
