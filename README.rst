@@ -44,7 +44,7 @@ If OpenSSL libraries do not exist for the specific Visual Studio version
 
  - add ``C:\Program Files\NASM`` to the **PATH** variable.
 
-- uncompress **openssl-1.0.1c.tar.gz**.
+- Uncompress **openssl-1.0.1c.tar.gz**.
 
 - Open the Visual Studio Command Prompt, cd into ``openssl-1.0.1c``, set the XX depending on the VC++ version, and run::
 
@@ -58,24 +58,15 @@ If OpenSSL libraries do not exist for the specific Visual Studio version
 Building libcurl
 ================
 
-Patch lib/CMakeLists.txt:122 with::
+- Uncompress ``curl-7.28.1-patched.tar.gz``
 
-  set_target_properties(${LIB_NAME} PROPERTIES IMPORT_SUFFIX "_imp.lib" OUTPUT_NAME "libcurl-vc100-mt")
-
-and replace line 126 with::
-
-  if(WIN32 AND NOT CURL_STATICLIB)
-    install(TARGETS ${LIB_NAME} RUNTIME DESTINATION bin LIBRARY DESTINATION bin ARCHIVE DESTINATION lib)
-  else(WIN32 AND NOT CURL_STATICLIB)
-    install(TARGETS ${LIB_NAME} DESTINATION lib)
-  endif()
-
-Make the visual studio project with the following command::
+- In the Visual Studio Command Prompt and cd into ``%MUJINCLIENTGIT%/curl-7.28.1``. Create and compile the project with the following command::
 
   mkdir buildvc100
   cd buildvc100
   cmake -DOPENSSL_ROOT_DIR=%MUJINCLIENTGIT%\msvc_binaries\vcXX -DCMAKE_REQUIRED_INCLUDES=%MUJINCLIENTGIT%\msvc_binaries\vcXX\include -DBUILD_CURL_TESTS=OFF -DCURL_USE_ARES=OFF -DCURL_STATICLIB=OFF -DCMAKE_INSTALL_PREFIX=%MUJINCLIENTGIT%\msvc_binaries\vcXX ..
-
+  msbuild CURL.sln /p:Configuration=Release
+  msbuild INSTALL.vcxproj /p:Configuration=Release
 
 Updating the Windows Libraries
 ------------------------------
