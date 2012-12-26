@@ -123,7 +123,10 @@ private:
 };
 
 
-MUJINCLIENT_API void testfn();
+/// \brief returns raw environment data
+///
+/// \param usernamepassword user:password
+MUJINCLIENT_API std::string ListAllEnvironmentsRaw(const std::string& usernamepassword);
 
 }
 

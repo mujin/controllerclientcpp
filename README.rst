@@ -40,7 +40,7 @@ Building on Windows
 
 5. In order to Install into ``c:\Program Files``, compile the **INSTALL** project.
 
- - Can also automated building and installing the project using the Visual Studio Command Prompt::
+ - Can also automate building and installing the project using the Visual Studio Command Prompt::
 
     cd %MUJINCLIENTGIT%\build
     msbuild mujincontrollerclient.sln /p:Configuration=Release

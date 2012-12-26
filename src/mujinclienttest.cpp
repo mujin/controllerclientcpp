@@ -14,7 +14,11 @@
 
 #include <mujincontrollerclient/mujincontrollerclient.h>
 
-int main()
+int main(int argc, char ** argv)
 {
-    mujinclient::testfn();
+    if( argc < 2 ) {
+        printf("need username:password. Example: mujinclienttest myuser:mypass\n");
+    }
+    std::string ret = mujinclient::ListAllEnvironmentsRaw(argv[1]);
+    printf("result is: %s\n", ret.c_str());
 }

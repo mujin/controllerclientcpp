@@ -28,7 +28,7 @@ static int _writer(char *data, size_t size, size_t nmemb, std::string *writerDat
     return size * nmemb;
 }
 
-void testfn()
+std::string ListAllEnvironmentsRaw(const std::string& usernamepassword)
 {
 
     std::string buffer;
@@ -36,7 +36,7 @@ void testfn()
     CURLcode res;
     curl = curl_easy_init();
     if(curl) {
-        curl_easy_setopt(curl, CURLOPT_URL, "http://www.google.com/");//"https://controller.mujin.co.jp/");
+        curl_easy_setopt(curl, CURLOPT_URL, "https://controller.mujin.co.jp/api/v1/scene/?format=json");
 
 //#ifdef SKIP_PEER_VERIFICATION
 //        /*
@@ -62,26 +62,29 @@ void testfn()
 //        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 //#endif
 
+        res = curl_easy_setopt(curl, CURLOPT_USERPWD, usernamepassword.c_str());
+        if (res != CURLE_OK) {
+            throw mujin_exception("failed to set userpw");
+        }
+        //densowave:Debpawm8
         res = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, _writer);
         if (res != CURLE_OK) {
-            //fprintf(stderr, "Failed to set writer [%s]\n", errorBuffer);
-            return; // false;
+            throw mujin_exception("failed to set writer");
         }
 
         res = curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
         if (res != CURLE_OK) {
-            //fprintf(stderr, "Failed to set write data [%s]\n", errorBuffer);
-            return; // false;
+            throw mujin_exception("failed to set write data");
         }
 
         res = curl_easy_perform(curl);
         if(res != CURLE_OK) {
             fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
         }
-        printf("buffer: %s\n", buffer.c_str());
         /* always cleanup */
         curl_easy_cleanup(curl);
     }
+    return buffer;
 }
 
 
