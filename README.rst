@@ -44,7 +44,15 @@ Can modify the ``CMAKE_INSTALL_PREFIX`` variable in order to change the install 
 
     cd %MUJINCLIENTGIT%\build
     msbuild mujincontrollerclient.sln /p:Configuration=Release
+
+6. To install, for Visual Studio 9 2008 and above use::
+
     msbuild INSTALL.vcxproj /p:Configuration=Release
+
+  otherwise use::
+
+    msbuild INSTALL.vcproj /p:Configuration=Release
+
 
 Building OpenSSL
 ================
@@ -78,11 +86,20 @@ If libcurl libraries do not exist for the specific Visual Studio version
 
 2. In the Visual Studio Command Prompt and cd into ``%MUJINCLIENTGIT%/curl-7.28.1``. Create and compile the project with the following command::
 
-    mkdir buildvc100
-    cd buildvc100
-    cmake -DOPENSSL_ROOT_DIR=%MUJINCLIENTGIT%\msvc_binaries\vcXX -DCMAKE_REQUIRED_INCLUDES=%MUJINCLIENTGIT%\msvc_binaries\vcXX\include -DBUILD_CURL_TESTS=OFF -DCURL_USE_ARES=OFF -DCURL_STATICLIB=OFF -DCMAKE_INSTALL_PREFIX=%MUJINCLIENTGIT%\msvc_binaries\vcXX ..
+    mkdir buildvcXX
+    cd buildvcXX
+    cmake -DOPENSSL_ROOT_DIR=%MUJINCLIENTGIT%\msvc_binaries\vcXX -DCMAKE_REQUIRED_INCLUDES=%MUJINCLIENTGIT%\msvc_binaries\vcXX\include -DBUILD_CURL_TESTS=OFF -DCURL_USE_ARES=OFF -DCURL_STATICLIB=OFF -DCMAKE_INSTALL_PREFIX=%MUJINCLIENTGIT%\msvc_binaries\vcXX -G "Visual Studio XX" ..
     msbuild CURL.sln /p:Configuration=Release
+
+3. To install, for Visual Studio 9 2008 and above use::
+
     msbuild INSTALL.vcxproj /p:Configuration=Release
+
+  otherwise use::
+
+    msbuild INSTALL.vcproj /p:Configuration=Release
+
+where "Visual Studio XX" is the cmake generator for visual studio. for example: "Visual Studio 8 2005" or "Visual Studio 10". 
 
 Updating the Windows Libraries
 ------------------------------
