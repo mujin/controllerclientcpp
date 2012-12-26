@@ -32,7 +32,7 @@ Building on Windows
 
 .. image:: https://raw.github.com/mujin/controllerclientcpp/master/docs/build_cmake.png
 
-  Can modify the ``CMAKE_INSTALL_PREFIX`` variable in order to change the install directory. Default is ``C:\Program Files``
+Can modify the ``CMAKE_INSTALL_PREFIX`` variable in order to change the install directory. Default is ``C:\Program Files``
 
 4. Open the **build/mujincontrollerclientcpp.sln** solution and compile the **ALL_BUILD** project.
 
