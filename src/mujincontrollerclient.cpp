@@ -28,6 +28,8 @@ static int _writer(char *data, size_t size, size_t nmemb, std::string *writerDat
     return size * nmemb;
 }
 
+#define SKIP_PEER_VERIFICATION // temporary
+
 std::string ListAllEnvironmentsRaw(const std::string& usernamepassword)
 {
 
@@ -38,20 +40,20 @@ std::string ListAllEnvironmentsRaw(const std::string& usernamepassword)
     if(curl) {
         curl_easy_setopt(curl, CURLOPT_URL, "https://controller.mujin.co.jp/api/v1/scene/?format=json");
 
-//#ifdef SKIP_PEER_VERIFICATION
-//        /*
-//         * If you want to connect to a site who isn't using a certificate that is
-//         * signed by one of the certs in the CA bundle you have, you can skip the
-//         * verification of the server's certificate. This makes the connection
-//         * A LOT LESS SECURE.
-//         *
-//         * If you have a CA cert for the server stored someplace else than in the
-//         * default bundle, then the CURLOPT_CAPATH option might come handy for
-//         * you.
-//         */
-//        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-//#endif
-//
+#ifdef SKIP_PEER_VERIFICATION
+        /*
+         * if you want to connect to a site who isn't using a certificate that is
+         * signed by one of the certs in the ca bundle you have, you can skip the
+         * verification of the server's certificate. this makes the connection
+         * a lot less secure.
+         *
+         * if you have a ca cert for the server stored someplace else than in the
+         * default bundle, then the curlopt_capath option might come handy for
+         * you.
+         */
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0l);
+#endif
+
 //#ifdef SKIP_HOSTNAME_VERIFICATION
 //        /*
 //         * If the site you're connecting to uses a different host name that what
