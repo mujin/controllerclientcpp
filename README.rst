@@ -62,10 +62,10 @@ If OpenSSL libraries do not exist for the specific Visual Studio version
 
 4. Open the Visual Studio Command Prompt, cd into ``openssl-1.0.1c``, set the XX depending on the VC++ version, and run::
 
-  perl Configure VC-WIN32 --prefix=%MUJINCLIENTGIT%\msvc_binaries\vcXX
-  ms\do_nasm
-  nmake -f ms\ntdll.mak
-  nmake -f ms\ntdll.mak install
+    perl Configure VC-WIN32 --prefix=%MUJINCLIENTGIT%\msvc_binaries\vcXX
+    ms\do_nasm
+    nmake -f ms\ntdll.mak
+    nmake -f ms\ntdll.mak install
 
 5. The final binaries should be in the ``msvc_binaries\vcXX\lib`` folder.
 
@@ -78,11 +78,11 @@ If libcurl libraries do not exist for the specific Visual Studio version
 
 2. In the Visual Studio Command Prompt and cd into ``%MUJINCLIENTGIT%/curl-7.28.1``. Create and compile the project with the following command::
 
-  mkdir buildvc100
-  cd buildvc100
-  cmake -DOPENSSL_ROOT_DIR=%MUJINCLIENTGIT%\msvc_binaries\vcXX -DCMAKE_REQUIRED_INCLUDES=%MUJINCLIENTGIT%\msvc_binaries\vcXX\include -DBUILD_CURL_TESTS=OFF -DCURL_USE_ARES=OFF -DCURL_STATICLIB=OFF -DCMAKE_INSTALL_PREFIX=%MUJINCLIENTGIT%\msvc_binaries\vcXX ..
-  msbuild CURL.sln /p:Configuration=Release
-  msbuild INSTALL.vcxproj /p:Configuration=Release
+    mkdir buildvc100
+    cd buildvc100
+    cmake -DOPENSSL_ROOT_DIR=%MUJINCLIENTGIT%\msvc_binaries\vcXX -DCMAKE_REQUIRED_INCLUDES=%MUJINCLIENTGIT%\msvc_binaries\vcXX\include -DBUILD_CURL_TESTS=OFF -DCURL_USE_ARES=OFF -DCURL_STATICLIB=OFF -DCMAKE_INSTALL_PREFIX=%MUJINCLIENTGIT%\msvc_binaries\vcXX ..
+    msbuild CURL.sln /p:Configuration=Release
+    msbuild INSTALL.vcxproj /p:Configuration=Release
 
 Updating the Windows Libraries
 ------------------------------
