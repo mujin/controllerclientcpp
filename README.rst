@@ -3,7 +3,7 @@ MUJIN Controller C++ Client Library
 
 This is an open-source client library communicating with the MUJIN Controller WebAPI.
 
-Uses  for communication. `C Bindings <http://curl.haxx.se/libcurl/c/>`_ and `C++ Bindings <http://www.curlpp.org>`_
+Uses  for communication. `cURL C Bindings <http://curl.haxx.se/libcurl/c/>`_
 
 In the following documentation %MUJINCLIENTGIT% means the root directory where the sources are checked out.
 
@@ -46,11 +46,11 @@ Can modify the ``CMAKE_INSTALL_PREFIX`` variable in order to change the install 
     msbuild mujincontrollerclient.sln /p:Configuration=Release
 
 6. To install, for Visual Studio 9 2008 and above use::
-
+  
     msbuild INSTALL.vcxproj /p:Configuration=Release
-
+  
   otherwise use::
-
+  
     msbuild INSTALL.vcproj /p:Configuration=Release
 
 
@@ -126,6 +126,8 @@ MUJIN Controller C++ Client is Licensed under the Apache License, Version 2.0 (t
   http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+
+In other words, **commercial use and any modifications are allowed**.
 
 Since OpenSSL is included, have to insert the following statement in commercial products::
 
