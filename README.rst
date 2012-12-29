@@ -22,9 +22,9 @@ Building on Windows
 -------------------
 
 1. Checkout the source code and install
- - Download and install `msysGit <http://code.google.com/p/msysgit/downloads/list?q=full+installer+official+git>`_
- - (Optional for nice graphical interface) Download and install  `TortoiseGit <http://code.google.com/p/tortoisegit/wiki/Download>`_ 
- - Checkout the following git repository **https://github.com/mujin/controllerclientcpp.git**
+  - Download and install `msysGit <http://code.google.com/p/msysgit/downloads/list?q=full+installer+official+git>`_
+  - (Optional for nice graphical interface) Download and install  `TortoiseGit <http://code.google.com/p/tortoisegit/wiki/Download>`_ 
+  - Checkout the following git repository **https://github.com/mujin/controllerclientcpp.git**
 
 2. Download and install `CMake <http://www.cmake.org/cmake/resources/software.html>`_ (>= v2.8.10)
 
@@ -62,7 +62,7 @@ If OpenSSL libraries do not exist for the specific Visual Studio version
 
 2. Download and Install `NASM <http://sourceforge.net/projects/nasm/files/Win32%20binaries/2.07/nasm-2.07-installer.exe/download>`_
 
- - add ``C:\Program Files\NASM`` to the **PATH** variable.
+  - add ``C:\Program Files\NASM`` to the **PATH** variable.
 
 3. Uncompress **openssl-1.0.1c.tar.gz**.
 
@@ -90,7 +90,7 @@ If libcurl libraries do not exist for the specific Visual Studio version
     msbuild CURL.sln /p:Configuration=Release
 
 3. To install, for Visual Studio 9 2008 and above use::
-
+  
     msbuild INSTALL.vcxproj /p:Configuration=Release
 
   otherwise use::
@@ -105,23 +105,23 @@ Updating the Windows Libraries
 Several libraries are being managed in this repository. If necessary, get upgraded versions from the following places:
 
 1. `boost <http://www.boostpro.com/download/>`_ (any version >= 1.40 is fine).
- - Select Multi-threaded DLL libraries.
- - No extra libraries need to be selected, only the header files.
- 
+  - Select Multi-threaded DLL libraries.
+  - No extra libraries need to be selected, only the header files.
+  
   There is a default included boost (v1.44) if one cannot be detected.
 
 2. - `cURL <http://curl.haxx.se/libcurl/>`_
- - The patches applied to curl are written in ``curl-7.28.1.patches``
+  - The patches applied to curl are written in ``curl-7.28.1.patches``
 
 3. - `OpenSSL <http://www.openssl.org>`_
- - Once updated, cURL has to be recompiled just to make sure the symbols match.
+  - Once updated, cURL has to be recompiled just to make sure the symbols match.
 
 Licenses
 --------
 
 MUJIN Controller C++ Client is Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 
-  http://www.apache.org/licenses/LICENSE-2.0
+http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
