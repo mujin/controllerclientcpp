@@ -38,14 +38,12 @@ Can modify the ``CMAKE_INSTALL_PREFIX`` variable in order to change the install 
 
 .. image:: https://raw.github.com/mujin/controllerclientcpp/master/docs/build_visualstudio.png
 
-5. In order to Install into ``c:\Program Files``, compile the **INSTALL** project.
-
- - Can also automate building and installing the project using the Visual Studio Command Prompt::
+5. To build the project using the Visual Studio Command Prompt::
 
     cd %MUJINCLIENTGIT%\build
     msbuild mujincontrollerclient.sln /p:Configuration=Release
 
-6. To install, for Visual Studio 9 2008 and above use::
+6. In order to Install into ``c:\Program Files``, compile the **INSTALL** project. For Visual Studio 9 2008 and above use::
   
     msbuild INSTALL.vcxproj /p:Configuration=Release
   
