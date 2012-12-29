@@ -22,6 +22,7 @@ Building on Windows
 -------------------
 
 1. Checkout the source code and install
+
   - Download and install `msysGit <http://code.google.com/p/msysgit/downloads/list?q=full+installer+official+git>`_
   - (Optional for nice graphical interface) Download and install  `TortoiseGit <http://code.google.com/p/tortoisegit/wiki/Download>`_ 
   - Checkout the following git repository **https://github.com/mujin/controllerclientcpp.git**
@@ -105,15 +106,18 @@ Updating the Windows Libraries
 Several libraries are being managed in this repository. If necessary, get upgraded versions from the following places:
 
 1. `boost <http://www.boostpro.com/download/>`_ (any version >= 1.40 is fine).
+
   - Select Multi-threaded DLL libraries.
   - No extra libraries need to be selected, only the header files.
   
   There is a default included boost (v1.44) if one cannot be detected.
 
 2. - `cURL <http://curl.haxx.se/libcurl/>`_
+
   - The patches applied to curl are written in ``curl-7.28.1.patches``
 
 3. - `OpenSSL <http://www.openssl.org>`_
+
   - Once updated, cURL has to be recompiled just to make sure the symbols match.
 
 Licenses
