@@ -44,7 +44,8 @@ Can modify the ``CMAKE_INSTALL_PREFIX`` variable in order to change the install 
     cd %MUJINCLIENTGIT%\build
     msbuild mujincontrollerclient.sln /p:Configuration=Release
 
-6. In order to Install into ``c:\Program Files``, compile the **INSTALL** project. For Visual Studio 9 2008 and above use::
+6. In order to Install into ``c:\Program Files``, compile the **INSTALL** project. For Visual Studio 9 2008 and above use
+  ::
   
     msbuild INSTALL.vcxproj /p:Configuration=Release
   
@@ -112,11 +113,11 @@ Several libraries are being managed in this repository. If necessary, get upgrad
   
   There is a default included boost (v1.44) if one cannot be detected.
 
-2. - `cURL <http://curl.haxx.se/libcurl/>`_
+2. `cURL <http://curl.haxx.se/libcurl/>`_
 
   - The patches applied to curl are written in ``curl-7.28.1.patches``
 
-3. - `OpenSSL <http://www.openssl.org>`_
+3. `OpenSSL <http://www.openssl.org>`_
 
   - Once updated, cURL has to be recompiled just to make sure the symbols match.
 
