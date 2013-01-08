@@ -3,7 +3,7 @@ MUJIN Controller C++ Client Library
 
 This is an open-source client library communicating with the MUJIN Controller WebAPI.
 
-Uses  for communication. `cURL C Bindings <http://curl.haxx.se/libcurl/c/>`_
+`cURL C Bindings <http://curl.haxx.se/libcurl/c/>`_ used  for encrypted communication. 
 
 In the following documentation %MUJINCLIENTGIT% means the root directory where the sources are checked out.
 
@@ -91,12 +91,13 @@ If libcurl libraries do not exist for the specific Visual Studio version
     cmake -DOPENSSL_ROOT_DIR=%MUJINCLIENTGIT%\msvc_binaries\vcXX -DCMAKE_REQUIRED_INCLUDES=%MUJINCLIENTGIT%\msvc_binaries\vcXX\include -DBUILD_CURL_TESTS=OFF -DCURL_USE_ARES=OFF -DCURL_STATICLIB=OFF -DCMAKE_INSTALL_PREFIX=%MUJINCLIENTGIT%\msvc_binaries\vcXX -G "Visual Studio XX" ..
     msbuild CURL.sln /p:Configuration=Release
 
-3. To install, for Visual Studio 9 2008 and above use::
+3. To install, for Visual Studio 9 2008 and above use
+  ::
   
     msbuild INSTALL.vcxproj /p:Configuration=Release
-
+  
   otherwise use::
-
+  
     msbuild INSTALL.vcproj /p:Configuration=Release
 
 where "Visual Studio XX" is the cmake generator for visual studio. for example: "Visual Studio 8 2005" or "Visual Studio 10". 

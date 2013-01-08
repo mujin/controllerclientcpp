@@ -23,10 +23,10 @@
 
 #define BOOST_FILESYSTEM_VERSION 3 // use boost filesystem v3
 
-#include <cstdio>
-#include <stdarg.h>
+//#include <cstdio>
+//#include <stdarg.h>
 #include <cstring>
-#include <cstdlib>
+//#include <cstdlib>
 
 #ifdef _MSC_VER
 
@@ -64,27 +64,27 @@ namespace mujinclient {
 #include <mujincontrollerclient/config.h>
 
 enum MujinErrorCode {
-    ORE_Failed=0,
-    ORE_InvalidArguments=1, ///< passed in input arguments are not valid
-    ORE_EnvironmentNotLocked=2,
-    ORE_CommandNotSupported=3, ///< string command could not be parsed or is not supported
-    ORE_Assert=4,
-    ORE_NotInitialized=9, ///< when object is used without it getting fully initialized
-    ORE_InvalidState=10, ///< the state of the object is not consistent with its parameters, or cannot be used. This is usually due to a programming error where a vector is not the correct length, etc.
-    ORE_Timeout=11, ///< process timed out
+    MEC_Failed=0,
+    MEC_InvalidArguments=1, ///< passed in input arguments are not valid
+    MEC_EnvironmentNotLocked=2,
+    MEC_CommandNotSupported=3, ///< string command could not be parsed or is not supported
+    MEC_Assert=4,
+    MEC_NotInitialized=9, ///< when object is used without it getting fully initialized
+    MEC_InvalidState=10, ///< the state of the object is not consistent with its parameters, or cannot be used. This is usually due to a programming error where a vector is not the correct length, etc.
+    MEC_Timeout=11, ///< process timed out
 };
 
 inline const char* GetErrorCodeString(MujinErrorCode error)
 {
     switch(error) {
-    case ORE_Failed: return "Failed";
-    case ORE_InvalidArguments: return "InvalidArguments";
-    case ORE_EnvironmentNotLocked: return "EnvironmentNotLocked";
-    case ORE_CommandNotSupported: return "CommandNotSupported";
-    case ORE_Assert: return "Assert";
-    case ORE_NotInitialized: return "NotInitialized";
-    case ORE_InvalidState: return "InvalidState";
-    case ORE_Timeout: return "Timeout";
+    case MEC_Failed: return "Failed";
+    case MEC_InvalidArguments: return "InvalidArguments";
+    case MEC_EnvironmentNotLocked: return "EnvironmentNotLocked";
+    case MEC_CommandNotSupported: return "CommandNotSupported";
+    case MEC_Assert: return "Assert";
+    case MEC_NotInitialized: return "NotInitialized";
+    case MEC_InvalidState: return "InvalidState";
+    case MEC_Timeout: return "Timeout";
     }
     // should throw an exception?
     return "";
@@ -95,9 +95,9 @@ inline const char* GetErrorCodeString(MujinErrorCode error)
 class MUJINCLIENT_API mujin_exception : public std::exception
 {
 public:
-    mujin_exception() : std::exception(), _s("unknown exception"), _error(ORE_Failed) {
+    mujin_exception() : std::exception(), _s("unknown exception"), _error(MEC_Failed) {
     }
-    mujin_exception(const std::string& s, MujinErrorCode error=ORE_Failed) : std::exception() {
+    mujin_exception(const std::string& s, MujinErrorCode error=MEC_Failed) : std::exception() {
         _error = error;
         _s = "mujin (";
         _s += GetErrorCodeString(_error);
@@ -120,11 +120,119 @@ private:
     MujinErrorCode _error;
 };
 
+class ControllerClient;
+class SceneResource;
+class TaskResource;
+class PlanningResultResource;
 
-/// \brief returns raw environment data
+typedef boost::shared_ptr<ControllerClient> ControllerClientPtr;
+typedef boost::weak_ptr<ControllerClient> ControllerClientWeakPtr;
+typedef boost::shared_ptr<SceneResource> SceneResourcePtr;
+typedef boost::weak_ptr<SceneResource> SceneResourceWeakPtr;
+typedef boost::shared_ptr<TaskResource> TaskResourcePtr;
+typedef boost::weak_ptr<TaskResource> TaskResourceWeakPtr;
+typedef boost::shared_ptr<PlanningResultResource> PlanningResultResourcePtr;
+typedef boost::weak_ptr<PlanningResultResource> PlanningResultResourceWeakPtr;
+typedef double Real;
+
+/// \brief Creates on MUJIN Controller instance.
+///
+/// Only one call can be made at a time. In order to make multiple calls simultaneously, create another instance.
+class MUJINCLIENT_API ControllerClient
+{
+public:
+    virtual ~ControllerClient() {
+    }
+
+    /** \brief Returns a list of filenames in the user system of a particular type
+
+        \param scenetype the type of scene possible values are:
+        - mujincollada
+        - wincaps
+        - rttoolbox
+        - cecvirfitxml
+        - stl
+        - x
+        - vrml
+        - stl
+     */
+    virtual void GetSceneFilenames(const std::string& scenetype, std::vector<std::string>& scenefilenames) = 0;
+
+    /// \brief gets a list of all the scene primary keys currently available to the user
+    virtual void GetScenePrimaryKeys(std::vector<std::string>& scenekeys) = 0;
+
+    //virtual SceneResourcePtr GetScene(const std::string& pk);
+};
+
+class MUJINCLIENT_API WebResource
+{
+public:
+    WebResource(ControllerClientPtr controller, const std::string& resourcename, const std::string& pk);
+    virtual ~WebResource() {
+    }
+
+    inline ControllerClientPtr GetController() const {
+        return __controller;
+    }
+    inline const std::string& GetResourceName() const {
+        return __resourcename;
+    }
+    inline const std::string& GetPrimaryKey() const {
+        return __pk;
+    }
+
+    /// \brief gets an attribute of this web resource
+    std::string Get(const std::string& field);
+
+private:
+    ControllerClientPtr __controller;
+    std::string __resourcename, __pk;
+};
+
+class MUJINCLIENT_API SceneResource : public WebResource
+{
+public:
+    SceneResource(ControllerClientPtr controller, const std::string& pk);
+    virtual ~SceneResource() {
+    }
+
+    TaskResourcePtr GetOrCreateTaskFromName(const std::string& taskname);
+
+    /// \brief gets a list of all the scene primary keys currently available to the user
+    //virtual void GetTaskPrimaryKeys(std::vector<std::string>& task) = 0;
+};
+
+class MUJINCLIENT_API TaskResource : public WebResource
+{
+public:
+    TaskResource(ControllerClientPtr controller, const std::string& pk);
+    virtual ~TaskResource() {
+    }
+
+    /// \brief execute the task
+    virtual void Execute();
+
+    /// \brief gets the result of the task execution. If no result has been computed yet, will return a NULL pointer.
+    virtual PlanningResultResourcePtr GetTaskResult();
+};
+
+class MUJINCLIENT_API PlanningResultResource : public WebResource
+{
+public:
+    PlanningResultResource(ControllerClientPtr controller, const std::string& pk);
+    virtual ~PlanningResultResource() {
+    }
+};
+
+
+/// \brief creates the controller with an account.
 ///
 /// \param usernamepassword user:password
-MUJINCLIENT_API std::string ListAllEnvironmentsRaw(const std::string& usernamepassword);
+/// <b>This function is not thread safe.</b> You must not call it when any other thread in the program (i.e. a thread sharing the same memory) is running.
+MUJINCLIENT_API ControllerClientPtr CreateControllerClient(const std::string& usernamepassword);
+
+/// \brief called at the very end of an application to safely destroy all controller client resources
+MUJINCLIENT_API void ControllerClientDestroy();
 
 }
 
@@ -134,13 +242,13 @@ namespace boost
 {
 inline void assertion_failed(char const * expr, char const * function, char const * file, long line)
 {
-    throw mujinclient::mujin_exception(boost::str(boost::format("[%s:%d] -> %s, expr: %s")%file%line%function%expr),mujinclient::ORE_Assert);
+    throw mujinclient::mujin_exception(boost::str(boost::format("[%s:%d] -> %s, expr: %s")%file%line%function%expr),mujinclient::MEC_Assert);
 }
 
 #if BOOST_VERSION>104600
 inline void assertion_failed_msg(char const * expr, char const * msg, char const * function, char const * file, long line)
 {
-    throw mujinclient::mujin_exception(boost::str(boost::format("[%s:%d] -> %s, expr: %s, msg: %s")%file%line%function%expr%msg),mujinclient::ORE_Assert);
+    throw mujinclient::mujin_exception(boost::str(boost::format("[%s:%d] -> %s, expr: %s, msg: %s")%file%line%function%expr%msg),mujinclient::MEC_Assert);
 }
 #endif
 
