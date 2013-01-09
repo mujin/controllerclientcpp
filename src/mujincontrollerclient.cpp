@@ -1,5 +1,5 @@
 // -*- coding: utf-8 -*-
-// Copyright (C) 2012 MUJIN Inc. <rosen.diankov@mujin.co.jp>
+// Copyright (C) 2012-2013 MUJIN Inc. <rosen.diankov@mujin.co.jp>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -188,6 +188,20 @@ TaskResourcePtr SceneResource::GetOrCreateTaskFromName(const std::string& taskna
     return task;
 }
 
+void SceneResource::GetTaskPrimaryKeys(std::vector<std::string>& taskkeys)
+{
+    GETCONTROLLERIMPL();
+    controller->_Call(str(boost::format("scene/%s/task/?format=json&limit=0&fields=pk")%GetPrimaryKey()));
+    boost::property_tree::ptree pt;
+    boost::property_tree::read_json(controller->GetBuffer(), pt);
+    boost::property_tree::ptree& objects = pt.get_child("objects");
+    taskkeys.resize(objects.size());
+    size_t i = 0;
+    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, objects) {
+        taskkeys[i++] = v.second.get<std::string>("pk");
+    }
+}
+
 TaskResource::TaskResource(ControllerClientPtr controller, const std::string& pk) : WebResource(controller,"task",pk)
 {
 }
@@ -214,6 +228,20 @@ OptimizationResourcePtr TaskResource::GetOrCreateOptimizationFromName(const std:
     std::string pk = objects.begin()->second.get<std::string>("pk");
     OptimizationResourcePtr optimization(new OptimizationResource(GetController(), pk));
     return optimization;
+}
+
+void TaskResource::GetOptimizationPrimaryKeys(std::vector<std::string>& optimizationkeys)
+{
+    GETCONTROLLERIMPL();
+    controller->_Call(str(boost::format("task/%s/optimization/?format=json&limit=0&fields=pk")%GetPrimaryKey()));
+    boost::property_tree::ptree pt;
+    boost::property_tree::read_json(controller->GetBuffer(), pt);
+    boost::property_tree::ptree& objects = pt.get_child("objects");
+    optimizationkeys.resize(objects.size());
+    size_t i = 0;
+    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, objects) {
+        optimizationkeys[i++] = v.second.get<std::string>("pk");
+    }
 }
 
 PlanningResultResourcePtr TaskResource::GetResult()

@@ -1,5 +1,5 @@
 // -*- coding: utf-8 -*-
-// Copyright (C) 2012 MUJIN Inc. <rosen.diankov@mujin.co.jp>
+// Copyright (C) 2012-2013 MUJIN Inc. <rosen.diankov@mujin.co.jp>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
 #include <mujincontrollerclient/mujincontrollerclient.h>
 
 #include <iostream>
+#include <vector>
 
 using namespace std;
 using namespace mujinclient;
@@ -26,6 +27,7 @@ int main(int argc, char ** argv)
     }
     ControllerClientPtr controller = CreateControllerClient(argv[1]);
 
+    // get all supported keys
     std::vector<std::string> scenekeys;
     controller->GetScenePrimaryKeys(scenekeys);
 
@@ -34,8 +36,22 @@ int main(int argc, char ** argv)
         cout << scenekeys[i] << endl;
     }
 
-    SceneResourcePtr scene(new SceneResource(controller, "YG_LAYOUT"));
-    TaskResourcePtr task = scene->GetOrCreateTaskFromName("task0");
+    SceneResourcePtr scene;
+    // if YG_LAYOUT exists, open it, otherwise open the first file
+    if( find(scenekeys.begin(),scenekeys.end(), string("YG_LAYOUT")) != scenekeys.end() ) {
+        scene.reset(new SceneResource(controller, "YG_LAYOUT"));
+    }
+    else {
+        cout << "opening scene " << scenekeys.at(0) << endl;
+        scene.reset(new SceneResource(controller, scenekeys.at(0)));
+    }
+
+    // open the first task
+    std::vector<std::string> taskkeys;
+    scene->GetTaskPrimaryKeys(taskkeys);
+    TaskResourcePtr task(new TaskResource(controller, taskkeys.at(0)));
+    //task = scene->GetOrCreateTaskFromName("task0");
+
     cout << "got task " << task->Get("name") << endl;
     cout << "program is " << task->Get("taskgoalxml") << endl;
     // execute task
@@ -48,8 +64,11 @@ int main(int argc, char ** argv)
         cout << "result for task exists and can be completed in " << result->Get("task_time") << " seconds." << endl;
     }
 
-    // get the optimization
-    OptimizationResourcePtr optimization = task->GetOrCreateOptimizationFromName("opt0");
+    // get the first optimization
+    std::vector<std::string> optimizationkeys;
+    task->GetOptimizationPrimaryKeys(optimizationkeys);
+    //OptimizationResourcePtr optimization = task->GetOrCreateOptimizationFromName(optimizationkeys.at(0));
+    OptimizationResourcePtr optimization(new OptimizationResource(controller, optimizationkeys.at(0)));
     cout << "found optimization " << optimization->Get("name") << endl;
 
     std::vector<PlanningResultResourcePtr> results;
@@ -70,7 +89,14 @@ int main(int argc, char ** argv)
             cout << it->first << "=(" << tfirst.translation[0] << ", " << tfirst.translation[1] << ", " << tfirst.translation[2] << "), ";
         }
         cout << endl;
-        cout << endl << "robot program is: " << endl << bestresult->Get("robot_programs") << endl;
+        std::string robotprogram = bestresult->Get("robot_programs");
+        if( robotprogram.size() > 0 ) {
+            cout << endl << "robot program is: " << endl << robotprogram << endl;
+        }
+        else {
+            // output the trajectory in xml format
+            cout << endl << "trajectory is: " << endl << bestresult->Get("trajectory") << endl;
+        }
     }
 
     // destroy all mujin controller resources

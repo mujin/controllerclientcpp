@@ -1,5 +1,5 @@
 // -*- coding: utf-8 -*-
-// Copyright (C) 2012 MUJIN Inc. <rosen.diankov@mujin.co.jp>
+// Copyright (C) 2012-2013 MUJIN Inc. <rosen.diankov@mujin.co.jp>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -219,7 +219,7 @@ public:
     virtual TaskResourcePtr GetOrCreateTaskFromName(const std::string& taskname);
 
     /// \brief gets a list of all the scene primary keys currently available to the user
-    //virtual void GetTaskPrimaryKeys(std::vector<std::string>& task) = 0;
+    virtual void GetTaskPrimaryKeys(std::vector<std::string>& taskkeys);
 };
 
 class MUJINCLIENT_API TaskResource : public WebResource
@@ -239,6 +239,9 @@ public:
     ///
     /// \param optimizationname the name of the optimization to search for or create
     virtual OptimizationResourcePtr GetOrCreateOptimizationFromName(const std::string& optimizationname);
+
+    /// \brief gets a list of all the scene primary keys currently available to the user
+    virtual void GetOptimizationPrimaryKeys(std::vector<std::string>& optimizationkeys);
 
     /// \brief gets the result of the task execution. If no result has been computed yet, will return a NULL pointer.
     virtual PlanningResultResourcePtr GetResult();
