@@ -23,11 +23,6 @@
 
 #define BOOST_FILESYSTEM_VERSION 3 // use boost filesystem v3
 
-//#include <cstdio>
-//#include <stdarg.h>
-#include <cstring>
-//#include <cstdlib>
-
 #ifdef _MSC_VER
 
 #pragma warning(disable:4251) // needs to have dll-interface to be used by clients of class
@@ -123,6 +118,7 @@ private:
 class ControllerClient;
 class SceneResource;
 class TaskResource;
+class OptimizationResource;
 class PlanningResultResource;
 
 typedef boost::shared_ptr<ControllerClient> ControllerClientPtr;
@@ -131,9 +127,30 @@ typedef boost::shared_ptr<SceneResource> SceneResourcePtr;
 typedef boost::weak_ptr<SceneResource> SceneResourceWeakPtr;
 typedef boost::shared_ptr<TaskResource> TaskResourcePtr;
 typedef boost::weak_ptr<TaskResource> TaskResourceWeakPtr;
+typedef boost::shared_ptr<OptimizationResource> OptimizationResourcePtr;
+typedef boost::weak_ptr<OptimizationResource> OptimizationResourceWeakPtr;
 typedef boost::shared_ptr<PlanningResultResource> PlanningResultResourcePtr;
 typedef boost::weak_ptr<PlanningResultResource> PlanningResultResourceWeakPtr;
 typedef double Real;
+
+struct JobStatus
+{
+    JobStatus() : code(0) {
+    }
+    int code; ///< if 3, succeeded
+    std::string message;
+};
+
+/// \brief an affine transform
+struct Transform
+{
+    Transform() {
+        quat[0] = 1; quat[1] = 0; quat[2] = 0; quat[3] = 0;
+        translation[0] = 0; translation[1] = 0; translation[2] = 0;
+    }
+    Real quat[4]; ///< quaternion [cos(ang/2), axis*sin(ang/2)]
+    Real translation[3]; ///< translation x,y,z
+};
 
 /// \brief Creates on MUJIN Controller instance.
 ///
@@ -196,7 +213,10 @@ public:
     virtual ~SceneResource() {
     }
 
-    TaskResourcePtr GetOrCreateTaskFromName(const std::string& taskname);
+    /// \brief Gets or creates the a task part of the scene
+    ///
+    /// \param taskname the name of the task to search for or create
+    virtual TaskResourcePtr GetOrCreateTaskFromName(const std::string& taskname);
 
     /// \brief gets a list of all the scene primary keys currently available to the user
     //virtual void GetTaskPrimaryKeys(std::vector<std::string>& task) = 0;
@@ -212,8 +232,35 @@ public:
     /// \brief execute the task
     virtual void Execute();
 
+    /// \brief get the run-time status of the executed task
+    virtual JobStatus GetRunTimeStatus();
+
+    /// \brief Gets or creates the a optimization part of the scene
+    ///
+    /// \param optimizationname the name of the optimization to search for or create
+    virtual OptimizationResourcePtr GetOrCreateOptimizationFromName(const std::string& optimizationname);
+
     /// \brief gets the result of the task execution. If no result has been computed yet, will return a NULL pointer.
-    virtual PlanningResultResourcePtr GetTaskResult();
+    virtual PlanningResultResourcePtr GetResult();
+};
+
+class MUJINCLIENT_API OptimizationResource : public WebResource
+{
+public:
+    OptimizationResource(ControllerClientPtr controller, const std::string& pk);
+    virtual ~OptimizationResource() {
+    }
+
+    /// \brief execute the optimization
+    virtual void Execute();
+
+    /// \brief get the run-time status of the executed optimization
+    virtual JobStatus GetRunTimeStatus();
+
+    /// \brief gets the fastest results of the optimization execution.
+    ///
+    /// \param fastestnum The number of results to get starting with the fastest task_time. If 0, will return ALL results.
+    virtual void GetResults(int fastestnum, std::vector<PlanningResultResourcePtr>& results);
 };
 
 class MUJINCLIENT_API PlanningResultResource : public WebResource
@@ -222,6 +269,9 @@ public:
     PlanningResultResource(ControllerClientPtr controller, const std::string& pk);
     virtual ~PlanningResultResource() {
     }
+
+    /// \brief Get all the transforms the results are storing. Depending on the optimization, can be more than just the robot
+    virtual void GetTransforms(std::map<std::string, Transform>& transforms);
 };
 
 
@@ -233,6 +283,25 @@ MUJINCLIENT_API ControllerClientPtr CreateControllerClient(const std::string& us
 
 /// \brief called at the very end of an application to safely destroy all controller client resources
 MUJINCLIENT_API void ControllerClientDestroy();
+
+/// \brief Compute a 3x4 matrix from a Transform
+MUJINCLIENT_API void ComputeMatrixFromTransform(Real matrix[12], const Transform &transform);
+
+/** \brief Compute Euler angles in ZXY order (T = Z*X*Y) from a 3x4 matrix
+
+    Rx = Matrix(3,3,[1,0,0,0,cos(x),-sin(x),0,sin(x),cos(x)])
+    Ry = Matrix(3,3,[cos(y),0,sin(y),0,1,0,-sin(y),0,cos(y)])
+    Rz = Matrix(3,3,[cos(z),-sin(z),0,sin(z),cos(z),0,0,0,1])
+    Rz*Rx*Ry
+
+    [-sin(x)*sin(y)*sin(z) + cos(y)*cos(z), -sin(z)*cos(x),  sin(x)*sin(z)*cos(y) + sin(y)*cos(z)]
+    [ sin(x)*sin(y)*cos(z) + sin(z)*cos(y),  cos(x)*cos(z), -sin(x)*cos(y)*cos(z) + sin(y)*sin(z)]
+    [                       -sin(y)*cos(x),         sin(x),                         cos(x)*cos(y)]
+
+ */
+MUJINCLIENT_API void ComputeZXYFromMatrix(Real ZXY[3], const Real matrix[12]);
+
+MUJINCLIENT_API void ComputeZXYFromTransform(Real ZXY[3], const Transform &transform);
 
 }
 

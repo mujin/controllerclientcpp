@@ -16,6 +16,8 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/property_tree/xml_parser.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>
 
@@ -178,7 +180,7 @@ TaskResourcePtr SceneResource::GetOrCreateTaskFromName(const std::string& taskna
     boost::property_tree::read_json(controller->GetBuffer(), pt);
     boost::property_tree::ptree& objects = pt.get_child("objects");
     if( objects.size() == 0 ) {
-        throw MUJIN_EXCEPTION_FORMAT("failed to get task %s", taskname, MEC_InvalidArguments);
+        throw MUJIN_EXCEPTION_FORMAT("failed to get task %s from scene pk %s", taskname%GetPrimaryKey(), MEC_InvalidArguments);
     }
     std::string pk = objects.begin()->second.get<std::string>("pk");
     TaskResourcePtr task(new TaskResource(GetController(), pk));
@@ -194,7 +196,26 @@ void TaskResource::Execute()
     throw mujin_exception("not implemented yet");
 }
 
-PlanningResultResourcePtr TaskResource::GetTaskResult()
+JobStatus TaskResource::GetRunTimeStatus() {
+    throw mujin_exception("not implemented yet");
+}
+
+OptimizationResourcePtr TaskResource::GetOrCreateOptimizationFromName(const std::string& optimizationname)
+{
+    GETCONTROLLERIMPL();
+    controller->_Call(str(boost::format("task/%s/optimization/?format=json&limit=1&name=%s&fields=pk")%GetPrimaryKey()%optimizationname));
+    boost::property_tree::ptree pt;
+    boost::property_tree::read_json(controller->GetBuffer(), pt);
+    boost::property_tree::ptree& objects = pt.get_child("objects");
+    if( objects.size() == 0 ) {
+        throw MUJIN_EXCEPTION_FORMAT("failed to get optimization %s from task pk", optimizationname%GetPrimaryKey(), MEC_InvalidArguments);
+    }
+    std::string pk = objects.begin()->second.get<std::string>("pk");
+    OptimizationResourcePtr optimization(new OptimizationResource(GetController(), pk));
+    return optimization;
+}
+
+PlanningResultResourcePtr TaskResource::GetResult()
 {
     GETCONTROLLERIMPL();
     controller->_Call(str(boost::format("task/%s/result/?format=json&limit=1&optimization=None&fields=pk")%GetPrimaryKey()));
@@ -209,10 +230,78 @@ PlanningResultResourcePtr TaskResource::GetTaskResult()
     return result;
 }
 
+OptimizationResource::OptimizationResource(ControllerClientPtr controller, const std::string& pk) : WebResource(controller,"optimization",pk)
+{
+}
+
+void OptimizationResource::Execute()
+{
+    throw mujin_exception("not implemented yet");
+}
+
+JobStatus OptimizationResource::GetRunTimeStatus() {
+    throw mujin_exception("not implemented yet");
+}
+
+void OptimizationResource::GetResults(int fastestnum, std::vector<PlanningResultResourcePtr>& results)
+{
+    GETCONTROLLERIMPL();
+    controller->_Call(str(boost::format("optimization/%s/result/?format=json&limit=%d&fields=pk&order_by=task_time")%GetPrimaryKey()%fastestnum));
+    boost::property_tree::ptree pt;
+    boost::property_tree::read_json(controller->GetBuffer(), pt);
+    boost::property_tree::ptree& objects = pt.get_child("objects");
+    results.resize(objects.size());
+    size_t i = 0;
+    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, objects) {
+        results[i++].reset(new PlanningResultResource(controller, v.second.get<std::string>("pk")));
+    }
+}
+
 PlanningResultResource::PlanningResultResource(ControllerClientPtr controller, const std::string& pk) : WebResource(controller,"planningresult",pk)
 {
 }
 
+void PlanningResultResource::GetTransforms(std::map<std::string, Transform>& transforms)
+{
+    GETCONTROLLERIMPL();
+    controller->_Call(str(boost::format("%s/%s/?format=json&fields=transformxml")%GetResourceName()%GetPrimaryKey()));
+    boost::property_tree::ptree pt;
+    boost::property_tree::read_json(controller->GetBuffer(), pt);
+    std::stringstream sstrans(pt.get<std::string>("transformxml"));
+    boost::property_tree::ptree pttrans;
+    boost::property_tree::read_xml(sstrans, pttrans);
+    boost::property_tree::ptree& objects = pttrans.get_child("root");
+    transforms.clear();
+    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, objects) {
+        if( v.first == "transforms_" ) {
+            Transform t;
+            std::string name;
+            int itranslation=0, iquat=0;
+            BOOST_FOREACH(boost::property_tree::ptree::value_type &vtrans, v.second) {
+                if( vtrans.first == "name" ) {
+                    name = vtrans.second.data();
+                }
+                else if( vtrans.first == "translation_" && itranslation < 3 ) {
+                    t.translation[itranslation++] = boost::lexical_cast<Real>(vtrans.second.data());
+                }
+                else if( vtrans.first == "quat_" && iquat < 4 ) {
+                    t.quat[iquat++] = boost::lexical_cast<Real>(vtrans.second.data());
+                }
+            }
+            // normalize the quaternion
+            Real dist2 = t.quat[0]*t.quat[0] + t.quat[1]*t.quat[1] + t.quat[2]*t.quat[2] + t.quat[3]*t.quat[3];
+            if( dist2 > 0 ) {
+                Real fnorm =1/std::sqrt(dist2);
+                t.quat[0] *= fnorm; t.quat[1] *= fnorm; t.quat[2] *= fnorm; t.quat[3] *= fnorm;
+            }
+            transforms[name] = t;
+        }
+    }
+    //std::string fieldvalue = pt.get<std::string>(field);
+    //return fieldvalue;
+}
+
+//    transformxml
 ControllerClientPtr CreateControllerClient(const std::string& usernamepassword)
 {
     return ControllerClientPtr(new ControllerClientImpl(usernamepassword));
@@ -220,6 +309,51 @@ ControllerClientPtr CreateControllerClient(const std::string& usernamepassword)
 
 void ControllerClientDestroy()
 {
+}
+
+void ComputeMatrixFromTransform(Real matrix[12], const Transform &transform)
+{
+    throw mujin_exception("not implemented yet");
+//    length2 = numpy.sum(quat**2)
+//    ilength2 = 2.0/length2
+//    qq1 = ilength2*quat[1]*quat[1]
+//    qq2 = ilength2*quat[2]*quat[2]
+//    qq3 = ilength2*quat[3]*quat[3]
+//    T = numpy.eye(4)
+//    T[0,0] = 1 - qq2 - qq3
+//    T[0,1] = ilength2*(quat[1]*quat[2] - quat[0]*quat[3])
+//    T[0,2] = ilength2*(quat[1]*quat[3] + quat[0]*quat[2])
+//    T[1,0] = ilength2*(quat[1]*quat[2] + quat[0]*quat[3])
+//    T[1,1] = 1 - qq1 - qq3
+//    T[1,2] = ilength2*(quat[2]*quat[3] - quat[0]*quat[1])
+//    T[2,0] = ilength2*(quat[1]*quat[3] - quat[0]*quat[2])
+//    T[2,1] = ilength2*(quat[2]*quat[3] + quat[0]*quat[1])
+//    T[2,2] = 1 - qq1 - qq2
+}
+
+void ComputeZXYFromMatrix(Real ZXY[3], Real matrix[12])
+{
+    throw mujin_exception("not implemented yet");
+//    if abs(T[2][0]) < 1e-10 and abs(T[2][2]) < 1e-10:
+//        sinx = T[2][1]
+//        x = numpy.pi/2 if sinx > 0 else -numpy.pi/2
+//        z = 0.0
+//        y = numpy.arctan2(sinx*T[1][0],T[0][0])
+//    else:
+//        y = numpy.arctan2(-T[2][0],T[2][2])
+//        siny = numpy.sin(y)
+//        cosy = numpy.cos(y)
+//        Ryinv = numpy.array([[cosy,0,-siny],[0,1,0],[siny,0,cosy]])
+//        Rzx = numpy.dot(T[0:3,0:3],Ryinv)
+//        x = numpy.arctan2(Rzx[2][1],Rzx[2][2])
+//        z = numpy.arctan2(Rzx[1][0],Rzx[0][0])
+//    return numpy.array([x,y,z])
+}
+
+void ComputeZXYFromTransform(Real ZXY[3], const Transform& transform)
+{
+    throw mujin_exception("not implemented yet");
+    //zxyFromMatrix(matrixFromTransform())
 }
 
 }

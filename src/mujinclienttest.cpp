@@ -28,7 +28,7 @@ int main(int argc, char ** argv)
     std::vector<std::string> scenekeys;
     controller->GetScenePrimaryKeys(scenekeys);
 
-    cout << "user has " << scenekeys.size() << " environments: " << endl;
+    cout << "user has " << scenekeys.size() << " scenes: " << endl;
     for(size_t i = 0; i < scenekeys.size(); ++i) {
         cout << scenekeys[i] << endl;
     }
@@ -37,11 +37,40 @@ int main(int argc, char ** argv)
     TaskResourcePtr task = scene->GetOrCreateTaskFromName("task0");
     cout << "got task " << task->Get("name") << endl;
     cout << "program is " << task->Get("taskgoalxml") << endl;
+    // execute task
     //task->Execute();
-
-    PlanningResultResourcePtr result = task->GetTaskResult();
+    // check if task is complete
+    //task->GetRunTimeStatus()
+    PlanningResultResourcePtr result = task->GetResult();
+    std::map<std::string, Transform> transforms;
     if( !!result ) {
-        cout << "result exists and can be completed in " << result->Get("task_time") << " seconds." << endl;
+        cout << "result for task exists and can be completed in " << result->Get("task_time") << " seconds." << endl;
     }
+
+    OptimizationResourcePtr optimization = task->GetOrCreateOptimizationFromName("opt0");
+    cout << "found optimization " << optimization->Get("name") << endl;
+
+    std::vector<PlanningResultResourcePtr> results;
+    optimization->GetResults(10,results);
+    if( results.size() > 0 ) {
+        cout << "the top results have times: ";
+        for(size_t i = 0; i < results.size(); ++i) {
+            cout << results[i]->Get("task_time") << ", ";
+        }
+        cout << endl;
+
+        PlanningResultResourcePtr bestresult = results.at(0);
+        bestresult->GetTransforms(transforms);
+        cout << "robot position of best result is: ";
+        for(std::map<std::string, Transform>::iterator it = transforms.begin(); it != transforms.end(); ++it) {
+            Transform tfirst = it->second;
+            // for now only output translation
+            cout << it->first << "=(" << tfirst.translation[0] << ", " << tfirst.translation[1] << ", " << tfirst.translation[2] << "), ";
+        }
+        cout << endl;
+        cout << endl << "robot program is: " << endl << bestresult->Get("robot_programs") << endl;
+    }
+
+    // get the optimization
     ControllerClientDestroy();
 }
