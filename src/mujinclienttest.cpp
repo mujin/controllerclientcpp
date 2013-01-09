@@ -22,6 +22,7 @@ int main(int argc, char ** argv)
 {
     if( argc < 2 ) {
         printf("need username:password. Example: mujinclienttest myuser:mypass\n");
+        return 1;
     }
     ControllerClientPtr controller = CreateControllerClient(argv[1]);
 
@@ -47,6 +48,7 @@ int main(int argc, char ** argv)
         cout << "result for task exists and can be completed in " << result->Get("task_time") << " seconds." << endl;
     }
 
+    // get the optimization
     OptimizationResourcePtr optimization = task->GetOrCreateOptimizationFromName("opt0");
     cout << "found optimization " << optimization->Get("name") << endl;
 
@@ -71,6 +73,6 @@ int main(int argc, char ** argv)
         cout << endl << "robot program is: " << endl << bestresult->Get("robot_programs") << endl;
     }
 
-    // get the optimization
+    // destroy all mujin controller resources
     ControllerClientDestroy();
 }
