@@ -49,7 +49,6 @@
 #include <sstream>
 
 #include <boost/version.hpp>
-#include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/weak_ptr.hpp>
 #include <boost/format.hpp>
@@ -67,6 +66,8 @@ enum MujinErrorCode {
     MEC_NotInitialized=9, ///< when object is used without it getting fully initialized
     MEC_InvalidState=10, ///< the state of the object is not consistent with its parameters, or cannot be used. This is usually due to a programming error where a vector is not the correct length, etc.
     MEC_Timeout=11, ///< process timed out
+    MEC_HTTPClient=12, ///< HTTP client error
+    MEC_HTTPStatus=13, ///< http error status code
 };
 
 inline const char* GetErrorCodeString(MujinErrorCode error)
@@ -80,6 +81,8 @@ inline const char* GetErrorCodeString(MujinErrorCode error)
     case MEC_NotInitialized: return "NotInitialized";
     case MEC_InvalidState: return "InvalidState";
     case MEC_Timeout: return "Timeout";
+    case MEC_HTTPClient: return "HTTPClient";
+    case MEC_HTTPStatus: return "HTTPStatus";
     }
     // should throw an exception?
     return "";
@@ -152,6 +155,14 @@ struct Transform
     Real translation[3]; ///< translation x,y,z
 };
 
+struct SceneInformation
+{
+    std::string pk; ///< primary key
+    std::string uri; ///< uri of the file pointed to
+    std::string datemodified; ///< late date modified
+    std::string name;
+};
+
 /// \brief Creates on MUJIN Controller instance.
 ///
 /// Only one call can be made at a time. In order to make multiple calls simultaneously, create another instance.
@@ -161,24 +172,47 @@ public:
     virtual ~ControllerClient() {
     }
 
-    /** \brief Returns a list of filenames in the user system of a particular type
+//    /** \brief Returns a list of filenames in the user system of a particular type
+//
+//        \param scenetype the type of scene possible values are:
+//        - mujincollada
+//        - wincaps
+//        - rttoolbox
+//        - cecvirfitxml
+//        - stl
+//        - x
+//        - vrml
+//        - stl
+//     */
+//    virtual void GetSceneFilenames(const std::string& scenetype, std::vector<std::string>& scenefilenames) = 0;
 
-        \param scenetype the type of scene possible values are:
-        - mujincollada
-        - wincaps
-        - rttoolbox
-        - cecvirfitxml
-        - stl
-        - x
-        - vrml
-        - stl
-     */
-    virtual void GetSceneFilenames(const std::string& scenetype, std::vector<std::string>& scenefilenames) = 0;
+    /// \brief sets the character encoding for all strings that are being input and output from the resources
+    ///
+    /// The default character encoding is utf-8, can also set it to Shift_JIS for windows japanese unicode, iso-2022-jp
+    /// List of possible sets: http://www.iana.org/assignments/character-sets/character-sets.xml
+    virtual void SetCharacterEncoding(const std::string& newencoding) = 0;
+
+    /// \brief sets the language code for all output
+    ///
+    /// Checkout http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
+    virtual void SetLanguage(const std::string& language) = 0;
 
     /// \brief gets a list of all the scene primary keys currently available to the user
     virtual void GetScenePrimaryKeys(std::vector<std::string>& scenekeys) = 0;
 
-    //virtual SceneResourcePtr GetScene(const std::string& pk);
+    /** \brief import a scene using from scene identified by a URI
+
+        \param importuri The original URI to import from. For MUJIN network files use <b>mujin:/mypath/myfile.ext</b>
+        \param importformat The format of the imported file. Can be:
+        - mujincollada
+        - **wincaps** (DensoWave WINCAPS III)
+        - **rttoolbox** (Mitsubishi RT ToolBox)
+        - **x** (DirectX)
+        - **vrml**
+        - **stl**
+        \param newuri Then new URI to save the imported results. Default is to save to MUJIN COLLADA, so end with <b>.mujin.dae</b> . Use <b>mujin:/mypath/myfile.mujin.dae</b>
+     */
+    virtual SceneResourcePtr ImportScene(const std::string& importuri, const std::string& importformat, const std::string& newuri) = 0;
 };
 
 class MUJINCLIENT_API WebResource
@@ -199,7 +233,13 @@ public:
     }
 
     /// \brief gets an attribute of this web resource
-    std::string Get(const std::string& field);
+    virtual std::string Get(const std::string& field);
+
+    /// \brief delete the resource and all its child resources
+    virtual void Delete();
+
+    /// \brief copy the resource and all its child resources to a new name
+    virtual void Copy(const std::string& newname, int options);
 
 private:
     ControllerClientPtr __controller;
@@ -282,7 +322,8 @@ public:
 ///
 /// \param usernamepassword user:password
 /// <b>This function is not thread safe.</b> You must not call it when any other thread in the program (i.e. a thread sharing the same memory) is running.
-MUJINCLIENT_API ControllerClientPtr CreateControllerClient(const std::string& usernamepassword);
+/// \param url the URL of controller API, it needs to have a trailing slash
+MUJINCLIENT_API ControllerClientPtr CreateControllerClient(const std::string& usernamepassword, const std::string& url="https://controller.mujin.co.jp/api/v1/");
 
 /// \brief called at the very end of an application to safely destroy all controller client resources
 MUJINCLIENT_API void ControllerClientDestroy();

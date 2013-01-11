@@ -21,6 +21,8 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>
+#include <boost/function.hpp>
+#include <boost/enable_shared_from_this.hpp>
 
 #include <sstream>
 #include <curl/curl.h>
@@ -46,13 +48,14 @@
 namespace mujinclient {
 
 #define SKIP_PEER_VERIFICATION // temporary
+//#define SKIP_HOSTNAME_VERIFICATION
 
-class ControllerClientImpl : public ControllerClient
+class ControllerClientImpl : public ControllerClient, public boost::enable_shared_from_this<ControllerClientImpl>
 {
 public:
-    ControllerClientImpl(const std::string& usernamepassword)
+    ControllerClientImpl(const std::string& usernamepassword, const std::string& baseuri)
     {
-        _baseuri = "https://controller.mujin.co.jp/api/v1/";
+        _baseuri = baseuri;
         //CURLcode code = curl_global_init(CURL_GLOBAL_SSL|CURL_GLOBAL_WIN32);
         _curl = curl_easy_init();
         BOOST_ASSERT(!!_curl);
@@ -72,15 +75,15 @@ public:
         curl_easy_setopt(_curl, CURLOPT_SSL_VERIFYPEER, 0l);
 #endif
 
-//#ifdef SKIP_HOSTNAME_VERIFICATION
-//        /*
-//         * If the site you're connecting to uses a different host name that what
-//         * they have mentioned in their server certificate's commonName (or
-//         * subjectAltName) fields, libcurl will refuse to connect. You can skip
-//         * this check, but this will make the connection less secure.
-//         */
-//        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-//#endif
+#ifdef SKIP_HOSTNAME_VERIFICATION
+        /*
+         * If the site you're connecting to uses a different host name that what
+         * they have mentioned in their server certificate's commonName (or
+         * subjectAltName) fields, libcurl will refuse to connect. You can skip
+         * this check, but this will make the connection less secure.
+         */
+        curl_easy_setopt(_curl, CURLOPT_SSL_VERIFYHOST, 0L);
+#endif
 
         res = curl_easy_setopt(_curl, CURLOPT_USERPWD, usernamepassword.c_str());
         if (res != CURLE_OK) {
@@ -97,20 +100,37 @@ public:
             throw mujin_exception("failed to set write data");
         }
 
+        // need to set the following?
+        //CURLOPT_COOKIE, CURLOPT_USERAGENT and CURLOPT_REFERER.
+
+        _charset = "utf-8";
+        _language = "en-us";
+        _SetHTTPHeaders();
     }
+
     virtual ~ControllerClientImpl() {
+        //curl_slist_free_all(slist); // free the list again
         curl_easy_cleanup(_curl);
     }
 
-    virtual void GetSceneFilenames(const std::string& scenetype, std::vector<std::string>& scenefilenames)
+    virtual void SetCharacterEncoding(const std::string& newencoding)
     {
+        boost::mutex::scoped_lock lock(_mutex);
+        _charset = newencoding;
+        _SetHTTPHeaders();
+    }
+
+    virtual void SetLanguage(const std::string& language)
+    {
+        boost::mutex::scoped_lock lock(_mutex);
+        _language = language;
+        _SetHTTPHeaders();
     }
 
     virtual void GetScenePrimaryKeys(std::vector<std::string>& scenekeys)
     {
-        _Call("scene/?format=json&limit=0&fields=pk");
         boost::property_tree::ptree pt;
-        boost::property_tree::read_json(_buffer, pt);
+        CallGet("scene/?format=json&limit=0&fields=pk", pt);
         boost::property_tree::ptree& objects = pt.get_child("objects");
         scenekeys.resize(objects.size());
         size_t i = 0;
@@ -119,20 +139,69 @@ public:
         }
     }
 
-    void _Call(const std::string& relativeuri) {
+    virtual SceneResourcePtr ImportScene(const std::string& importuri, const std::string& importformat, const std::string& newuri)
+    {
+        boost::property_tree::ptree pt;
+        CallPost("scene/?format=json&fields=pk", str(boost::format("{\"reference_uri\":\"%s\", \"reference_format\":\"%s\", \"uri\":\"%s\"}")%importuri%importformat%newuri), pt);
+        std::string pk = pt.get<std::string>("pk");
+        SceneResourcePtr scene(new SceneResource(shared_from_this(), pk));
+        return scene;
+    }
+
+    void CallGet(const std::string& relativeuri, boost::property_tree::ptree& pt)
+    {
         boost::mutex::scoped_lock lock(_mutex);
         _uri = _baseuri;
         _uri += relativeuri;
         curl_easy_setopt(_curl, CURLOPT_URL, _uri.c_str());
         _buffer.clear();
         _buffer.str("");
+        curl_easy_setopt(_curl, CURLOPT_HTTPGET, 1);
         CURLcode res = curl_easy_perform(_curl);
         if (res != CURLE_OK) {
             throw mujin_exception("curl_easy_perform failed");
         }
+        long http_code = 0;
+        curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
+        if (res != CURLE_OK) {
+            throw mujin_exception("curl_easy_getinfo failed", MEC_HTTPClient);
+        }
+        if( http_code != 200 ) {
+            throw mujin_exception(str(boost::format("HTTP GET %s returned HTTP error code %s")%relativeuri%http_code), MEC_HTTPStatus);
+        }
+        boost::property_tree::read_json(_buffer, pt);
     }
 
-    std::stringstream& GetBuffer() {
+    void CallPost(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt)
+    {
+        boost::mutex::scoped_lock lock(_mutex);
+        _uri = _baseuri;
+        _uri += relativeuri;
+        curl_easy_setopt(_curl, CURLOPT_URL, _uri.c_str());
+        _buffer.clear();
+        _buffer.str("");
+        curl_easy_setopt(_curl, CURLOPT_POST, 1);
+        curl_easy_setopt(_curl, CURLOPT_POSTFIELDSIZE, data.size());
+        curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, data.c_str());
+        CURLcode res = curl_easy_perform(_curl);
+        if (res != CURLE_OK) {
+            throw mujin_exception("curl_easy_perform failed");
+        }
+        long http_code = 0;
+        res = curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
+        if (res != CURLE_OK) {
+            throw mujin_exception("curl_easy_getinfo failed", MEC_HTTPClient);
+        }
+        if( http_code != 200 ) {
+            throw mujin_exception(str(boost::format("HTTP GET %s returned HTTP error code %s")%relativeuri%http_code), MEC_HTTPStatus);
+        }
+        std::string temp = _buffer.str();
+        boost::property_tree::read_json(_buffer, pt);
+        // check if an error
+    }
+
+    std::stringstream& GetBuffer()
+    {
         return _buffer;
     }
 
@@ -147,26 +216,54 @@ protected:
         return size * nmemb;
     }
 
+    void _SetHTTPHeaders()
+    {
+        _httpheaders = curl_slist_append(NULL, "Accept:");
+        // set the header to only send json
+        std::string s = std::string("Content-Type: application/json; charset=") + _charset;
+        _httpheaders = curl_slist_append(_httpheaders, s.c_str());
+        s = str(boost::format("Accept-Language: %s,en-us")%_language);
+        _httpheaders = curl_slist_append(_httpheaders, s.c_str()); //,en;q=0.7,ja;q=0.3',")
+        // test on windows first
+        //_httpheaders = curl_slist_append(_httpheaders, "Accept-Encoding: gzip, deflate");
+        curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, _httpheaders);
+    }
+
+    int _lastmode;
     CURL *_curl;
     boost::mutex _mutex;
     std::stringstream _buffer;
     std::string _baseuri, _uri;
+
+    curl_slist *_httpheaders;
+    std::string _charset, _language;
 };
 
 typedef boost::shared_ptr<ControllerClientImpl> ControllerClientImplPtr;
 
 WebResource::WebResource(ControllerClientPtr controller, const std::string& resourcename, const std::string& pk) : __controller(controller), __resourcename(resourcename), __pk(pk)
 {
+    BOOST_ASSERT(__pk.size()>0);
 }
 
 std::string WebResource::Get(const std::string& field)
 {
     GETCONTROLLERIMPL();
-    controller->_Call(str(boost::format("%s/%s/?format=json&fields=%s")%GetResourceName()%GetPrimaryKey()%field));
     boost::property_tree::ptree pt;
-    boost::property_tree::read_json(controller->GetBuffer(), pt);
+    controller->CallGet(str(boost::format("%s/%s/?format=json&fields=%s")%GetResourceName()%GetPrimaryKey()%field), pt);
+    //boost::property_tree::read_json(controller->GetBuffer(), pt);
     std::string fieldvalue = pt.get<std::string>(field);
     return fieldvalue;
+}
+
+void WebResource::Delete()
+{
+    throw mujin_exception("not implemented yet");
+}
+
+void WebResource::Copy(const std::string& newname, int options)
+{
+    throw mujin_exception("not implemented yet");
 }
 
 SceneResource::SceneResource(ControllerClientPtr controller, const std::string& pk) : WebResource(controller, "scene", pk)
@@ -176,9 +273,8 @@ SceneResource::SceneResource(ControllerClientPtr controller, const std::string& 
 TaskResourcePtr SceneResource::GetOrCreateTaskFromName(const std::string& taskname)
 {
     GETCONTROLLERIMPL();
-    controller->_Call(str(boost::format("scene/%s/task/?format=json&limit=1&name=%s&fields=pk")%GetPrimaryKey()%taskname));
     boost::property_tree::ptree pt;
-    boost::property_tree::read_json(controller->GetBuffer(), pt);
+    controller->CallGet(str(boost::format("scene/%s/task/?format=json&limit=1&name=%s&fields=pk")%GetPrimaryKey()%taskname), pt);
     boost::property_tree::ptree& objects = pt.get_child("objects");
     if( objects.size() == 0 ) {
         throw MUJIN_EXCEPTION_FORMAT("failed to get task %s from scene pk %s", taskname%GetPrimaryKey(), MEC_InvalidArguments);
@@ -191,9 +287,9 @@ TaskResourcePtr SceneResource::GetOrCreateTaskFromName(const std::string& taskna
 void SceneResource::GetTaskPrimaryKeys(std::vector<std::string>& taskkeys)
 {
     GETCONTROLLERIMPL();
-    controller->_Call(str(boost::format("scene/%s/task/?format=json&limit=0&fields=pk")%GetPrimaryKey()));
     boost::property_tree::ptree pt;
-    boost::property_tree::read_json(controller->GetBuffer(), pt);
+    controller->CallGet(str(boost::format("scene/%s/task/?format=json&limit=0&fields=pk")%GetPrimaryKey()), pt);
+    //boost::property_tree::read_json(controller->GetBuffer(), pt);
     boost::property_tree::ptree& objects = pt.get_child("objects");
     taskkeys.resize(objects.size());
     size_t i = 0;
@@ -218,9 +314,8 @@ JobStatus TaskResource::GetRunTimeStatus() {
 OptimizationResourcePtr TaskResource::GetOrCreateOptimizationFromName(const std::string& optimizationname)
 {
     GETCONTROLLERIMPL();
-    controller->_Call(str(boost::format("task/%s/optimization/?format=json&limit=1&name=%s&fields=pk")%GetPrimaryKey()%optimizationname));
     boost::property_tree::ptree pt;
-    boost::property_tree::read_json(controller->GetBuffer(), pt);
+    controller->CallGet(str(boost::format("task/%s/optimization/?format=json&limit=1&name=%s&fields=pk")%GetPrimaryKey()%optimizationname), pt);
     boost::property_tree::ptree& objects = pt.get_child("objects");
     if( objects.size() == 0 ) {
         throw MUJIN_EXCEPTION_FORMAT("failed to get optimization %s from task pk", optimizationname%GetPrimaryKey(), MEC_InvalidArguments);
@@ -233,9 +328,8 @@ OptimizationResourcePtr TaskResource::GetOrCreateOptimizationFromName(const std:
 void TaskResource::GetOptimizationPrimaryKeys(std::vector<std::string>& optimizationkeys)
 {
     GETCONTROLLERIMPL();
-    controller->_Call(str(boost::format("task/%s/optimization/?format=json&limit=0&fields=pk")%GetPrimaryKey()));
     boost::property_tree::ptree pt;
-    boost::property_tree::read_json(controller->GetBuffer(), pt);
+    controller->CallGet(str(boost::format("task/%s/optimization/?format=json&limit=0&fields=pk")%GetPrimaryKey()), pt);
     boost::property_tree::ptree& objects = pt.get_child("objects");
     optimizationkeys.resize(objects.size());
     size_t i = 0;
@@ -247,9 +341,8 @@ void TaskResource::GetOptimizationPrimaryKeys(std::vector<std::string>& optimiza
 PlanningResultResourcePtr TaskResource::GetResult()
 {
     GETCONTROLLERIMPL();
-    controller->_Call(str(boost::format("task/%s/result/?format=json&limit=1&optimization=None&fields=pk")%GetPrimaryKey()));
     boost::property_tree::ptree pt;
-    boost::property_tree::read_json(controller->GetBuffer(), pt);
+    controller->CallGet(str(boost::format("task/%s/result/?format=json&limit=1&optimization=None&fields=pk")%GetPrimaryKey()), pt);
     boost::property_tree::ptree& objects = pt.get_child("objects");
     if( objects.size() == 0 ) {
         return PlanningResultResourcePtr();
@@ -275,9 +368,8 @@ JobStatus OptimizationResource::GetRunTimeStatus() {
 void OptimizationResource::GetResults(int fastestnum, std::vector<PlanningResultResourcePtr>& results)
 {
     GETCONTROLLERIMPL();
-    controller->_Call(str(boost::format("optimization/%s/result/?format=json&limit=%d&fields=pk&order_by=task_time")%GetPrimaryKey()%fastestnum));
     boost::property_tree::ptree pt;
-    boost::property_tree::read_json(controller->GetBuffer(), pt);
+    controller->CallGet(str(boost::format("optimization/%s/result/?format=json&limit=%d&fields=pk&order_by=task_time")%GetPrimaryKey()%fastestnum), pt);
     boost::property_tree::ptree& objects = pt.get_child("objects");
     results.resize(objects.size());
     size_t i = 0;
@@ -293,9 +385,8 @@ PlanningResultResource::PlanningResultResource(ControllerClientPtr controller, c
 void PlanningResultResource::GetTransforms(std::map<std::string, Transform>& transforms)
 {
     GETCONTROLLERIMPL();
-    controller->_Call(str(boost::format("%s/%s/?format=json&fields=transformxml")%GetResourceName()%GetPrimaryKey()));
     boost::property_tree::ptree pt;
-    boost::property_tree::read_json(controller->GetBuffer(), pt);
+    controller->CallGet(str(boost::format("%s/%s/?format=json&fields=transformxml")%GetResourceName()%GetPrimaryKey()), pt);
     std::stringstream sstrans(pt.get<std::string>("transformxml"));
     boost::property_tree::ptree pttrans;
     boost::property_tree::read_xml(sstrans, pttrans);
@@ -331,9 +422,9 @@ void PlanningResultResource::GetTransforms(std::map<std::string, Transform>& tra
 }
 
 //    transformxml
-ControllerClientPtr CreateControllerClient(const std::string& usernamepassword)
+ControllerClientPtr CreateControllerClient(const std::string& usernamepassword, const std::string& baseurl)
 {
-    return ControllerClientPtr(new ControllerClientImpl(usernamepassword));
+    return ControllerClientPtr(new ControllerClientImpl(usernamepassword, baseurl));
 }
 
 void ControllerClientDestroy()
