@@ -20,10 +20,16 @@ using namespace mujinclient;
 int main(int argc, char ** argv)
 {
     if( argc < 2 ) {
-        printf("need username:password. Example: mujinclienttest myuser:mypass\n");
+        printf("need username:password. Example: mujinclienttest myuser:mypass [url]\n\nurl - [optional] For example https://controller.mujin.co.jp/\n");
         return 1;
     }
-    ControllerClientPtr controller = CreateControllerClient(argv[1], "http://127.0.0.1:8000/");
+    ControllerClientPtr controller;
+    if( argc > 2 ) {
+        controller = CreateControllerClient(argv[1], argv[2]);
+    }
+    else {
+        controller = CreateControllerClient(argv[1]);
+    }
 
     // try to import the scene, if it already exists delete it and import again
     try {
@@ -31,10 +37,15 @@ int main(int argc, char ** argv)
     }
     catch(const mujin_exception& ex) {
         if( ex.message().find("need to remove it first") != std::string::npos ) {
-            std::cout << "try removing the file and importing again" << std::endl;
-            SceneResource oldscene(controller,"test");
-            oldscene.Delete();
-            controller->ImportScene("mujin:/EMU_MUJIN/EMU_MUJIN.WPJ", "wincaps", "mujin:/test.mujin.dae");
+            std::cout << "file already imported, would you like to delete and re-import? (yes/no) ";
+            std::string answer;
+            std::cin >> answer;
+            if( answer == std::string("yes") ) {
+                std::cout << "try removing the file and importing again" << std::endl;
+                SceneResource oldscene(controller,"test");
+                oldscene.Delete();
+                controller->ImportScene("mujin:/EMU_MUJIN/EMU_MUJIN.WPJ", "wincaps", "mujin:/test.mujin.dae");
+            }
         }
         else {
             std::cout << "error importing scene" << ex.message() << std::endl;

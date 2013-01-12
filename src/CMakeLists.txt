@@ -23,14 +23,3 @@ set_target_properties(mujincontrollerclient PROPERTIES COMPILE_FLAGS "${EXTRA_CO
   )
 target_link_libraries(mujincontrollerclient ${CURL_LIBRARIES})
 install(TARGETS mujincontrollerclient RUNTIME DESTINATION bin LIBRARY DESTINATION bin ARCHIVE DESTINATION lib${LIB_SUFFIX})
-
-macro(build_sample name)
-  add_executable(${name} ${name}.cpp)
-  set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${Boost_CFLAGS}" LINK_FLAGS "")
-  add_dependencies(${name} mujincontrollerclient)
-  target_link_libraries (${name} mujincontrollerclient ${Boost_THREAD_LIBRARY} ${Boost_DATETIME_LIBRARY})
-  install(TARGETS ${name} DESTINATION bin)
-endmacro(build_sample)
-
-build_sample(mujinclienttest)
-build_sample(mujinimportscene)

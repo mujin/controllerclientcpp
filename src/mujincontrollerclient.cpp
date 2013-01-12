@@ -113,12 +113,18 @@ public:
 
         curl_easy_setopt(_curl, CURLOPT_COOKIEFILE, ""); // just to start the cookie engine
 
+        // save everything to _buffer, neceesary to do it before first POST/GET calls or data will be output to stdout
+        res = curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, _writer);
+        CHECKCURLCODE(res, "failed to set writer");
+        res = curl_easy_setopt(_curl, CURLOPT_WRITEDATA, &_buffer);
+        CHECKCURLCODE(res, "failed to set write data");
+
         if( !(options & 1) ) {
             size_t index = usernamepassword.find_first_of(':');
             BOOST_ASSERT(index != std::string::npos );
 
             // make an initial GET call to get the CSRF token
-            std::string loginuri = _baseuri + "login/";
+            std::string loginuri = _baseuri + "api/v1/"; //"login/";
             curl_easy_setopt(_curl, CURLOPT_URL, loginuri.c_str());
             curl_easy_setopt(_curl, CURLOPT_HTTPGET, 1);
             CURLcode res = curl_easy_perform(_curl);
@@ -126,7 +132,7 @@ public:
             long http_code = 0;
             res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
             CHECKCURLCODE(res, "curl_easy_getinfo");
-            if( http_code != 200 ) {
+            if( http_code != 200 && http_code != 302 ) {
                 throw mujin_exception(str(boost::format("HTTP GET %s returned HTTP error code %s")%loginuri%http_code), MEC_HTTPServer);
             }
             _csrfmiddlewaretoken = _GetCSRFFromCookies();
@@ -135,7 +141,7 @@ public:
             //curl_easy_setopt(_curl, CURLOPT_POSTFIELDSIZE, data.size());
             curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, data.c_str());
             curl_easy_setopt(_curl, CURLOPT_REFERER, loginuri.c_str());
-            std::cout << "---performing post---" << std::endl;
+            //std::cout << "---performing post---" << std::endl;
             res = curl_easy_perform(_curl);
             CHECKCURLCODE(res, "curl_easy_perform failed");
             http_code = 0;
@@ -148,12 +154,6 @@ public:
         _charset = "utf-8";
         _language = "en-us";
         _SetHTTPHeaders();
-
-        // save everything to _buffer
-        res = curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, _writer);
-        CHECKCURLCODE(res, "failed to set writer");
-        res = curl_easy_setopt(_curl, CURLOPT_WRITEDATA, &_buffer);
-        CHECKCURLCODE(res, "failed to set write data");
     }
 
     virtual ~ControllerClientImpl() {
@@ -315,7 +315,7 @@ protected:
         int i = 1;
         std::string csrfmiddlewaretoken;
         while (nc) {
-            std::cout << str(boost::format("[%d]: %s")%i%nc->data) << std::endl;
+            //std::cout << str(boost::format("[%d]: %s")%i%nc->data) << std::endl;
             char* csrftokenstart = strstr(nc->data, "csrftoken");
             if( !!csrftokenstart ) {
                 std::stringstream ss(csrftokenstart+10);

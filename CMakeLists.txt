@@ -215,3 +215,4 @@ install(FILES ${mujin_header_files} ${CMAKE_CURRENT_BINARY_DIR}/include/mujincon
 set(MUJINCLIENT_INCLUDE_LOCAL_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_subdirectory(src)
+add_subdirectory(samples)

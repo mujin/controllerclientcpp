@@ -49,6 +49,10 @@ int main(int argc, char ** argv)
     // open the first task
     std::vector<std::string> taskkeys;
     scene->GetTaskPrimaryKeys(taskkeys);
+    if( taskkeys.size() == 0 ) {
+        std::cout << "no tasks for this scene" << std::endl;
+        return 0;
+    }
     TaskResourcePtr task(new TaskResource(controller, taskkeys.at(0)));
     //task = scene->GetOrCreateTaskFromName("task0");
 
