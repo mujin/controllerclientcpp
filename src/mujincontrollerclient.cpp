@@ -25,6 +25,7 @@
 #include <boost/enable_shared_from_this.hpp>
 
 #include <sstream>
+#include <iostream>
 #include <curl/curl.h>
 
 #ifdef _MSC_VER
@@ -57,17 +58,22 @@
 namespace mujinclient {
 
 #define SKIP_PEER_VERIFICATION // temporary
-#define SKIP_HOSTNAME_VERIFICATION
+//#define SKIP_HOSTNAME_VERIFICATION
 
 class ControllerClientImpl : public ControllerClient, public boost::enable_shared_from_this<ControllerClientImpl>
 {
 public:
-    ControllerClientImpl(const std::string& usernamepassword, const std::string& baseuri)
+    ControllerClientImpl(const std::string& usernamepassword, const std::string& baseuri, int options)
     {
         _baseuri = baseuri;
+        _baseapiuri = baseuri + std::string("api/v1/");
         //CURLcode code = curl_global_init(CURL_GLOBAL_SSL|CURL_GLOBAL_WIN32);
         _curl = curl_easy_init();
         BOOST_ASSERT(!!_curl);
+
+#ifdef _DEBUG
+        curl_easy_setopt(_curl, CURLOPT_VERBOSE, 1L);
+#endif
 
         CURLcode res;
 #ifdef SKIP_PEER_VERIFICATION
@@ -94,21 +100,60 @@ public:
         curl_easy_setopt(_curl, CURLOPT_SSL_VERIFYHOST, 0L);
 #endif
 
+        res = curl_easy_setopt(_curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+        CHECKCURLCODE(res, "failed to set auth");
         res = curl_easy_setopt(_curl, CURLOPT_USERPWD, usernamepassword.c_str());
         CHECKCURLCODE(res, "failed to set userpw");
 
-        res = curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, _writer);
-        CHECKCURLCODE(res, "failed to set writer");
-
-        res = curl_easy_setopt(_curl, CURLOPT_WRITEDATA, &_buffer);
-        CHECKCURLCODE(res, "failed to set write data");
-
         // need to set the following?
-        //CURLOPT_COOKIE, CURLOPT_USERAGENT and CURLOPT_REFERER.
+        //CURLOPT_USERAGENT
+        //CURLOPT_TCP_KEEPIDLE
+        //CURLOPT_TCP_KEEPALIVE
+        //CURLOPT_TCP_KEEPINTVL
 
+        curl_easy_setopt(_curl, CURLOPT_COOKIEFILE, ""); // just to start the cookie engine
+
+        if( !(options & 1) ) {
+            size_t index = usernamepassword.find_first_of(':');
+            BOOST_ASSERT(index != std::string::npos );
+
+            // make an initial GET call to get the CSRF token
+            std::string loginuri = _baseuri + "login/";
+            curl_easy_setopt(_curl, CURLOPT_URL, loginuri.c_str());
+            curl_easy_setopt(_curl, CURLOPT_HTTPGET, 1);
+            CURLcode res = curl_easy_perform(_curl);
+            CHECKCURLCODE(res, "curl_easy_perform failed");
+            long http_code = 0;
+            res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
+            CHECKCURLCODE(res, "curl_easy_getinfo");
+            if( http_code != 200 ) {
+                throw mujin_exception(str(boost::format("HTTP GET %s returned HTTP error code %s")%loginuri%http_code), MEC_HTTPServer);
+            }
+            _csrfmiddlewaretoken = _GetCSRFFromCookies();
+
+            std::string data = str(boost::format("username=%s&password=%s&this_is_the_login_form=1&next=%%2F&csrfmiddlewaretoken=%s")%usernamepassword.substr(0,index)%usernamepassword.substr(index+1)%_csrfmiddlewaretoken);
+            //curl_easy_setopt(_curl, CURLOPT_POSTFIELDSIZE, data.size());
+            curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, data.c_str());
+            curl_easy_setopt(_curl, CURLOPT_REFERER, loginuri.c_str());
+            std::cout << "---performing post---" << std::endl;
+            res = curl_easy_perform(_curl);
+            CHECKCURLCODE(res, "curl_easy_perform failed");
+            http_code = 0;
+            res = curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
+            CHECKCURLCODE(res, "curl_easy_getinfo failed");
+            if( http_code != 200 && http_code != 302) {
+                throw mujin_exception(str(boost::format("HTTP POST %s returned HTTP error code %s")%loginuri%http_code), MEC_HTTPServer);
+            }
+        }
         _charset = "utf-8";
         _language = "en-us";
         _SetHTTPHeaders();
+
+        // save everything to _buffer
+        res = curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, _writer);
+        CHECKCURLCODE(res, "failed to set writer");
+        res = curl_easy_setopt(_curl, CURLOPT_WRITEDATA, &_buffer);
+        CHECKCURLCODE(res, "failed to set write data");
     }
 
     virtual ~ControllerClientImpl() {
@@ -154,7 +199,7 @@ public:
     void CallGet(const std::string& relativeuri, boost::property_tree::ptree& pt)
     {
         boost::mutex::scoped_lock lock(_mutex);
-        _uri = _baseuri;
+        _uri = _baseapiuri;
         _uri += relativeuri;
         curl_easy_setopt(_curl, CURLOPT_URL, _uri.c_str());
         _buffer.clear();
@@ -162,20 +207,23 @@ public:
         curl_easy_setopt(_curl, CURLOPT_HTTPGET, 1);
         CURLcode res = curl_easy_perform(_curl);
         CHECKCURLCODE(res, "curl_easy_perform failed");
-
+        if( _buffer.rdbuf()->in_avail() > 0 ) {
+            boost::property_tree::read_json(_buffer, pt);
+        }
         long http_code = 0;
         res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
         CHECKCURLCODE(res, "curl_easy_getinfo");
         if( http_code != 200 ) {
-            throw mujin_exception(str(boost::format("HTTP GET %s returned HTTP error code %s")%relativeuri%http_code), MEC_HTTPStatus);
+            std::string error_message = pt.get<std::string>("error_message");
+            std::string traceback = pt.get<std::string>("traceback");
+            throw mujin_exception(str(boost::format("HTTP GET to '%s' returned HTTP status %s: %s")%relativeuri%http_code%error_message), MEC_HTTPServer);
         }
-        boost::property_tree::read_json(_buffer, pt);
     }
 
     void CallPost(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt)
     {
         boost::mutex::scoped_lock lock(_mutex);
-        _uri = _baseuri;
+        _uri = _baseapiuri;
         _uri += relativeuri;
         curl_easy_setopt(_curl, CURLOPT_URL, _uri.c_str());
         _buffer.clear();
@@ -185,21 +233,51 @@ public:
         curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, data.c_str());
         CURLcode res = curl_easy_perform(_curl);
         CHECKCURLCODE(res, "curl_easy_perform failed");
+        if( _buffer.rdbuf()->in_avail() > 0 ) {
+            boost::property_tree::read_json(_buffer, pt);
+        }
         long http_code = 0;
         res = curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
         CHECKCURLCODE(res, "curl_easy_getinfo failed");
-        if( http_code != 200 ) {
-            throw mujin_exception(str(boost::format("HTTP GET %s returned HTTP error code %s")%relativeuri%http_code), MEC_HTTPStatus);
+        if( http_code != 201 ) { // or 200 or 202 or 204?
+            std::string error_message = pt.get<std::string>("error_message", std::string());
+            std::string traceback = pt.get<std::string>("traceback", std::string());
+            throw mujin_exception(str(boost::format("HTTP POST to '%s' returned HTTP status %s: %s")%relativeuri%http_code%error_message), MEC_HTTPServer);
         }
-        std::string temp = _buffer.str();
-        boost::property_tree::read_json(_buffer, pt);
-        // check if an error
+    }
+
+    void CallDelete(const std::string& relativeuri) {
+        boost::mutex::scoped_lock lock(_mutex);
+        _uri = _baseapiuri;
+        _uri += relativeuri;
+        curl_easy_setopt(_curl, CURLOPT_URL, _uri.c_str());
+        curl_easy_setopt(_curl, CURLOPT_CUSTOMREQUEST, "DELETE");
+        CURLcode res = curl_easy_perform(_curl);
+        curl_easy_setopt(_curl, CURLOPT_CUSTOMREQUEST, NULL); // have to restore the default
+        CHECKCURLCODE(res, "curl_easy_perform failed");
+        long http_code = 0;
+        res = curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
+        CHECKCURLCODE(res, "curl_easy_getinfo failed");
+        if( http_code != 204 ) { // or 200 or 202 or 201?
+            throw mujin_exception(str(boost::format("HTTP DELETE to '%s' returned HTTP status %s")%relativeuri%http_code), MEC_HTTPServer);
+        }
     }
 
     std::stringstream& GetBuffer()
     {
         return _buffer;
     }
+
+    /* webdav operations
+       const char *postdata =
+       "<?xml version=\"1.0\"?><D:searchrequest xmlns:D=\"DAV:\" >"
+       "<D:sql>SELECT \"http://schemas.microsoft.com/repl/contenttag\""
+       " from SCOPE ('deep traversal of \"/exchange/adb/Calendar/\"') "
+       "WHERE \"DAV:isfolder\" = True</D:sql></D:searchrequest>\r\n";
+
+       CURLOPT_UPLOAD
+
+     */
 
 protected:
 
@@ -219,20 +297,46 @@ protected:
         _httpheaders = curl_slist_append(NULL, s.c_str());
         s = str(boost::format("Accept-Language: %s,en-us")%_language);
         _httpheaders = curl_slist_append(_httpheaders, s.c_str()); //,en;q=0.7,ja;q=0.3',")
-        //_httpheaders = curl_slist_append(_httpheaders, "Accept:");
+        //_httpheaders = curl_slist_append(_httpheaders, "Accept:"); // necessary?
+        s = std::string("X-CSRFToken: ")+_csrfmiddlewaretoken;
+        _httpheaders = curl_slist_append(_httpheaders, s.c_str());
+        _httpheaders = curl_slist_append(_httpheaders, "Connection: Keep-Alive");
+        _httpheaders = curl_slist_append(_httpheaders, "Keep-Alive: 20"); // keep alive for 20s?
         // test on windows first
         //_httpheaders = curl_slist_append(_httpheaders, "Accept-Encoding: gzip, deflate");
         curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, _httpheaders);
+    }
+
+    std::string _GetCSRFFromCookies() {
+        struct curl_slist *cookies;
+        CURLcode res = curl_easy_getinfo(_curl, CURLINFO_COOKIELIST, &cookies);
+        CHECKCURLCODE(res, "curl_easy_getinfo CURLINFO_COOKIELIST");
+        struct curl_slist *nc = cookies;
+        int i = 1;
+        std::string csrfmiddlewaretoken;
+        while (nc) {
+            std::cout << str(boost::format("[%d]: %s")%i%nc->data) << std::endl;
+            char* csrftokenstart = strstr(nc->data, "csrftoken");
+            if( !!csrftokenstart ) {
+                std::stringstream ss(csrftokenstart+10);
+                ss >> csrfmiddlewaretoken;
+            }
+            nc = nc->next;
+            i++;
+        }
+        curl_slist_free_all(cookies);
+        return csrfmiddlewaretoken;
     }
 
     int _lastmode;
     CURL *_curl;
     boost::mutex _mutex;
     std::stringstream _buffer;
-    std::string _baseuri, _uri;
+    std::string _baseuri, _baseapiuri, _uri;
 
     curl_slist *_httpheaders;
     std::string _charset, _language;
+    std::string _csrfmiddlewaretoken;
 };
 
 typedef boost::shared_ptr<ControllerClientImpl> ControllerClientImplPtr;
@@ -247,19 +351,23 @@ std::string WebResource::Get(const std::string& field)
     GETCONTROLLERIMPL();
     boost::property_tree::ptree pt;
     controller->CallGet(str(boost::format("%s/%s/?format=json&fields=%s")%GetResourceName()%GetPrimaryKey()%field), pt);
-    //boost::property_tree::read_json(controller->GetBuffer(), pt);
     std::string fieldvalue = pt.get<std::string>(field);
     return fieldvalue;
 }
 
 void WebResource::Delete()
 {
-    throw mujin_exception("not implemented yet");
+    GETCONTROLLERIMPL();
+    controller->CallDelete(str(boost::format("%s/%s/")%GetResourceName()%GetPrimaryKey()));
 }
 
 void WebResource::Copy(const std::string& newname, int options)
 {
     throw mujin_exception("not implemented yet");
+}
+
+SceneResource::InstObject::InstObject(ControllerClientPtr controller, const std::string& scenepk, const std::string& pk) : WebResource(controller, str(boost::format("scene/%s/instobject")%scenepk), pk)
+{
 }
 
 SceneResource::SceneResource(ControllerClientPtr controller, const std::string& pk) : WebResource(controller, "scene", pk)
@@ -285,12 +393,48 @@ void SceneResource::GetTaskPrimaryKeys(std::vector<std::string>& taskkeys)
     GETCONTROLLERIMPL();
     boost::property_tree::ptree pt;
     controller->CallGet(str(boost::format("scene/%s/task/?format=json&limit=0&fields=pk")%GetPrimaryKey()), pt);
-    //boost::property_tree::read_json(controller->GetBuffer(), pt);
     boost::property_tree::ptree& objects = pt.get_child("objects");
     taskkeys.resize(objects.size());
     size_t i = 0;
     BOOST_FOREACH(boost::property_tree::ptree::value_type &v, objects) {
         taskkeys[i++] = v.second.get<std::string>("pk");
+    }
+}
+
+void SceneResource::GetInstObjects(std::vector<SceneResource::InstObjectPtr>& instobjects)
+{
+    GETCONTROLLERIMPL();
+    boost::property_tree::ptree pt;
+    controller->CallGet(str(boost::format("scene/%s/instobject/?format=json&limit=0&fields=instobjects")%GetPrimaryKey()), pt);
+    boost::property_tree::ptree& objects = pt.get_child("instobjects");
+    instobjects.resize(objects.size());
+    size_t i = 0;
+    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, objects) {
+        InstObjectPtr instobject(new InstObject(controller, GetPrimaryKey(), v.second.get<std::string>("pk")));
+        //instobject->dofvalues
+        instobject->name = v.second.get<std::string>("name");
+        instobject->object_pk = v.second.get<std::string>("object_pk");
+        instobject->reference_uri = v.second.get<std::string>("reference_uri");
+
+        boost::property_tree::ptree& jsondofvalues = v.second.get_child("dofvalues");
+        instobject->dofvalues.resize(jsondofvalues.size());
+        size_t idof = 0;
+        BOOST_FOREACH(boost::property_tree::ptree::value_type &vdof, jsondofvalues) {
+            instobject->dofvalues[idof++] = boost::lexical_cast<Real>(vdof.second.data());
+        }
+
+        size_t irotate = 0;
+        BOOST_FOREACH(boost::property_tree::ptree::value_type &vrotate, v.second.get_child("rotate")) {
+            BOOST_ASSERT( irotate < 4 );
+            instobject->rotate[irotate++] = boost::lexical_cast<Real>(vrotate.second.data());
+        }
+        size_t itranslate = 0;
+        BOOST_FOREACH(boost::property_tree::ptree::value_type &vtranslate, v.second.get_child("translate")) {
+            BOOST_ASSERT( itranslate < 3 );
+            instobject->translate[itranslate++] = boost::lexical_cast<Real>(vtranslate.second.data());
+        }
+
+        instobjects[i++] = instobject;
     }
 }
 
@@ -418,9 +562,9 @@ void PlanningResultResource::GetTransforms(std::map<std::string, Transform>& tra
 }
 
 //    transformxml
-ControllerClientPtr CreateControllerClient(const std::string& usernamepassword, const std::string& baseurl)
+ControllerClientPtr CreateControllerClient(const std::string& usernamepassword, const std::string& baseurl, int options)
 {
-    return ControllerClientPtr(new ControllerClientImpl(usernamepassword, baseurl));
+    return ControllerClientPtr(new ControllerClientImpl(usernamepassword, baseurl, options));
 }
 
 void ControllerClientDestroy()

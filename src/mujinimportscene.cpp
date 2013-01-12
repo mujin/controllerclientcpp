@@ -15,7 +15,6 @@
 
 #include <iostream>
 
-using namespace std;
 using namespace mujinclient;
 
 int main(int argc, char ** argv)
@@ -24,13 +23,33 @@ int main(int argc, char ** argv)
         printf("need username:password. Example: mujinclienttest myuser:mypass\n");
         return 1;
     }
-    ControllerClientPtr controller = CreateControllerClient(argv[1], "http://127.0.0.1:8000/api/v1/");
+    ControllerClientPtr controller = CreateControllerClient(argv[1], "http://127.0.0.1:8000/");
 
-    std::vector<std::string> scenekeys;
-    controller->GetScenePrimaryKeys(scenekeys);
+    // try to import the scene, if it already exists delete it and import again
+    try {
+        controller->ImportScene("mujin:/EMU_MUJIN/EMU_MUJIN.WPJ", "wincaps", "mujin:/test.mujin.dae");
+    }
+    catch(const mujin_exception& ex) {
+        if( ex.message().find("need to remove it first") != std::string::npos ) {
+            std::cout << "try removing the file and importing again" << std::endl;
+            SceneResource oldscene(controller,"test");
+            oldscene.Delete();
+            controller->ImportScene("mujin:/EMU_MUJIN/EMU_MUJIN.WPJ", "wincaps", "mujin:/test.mujin.dae");
+        }
+        else {
+            std::cout << "error importing scene" << ex.message() << std::endl;
+        }
+    }
 
-    controller->ImportScene("mujin:/EMU_MUJIN/EMU_MUJIN.WPJ", "wincaps", "mujin:/test.mujin.dae");
-
+    // create the resource and query info
+    SceneResource scene(controller,"test");
+    std::vector<SceneResource::InstObjectPtr> instobjects;
+    scene.GetInstObjects(instobjects);
+    std::cout << "scene instance objects: ";
+    for(size_t i = 0; i < instobjects.size(); ++i) {
+        std::cout << instobjects[i]->name << ", ";
+    }
+    std::cout << std::endl;
     // destroy all mujin controller resources
     ControllerClientDestroy();
 }

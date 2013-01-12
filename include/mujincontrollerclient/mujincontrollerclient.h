@@ -67,7 +67,7 @@ enum MujinErrorCode {
     MEC_InvalidState=10, ///< the state of the object is not consistent with its parameters, or cannot be used. This is usually due to a programming error where a vector is not the correct length, etc.
     MEC_Timeout=11, ///< process timed out
     MEC_HTTPClient=12, ///< HTTP client error
-    MEC_HTTPStatus=13, ///< http error status code
+    MEC_HTTPServer=13, ///< HTTP server error
 };
 
 inline const char* GetErrorCodeString(MujinErrorCode error)
@@ -82,7 +82,7 @@ inline const char* GetErrorCodeString(MujinErrorCode error)
     case MEC_InvalidState: return "InvalidState";
     case MEC_Timeout: return "Timeout";
     case MEC_HTTPClient: return "HTTPClient";
-    case MEC_HTTPStatus: return "HTTPStatus";
+    case MEC_HTTPServer: return "HTTPServer";
     }
     // should throw an exception?
     return "";
@@ -249,6 +249,23 @@ private:
 class MUJINCLIENT_API SceneResource : public WebResource
 {
 public:
+    /// \brief nested resource in the scene describe an object in the scene
+    class MUJINCLIENT_API InstObject : public WebResource
+    {
+public:
+        InstObject(ControllerClientPtr controller, const std::string& scenepk, const std::string& pk);
+        virtual ~InstObject() {
+        }
+
+        std::vector<Real> dofvalues;
+        std::string name;
+        std::string object_pk;
+        std::string reference_uri;
+        Real rotate[4]; // quaternion
+        Real translate[3];
+    };
+    typedef boost::shared_ptr<InstObject> InstObjectPtr;
+
     SceneResource(ControllerClientPtr controller, const std::string& pk);
     virtual ~SceneResource() {
     }
@@ -260,6 +277,9 @@ public:
 
     /// \brief gets a list of all the scene primary keys currently available to the user
     virtual void GetTaskPrimaryKeys(std::vector<std::string>& taskkeys);
+
+    /// \brief gets a list of all the instance objects of the scene
+    virtual void GetInstObjects(std::vector<InstObjectPtr>& instobjects);
 };
 
 class MUJINCLIENT_API TaskResource : public WebResource
@@ -322,8 +342,9 @@ public:
 ///
 /// \param usernamepassword user:password
 /// <b>This function is not thread safe.</b> You must not call it when any other thread in the program (i.e. a thread sharing the same memory) is running.
-/// \param url the URL of controller API, it needs to have a trailing slash
-MUJINCLIENT_API ControllerClientPtr CreateControllerClient(const std::string& usernamepassword, const std::string& url="https://controller.mujin.co.jp/api/v1/");
+/// \param url the URL of controller server, it needs to have a trailing slash. It can also be in the form of https://username@server/ in order to force login of a particular user.
+/// \param options extra options for connecting to the controller. If 1, the client will optimize usage to only allow GET calls
+MUJINCLIENT_API ControllerClientPtr CreateControllerClient(const std::string& usernamepassword, const std::string& url="https://controller.mujin.co.jp/", int options=0);
 
 /// \brief called at the very end of an application to safely destroy all controller client resources
 MUJINCLIENT_API void ControllerClientDestroy();
