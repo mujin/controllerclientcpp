@@ -107,7 +107,7 @@ Updating the Windows Libraries
 
 Several libraries are being managed in this repository. If necessary, get upgraded versions from the following places:
 
-1. `boost <http://www.boostpro.com/download/>`_ (any version >= 1.44 is fine).
+1. `boost <http://www.boostpro.com/download/>`_ (any version >= 1.45 is fine).
 
   - Select Multi-threaded DLL libraries.
   - No extra libraries need to be selected, only the header files.
