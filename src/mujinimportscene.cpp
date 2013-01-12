@@ -24,7 +24,10 @@ int main(int argc, char ** argv)
         printf("need username:password. Example: mujinclienttest myuser:mypass\n");
         return 1;
     }
-    ControllerClientPtr controller = CreateControllerClient(argv[1]);
+    ControllerClientPtr controller = CreateControllerClient(argv[1], "http://127.0.0.1:8000/api/v1/");
+
+    std::vector<std::string> scenekeys;
+    controller->GetScenePrimaryKeys(scenekeys);
 
     controller->ImportScene("mujin:/EMU_MUJIN/EMU_MUJIN.WPJ", "wincaps", "mujin:/test.mujin.dae");
 

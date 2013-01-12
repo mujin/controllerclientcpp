@@ -27,7 +27,16 @@
 #include <sstream>
 #include <curl/curl.h>
 
+#ifdef _MSC_VER
+#ifndef __PRETTY_FUNCTION__
+#define __PRETTY_FUNCTION__ __FUNCDNAME__
+#endif
+#endif
+
 #define GETCONTROLLERIMPL() ControllerClientImplPtr controller = boost::dynamic_pointer_cast<ControllerClientImpl>(GetController());
+#define CHECKCURLCODE(code, msg) if (code != CURLE_OK) { \
+        throw mujin_exception(str(boost::format("[%s:%d] curl function failed with error '%s': %s")%(__PRETTY_FUNCTION__)%(__LINE__)%curl_easy_strerror(code)%(msg)), MEC_HTTPClient); \
+}
 
 #define MUJIN_EXCEPTION_FORMAT0(s, errorcode) mujinclient::mujin_exception(boost::str(boost::format("[%s:%d] " s)%(__PRETTY_FUNCTION__)%(__LINE__)),errorcode)
 
@@ -48,7 +57,7 @@
 namespace mujinclient {
 
 #define SKIP_PEER_VERIFICATION // temporary
-//#define SKIP_HOSTNAME_VERIFICATION
+#define SKIP_HOSTNAME_VERIFICATION
 
 class ControllerClientImpl : public ControllerClient, public boost::enable_shared_from_this<ControllerClientImpl>
 {
@@ -86,19 +95,13 @@ public:
 #endif
 
         res = curl_easy_setopt(_curl, CURLOPT_USERPWD, usernamepassword.c_str());
-        if (res != CURLE_OK) {
-            throw mujin_exception("failed to set userpw");
-        }
-        //densowave:Debpawm8
+        CHECKCURLCODE(res, "failed to set userpw");
+
         res = curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, _writer);
-        if (res != CURLE_OK) {
-            throw mujin_exception("failed to set writer");
-        }
+        CHECKCURLCODE(res, "failed to set writer");
 
         res = curl_easy_setopt(_curl, CURLOPT_WRITEDATA, &_buffer);
-        if (res != CURLE_OK) {
-            throw mujin_exception("failed to set write data");
-        }
+        CHECKCURLCODE(res, "failed to set write data");
 
         // need to set the following?
         //CURLOPT_COOKIE, CURLOPT_USERAGENT and CURLOPT_REFERER.
@@ -158,14 +161,11 @@ public:
         _buffer.str("");
         curl_easy_setopt(_curl, CURLOPT_HTTPGET, 1);
         CURLcode res = curl_easy_perform(_curl);
-        if (res != CURLE_OK) {
-            throw mujin_exception("curl_easy_perform failed");
-        }
+        CHECKCURLCODE(res, "curl_easy_perform failed");
+
         long http_code = 0;
-        curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
-        if (res != CURLE_OK) {
-            throw mujin_exception("curl_easy_getinfo failed", MEC_HTTPClient);
-        }
+        res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
+        CHECKCURLCODE(res, "curl_easy_getinfo");
         if( http_code != 200 ) {
             throw mujin_exception(str(boost::format("HTTP GET %s returned HTTP error code %s")%relativeuri%http_code), MEC_HTTPStatus);
         }
@@ -184,14 +184,10 @@ public:
         curl_easy_setopt(_curl, CURLOPT_POSTFIELDSIZE, data.size());
         curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, data.c_str());
         CURLcode res = curl_easy_perform(_curl);
-        if (res != CURLE_OK) {
-            throw mujin_exception("curl_easy_perform failed");
-        }
+        CHECKCURLCODE(res, "curl_easy_perform failed");
         long http_code = 0;
         res = curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
-        if (res != CURLE_OK) {
-            throw mujin_exception("curl_easy_getinfo failed", MEC_HTTPClient);
-        }
+        CHECKCURLCODE(res, "curl_easy_getinfo failed");
         if( http_code != 200 ) {
             throw mujin_exception(str(boost::format("HTTP GET %s returned HTTP error code %s")%relativeuri%http_code), MEC_HTTPStatus);
         }
@@ -218,12 +214,12 @@ protected:
 
     void _SetHTTPHeaders()
     {
-        _httpheaders = curl_slist_append(NULL, "Accept:");
         // set the header to only send json
         std::string s = std::string("Content-Type: application/json; charset=") + _charset;
-        _httpheaders = curl_slist_append(_httpheaders, s.c_str());
+        _httpheaders = curl_slist_append(NULL, s.c_str());
         s = str(boost::format("Accept-Language: %s,en-us")%_language);
         _httpheaders = curl_slist_append(_httpheaders, s.c_str()); //,en;q=0.7,ja;q=0.3',")
+        //_httpheaders = curl_slist_append(_httpheaders, "Accept:");
         // test on windows first
         //_httpheaders = curl_slist_append(_httpheaders, "Accept-Encoding: gzip, deflate");
         curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, _httpheaders);
