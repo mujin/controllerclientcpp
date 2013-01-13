@@ -60,7 +60,6 @@ namespace mujinclient {
 enum MujinErrorCode {
     MEC_Failed=0,
     MEC_InvalidArguments=1, ///< passed in input arguments are not valid
-    MEC_EnvironmentNotLocked=2,
     MEC_CommandNotSupported=3, ///< string command could not be parsed or is not supported
     MEC_Assert=4,
     MEC_NotInitialized=9, ///< when object is used without it getting fully initialized
@@ -75,7 +74,6 @@ inline const char* GetErrorCodeString(MujinErrorCode error)
     switch(error) {
     case MEC_Failed: return "Failed";
     case MEC_InvalidArguments: return "InvalidArguments";
-    case MEC_EnvironmentNotLocked: return "EnvironmentNotLocked";
     case MEC_CommandNotSupported: return "CommandNotSupported";
     case MEC_Assert: return "Assert";
     case MEC_NotInitialized: return "NotInitialized";
@@ -90,19 +88,19 @@ inline const char* GetErrorCodeString(MujinErrorCode error)
 
 
 /// \brief Exception that all Mujin internal methods throw; the error codes are held in \ref MujinErrorCode.
-class MUJINCLIENT_API mujin_exception : public std::exception
+class MUJINCLIENT_API MujinException : public std::exception
 {
 public:
-    mujin_exception() : std::exception(), _s("unknown exception"), _error(MEC_Failed) {
+    MujinException() : std::exception(), _s("unknown exception"), _error(MEC_Failed) {
     }
-    mujin_exception(const std::string& s, MujinErrorCode error=MEC_Failed) : std::exception() {
+    MujinException(const std::string& s, MujinErrorCode error=MEC_Failed) : std::exception() {
         _error = error;
         _s = "mujin (";
         _s += GetErrorCodeString(_error);
         _s += "): ";
         _s += s;
     }
-    virtual ~mujin_exception() throw() {
+    virtual ~MujinException() throw() {
     }
     char const* what() const throw() {
         return _s.c_str();
@@ -136,11 +134,28 @@ typedef boost::shared_ptr<PlanningResultResource> PlanningResultResourcePtr;
 typedef boost::weak_ptr<PlanningResultResource> PlanningResultResourceWeakPtr;
 typedef double Real;
 
+/// \brief status code for a job
+///
+/// Definitions are very similar to http://ros.org/doc/api/actionlib_msgs/html/msg/GoalStatus.html
+enum JobStatusCode {
+    JSC_Pending         = 0, ///< The goal has yet to be processed
+    JSC_Active          = 1, ///< The goal is currently being processed
+    JSC_Preempted       = 2, ///< The goal received a cancel request after it started executing and has since completed its execution.
+    JSC_Succeeded       = 3, ///< The goal was achieved successfully.
+    JSC_Aborted         = 4, ///< The goal was aborted during execution due to some failure
+    JSC_Rejected        = 5, ///< The goal was rejected without being processed, because the goal was unattainable or invalid.
+    JSC_Preempting      = 6, ///< The goal received a cancel request after it started executing and has not yet completed execution
+    JSC_Recalling       = 7, ///< The goal received a cancel request before it started executing, but the server has not yet confirmed that the goal is canceled.
+    JSC_Recalled        = 8, ///< The goal received a cancel request before it started executing and was successfully cancelled
+    JSC_Lost            = 9, ///< An unknokwn error happened and the job stopped being tracked.
+    JSC_Unknown = 0xffffffff,
+};
+
 struct JobStatus
 {
-    JobStatus() : code(0) {
+    JobStatus() : code(JSC_Unknown) {
     }
-    int code; ///< if 3, succeeded
+    JobStatusCode code;
     std::string message;
 };
 
@@ -161,6 +176,29 @@ struct SceneInformation
     std::string uri; ///< uri of the file pointed to
     std::string datemodified; ///< late date modified
     std::string name;
+};
+
+/// \brief holds information about the itlplanning task goal
+struct ITLPlanningTaskInfo
+{
+    ITLPlanningTaskInfo() {
+        SetDefaults();
+    }
+    inline void SetDefaults() {
+        startfromcurrent = 0;
+        returntostart = 1;
+        usevrc = 1;
+        unit = "mm";
+        outputtrajtype = "robotmaker";
+        optimizationvalue = 1;
+    }
+    int startfromcurrent;
+    int returntostart;
+    int usevrc;
+    std::string unit; ///< the unit that information is used in. m, mm, nm, inch, etc
+    std::string outputtrajtype; ///< what format to output the trajectory in.
+    Real optimizationvalue; ///< value in [0,1]. 0 is no optimization (fast), 1 is full optimization (slow)
+    std::string program; ///< itl program
 };
 
 /// \brief Creates on MUJIN Controller instance.
@@ -196,6 +234,17 @@ public:
     ///
     /// Checkout http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
     virtual void SetLanguage(const std::string& language) = 0;
+
+    /// \brief Restarts the MUJIN Controller Server and destroys any optimizaiton jobs.
+    ///
+    /// If the server is not responding, call this method to clear the server state and initialize everything.
+    /// The method is blocking, when it returns the MUJIN Controller would have been restarted.
+    virtual void RestartServer() = 0;
+
+    /// \brief sends the cancel message to all jobs.
+    ///
+    /// The method is non-blocking
+    virtual void CancelAllJobs() = 0;
 
     /// \brief gets a list of all the scene primary keys currently available to the user
     virtual void GetScenePrimaryKeys(std::vector<std::string>& scenekeys) = 0;
@@ -236,6 +285,9 @@ public:
     /// \brief gets an attribute of this web resource
     virtual std::string Get(const std::string& field);
 
+    /// \brief sets an attribute of this web resource
+    virtual void Set(const std::string& field, const std::string& newvalue);
+
     /// \brief delete the resource and all its child resources
     virtual void Delete();
 
@@ -271,10 +323,13 @@ public:
     virtual ~SceneResource() {
     }
 
-    /// \brief Gets or creates the a task part of the scene
-    ///
-    /// \param taskname the name of the task to search for or create
-    virtual TaskResourcePtr GetOrCreateTaskFromName(const std::string& taskname);
+    /** \brief Gets or creates the a task part of the scene
+
+        \param taskname the name of the task to search for or create. If the name already exists and is not tasktype, an exception is thrown
+        \param tasktype The type of task to create. Supported types are:
+        - itlplanning
+     */
+    virtual TaskResourcePtr GetOrCreateTaskFromName(const std::string& taskname, const std::string& tasktype=std::string("itlplanning"));
 
     /// \brief gets a list of all the scene primary keys currently available to the user
     virtual void GetTaskPrimaryKeys(std::vector<std::string>& taskkeys);
@@ -290,11 +345,13 @@ public:
     virtual ~TaskResource() {
     }
 
-    /// \brief execute the task
+    /// \brief execute the task.
+    ///
+    /// This operation is non-blocking and will return immediately after the execution is started. In order to check if the task is running or is complete, use \ref GetRunTimeStatus() and \ref GetResult()
     virtual void Execute();
 
-    /// \brief get the run-time status of the executed task
-    virtual JobStatus GetRunTimeStatus();
+    /// \brief get the run-time status of the executed task.
+    virtual void GetRunTimeStatus(JobStatus& status);
 
     /// \brief Gets or creates the a optimization part of the scene
     ///
@@ -303,6 +360,12 @@ public:
 
     /// \brief gets a list of all the scene primary keys currently available to the user
     virtual void GetOptimizationPrimaryKeys(std::vector<std::string>& optimizationkeys);
+
+    /// \brief Get the task info for tasks of type itlplanning
+    virtual void GetTaskInfo(ITLPlanningTaskInfo& taskinfo);
+
+    /// \brief Set new task info for tasks of type itlplanning
+    virtual void SetTaskInfo(const ITLPlanningTaskInfo& taskinfo);
 
     /// \brief gets the result of the task execution. If no result has been computed yet, will return a NULL pointer.
     virtual PlanningResultResourcePtr GetResult();
@@ -318,8 +381,8 @@ public:
     /// \brief execute the optimization
     virtual void Execute();
 
-    /// \brief get the run-time status of the executed optimization
-    virtual JobStatus GetRunTimeStatus();
+    /// \brief get the run-time status of the executed optimization.
+    virtual void GetRunTimeStatus(JobStatus& status);
 
     /// \brief gets the fastest results of the optimization execution.
     ///
@@ -339,12 +402,20 @@ public:
 };
 
 
-/// \brief creates the controller with an account.
-///
-/// \param usernamepassword user:password
-/// <b>This function is not thread safe.</b> You must not call it when any other thread in the program (i.e. a thread sharing the same memory) is running.
-/// \param url the URL of controller server, it needs to have a trailing slash. It can also be in the form of https://username@server/ in order to force login of a particular user.
-/// \param options extra options for connecting to the controller. If 1, the client will optimize usage to only allow GET calls
+/** \en \brief creates the controller with an account. <b>This function is not thread safe.</b>
+
+    You must not call it when any other thread in the program (i.e. a thread sharing the same memory) is running.
+    \param usernamepassword user:password
+    \param url the URL of controller server, it needs to have a trailing slash. It can also be in the form of https://username@server/ in order to force login of a particular user.
+    \param options extra options for connecting to the controller. If 1, the client will optimize usage to only allow GET calls
+
+    \ja \brief MUJINコントローラのクライアントを作成する。<b>この関数はスレッドセーフではない。</b>
+
+    この関数はスレッドセーフではないため、呼び出す時に他のスレッドが走っていないようにご注意ください。
+    \param usernamepassword ユーザ:パスワード
+    \param url コントローラにアクセスするためのURLです。スラッシュ「/」で終わる必要があります。強制的にユーザも指定出来ます、例えば<b>https://username@server/</b>。
+    \param options １が指定されたら、クライアントがGETのみを呼び出し出来ます。それで初期化がもっと速くなれます。
+ */
 MUJINCLIENT_API ControllerClientPtr CreateControllerClient(const std::string& usernamepassword, const std::string& url="https://controller.mujin.co.jp/", int options=0);
 
 /// \brief called at the very end of an application to safely destroy all controller client resources
@@ -377,13 +448,13 @@ namespace boost
 {
 inline void assertion_failed(char const * expr, char const * function, char const * file, long line)
 {
-    throw mujinclient::mujin_exception(boost::str(boost::format("[%s:%d] -> %s, expr: %s")%file%line%function%expr),mujinclient::MEC_Assert);
+    throw mujinclient::MujinException(boost::str(boost::format("[%s:%d] -> %s, expr: %s")%file%line%function%expr),mujinclient::MEC_Assert);
 }
 
 #if BOOST_VERSION>104600
 inline void assertion_failed_msg(char const * expr, char const * msg, char const * function, char const * file, long line)
 {
-    throw mujinclient::mujin_exception(boost::str(boost::format("[%s:%d] -> %s, expr: %s, msg: %s")%file%line%function%expr%msg),mujinclient::MEC_Assert);
+    throw mujinclient::MujinException(boost::str(boost::format("[%s:%d] -> %s, expr: %s, msg: %s")%file%line%function%expr%msg),mujinclient::MEC_Assert);
 }
 #endif
 

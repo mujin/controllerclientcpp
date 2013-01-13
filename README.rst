@@ -16,6 +16,8 @@ In order to use the library, link with ``lib\mujincontrollerclient-vcXX-mt.lib``
 
 Need to put ``C:\Program Files\mujincontrollerclient\bin`` in the PATH environment variable, or register all the DLLs with windows system.
 
+**Note:** Several examples require that the **densowave_wincaps_data** folder is uploaded to the user network filesystem.
+
 Building on Windows
 -------------------
 

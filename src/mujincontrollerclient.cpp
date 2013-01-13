@@ -36,24 +36,24 @@
 
 #define GETCONTROLLERIMPL() ControllerClientImplPtr controller = boost::dynamic_pointer_cast<ControllerClientImpl>(GetController());
 #define CHECKCURLCODE(code, msg) if (code != CURLE_OK) { \
-        throw mujin_exception(str(boost::format("[%s:%d] curl function failed with error '%s': %s")%(__PRETTY_FUNCTION__)%(__LINE__)%curl_easy_strerror(code)%(msg)), MEC_HTTPClient); \
+        throw MujinException(str(boost::format("[%s:%d] curl function failed with error '%s': %s")%(__PRETTY_FUNCTION__)%(__LINE__)%curl_easy_strerror(code)%(msg)), MEC_HTTPClient); \
 }
 
-#define MUJIN_EXCEPTION_FORMAT0(s, errorcode) mujinclient::mujin_exception(boost::str(boost::format("[%s:%d] " s)%(__PRETTY_FUNCTION__)%(__LINE__)),errorcode)
+#define MUJIN_EXCEPTION_FORMAT0(s, errorcode) mujinclient::MujinException(boost::str(boost::format("[%s:%d] " s)%(__PRETTY_FUNCTION__)%(__LINE__)),errorcode)
 
 /// adds the function name and line number to an exception
-#define MUJIN_EXCEPTION_FORMAT(s, args,errorcode) mujinclient::mujin_exception(boost::str(boost::format("[%s:%d] " s)%(__PRETTY_FUNCTION__)%(__LINE__)%args),errorcode)
+#define MUJIN_EXCEPTION_FORMAT(s, args,errorcode) mujinclient::MujinException(boost::str(boost::format("[%s:%d] " s)%(__PRETTY_FUNCTION__)%(__LINE__)%args),errorcode)
 
-#define MUJIN_ASSERT_FORMAT(testexpr, s, args, errorcode) { if( !(testexpr) ) { throw mujinclient::mujin_exception(boost::str(boost::format("[%s:%d] (%s) failed " s)%(__PRETTY_FUNCTION__)%(__LINE__)%(# testexpr)%args),errorcode); } }
+#define MUJIN_ASSERT_FORMAT(testexpr, s, args, errorcode) { if( !(testexpr) ) { throw mujinclient::MujinException(boost::str(boost::format("[%s:%d] (%s) failed " s)%(__PRETTY_FUNCTION__)%(__LINE__)%(# testexpr)%args),errorcode); } }
 
-#define MUJIN_ASSERT_FORMAT0(testexpr, s, errorcode) { if( !(testexpr) ) { throw mujinclient::mujin_exception(boost::str(boost::format("[%s:%d] (%s) failed " s)%(__PRETTY_FUNCTION__)%(__LINE__)%(# testexpr)),errorcode); } }
+#define MUJIN_ASSERT_FORMAT0(testexpr, s, errorcode) { if( !(testexpr) ) { throw mujinclient::MujinException(boost::str(boost::format("[%s:%d] (%s) failed " s)%(__PRETTY_FUNCTION__)%(__LINE__)%(# testexpr)),errorcode); } }
 
 // note that expr1 and expr2 will be evaluated twice if not equal
-#define MUJIN_ASSERT_OP_FORMAT(expr1,op,expr2,s, args, errorcode) { if( !((expr1) op (expr2)) ) { throw mujinclient::mujin_exception(boost::str(boost::format("[%s:%d] %s %s %s, (eval %s %s %s) " s)%(__PRETTY_FUNCTION__)%(__LINE__)%(# expr1)%(# op)%(# expr2)%(expr1)%(# op)%(expr2)%args),errorcode); } }
+#define MUJIN_ASSERT_OP_FORMAT(expr1,op,expr2,s, args, errorcode) { if( !((expr1) op (expr2)) ) { throw mujinclient::MujinException(boost::str(boost::format("[%s:%d] %s %s %s, (eval %s %s %s) " s)%(__PRETTY_FUNCTION__)%(__LINE__)%(# expr1)%(# op)%(# expr2)%(expr1)%(# op)%(expr2)%args),errorcode); } }
 
-#define MUJIN_ASSERT_OP_FORMAT0(expr1,op,expr2,s, errorcode) { if( !((expr1) op (expr2)) ) { throw mujinclient::mujin_exception(boost::str(boost::format("[%s:%d] %s %s %s, (eval %s %s %s) " s)%(__PRETTY_FUNCTION__)%(__LINE__)%(# expr1)%(# op)%(# expr2)%(expr1)%(# op)%(expr2)),errorcode); } }
+#define MUJIN_ASSERT_OP_FORMAT0(expr1,op,expr2,s, errorcode) { if( !((expr1) op (expr2)) ) { throw mujinclient::MujinException(boost::str(boost::format("[%s:%d] %s %s %s, (eval %s %s %s) " s)%(__PRETTY_FUNCTION__)%(__LINE__)%(# expr1)%(# op)%(# expr2)%(expr1)%(# op)%(expr2)),errorcode); } }
 
-#define MUJIN_ASSERT_OP(expr1,op,expr2) { if( !((expr1) op (expr2)) ) { throw mujinclient::mujin_exception(boost::str(boost::format("[%s:%d] %s %s %s, (eval %s %s %s) ")%(__PRETTY_FUNCTION__)%(__LINE__)%(# expr1)%(# op)%(# expr2)%(expr1)%(# op)%(expr2)),MEC_Assert); } }
+#define MUJIN_ASSERT_OP(expr1,op,expr2) { if( !((expr1) op (expr2)) ) { throw mujinclient::MujinException(boost::str(boost::format("[%s:%d] %s %s %s, (eval %s %s %s) ")%(__PRETTY_FUNCTION__)%(__LINE__)%(# expr1)%(# op)%(# expr2)%(expr1)%(# op)%(expr2)),MEC_Assert); } }
 
 namespace mujinclient {
 
@@ -133,7 +133,7 @@ public:
             res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
             CHECKCURLCODE(res, "curl_easy_getinfo");
             if( http_code != 200 && http_code != 302 ) {
-                throw mujin_exception(str(boost::format("HTTP GET %s returned HTTP error code %s")%loginuri%http_code), MEC_HTTPServer);
+                throw MUJIN_EXCEPTION_FORMAT("HTTP GET %s returned HTTP error code %s", loginuri%http_code, MEC_HTTPServer);
             }
             _csrfmiddlewaretoken = _GetCSRFFromCookies();
 
@@ -148,7 +148,7 @@ public:
             res = curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
             CHECKCURLCODE(res, "curl_easy_getinfo failed");
             if( http_code != 200 && http_code != 302) {
-                throw mujin_exception(str(boost::format("HTTP POST %s returned HTTP error code %s")%loginuri%http_code), MEC_HTTPServer);
+                throw MUJIN_EXCEPTION_FORMAT("HTTP POST %s returned HTTP error code %s", loginuri%http_code, MEC_HTTPServer);
             }
         }
         _charset = "utf-8";
@@ -175,6 +175,16 @@ public:
         _SetHTTPHeaders();
     }
 
+    virtual void RestartServer()
+    {
+        throw MujinException("not implemented");
+    }
+
+    virtual void CancelAllJobs()
+    {
+        throw MujinException("not implemented");
+    }
+
     virtual void GetScenePrimaryKeys(std::vector<std::string>& scenekeys)
     {
         boost::property_tree::ptree pt;
@@ -196,7 +206,8 @@ public:
         return scene;
     }
 
-    void CallGet(const std::string& relativeuri, boost::property_tree::ptree& pt)
+    /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
+    int CallGet(const std::string& relativeuri, boost::property_tree::ptree& pt, int expectedhttpcode=200)
     {
         boost::mutex::scoped_lock lock(_mutex);
         _uri = _baseapiuri;
@@ -213,14 +224,16 @@ public:
         long http_code = 0;
         res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
         CHECKCURLCODE(res, "curl_easy_getinfo");
-        if( http_code != 200 ) {
+        if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
             std::string error_message = pt.get<std::string>("error_message");
             std::string traceback = pt.get<std::string>("traceback");
-            throw mujin_exception(str(boost::format("HTTP GET to '%s' returned HTTP status %s: %s")%relativeuri%http_code%error_message), MEC_HTTPServer);
+            throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s: %s", relativeuri%http_code%error_message, MEC_HTTPServer);
         }
+        return http_code;
     }
 
-    void CallPost(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt)
+    /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
+    int CallPost(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode=201)
     {
         boost::mutex::scoped_lock lock(_mutex);
         _uri = _baseapiuri;
@@ -239,14 +252,16 @@ public:
         long http_code = 0;
         res = curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
         CHECKCURLCODE(res, "curl_easy_getinfo failed");
-        if( http_code != 201 ) { // or 200 or 202 or 204?
+        if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
             std::string error_message = pt.get<std::string>("error_message", std::string());
             std::string traceback = pt.get<std::string>("traceback", std::string());
-            throw mujin_exception(str(boost::format("HTTP POST to '%s' returned HTTP status %s: %s")%relativeuri%http_code%error_message), MEC_HTTPServer);
+            throw MUJIN_EXCEPTION_FORMAT("HTTP POST to '%s' returned HTTP status %s: %s", relativeuri%http_code%error_message, MEC_HTTPServer);
         }
+        return http_code;
     }
 
-    void CallDelete(const std::string& relativeuri) {
+    void CallDelete(const std::string& relativeuri)
+    {
         boost::mutex::scoped_lock lock(_mutex);
         _uri = _baseapiuri;
         _uri += relativeuri;
@@ -259,7 +274,7 @@ public:
         res = curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
         CHECKCURLCODE(res, "curl_easy_getinfo failed");
         if( http_code != 204 ) { // or 200 or 202 or 201?
-            throw mujin_exception(str(boost::format("HTTP DELETE to '%s' returned HTTP status %s")%relativeuri%http_code), MEC_HTTPServer);
+            throw MUJIN_EXCEPTION_FORMAT("HTTP DELETE to '%s' returned HTTP status %s", relativeuri%http_code, MEC_HTTPServer);
         }
     }
 
@@ -355,6 +370,11 @@ std::string WebResource::Get(const std::string& field)
     return fieldvalue;
 }
 
+void WebResource::Set(const std::string& field, const std::string& newvalue)
+{
+    throw MujinException("not implemented");
+}
+
 void WebResource::Delete()
 {
     GETCONTROLLERIMPL();
@@ -363,7 +383,7 @@ void WebResource::Delete()
 
 void WebResource::Copy(const std::string& newname, int options)
 {
-    throw mujin_exception("not implemented yet");
+    throw MujinException("not implemented yet");
 }
 
 SceneResource::InstObject::InstObject(ControllerClientPtr controller, const std::string& scenepk, const std::string& pk) : WebResource(controller, str(boost::format("scene/%s/instobject")%scenepk), pk)
@@ -374,17 +394,25 @@ SceneResource::SceneResource(ControllerClientPtr controller, const std::string& 
 {
 }
 
-TaskResourcePtr SceneResource::GetOrCreateTaskFromName(const std::string& taskname)
+TaskResourcePtr SceneResource::GetOrCreateTaskFromName(const std::string& taskname, const std::string& tasktype)
 {
     GETCONTROLLERIMPL();
     boost::property_tree::ptree pt;
-    controller->CallGet(str(boost::format("scene/%s/task/?format=json&limit=1&name=%s&fields=pk")%GetPrimaryKey()%taskname), pt);
+    int http_code = controller->CallGet(str(boost::format("scene/%s/task/?format=json&limit=1&name=%s&fields=pk,tasktype")%GetPrimaryKey()%taskname), pt);
+    // task exists
     boost::property_tree::ptree& objects = pt.get_child("objects");
-    if( objects.size() == 0 ) {
-        throw MUJIN_EXCEPTION_FORMAT("failed to get task %s from scene pk %s", taskname%GetPrimaryKey(), MEC_InvalidArguments);
+    if( objects.size() > 0 ) {
+        std::string pk = objects.begin()->second.get<std::string>("pk");
+        std::string currenttasktype = objects.begin()->second.get<std::string>("tasktype");
+        if( currenttasktype != tasktype ) {
+            throw MUJIN_EXCEPTION_FORMAT("task pk %s exists and has type %s, expected is %s", pk%currenttasktype%tasktype, MEC_InvalidState);
+        }
+        TaskResourcePtr task(new TaskResource(GetController(), pk));
+        return task;
     }
-    std::string pk = objects.begin()->second.get<std::string>("pk");
-    TaskResourcePtr task(new TaskResource(GetController(), pk));
+    throw MujinException("not implemented");
+    // create a new task
+    TaskResourcePtr task(new TaskResource(GetController(), ""));
     return task;
 }
 
@@ -444,11 +472,12 @@ TaskResource::TaskResource(ControllerClientPtr controller, const std::string& pk
 
 void TaskResource::Execute()
 {
-    throw mujin_exception("not implemented yet");
+    throw MujinException("not implemented yet");
 }
 
-JobStatus TaskResource::GetRunTimeStatus() {
-    throw mujin_exception("not implemented yet");
+void TaskResource::GetRunTimeStatus(JobStatus& status)
+{
+    throw MujinException("not implemented yet");
 }
 
 OptimizationResourcePtr TaskResource::GetOrCreateOptimizationFromName(const std::string& optimizationname)
@@ -478,6 +507,50 @@ void TaskResource::GetOptimizationPrimaryKeys(std::vector<std::string>& optimiza
     }
 }
 
+void TaskResource::GetTaskInfo(ITLPlanningTaskInfo& taskinfo)
+{
+    GETCONTROLLERIMPL();
+    boost::property_tree::ptree pt;
+    controller->CallGet(str(boost::format("task/%s/?format=json&fields=taskgoalxml&tasktype")%GetPrimaryKey()), pt);
+    std::string tasktype = pt.get<std::string>("tasktype");
+    if( tasktype != "itlplanning" ) {
+        throw MUJIN_EXCEPTION_FORMAT("task %s is type %s, expected itlplanning", GetPrimaryKey()%tasktype, MEC_InvalidArguments);
+    }
+    std::stringstream sstrans(pt.get<std::string>("taskgoalxml"));
+    boost::property_tree::ptree pttrans;
+    boost::property_tree::read_xml(sstrans, pttrans);
+    boost::property_tree::ptree& objects = pttrans.get_child("root");
+    taskinfo.SetDefaults();
+    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, objects) {
+        if( v.first == "startfromcurrent" ) {
+            taskinfo.startfromcurrent = v.second.data() == std::string("True");
+        }
+        else if( v.first == "returntostart" ) {
+            taskinfo.returntostart = v.second.data() == std::string("True");
+        }
+        else if( v.first == "usevrc" ) {
+            taskinfo.usevrc = v.second.data() == std::string("True");
+        }
+        else if( v.first == "unit" ) {
+            taskinfo.unit = v.second.data();
+        }
+        else if( v.first == "outputtrajtype" ) {
+            taskinfo.outputtrajtype = v.second.data();
+        }
+        else if( v.first == "optimizationvalue" ) {
+            taskinfo.optimizationvalue = boost::lexical_cast<Real>(v.second.data());
+        }
+        else if( v.first == "program" ) {
+            taskinfo.program = v.second.data();
+        }
+    }
+}
+
+void TaskResource::SetTaskInfo(const ITLPlanningTaskInfo& taskinfo)
+{
+
+}
+
 PlanningResultResourcePtr TaskResource::GetResult()
 {
     GETCONTROLLERIMPL();
@@ -498,11 +571,11 @@ OptimizationResource::OptimizationResource(ControllerClientPtr controller, const
 
 void OptimizationResource::Execute()
 {
-    throw mujin_exception("not implemented yet");
+    throw MujinException("not implemented yet");
 }
 
-JobStatus OptimizationResource::GetRunTimeStatus() {
-    throw mujin_exception("not implemented yet");
+void OptimizationResource::GetRunTimeStatus(JobStatus& status) {
+    throw MujinException("not implemented yet");
 }
 
 void OptimizationResource::GetResults(int fastestnum, std::vector<PlanningResultResourcePtr>& results)
@@ -573,7 +646,7 @@ void ControllerClientDestroy()
 
 void ComputeMatrixFromTransform(Real matrix[12], const Transform &transform)
 {
-    throw mujin_exception("not implemented yet");
+    throw MujinException("not implemented yet");
 //    length2 = numpy.sum(quat**2)
 //    ilength2 = 2.0/length2
 //    qq1 = ilength2*quat[1]*quat[1]
@@ -593,7 +666,7 @@ void ComputeMatrixFromTransform(Real matrix[12], const Transform &transform)
 
 void ComputeZXYFromMatrix(Real ZXY[3], Real matrix[12])
 {
-    throw mujin_exception("not implemented yet");
+    throw MujinException("not implemented yet");
 //    if abs(T[2][0]) < 1e-10 and abs(T[2][2]) < 1e-10:
 //        sinx = T[2][1]
 //        x = numpy.pi/2 if sinx > 0 else -numpy.pi/2
@@ -612,7 +685,7 @@ void ComputeZXYFromMatrix(Real ZXY[3], Real matrix[12])
 
 void ComputeZXYFromTransform(Real ZXY[3], const Transform& transform)
 {
-    throw mujin_exception("not implemented yet");
+    throw MujinException("not implemented yet");
     //zxyFromMatrix(matrixFromTransform())
 }
 

@@ -27,7 +27,7 @@ int main(int argc, char ** argv)
     try {
         controller->ImportScene("mujin:/EMU_MUJIN/EMU_MUJIN.WPJ", "wincaps", "mujin:/test.mujin.dae");
     }
-    catch(const mujin_exception& ex) {
+    catch(const MujinException& ex) {
         if( ex.message().find("need to remove it first") != std::string::npos ) {
             std::cout << "file already imported, would you like to delete and re-import? (yes/no) ";
             std::string answer;
