@@ -1,0 +1,425 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<title>controllerclientcpp: /home/rdiankov/mujin/controllerclientcpp/include/mujincontrollerclient/mujincontrollerclient.h (2013-01-13 13:43:54 +0900, commit:1652a31) ソースファイル</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td style="padding-left: 0.5em;">
+   <div id="projectname">controllerclientcpp
+   &#160;<span id="projectnumber">0.9.0</span>
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 作成： Doxygen 1.8.2 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search",false,'検索');
+</script>
+  <div id="navrow1" class="tabs">
+    <ul class="tablist">
+      <li><a href="index.html"><span>メインページ</span></a></li>
+      <li><a href="namespaces.html"><span>ネームスペース</span></a></li>
+      <li><a href="annotated.html"><span>クラス</span></a></li>
+      <li class="current"><a href="files.html"><span>ファイル</span></a></li>
+      <li>
+        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="検索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.png" alt=""/></a>
+          </span>
+        </div>
+      </li>
+    </ul>
+  </div>
+  <div id="navrow2" class="tabs2">
+    <ul class="tablist">
+      <li><a href="files.html"><span>ファイル一覧</span></a></li>
+      <li><a href="globals.html"><span>ファイルメンバ</span></a></li>
+    </ul>
+  </div>
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全て</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>クラス</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>ネームスペース</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>ファイル</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>関数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>変数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>型定義</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>列挙型</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>列挙型の値</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(9)"><span class="SelectionMark">&#160;</span>マクロ定義</a></div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div id="nav-path" class="navpath">
+  <ul>
+<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_bb17e641dfb2bdb5603b5fc4cb1c7124.html">mujincontrollerclient</a></li>  </ul>
+</div>
+</div><!-- top -->
+<div class="header">
+  <div class="headertitle">
+<div class="title">mujincontrollerclient.h</div>  </div>
+</div><!--header-->
+<div class="contents">
+<a href="mujincontrollerclient_8h.html">説明を見る。</a><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="comment">// -*- coding: utf-8 -*-</span></div>
+<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="comment">// Copyright (C) 2012-2013 MUJIN Inc. &lt;rosen.diankov@mujin.co.jp&gt;</span></div>
+<div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="comment">//</span></div>
+<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="comment">// Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span></div>
+<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="comment">// you may not use this file except in compliance with the License.</span></div>
+<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="comment">// You may obtain a copy of the License at</span></div>
+<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="comment">//     http://www.apache.org/licenses/LICENSE-2.0</span></div>
+<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="comment">//</span></div>
+<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="comment">// Unless required by applicable law or agreed to in writing, software</span></div>
+<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="comment">// distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span></div>
+<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="comment">// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span></div>
+<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="comment">// See the License for the specific language governing permissions and</span></div>
+<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="comment">// limitations under the License.</span></div>
+<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;<span class="comment"></span><span class="preprocessor">#ifndef MUJINCLIENT_H</span></div>
+<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;<span class="preprocessor"></span><span class="preprocessor">#define MUJINCLIENT_H</span></div>
+<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;<span class="preprocessor"></span></div>
+<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;<span class="preprocessor">#ifndef MUJINCLIENT_DISABLE_ASSERT_HANDLER</span></div>
+<div class="line"><a name="l00021"></a><span class="lineno"><a class="code" href="mujincontrollerclient_8h.html#a21cda6239dffa6a622ca2946ea6f7455">   21</a></span>&#160;<span class="preprocessor"></span><span class="preprocessor">#define BOOST_ENABLE_ASSERT_HANDLER</span></div>
+<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;<span class="preprocessor"></span><span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;<span class="preprocessor"></span></div>
+<div class="line"><a name="l00024"></a><span class="lineno"><a class="code" href="mujincontrollerclient_8h.html#a7b03a7555e481d771c4ca8c611e331b0">   24</a></span>&#160;<span class="preprocessor">#define BOOST_FILESYSTEM_VERSION 3 // use boost filesystem v3</span></div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="preprocessor"></span></div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;<span class="preprocessor">#ifdef _MSC_VER</span></div>
+<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;<span class="preprocessor"></span></div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;<span class="preprocessor">#pragma warning(disable:4251) // needs to have dll-interface to be used by clients of class</span></div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;<span class="preprocessor"></span><span class="preprocessor">#pragma warning(disable:4190) // C-linkage specified, but returns UDT &#39;boost::shared_ptr&lt;T&gt;&#39; which is incompatible with C</span></div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;<span class="preprocessor"></span><span class="preprocessor">#pragma warning(disable:4819) //The file contains a character that cannot be represented in the current code page (932). Save the file in Unicode format to prevent data loss using native typeof</span></div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;<span class="preprocessor"></span></div>
+<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;<span class="preprocessor">#ifndef __PRETTY_FUNCTION__</span></div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;<span class="preprocessor"></span><span class="preprocessor">#define __PRETTY_FUNCTION__ __FUNCDNAME__</span></div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;<span class="preprocessor"></span><span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;<span class="preprocessor"></span></div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;<span class="preprocessor">#else</span></div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;<span class="preprocessor"></span><span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;<span class="preprocessor"></span></div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;<span class="preprocessor">#include &lt;string&gt;</span></div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;<span class="preprocessor">#include &lt;vector&gt;</span></div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;<span class="preprocessor">#include &lt;list&gt;</span></div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;<span class="preprocessor">#include &lt;map&gt;</span></div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;<span class="preprocessor">#include &lt;set&gt;</span></div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;<span class="preprocessor">#include &lt;string&gt;</span></div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;<span class="preprocessor">#include &lt;exception&gt;</span></div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;</div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;<span class="preprocessor">#include &lt;iomanip&gt;</span></div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;<span class="preprocessor">#include &lt;fstream&gt;</span></div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;<span class="preprocessor">#include &lt;sstream&gt;</span></div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;<span class="preprocessor">#include &lt;boost/version.hpp&gt;</span></div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;<span class="preprocessor">#include &lt;boost/shared_ptr.hpp&gt;</span></div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;<span class="preprocessor">#include &lt;boost/weak_ptr.hpp&gt;</span></div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;<span class="preprocessor">#include &lt;boost/format.hpp&gt;</span></div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;</div>
+<div class="line"><a name="l00056"></a><span class="lineno"><a class="code" href="namespacemujinclient.html">   56</a></span>&#160;<span class="keyword">namespace </span>mujinclient {</div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;</div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;<span class="preprocessor">#include &lt;<a class="code" href="config_8h.html" title="Defines MUJIN Controller Client installation-specific information.">mujincontrollerclient/config.h</a>&gt;</span></div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;</div>
+<div class="line"><a name="l00060"></a><span class="lineno"><a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44">   60</a></span>&#160;<span class="keyword">enum</span> <a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44">MujinErrorCode</a> {</div>
+<div class="line"><a name="l00061"></a><span class="lineno"><a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44aa8caf26da554fdb8cb1ae1c02caf794c">   61</a></span>&#160;    <a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44aa8caf26da554fdb8cb1ae1c02caf794c">MEC_Failed</a>=0,</div>
+<div class="line"><a name="l00062"></a><span class="lineno"><a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44aeea15b02860646ddafb641777823e7ee">   62</a></span>&#160;    <a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44aeea15b02860646ddafb641777823e7ee" title="passed in input arguments are not valid">MEC_InvalidArguments</a>=1, </div>
+<div class="line"><a name="l00063"></a><span class="lineno"><a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44ac1665b54b6dfc6033af47ffb2e4cdb8b">   63</a></span>&#160;    <a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44ac1665b54b6dfc6033af47ffb2e4cdb8b">MEC_EnvironmentNotLocked</a>=2,</div>
+<div class="line"><a name="l00064"></a><span class="lineno"><a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a0a63c959d4429077f0137ee7ae95e4c4">   64</a></span>&#160;    <a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a0a63c959d4429077f0137ee7ae95e4c4" title="string command could not be parsed or is not supported">MEC_CommandNotSupported</a>=3, </div>
+<div class="line"><a name="l00065"></a><span class="lineno"><a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a35e2138a3c4019c16ab5af6c5a6586d2">   65</a></span>&#160;    <a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a35e2138a3c4019c16ab5af6c5a6586d2">MEC_Assert</a>=4,</div>
+<div class="line"><a name="l00066"></a><span class="lineno"><a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a802a9e92dbfcba0b50ad46a396dff494">   66</a></span>&#160;    <a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a802a9e92dbfcba0b50ad46a396dff494" title="when object is used without it getting fully initialized">MEC_NotInitialized</a>=9, </div>
+<div class="line"><a name="l00067"></a><span class="lineno"><a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44ad6fffe92842e403040a31399653f6491">   67</a></span>&#160;    <a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44ad6fffe92842e403040a31399653f6491" title="the state of the object is not consistent with its parameters, or cannot be used. This is usually due...">MEC_InvalidState</a>=10, </div>
+<div class="line"><a name="l00068"></a><span class="lineno"><a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a266d1769428ac7d5f9834ab6abb213f5">   68</a></span>&#160;    <a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a266d1769428ac7d5f9834ab6abb213f5" title="process timed out">MEC_Timeout</a>=11, </div>
+<div class="line"><a name="l00069"></a><span class="lineno"><a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44aa15bad1e640efb7bbf1773c52123318f">   69</a></span>&#160;    <a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44aa15bad1e640efb7bbf1773c52123318f" title="HTTP client error.">MEC_HTTPClient</a>=12, </div>
+<div class="line"><a name="l00070"></a><span class="lineno"><a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a3820ae34ca64688f18358c6be4ef2b10">   70</a></span>&#160;    <a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a3820ae34ca64688f18358c6be4ef2b10" title="HTTP server error.">MEC_HTTPServer</a>=13, </div>
+<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;};</div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;</div>
+<div class="line"><a name="l00073"></a><span class="lineno"><a class="code" href="namespacemujinclient.html#ac35e1c3da4cd973aeb6665854af1f383">   73</a></span>&#160;<span class="keyword">inline</span> <span class="keyword">const</span> <span class="keywordtype">char</span>* <a class="code" href="namespacemujinclient.html#ac35e1c3da4cd973aeb6665854af1f383">GetErrorCodeString</a>(<a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44">MujinErrorCode</a> error)</div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;{</div>
+<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;    <span class="keywordflow">switch</span>(error) {</div>
+<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;    <span class="keywordflow">case</span> <a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44aa8caf26da554fdb8cb1ae1c02caf794c">MEC_Failed</a>: <span class="keywordflow">return</span> <span class="stringliteral">&quot;Failed&quot;</span>;</div>
+<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;    <span class="keywordflow">case</span> <a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44aeea15b02860646ddafb641777823e7ee" title="passed in input arguments are not valid">MEC_InvalidArguments</a>: <span class="keywordflow">return</span> <span class="stringliteral">&quot;InvalidArguments&quot;</span>;</div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;    <span class="keywordflow">case</span> <a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44ac1665b54b6dfc6033af47ffb2e4cdb8b">MEC_EnvironmentNotLocked</a>: <span class="keywordflow">return</span> <span class="stringliteral">&quot;EnvironmentNotLocked&quot;</span>;</div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;    <span class="keywordflow">case</span> <a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a0a63c959d4429077f0137ee7ae95e4c4" title="string command could not be parsed or is not supported">MEC_CommandNotSupported</a>: <span class="keywordflow">return</span> <span class="stringliteral">&quot;CommandNotSupported&quot;</span>;</div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;    <span class="keywordflow">case</span> <a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a35e2138a3c4019c16ab5af6c5a6586d2">MEC_Assert</a>: <span class="keywordflow">return</span> <span class="stringliteral">&quot;Assert&quot;</span>;</div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;    <span class="keywordflow">case</span> <a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a802a9e92dbfcba0b50ad46a396dff494" title="when object is used without it getting fully initialized">MEC_NotInitialized</a>: <span class="keywordflow">return</span> <span class="stringliteral">&quot;NotInitialized&quot;</span>;</div>
+<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;    <span class="keywordflow">case</span> <a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44ad6fffe92842e403040a31399653f6491" title="the state of the object is not consistent with its parameters, or cannot be used. This is usually due...">MEC_InvalidState</a>: <span class="keywordflow">return</span> <span class="stringliteral">&quot;InvalidState&quot;</span>;</div>
+<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;    <span class="keywordflow">case</span> <a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a266d1769428ac7d5f9834ab6abb213f5" title="process timed out">MEC_Timeout</a>: <span class="keywordflow">return</span> <span class="stringliteral">&quot;Timeout&quot;</span>;</div>
+<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;    <span class="keywordflow">case</span> <a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44aa15bad1e640efb7bbf1773c52123318f" title="HTTP client error.">MEC_HTTPClient</a>: <span class="keywordflow">return</span> <span class="stringliteral">&quot;HTTPClient&quot;</span>;</div>
+<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;    <span class="keywordflow">case</span> <a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a3820ae34ca64688f18358c6be4ef2b10" title="HTTP server error.">MEC_HTTPServer</a>: <span class="keywordflow">return</span> <span class="stringliteral">&quot;HTTPServer&quot;</span>;</div>
+<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;    }</div>
+<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;    <span class="comment">// should throw an exception?</span></div>
+<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;    <span class="keywordflow">return</span> <span class="stringliteral">&quot;&quot;</span>;</div>
+<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;}</div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;</div>
+<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;</div>
+<div class="line"><a name="l00093"></a><span class="lineno"><a class="code" href="classmujinclient_1_1mujin__exception.html">   93</a></span>&#160;<span class="keyword">class </span><a class="code" href="config_8h.html#a81c23aaf79aa6cb6063d11600bbba7ad">MUJINCLIENT_API</a> <a class="code" href="classmujinclient_1_1mujin__exception.html" title="Exception that all Mujin internal methods throw; the error codes are held in MujinErrorCode.">mujin_exception</a> : <span class="keyword">public</span> std::exception</div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;{</div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00096"></a><span class="lineno"><a class="code" href="classmujinclient_1_1mujin__exception.html#a7ea7613215522a2c146e1bc3f988806c">   96</a></span>&#160;    <a class="code" href="classmujinclient_1_1mujin__exception.html#a7ea7613215522a2c146e1bc3f988806c">mujin_exception</a>() : std::exception(), _s(<span class="stringliteral">&quot;unknown exception&quot;</span>), _error(<a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44aa8caf26da554fdb8cb1ae1c02caf794c">MEC_Failed</a>) {</div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;    }</div>
+<div class="line"><a name="l00098"></a><span class="lineno"><a class="code" href="classmujinclient_1_1mujin__exception.html#a2daa7944c8c0e1af0ed1c8c6a38823c2">   98</a></span>&#160;    <a class="code" href="classmujinclient_1_1mujin__exception.html#a2daa7944c8c0e1af0ed1c8c6a38823c2">mujin_exception</a>(<span class="keyword">const</span> std::string&amp; s, <a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44">MujinErrorCode</a> error=<a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44aa8caf26da554fdb8cb1ae1c02caf794c">MEC_Failed</a>) : std::exception() {</div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;        _error = error;</div>
+<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;        _s = <span class="stringliteral">&quot;mujin (&quot;</span>;</div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;        _s += <a class="code" href="namespacemujinclient.html#ac35e1c3da4cd973aeb6665854af1f383">GetErrorCodeString</a>(_error);</div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;        _s += <span class="stringliteral">&quot;): &quot;</span>;</div>
+<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;        _s += s;</div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;    }</div>
+<div class="line"><a name="l00105"></a><span class="lineno"><a class="code" href="classmujinclient_1_1mujin__exception.html#a909ca4075d883e9f90284cfdcc554ebb">  105</a></span>&#160;    <span class="keyword">virtual</span> <a class="code" href="classmujinclient_1_1mujin__exception.html#a909ca4075d883e9f90284cfdcc554ebb">~mujin_exception</a>() throw() {</div>
+<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;    }</div>
+<div class="line"><a name="l00107"></a><span class="lineno"><a class="code" href="classmujinclient_1_1mujin__exception.html#a1e4365a442490b76fed39ec7b534db26">  107</a></span>&#160;    <span class="keywordtype">char</span> <span class="keyword">const</span>* <a class="code" href="classmujinclient_1_1mujin__exception.html#a1e4365a442490b76fed39ec7b534db26">what</a>() <span class="keyword">const</span> throw() {</div>
+<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;        <span class="keywordflow">return</span> _s.c_str();</div>
+<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;    }</div>
+<div class="line"><a name="l00110"></a><span class="lineno"><a class="code" href="classmujinclient_1_1mujin__exception.html#a42a267693efdb3a913fb4f01d4294ecb">  110</a></span>&#160;    <span class="keyword">const</span> std::string&amp; <a class="code" href="classmujinclient_1_1mujin__exception.html#a42a267693efdb3a913fb4f01d4294ecb">message</a>()<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;        <span class="keywordflow">return</span> _s;</div>
+<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;    }</div>
+<div class="line"><a name="l00113"></a><span class="lineno"><a class="code" href="classmujinclient_1_1mujin__exception.html#a95e6db02cd49c44740191a0614eb5fe3">  113</a></span>&#160;    <a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44">MujinErrorCode</a> <a class="code" href="classmujinclient_1_1mujin__exception.html#a95e6db02cd49c44740191a0614eb5fe3">GetCode</a>()<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;        <span class="keywordflow">return</span> _error;</div>
+<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;    }</div>
+<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;<span class="keyword">private</span>:</div>
+<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;    std::string _s;</div>
+<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;    <a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44">MujinErrorCode</a> _error;</div>
+<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;};</div>
+<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;</div>
+<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;<span class="keyword">class </span>ControllerClient;</div>
+<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;<span class="keyword">class </span>SceneResource;</div>
+<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;<span class="keyword">class </span>TaskResource;</div>
+<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;<span class="keyword">class </span>OptimizationResource;</div>
+<div class="line"><a name="l00125"></a><span class="lineno"><a class="code" href="namespacemujinclient.html#aa0b8a533fc19b5930eca8bf825f2231d">  125</a></span>&#160;<span class="keyword">class </span><a class="code" href="classmujinclient_1_1PlanningResultResource.html">PlanningResultResource</a>;</div>
+<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;</div>
+<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;<span class="keyword">typedef</span> boost::shared_ptr&lt;ControllerClient&gt; <a class="code" href="namespacemujinclient.html#aa0b8a533fc19b5930eca8bf825f2231d">ControllerClientPtr</a>;</div>
+<div class="line"><a name="l00128"></a><span class="lineno"><a class="code" href="namespacemujinclient.html#a182c7c2d839784c764c14b9deb7cee93">  128</a></span>&#160;<span class="keyword">typedef</span> boost::weak_ptr&lt;ControllerClient&gt; <a class="code" href="namespacemujinclient.html#a182c7c2d839784c764c14b9deb7cee93">ControllerClientWeakPtr</a>;</div>
+<div class="line"><a name="l00129"></a><span class="lineno"><a class="code" href="namespacemujinclient.html#a9a7bf2721c91516d69ca08837e26b7b8">  129</a></span>&#160;<span class="keyword">typedef</span> boost::shared_ptr&lt;SceneResource&gt; <a class="code" href="namespacemujinclient.html#a9a7bf2721c91516d69ca08837e26b7b8">SceneResourcePtr</a>;</div>
+<div class="line"><a name="l00130"></a><span class="lineno"><a class="code" href="namespacemujinclient.html#a5597726a2880997e1e5fd57e4a1b3e6a">  130</a></span>&#160;<span class="keyword">typedef</span> boost::weak_ptr&lt;SceneResource&gt; <a class="code" href="namespacemujinclient.html#a5597726a2880997e1e5fd57e4a1b3e6a">SceneResourceWeakPtr</a>;</div>
+<div class="line"><a name="l00131"></a><span class="lineno"><a class="code" href="namespacemujinclient.html#a414681608c6d6a6dd069e274641a809e">  131</a></span>&#160;<span class="keyword">typedef</span> boost::shared_ptr&lt;TaskResource&gt; <a class="code" href="namespacemujinclient.html#a414681608c6d6a6dd069e274641a809e">TaskResourcePtr</a>;</div>
+<div class="line"><a name="l00132"></a><span class="lineno"><a class="code" href="namespacemujinclient.html#a7c43efa5d838a8bcb5cea549ab391ab3">  132</a></span>&#160;<span class="keyword">typedef</span> boost::weak_ptr&lt;TaskResource&gt; <a class="code" href="namespacemujinclient.html#a7c43efa5d838a8bcb5cea549ab391ab3">TaskResourceWeakPtr</a>;</div>
+<div class="line"><a name="l00133"></a><span class="lineno"><a class="code" href="namespacemujinclient.html#a792d4a5c8226ed22db9f59b11908229d">  133</a></span>&#160;<span class="keyword">typedef</span> boost::shared_ptr&lt;OptimizationResource&gt; <a class="code" href="namespacemujinclient.html#a792d4a5c8226ed22db9f59b11908229d">OptimizationResourcePtr</a>;</div>
+<div class="line"><a name="l00134"></a><span class="lineno"><a class="code" href="namespacemujinclient.html#a516bdfdd4496b5ebc30349be5a130c6d">  134</a></span>&#160;<span class="keyword">typedef</span> boost::weak_ptr&lt;OptimizationResource&gt; <a class="code" href="namespacemujinclient.html#a516bdfdd4496b5ebc30349be5a130c6d">OptimizationResourceWeakPtr</a>;</div>
+<div class="line"><a name="l00135"></a><span class="lineno"><a class="code" href="namespacemujinclient.html#ac6864839d1aa167298fac02dc4388378">  135</a></span>&#160;<span class="keyword">typedef</span> boost::shared_ptr&lt;PlanningResultResource&gt; <a class="code" href="namespacemujinclient.html#ac6864839d1aa167298fac02dc4388378">PlanningResultResourcePtr</a>;</div>
+<div class="line"><a name="l00136"></a><span class="lineno"><a class="code" href="namespacemujinclient.html#a2bf28d51d90141178225d7f9577f974e">  136</a></span>&#160;<span class="keyword">typedef</span> boost::weak_ptr&lt;PlanningResultResource&gt; <a class="code" href="namespacemujinclient.html#a2bf28d51d90141178225d7f9577f974e">PlanningResultResourceWeakPtr</a>;</div>
+<div class="line"><a name="l00137"></a><span class="lineno"><a class="code" href="namespacemujinclient.html#a0ee6d9601b044a916d4deda6b180ecbf">  137</a></span>&#160;<span class="keyword">typedef</span> <span class="keywordtype">double</span> <a class="code" href="namespacemujinclient.html#a0ee6d9601b044a916d4deda6b180ecbf">Real</a>;</div>
+<div class="line"><a name="l00138"></a><span class="lineno">  138</span>&#160;</div>
+<div class="line"><a name="l00139"></a><span class="lineno"><a class="code" href="structmujinclient_1_1JobStatus.html">  139</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structmujinclient_1_1JobStatus.html">JobStatus</a></div>
+<div class="line"><a name="l00140"></a><span class="lineno">  140</span>&#160;{</div>
+<div class="line"><a name="l00141"></a><span class="lineno"><a class="code" href="structmujinclient_1_1JobStatus.html#aa604c08dd0531c5905eec520897b597d">  141</a></span>&#160;    <a class="code" href="structmujinclient_1_1JobStatus.html#aa604c08dd0531c5905eec520897b597d">JobStatus</a>() : <a class="code" href="structmujinclient_1_1JobStatus.html#a54195a1472dc9e74c755a7ee8404c3ad" title="if 3, succeeded">code</a>(0) {</div>
+<div class="line"><a name="l00142"></a><span class="lineno">  142</span>&#160;    }</div>
+<div class="line"><a name="l00143"></a><span class="lineno"><a class="code" href="structmujinclient_1_1JobStatus.html#a54195a1472dc9e74c755a7ee8404c3ad">  143</a></span>&#160;    <span class="keywordtype">int</span> <a class="code" href="structmujinclient_1_1JobStatus.html#a54195a1472dc9e74c755a7ee8404c3ad" title="if 3, succeeded">code</a>; </div>
+<div class="line"><a name="l00144"></a><span class="lineno"><a class="code" href="structmujinclient_1_1JobStatus.html#a038c1b6fb9981f5ed42f2ffcddff063d">  144</a></span>&#160;    std::string <a class="code" href="structmujinclient_1_1JobStatus.html#a038c1b6fb9981f5ed42f2ffcddff063d">message</a>;</div>
+<div class="line"><a name="l00145"></a><span class="lineno">  145</span>&#160;};</div>
+<div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160;</div>
+<div class="line"><a name="l00148"></a><span class="lineno"><a class="code" href="structmujinclient_1_1Transform.html">  148</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structmujinclient_1_1Transform.html" title="an affine transform">Transform</a></div>
+<div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160;{</div>
+<div class="line"><a name="l00150"></a><span class="lineno"><a class="code" href="structmujinclient_1_1Transform.html#a859f07c1f3ee84bfd2ede5830541fe27">  150</a></span>&#160;    <a class="code" href="structmujinclient_1_1Transform.html#a859f07c1f3ee84bfd2ede5830541fe27">Transform</a>() {</div>
+<div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160;        <a class="code" href="structmujinclient_1_1Transform.html#af3ff573566274eca9c9af2f9dc45e430" title="quaternion [cos(ang/2), axis*sin(ang/2)]">quat</a>[0] = 1; <a class="code" href="structmujinclient_1_1Transform.html#af3ff573566274eca9c9af2f9dc45e430" title="quaternion [cos(ang/2), axis*sin(ang/2)]">quat</a>[1] = 0; <a class="code" href="structmujinclient_1_1Transform.html#af3ff573566274eca9c9af2f9dc45e430" title="quaternion [cos(ang/2), axis*sin(ang/2)]">quat</a>[2] = 0; <a class="code" href="structmujinclient_1_1Transform.html#af3ff573566274eca9c9af2f9dc45e430" title="quaternion [cos(ang/2), axis*sin(ang/2)]">quat</a>[3] = 0;</div>
+<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;        <a class="code" href="structmujinclient_1_1Transform.html#a7be9672fd534ae62aa442d1b764c7ee3" title="translation x,y,z">translation</a>[0] = 0; <a class="code" href="structmujinclient_1_1Transform.html#a7be9672fd534ae62aa442d1b764c7ee3" title="translation x,y,z">translation</a>[1] = 0; <a class="code" href="structmujinclient_1_1Transform.html#a7be9672fd534ae62aa442d1b764c7ee3" title="translation x,y,z">translation</a>[2] = 0;</div>
+<div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160;    }</div>
+<div class="line"><a name="l00154"></a><span class="lineno"><a class="code" href="structmujinclient_1_1Transform.html#af3ff573566274eca9c9af2f9dc45e430">  154</a></span>&#160;    <a class="code" href="namespacemujinclient.html#a0ee6d9601b044a916d4deda6b180ecbf">Real</a> <a class="code" href="structmujinclient_1_1Transform.html#af3ff573566274eca9c9af2f9dc45e430" title="quaternion [cos(ang/2), axis*sin(ang/2)]">quat</a>[4]; </div>
+<div class="line"><a name="l00155"></a><span class="lineno"><a class="code" href="structmujinclient_1_1Transform.html#a7be9672fd534ae62aa442d1b764c7ee3">  155</a></span>&#160;    <a class="code" href="namespacemujinclient.html#a0ee6d9601b044a916d4deda6b180ecbf">Real</a> <a class="code" href="structmujinclient_1_1Transform.html#a7be9672fd534ae62aa442d1b764c7ee3" title="translation x,y,z">translation</a>[3]; </div>
+<div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160;};</div>
+<div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160;</div>
+<div class="line"><a name="l00158"></a><span class="lineno"><a class="code" href="structmujinclient_1_1SceneInformation.html">  158</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structmujinclient_1_1SceneInformation.html">SceneInformation</a></div>
+<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160;{</div>
+<div class="line"><a name="l00160"></a><span class="lineno"><a class="code" href="structmujinclient_1_1SceneInformation.html#a6de0be0dcaf61e47e0e325ca00861de7">  160</a></span>&#160;    std::string <a class="code" href="structmujinclient_1_1SceneInformation.html#a6de0be0dcaf61e47e0e325ca00861de7" title="primary key">pk</a>; </div>
+<div class="line"><a name="l00161"></a><span class="lineno"><a class="code" href="structmujinclient_1_1SceneInformation.html#a01ec99e321d354a6e14cf2c48ba43705">  161</a></span>&#160;    std::string <a class="code" href="structmujinclient_1_1SceneInformation.html#a01ec99e321d354a6e14cf2c48ba43705" title="uri of the file pointed to">uri</a>; </div>
+<div class="line"><a name="l00162"></a><span class="lineno"><a class="code" href="structmujinclient_1_1SceneInformation.html#aadb217bb405b4a9f07d972dfae41cc59">  162</a></span>&#160;    std::string <a class="code" href="structmujinclient_1_1SceneInformation.html#aadb217bb405b4a9f07d972dfae41cc59" title="late date modified">datemodified</a>; </div>
+<div class="line"><a name="l00163"></a><span class="lineno"><a class="code" href="structmujinclient_1_1SceneInformation.html#a353f58998aa9db8c53177fcc01af8d59">  163</a></span>&#160;    std::string <a class="code" href="structmujinclient_1_1SceneInformation.html#a353f58998aa9db8c53177fcc01af8d59">name</a>;</div>
+<div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160;};</div>
+<div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160;</div>
+<div class="line"><a name="l00169"></a><span class="lineno"><a class="code" href="classmujinclient_1_1ControllerClient.html">  169</a></span>&#160;<span class="keyword">class </span><a class="code" href="config_8h.html#a81c23aaf79aa6cb6063d11600bbba7ad">MUJINCLIENT_API</a> <a class="code" href="classmujinclient_1_1ControllerClient.html" title="Creates on MUJIN Controller instance.">ControllerClient</a></div>
+<div class="line"><a name="l00170"></a><span class="lineno">  170</span>&#160;{</div>
+<div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00172"></a><span class="lineno"><a class="code" href="classmujinclient_1_1ControllerClient.html#aed474739b50d254eabd381256a69fe6b">  172</a></span>&#160;    <span class="keyword">virtual</span> <a class="code" href="classmujinclient_1_1ControllerClient.html#aed474739b50d254eabd381256a69fe6b">~ControllerClient</a>() {</div>
+<div class="line"><a name="l00173"></a><span class="lineno">  173</span>&#160;    }</div>
+<div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160;</div>
+<div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;<span class="comment">//    /** \brief Returns a list of filenames in the user system of a particular type</span></div>
+<div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160;<span class="comment">//</span></div>
+<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;<span class="comment">//        \param scenetype the type of scene possible values are:</span></div>
+<div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;<span class="comment">//        - mujincollada</span></div>
+<div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;<span class="comment">//        - wincaps</span></div>
+<div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160;<span class="comment">//        - rttoolbox</span></div>
+<div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160;<span class="comment">//        - cecvirfitxml</span></div>
+<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;<span class="comment">//        - stl</span></div>
+<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160;<span class="comment">//        - x</span></div>
+<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;<span class="comment">//        - vrml</span></div>
+<div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160;<span class="comment">//        - stl</span></div>
+<div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160;<span class="comment">//     */</span></div>
+<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160;<span class="comment">//    virtual void GetSceneFilenames(const std::string&amp; scenetype, std::vector&lt;std::string&gt;&amp; scenefilenames) = 0;</span></div>
+<div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160;</div>
+<div class="line"><a name="l00193"></a><span class="lineno">  193</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> SetCharacterEncoding(<span class="keyword">const</span> std::string&amp; newencoding) = 0;</div>
+<div class="line"><a name="l00194"></a><span class="lineno">  194</span>&#160;</div>
+<div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> SetLanguage(<span class="keyword">const</span> std::string&amp; language) = 0;</div>
+<div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160;</div>
+<div class="line"><a name="l00201"></a><span class="lineno">  201</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> GetScenePrimaryKeys(std::vector&lt;std::string&gt;&amp; scenekeys) = 0;</div>
+<div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160;</div>
+<div class="line"><a name="l00215"></a><span class="lineno">  215</span>&#160;    <span class="keyword">virtual</span> <a class="code" href="namespacemujinclient.html#a9a7bf2721c91516d69ca08837e26b7b8">SceneResourcePtr</a> ImportScene(<span class="keyword">const</span> std::string&amp; importuri, <span class="keyword">const</span> std::string&amp; importformat, <span class="keyword">const</span> std::string&amp; newuri) = 0;</div>
+<div class="line"><a name="l00216"></a><span class="lineno">  216</span>&#160;};</div>
+<div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160;</div>
+<div class="line"><a name="l00218"></a><span class="lineno"><a class="code" href="classmujinclient_1_1WebResource.html">  218</a></span>&#160;<span class="keyword">class </span><a class="code" href="config_8h.html#a81c23aaf79aa6cb6063d11600bbba7ad">MUJINCLIENT_API</a> <a class="code" href="classmujinclient_1_1WebResource.html">WebResource</a></div>
+<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;{</div>
+<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;    <a class="code" href="classmujinclient_1_1WebResource.html">WebResource</a>(<a class="code" href="namespacemujinclient.html#aa0b8a533fc19b5930eca8bf825f2231d">ControllerClientPtr</a> controller, <span class="keyword">const</span> std::string&amp; resourcename, <span class="keyword">const</span> std::string&amp; pk);</div>
+<div class="line"><a name="l00222"></a><span class="lineno"><a class="code" href="classmujinclient_1_1WebResource.html#afb8a44bd5d8ee2159c5c984fde881ae8">  222</a></span>&#160;    <span class="keyword">virtual</span> <a class="code" href="classmujinclient_1_1WebResource.html#afb8a44bd5d8ee2159c5c984fde881ae8">~WebResource</a>() {</div>
+<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;    }</div>
+<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;</div>
+<div class="line"><a name="l00225"></a><span class="lineno"><a class="code" href="classmujinclient_1_1WebResource.html#a51d28b46e981b217dd7eaaba7a1874d3">  225</a></span>&#160;    <span class="keyword">inline</span> <a class="code" href="namespacemujinclient.html#aa0b8a533fc19b5930eca8bf825f2231d">ControllerClientPtr</a> <a class="code" href="classmujinclient_1_1WebResource.html#a51d28b46e981b217dd7eaaba7a1874d3">GetController</a>()<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160;        <span class="keywordflow">return</span> __controller;</div>
+<div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160;    }</div>
+<div class="line"><a name="l00228"></a><span class="lineno"><a class="code" href="classmujinclient_1_1WebResource.html#af8584da9a2ed5aab089533f0c489fe19">  228</a></span>&#160;    <span class="keyword">inline</span> <span class="keyword">const</span> std::string&amp; <a class="code" href="classmujinclient_1_1WebResource.html#af8584da9a2ed5aab089533f0c489fe19">GetResourceName</a>()<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;        <span class="keywordflow">return</span> __resourcename;</div>
+<div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160;    }</div>
+<div class="line"><a name="l00231"></a><span class="lineno"><a class="code" href="classmujinclient_1_1WebResource.html#ac8a91fc998cff38c9e51611cfc00e0ef">  231</a></span>&#160;    <span class="keyword">inline</span> <span class="keyword">const</span> std::string&amp; <a class="code" href="classmujinclient_1_1WebResource.html#ac8a91fc998cff38c9e51611cfc00e0ef">GetPrimaryKey</a>()<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160;        <span class="keywordflow">return</span> __pk;</div>
+<div class="line"><a name="l00233"></a><span class="lineno">  233</span>&#160;    }</div>
+<div class="line"><a name="l00234"></a><span class="lineno">  234</span>&#160;</div>
+<div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160;    <span class="keyword">virtual</span> std::string Get(<span class="keyword">const</span> std::string&amp; field);</div>
+<div class="line"><a name="l00237"></a><span class="lineno">  237</span>&#160;</div>
+<div class="line"><a name="l00239"></a><span class="lineno">  239</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> Delete();</div>
+<div class="line"><a name="l00240"></a><span class="lineno">  240</span>&#160;</div>
+<div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> Copy(<span class="keyword">const</span> std::string&amp; newname, <span class="keywordtype">int</span> options);</div>
+<div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;</div>
+<div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;<span class="keyword">private</span>:</div>
+<div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160;    <a class="code" href="namespacemujinclient.html#aa0b8a533fc19b5930eca8bf825f2231d">ControllerClientPtr</a> __controller;</div>
+<div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;    std::string __resourcename, __pk;</div>
+<div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;};</div>
+<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;</div>
+<div class="line"><a name="l00249"></a><span class="lineno"><a class="code" href="classmujinclient_1_1SceneResource.html">  249</a></span>&#160;<span class="keyword">class </span><a class="code" href="config_8h.html#a81c23aaf79aa6cb6063d11600bbba7ad">MUJINCLIENT_API</a> <a class="code" href="classmujinclient_1_1SceneResource.html">SceneResource</a> : <span class="keyword">public</span> <a class="code" href="classmujinclient_1_1WebResource.html">WebResource</a></div>
+<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;{</div>
+<div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00253"></a><span class="lineno"><a class="code" href="classmujinclient_1_1SceneResource_1_1InstObject.html">  253</a></span>&#160;    <span class="keyword">class </span><a class="code" href="config_8h.html#a81c23aaf79aa6cb6063d11600bbba7ad">MUJINCLIENT_API</a> <a class="code" href="classmujinclient_1_1SceneResource_1_1InstObject.html" title="nested resource in the scene describe an object in the scene">InstObject</a> : <span class="keyword">public</span> <a class="code" href="classmujinclient_1_1WebResource.html">WebResource</a></div>
+<div class="line"><a name="l00254"></a><span class="lineno">  254</span>&#160;    {</div>
+<div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;        <a class="code" href="classmujinclient_1_1SceneResource_1_1InstObject.html" title="nested resource in the scene describe an object in the scene">InstObject</a>(<a class="code" href="namespacemujinclient.html#aa0b8a533fc19b5930eca8bf825f2231d">ControllerClientPtr</a> controller, <span class="keyword">const</span> std::string&amp; scenepk, <span class="keyword">const</span> std::string&amp; pk);</div>
+<div class="line"><a name="l00257"></a><span class="lineno"><a class="code" href="classmujinclient_1_1SceneResource_1_1InstObject.html#af68ceb098740e62fbda1585ce896330b">  257</a></span>&#160;        <span class="keyword">virtual</span> <a class="code" href="classmujinclient_1_1SceneResource_1_1InstObject.html#af68ceb098740e62fbda1585ce896330b">~InstObject</a>() {</div>
+<div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160;        }</div>
+<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160;</div>
+<div class="line"><a name="l00260"></a><span class="lineno"><a class="code" href="classmujinclient_1_1SceneResource_1_1InstObject.html#ae984848baecbd075c0aa6afba41e2e15">  260</a></span>&#160;        std::vector&lt;Real&gt; <a class="code" href="classmujinclient_1_1SceneResource_1_1InstObject.html#ae984848baecbd075c0aa6afba41e2e15">dofvalues</a>;</div>
+<div class="line"><a name="l00261"></a><span class="lineno"><a class="code" href="classmujinclient_1_1SceneResource_1_1InstObject.html#a17e39993acf08e99d3cb76d226c86e31">  261</a></span>&#160;        std::string <a class="code" href="classmujinclient_1_1SceneResource_1_1InstObject.html#a17e39993acf08e99d3cb76d226c86e31">name</a>;</div>
+<div class="line"><a name="l00262"></a><span class="lineno"><a class="code" href="classmujinclient_1_1SceneResource_1_1InstObject.html#a4afe94d7917095fbe5f307126b158832">  262</a></span>&#160;        std::string <a class="code" href="classmujinclient_1_1SceneResource_1_1InstObject.html#a4afe94d7917095fbe5f307126b158832">object_pk</a>;</div>
+<div class="line"><a name="l00263"></a><span class="lineno"><a class="code" href="classmujinclient_1_1SceneResource_1_1InstObject.html#a3ce8cbedf128c0ddb34ae8354234ce96">  263</a></span>&#160;        std::string <a class="code" href="classmujinclient_1_1SceneResource_1_1InstObject.html#a3ce8cbedf128c0ddb34ae8354234ce96">reference_uri</a>;</div>
+<div class="line"><a name="l00264"></a><span class="lineno"><a class="code" href="classmujinclient_1_1SceneResource_1_1InstObject.html#a7a3f116388036aaba6f6662f53e01a3f">  264</a></span>&#160;        <a class="code" href="namespacemujinclient.html#a0ee6d9601b044a916d4deda6b180ecbf">Real</a> rotate[4]; <span class="comment">// quaternion</span></div>
+<div class="line"><a name="l00265"></a><span class="lineno"><a class="code" href="classmujinclient_1_1SceneResource_1_1InstObject.html#a1ee73472af9c16cdd6eb0bf94d2ceee7">  265</a></span>&#160;        <a class="code" href="namespacemujinclient.html#a0ee6d9601b044a916d4deda6b180ecbf">Real</a> translate[3];</div>
+<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;    };</div>
+<div class="line"><a name="l00267"></a><span class="lineno"><a class="code" href="classmujinclient_1_1SceneResource.html#a1892ea66e786f207f6df89cab0754670">  267</a></span>&#160;    <span class="keyword">typedef</span> boost::shared_ptr&lt;InstObject&gt; <a class="code" href="classmujinclient_1_1SceneResource.html#a1892ea66e786f207f6df89cab0754670">InstObjectPtr</a>;</div>
+<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;</div>
+<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;    <a class="code" href="classmujinclient_1_1SceneResource.html">SceneResource</a>(<a class="code" href="namespacemujinclient.html#aa0b8a533fc19b5930eca8bf825f2231d">ControllerClientPtr</a> controller, <span class="keyword">const</span> std::string&amp; pk);</div>
+<div class="line"><a name="l00270"></a><span class="lineno"><a class="code" href="classmujinclient_1_1SceneResource.html#aa2c2d16d6fbee05f7e8594c83cb0b304">  270</a></span>&#160;    <span class="keyword">virtual</span> <a class="code" href="classmujinclient_1_1SceneResource.html#aa2c2d16d6fbee05f7e8594c83cb0b304">~SceneResource</a>() {</div>
+<div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160;    }</div>
+<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;</div>
+<div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160;    <span class="keyword">virtual</span> <a class="code" href="namespacemujinclient.html#a414681608c6d6a6dd069e274641a809e">TaskResourcePtr</a> GetOrCreateTaskFromName(<span class="keyword">const</span> std::string&amp; taskname);</div>
+<div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;</div>
+<div class="line"><a name="l00279"></a><span class="lineno">  279</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> GetTaskPrimaryKeys(std::vector&lt;std::string&gt;&amp; taskkeys);</div>
+<div class="line"><a name="l00280"></a><span class="lineno">  280</span>&#160;</div>
+<div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> GetInstObjects(std::vector&lt;InstObjectPtr&gt;&amp; instobjects);</div>
+<div class="line"><a name="l00283"></a><span class="lineno">  283</span>&#160;};</div>
+<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160;</div>
+<div class="line"><a name="l00285"></a><span class="lineno"><a class="code" href="classmujinclient_1_1TaskResource.html">  285</a></span>&#160;<span class="keyword">class </span><a class="code" href="config_8h.html#a81c23aaf79aa6cb6063d11600bbba7ad">MUJINCLIENT_API</a> <a class="code" href="classmujinclient_1_1TaskResource.html">TaskResource</a> : <span class="keyword">public</span> <a class="code" href="classmujinclient_1_1WebResource.html">WebResource</a></div>
+<div class="line"><a name="l00286"></a><span class="lineno">  286</span>&#160;{</div>
+<div class="line"><a name="l00287"></a><span class="lineno">  287</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00288"></a><span class="lineno">  288</span>&#160;    <a class="code" href="classmujinclient_1_1TaskResource.html">TaskResource</a>(<a class="code" href="namespacemujinclient.html#aa0b8a533fc19b5930eca8bf825f2231d">ControllerClientPtr</a> controller, <span class="keyword">const</span> std::string&amp; pk);</div>
+<div class="line"><a name="l00289"></a><span class="lineno"><a class="code" href="classmujinclient_1_1TaskResource.html#a277ccf7d2128a445601aec81c558edb3">  289</a></span>&#160;    <span class="keyword">virtual</span> <a class="code" href="classmujinclient_1_1TaskResource.html#a277ccf7d2128a445601aec81c558edb3">~TaskResource</a>() {</div>
+<div class="line"><a name="l00290"></a><span class="lineno">  290</span>&#160;    }</div>
+<div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160;</div>
+<div class="line"><a name="l00293"></a><span class="lineno">  293</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> Execute();</div>
+<div class="line"><a name="l00294"></a><span class="lineno">  294</span>&#160;</div>
+<div class="line"><a name="l00296"></a><span class="lineno">  296</span>&#160;    <span class="keyword">virtual</span> <a class="code" href="structmujinclient_1_1JobStatus.html">JobStatus</a> GetRunTimeStatus();</div>
+<div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160;</div>
+<div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160;    <span class="keyword">virtual</span> <a class="code" href="namespacemujinclient.html#a792d4a5c8226ed22db9f59b11908229d">OptimizationResourcePtr</a> GetOrCreateOptimizationFromName(<span class="keyword">const</span> std::string&amp; optimizationname);</div>
+<div class="line"><a name="l00302"></a><span class="lineno">  302</span>&#160;</div>
+<div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> GetOptimizationPrimaryKeys(std::vector&lt;std::string&gt;&amp; optimizationkeys);</div>
+<div class="line"><a name="l00305"></a><span class="lineno">  305</span>&#160;</div>
+<div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;    <span class="keyword">virtual</span> <a class="code" href="namespacemujinclient.html#ac6864839d1aa167298fac02dc4388378">PlanningResultResourcePtr</a> GetResult();</div>
+<div class="line"><a name="l00308"></a><span class="lineno">  308</span>&#160;};</div>
+<div class="line"><a name="l00309"></a><span class="lineno">  309</span>&#160;</div>
+<div class="line"><a name="l00310"></a><span class="lineno"><a class="code" href="classmujinclient_1_1OptimizationResource.html">  310</a></span>&#160;<span class="keyword">class </span><a class="code" href="config_8h.html#a81c23aaf79aa6cb6063d11600bbba7ad">MUJINCLIENT_API</a> <a class="code" href="classmujinclient_1_1OptimizationResource.html">OptimizationResource</a> : <span class="keyword">public</span> <a class="code" href="classmujinclient_1_1WebResource.html">WebResource</a></div>
+<div class="line"><a name="l00311"></a><span class="lineno">  311</span>&#160;{</div>
+<div class="line"><a name="l00312"></a><span class="lineno">  312</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00313"></a><span class="lineno">  313</span>&#160;    <a class="code" href="classmujinclient_1_1OptimizationResource.html">OptimizationResource</a>(<a class="code" href="namespacemujinclient.html#aa0b8a533fc19b5930eca8bf825f2231d">ControllerClientPtr</a> controller, <span class="keyword">const</span> std::string&amp; pk);</div>
+<div class="line"><a name="l00314"></a><span class="lineno"><a class="code" href="classmujinclient_1_1OptimizationResource.html#aa009106c1da752b77693aa631a700e13">  314</a></span>&#160;    <span class="keyword">virtual</span> <a class="code" href="classmujinclient_1_1OptimizationResource.html#aa009106c1da752b77693aa631a700e13">~OptimizationResource</a>() {</div>
+<div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160;    }</div>
+<div class="line"><a name="l00316"></a><span class="lineno">  316</span>&#160;</div>
+<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> Execute();</div>
+<div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160;</div>
+<div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160;    <span class="keyword">virtual</span> <a class="code" href="structmujinclient_1_1JobStatus.html">JobStatus</a> GetRunTimeStatus();</div>
+<div class="line"><a name="l00322"></a><span class="lineno">  322</span>&#160;</div>
+<div class="line"><a name="l00326"></a><span class="lineno">  326</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> GetResults(<span class="keywordtype">int</span> fastestnum, std::vector&lt;PlanningResultResourcePtr&gt;&amp; results);</div>
+<div class="line"><a name="l00327"></a><span class="lineno">  327</span>&#160;};</div>
+<div class="line"><a name="l00328"></a><span class="lineno">  328</span>&#160;</div>
+<div class="line"><a name="l00329"></a><span class="lineno"><a class="code" href="classmujinclient_1_1PlanningResultResource.html">  329</a></span>&#160;<span class="keyword">class </span><a class="code" href="config_8h.html#a81c23aaf79aa6cb6063d11600bbba7ad">MUJINCLIENT_API</a> <a class="code" href="classmujinclient_1_1PlanningResultResource.html">PlanningResultResource</a> : <span class="keyword">public</span> <a class="code" href="classmujinclient_1_1WebResource.html">WebResource</a></div>
+<div class="line"><a name="l00330"></a><span class="lineno">  330</span>&#160;{</div>
+<div class="line"><a name="l00331"></a><span class="lineno">  331</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00332"></a><span class="lineno">  332</span>&#160;    <a class="code" href="classmujinclient_1_1PlanningResultResource.html">PlanningResultResource</a>(<a class="code" href="namespacemujinclient.html#aa0b8a533fc19b5930eca8bf825f2231d">ControllerClientPtr</a> controller, <span class="keyword">const</span> std::string&amp; pk);</div>
+<div class="line"><a name="l00333"></a><span class="lineno"><a class="code" href="classmujinclient_1_1PlanningResultResource.html#aecd6e7690b31e533f80aa2fc9b46b837">  333</a></span>&#160;    <span class="keyword">virtual</span> <a class="code" href="classmujinclient_1_1PlanningResultResource.html#aecd6e7690b31e533f80aa2fc9b46b837">~PlanningResultResource</a>() {</div>
+<div class="line"><a name="l00334"></a><span class="lineno">  334</span>&#160;    }</div>
+<div class="line"><a name="l00335"></a><span class="lineno">  335</span>&#160;</div>
+<div class="line"><a name="l00337"></a><span class="lineno">  337</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> GetTransforms(std::map&lt;std::string, Transform&gt;&amp; transforms);</div>
+<div class="line"><a name="l00338"></a><span class="lineno">  338</span>&#160;};</div>
+<div class="line"><a name="l00339"></a><span class="lineno">  339</span>&#160;</div>
+<div class="line"><a name="l00340"></a><span class="lineno">  340</span>&#160;</div>
+<div class="line"><a name="l00347"></a><span class="lineno">  347</span>&#160;<a class="code" href="config_8h.html#a81c23aaf79aa6cb6063d11600bbba7ad">MUJINCLIENT_API</a> <a class="code" href="namespacemujinclient.html#aa0b8a533fc19b5930eca8bf825f2231d">ControllerClientPtr</a> <a class="code" href="namespacemujinclient.html#ad7c87ca5124addfb5c29bd130d79edff" title="creates the controller with an account.">CreateControllerClient</a>(<span class="keyword">const</span> std::string&amp; usernamepassword, <span class="keyword">const</span> std::string&amp; url=<span class="stringliteral">&quot;https://controller.mujin.co.jp/&quot;</span>, <span class="keywordtype">int</span> options=0);</div>
+<div class="line"><a name="l00348"></a><span class="lineno">  348</span>&#160;</div>
+<div class="line"><a name="l00350"></a><span class="lineno">  350</span>&#160;<a class="code" href="config_8h.html#a81c23aaf79aa6cb6063d11600bbba7ad">MUJINCLIENT_API</a> <span class="keywordtype">void</span> <a class="code" href="namespacemujinclient.html#a8ae80bf1bea1a9959dd23a310a3e5d03" title="called at the very end of an application to safely destroy all controller client resources">ControllerClientDestroy</a>();</div>
+<div class="line"><a name="l00351"></a><span class="lineno">  351</span>&#160;</div>
+<div class="line"><a name="l00353"></a><span class="lineno">  353</span>&#160;<a class="code" href="config_8h.html#a81c23aaf79aa6cb6063d11600bbba7ad">MUJINCLIENT_API</a> <span class="keywordtype">void</span> <a class="code" href="namespacemujinclient.html#aa9f3d9271232898dc59387fd812219f9" title="Compute a 3x4 matrix from a Transform.">ComputeMatrixFromTransform</a>(<a class="code" href="namespacemujinclient.html#a0ee6d9601b044a916d4deda6b180ecbf">Real</a> matrix[12], <span class="keyword">const</span> Transform &amp;transform);</div>
+<div class="line"><a name="l00354"></a><span class="lineno">  354</span>&#160;</div>
+<div class="line"><a name="l00367"></a><span class="lineno">  367</span>&#160;<a class="code" href="config_8h.html#a81c23aaf79aa6cb6063d11600bbba7ad">MUJINCLIENT_API</a> <span class="keywordtype">void</span> <a class="code" href="namespacemujinclient.html#abce651aa8bbd46444e4b458f4161bf31" title="Compute Euler angles in ZXY order (T = Z*X*Y) from a 3x4 matrix.">ComputeZXYFromMatrix</a>(<a class="code" href="namespacemujinclient.html#a0ee6d9601b044a916d4deda6b180ecbf">Real</a> ZXY[3], <span class="keyword">const</span> <a class="code" href="namespacemujinclient.html#a0ee6d9601b044a916d4deda6b180ecbf">Real</a> matrix[12]);</div>
+<div class="line"><a name="l00368"></a><span class="lineno">  368</span>&#160;</div>
+<div class="line"><a name="l00369"></a><span class="lineno">  369</span>&#160;<a class="code" href="config_8h.html#a81c23aaf79aa6cb6063d11600bbba7ad">MUJINCLIENT_API</a> <span class="keywordtype">void</span> <a class="code" href="namespacemujinclient.html#a83fbee6d466d1956403999a8b78a7180">ComputeZXYFromTransform</a>(<a class="code" href="namespacemujinclient.html#a0ee6d9601b044a916d4deda6b180ecbf">Real</a> ZXY[3], <span class="keyword">const</span> Transform &amp;transform);</div>
+<div class="line"><a name="l00370"></a><span class="lineno">  370</span>&#160;</div>
+<div class="line"><a name="l00371"></a><span class="lineno">  371</span>&#160;}</div>
+<div class="line"><a name="l00372"></a><span class="lineno">  372</span>&#160;</div>
+<div class="line"><a name="l00373"></a><span class="lineno">  373</span>&#160;<span class="preprocessor">#if !defined(MUJINCLIENT_DISABLE_ASSERT_HANDLER) &amp;&amp; defined(BOOST_ENABLE_ASSERT_HANDLER)</span></div>
+<div class="line"><a name="l00374"></a><span class="lineno">  374</span>&#160;<span class="preprocessor"></span></div>
+<div class="line"><a name="l00375"></a><span class="lineno"><a class="code" href="namespaceboost.html">  375</a></span>&#160;<span class="keyword">namespace </span>boost</div>
+<div class="line"><a name="l00376"></a><span class="lineno">  376</span>&#160;{</div>
+<div class="line"><a name="l00377"></a><span class="lineno"><a class="code" href="namespaceboost.html#a6ea615b0e29a9b35870fb8662f0e1291">  377</a></span>&#160;<span class="keyword">inline</span> <span class="keywordtype">void</span> <a class="code" href="namespaceboost.html#a6ea615b0e29a9b35870fb8662f0e1291">assertion_failed</a>(<span class="keywordtype">char</span> <span class="keyword">const</span> * expr, <span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">function</span>, <span class="keywordtype">char</span> <span class="keyword">const</span> * file, <span class="keywordtype">long</span> line)</div>
+<div class="line"><a name="l00378"></a><span class="lineno">  378</span>&#160;{</div>
+<div class="line"><a name="l00379"></a><span class="lineno">  379</span>&#160;    <span class="keywordflow">throw</span> <a class="code" href="classmujinclient_1_1mujin__exception.html" title="Exception that all Mujin internal methods throw; the error codes are held in MujinErrorCode.">mujinclient::mujin_exception</a>(boost::str(boost::format(<span class="stringliteral">&quot;[%s:%d] -&gt; %s, expr: %s&quot;</span>)%file%line%<span class="keyword">function</span>%expr),<a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a35e2138a3c4019c16ab5af6c5a6586d2">mujinclient::MEC_Assert</a>);</div>
+<div class="line"><a name="l00380"></a><span class="lineno">  380</span>&#160;}</div>
+<div class="line"><a name="l00381"></a><span class="lineno">  381</span>&#160;</div>
+<div class="line"><a name="l00382"></a><span class="lineno">  382</span>&#160;<span class="preprocessor">#if BOOST_VERSION&gt;104600</span></div>
+<div class="line"><a name="l00383"></a><span class="lineno">  383</span>&#160;<span class="preprocessor"></span><span class="keyword">inline</span> <span class="keywordtype">void</span> assertion_failed_msg(<span class="keywordtype">char</span> <span class="keyword">const</span> * expr, <span class="keywordtype">char</span> <span class="keyword">const</span> * msg, <span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">function</span>, <span class="keywordtype">char</span> <span class="keyword">const</span> * file, <span class="keywordtype">long</span> line)</div>
+<div class="line"><a name="l00384"></a><span class="lineno">  384</span>&#160;{</div>
+<div class="line"><a name="l00385"></a><span class="lineno">  385</span>&#160;    <span class="keywordflow">throw</span> <a class="code" href="classmujinclient_1_1mujin__exception.html" title="Exception that all Mujin internal methods throw; the error codes are held in MujinErrorCode.">mujinclient::mujin_exception</a>(boost::str(boost::format(<span class="stringliteral">&quot;[%s:%d] -&gt; %s, expr: %s, msg: %s&quot;</span>)%file%line%<span class="keyword">function</span>%expr%msg),<a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a35e2138a3c4019c16ab5af6c5a6586d2">mujinclient::MEC_Assert</a>);</div>
+<div class="line"><a name="l00386"></a><span class="lineno">  386</span>&#160;}</div>
+<div class="line"><a name="l00387"></a><span class="lineno">  387</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00388"></a><span class="lineno">  388</span>&#160;<span class="preprocessor"></span></div>
+<div class="line"><a name="l00389"></a><span class="lineno">  389</span>&#160;}</div>
+<div class="line"><a name="l00390"></a><span class="lineno">  390</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00391"></a><span class="lineno">  391</span>&#160;<span class="preprocessor"></span></div>
+<div class="line"><a name="l00392"></a><span class="lineno">  392</span>&#160;<a class="code" href="mujincontrollerclient_8h.html#aaa0036a0e4b842f8dc92d73cd5b6c7fa">BOOST_STATIC_ASSERT</a>(<a class="code" href="config_8h.html#adec9c589baf19553b4c10c3c53e42e5c">MUJINCLIENT_VERSION_MAJOR</a>&gt;=0&amp;&amp;<a class="code" href="config_8h.html#adec9c589baf19553b4c10c3c53e42e5c">MUJINCLIENT_VERSION_MAJOR</a>&lt;=255);</div>
+<div class="line"><a name="l00393"></a><span class="lineno">  393</span>&#160;<a class="code" href="mujincontrollerclient_8h.html#aaa0036a0e4b842f8dc92d73cd5b6c7fa">BOOST_STATIC_ASSERT</a>(<a class="code" href="config_8h.html#aafc04195e13e81ebe2ef7ebea44e6eff">MUJINCLIENT_VERSION_MINOR</a>&gt;=0&amp;&amp;<a class="code" href="config_8h.html#aafc04195e13e81ebe2ef7ebea44e6eff">MUJINCLIENT_VERSION_MINOR</a>&lt;=255);</div>
+<div class="line"><a name="l00394"></a><span class="lineno">  394</span>&#160;<a class="code" href="mujincontrollerclient_8h.html#aaa0036a0e4b842f8dc92d73cd5b6c7fa">BOOST_STATIC_ASSERT</a>(<a class="code" href="config_8h.html#ab32cfde04a5358e60787dab1a8d11f5c">MUJINCLIENT_VERSION_PATCH</a>&gt;=0&amp;&amp;<a class="code" href="config_8h.html#ab32cfde04a5358e60787dab1a8d11f5c">MUJINCLIENT_VERSION_PATCH</a>&lt;=255);</div>
+<div class="line"><a name="l00395"></a><span class="lineno">  395</span>&#160;</div>
+<div class="line"><a name="l00396"></a><span class="lineno">  396</span>&#160;<span class="preprocessor">#endif</span></div>
+</div><!-- fragment --></div><!-- contents -->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+controllerclientcppに対してSun Jan 13 2013 14:28:39に生成されました。 &#160;<a href="http://www.doxygen.org/index.html">
+<img class="footer" src="doxygen.png" alt="doxygen"/>
+</a> 1.8.2
+</small></address>
+</body>
+</html>

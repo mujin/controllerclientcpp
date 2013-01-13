@@ -1,0 +1,315 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<title>controllerclientcpp: クラス mujinclient::ControllerClient</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td style="padding-left: 0.5em;">
+   <div id="projectname">controllerclientcpp
+   &#160;<span id="projectnumber">0.9.0</span>
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 作成： Doxygen 1.8.2 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search",false,'検索');
+</script>
+  <div id="navrow1" class="tabs">
+    <ul class="tablist">
+      <li><a href="index.html"><span>メインページ</span></a></li>
+      <li><a href="namespaces.html"><span>ネームスペース</span></a></li>
+      <li class="current"><a href="annotated.html"><span>クラス</span></a></li>
+      <li><a href="files.html"><span>ファイル</span></a></li>
+      <li>
+        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="検索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.png" alt=""/></a>
+          </span>
+        </div>
+      </li>
+    </ul>
+  </div>
+  <div id="navrow2" class="tabs2">
+    <ul class="tablist">
+      <li><a href="annotated.html"><span>構成</span></a></li>
+      <li><a href="inherits.html"><span>クラス階層</span></a></li>
+      <li><a href="functions.html"><span>構成メンバ</span></a></li>
+    </ul>
+  </div>
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全て</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>クラス</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>ネームスペース</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>ファイル</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>関数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>変数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>型定義</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>列挙型</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>列挙型の値</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(9)"><span class="SelectionMark">&#160;</span>マクロ定義</a></div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div id="nav-path" class="navpath">
+  <ul>
+<li class="navelem"><a class="el" href="namespacemujinclient.html">mujinclient</a></li><li class="navelem"><a class="el" href="classmujinclient_1_1ControllerClient.html">ControllerClient</a></li>  </ul>
+</div>
+</div><!-- top -->
+<div class="header">
+  <div class="summary">
+<a href="#pub-methods">Public メソッド</a> &#124;
+<a href="classmujinclient_1_1ControllerClient-members.html">すべてのメンバ一覧</a>  </div>
+  <div class="headertitle">
+<div class="title">クラス mujinclient::ControllerClient<span class="mlabels"><span class="mlabel">abstract</span></span></div>  </div>
+</div><!--header-->
+<div class="contents">
+
+<p>Creates on MUJIN Controller instance.  
+ <a href="classmujinclient_1_1ControllerClient.html#details">[詳細]</a></p>
+
+<p><code>#include &lt;<a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a>&gt;</code></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
+Public メソッド</h2></td></tr>
+<tr class="memitem:aed474739b50d254eabd381256a69fe6b"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1ControllerClient.html#aed474739b50d254eabd381256a69fe6b">~ControllerClient</a> ()</td></tr>
+<tr class="separator:aed474739b50d254eabd381256a69fe6b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1cb0953d9b5c5aab4ac92b26a7f8b0f1"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1ControllerClient.html#a1cb0953d9b5c5aab4ac92b26a7f8b0f1">SetCharacterEncoding</a> (const std::string &amp;newencoding)=0</td></tr>
+<tr class="memdesc:a1cb0953d9b5c5aab4ac92b26a7f8b0f1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a list of filenames in the user system of a particular type.  <a href="#a1cb0953d9b5c5aab4ac92b26a7f8b0f1"></a><br/></td></tr>
+<tr class="separator:a1cb0953d9b5c5aab4ac92b26a7f8b0f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9e4b0f446f0fda2730c7b58912c405ef"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1ControllerClient.html#a9e4b0f446f0fda2730c7b58912c405ef">SetLanguage</a> (const std::string &amp;language)=0</td></tr>
+<tr class="memdesc:a9e4b0f446f0fda2730c7b58912c405ef"><td class="mdescLeft">&#160;</td><td class="mdescRight">sets the language code for all output  <a href="#a9e4b0f446f0fda2730c7b58912c405ef"></a><br/></td></tr>
+<tr class="separator:a9e4b0f446f0fda2730c7b58912c405ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab22536a72eef5c1f71c9d7b7b208211f"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1ControllerClient.html#ab22536a72eef5c1f71c9d7b7b208211f">GetScenePrimaryKeys</a> (std::vector&lt; std::string &gt; &amp;scenekeys)=0</td></tr>
+<tr class="memdesc:ab22536a72eef5c1f71c9d7b7b208211f"><td class="mdescLeft">&#160;</td><td class="mdescRight">gets a list of all the scene primary keys currently available to the user  <a href="#ab22536a72eef5c1f71c9d7b7b208211f"></a><br/></td></tr>
+<tr class="separator:ab22536a72eef5c1f71c9d7b7b208211f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a43ea9f82d9a99de42aeecd20668aec46"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespacemujinclient.html#a9a7bf2721c91516d69ca08837e26b7b8">SceneResourcePtr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1ControllerClient.html#a43ea9f82d9a99de42aeecd20668aec46">ImportScene</a> (const std::string &amp;importuri, const std::string &amp;importformat, const std::string &amp;newuri)=0</td></tr>
+<tr class="memdesc:a43ea9f82d9a99de42aeecd20668aec46"><td class="mdescLeft">&#160;</td><td class="mdescRight">import a scene using from scene identified by a URI  <a href="#a43ea9f82d9a99de42aeecd20668aec46"></a><br/></td></tr>
+<tr class="separator:a43ea9f82d9a99de42aeecd20668aec46"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">説明</h2>
+<div class="textblock"><p>Creates on MUJIN Controller instance. </p>
+<p>Only one call can be made at a time. In order to make multiple calls simultaneously, create another instance. </p>
+
+<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00169">169</a> 行で定義されています。</p>
+</div><h2 class="groupheader">コンストラクタとデストラクタ</h2>
+<a class="anchor" id="aed474739b50d254eabd381256a69fe6b"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual mujinclient::ControllerClient::~ControllerClient </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00172">172</a> 行で定義されています。</p>
+
+</div>
+</div>
+<h2 class="groupheader">関数</h2>
+<a class="anchor" id="ab22536a72eef5c1f71c9d7b7b208211f"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void mujinclient::ControllerClient::GetScenePrimaryKeys </td>
+          <td>(</td>
+          <td class="paramtype">std::vector&lt; std::string &gt; &amp;&#160;</td>
+          <td class="paramname"><em>scenekeys</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>gets a list of all the scene primary keys currently available to the user </p>
+
+</div>
+</div>
+<a class="anchor" id="a43ea9f82d9a99de42aeecd20668aec46"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual <a class="el" href="namespacemujinclient.html#a9a7bf2721c91516d69ca08837e26b7b8">SceneResourcePtr</a> mujinclient::ControllerClient::ImportScene </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>importuri</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>importformat</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>newuri</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>import a scene using from scene identified by a URI </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">importuri</td><td>The original URI to import from. For MUJIN network files use <b>mujin:/mypath/myfile.ext</b> </td></tr>
+    <tr><td class="paramname">importformat</td><td>The format of the imported file. Can be:<ul>
+<li>mujincollada</li>
+<li><b>wincaps</b> (DensoWave WINCAPS III)</li>
+<li><b>rttoolbox</b> (Mitsubishi RT ToolBox)</li>
+<li><b>x</b> (DirectX)</li>
+<li><b>vrml</b></li>
+<li><b>stl</b> </li>
+</ul>
+</td></tr>
+    <tr><td class="paramname">newuri</td><td>Then new URI to save the imported results. Default is to save to MUJIN COLLADA, so end with <b>.mujin.dae</b> . Use <b>mujin:/mypath/myfile.mujin.dae</b> </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a1cb0953d9b5c5aab4ac92b26a7f8b0f1"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void mujinclient::ControllerClient::SetCharacterEncoding </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>newencoding</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns a list of filenames in the user system of a particular type. </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">scenetype</td><td>the type of scene possible values are:<ul>
+<li>mujincollada</li>
+<li>wincaps</li>
+<li>rttoolbox</li>
+<li>cecvirfitxml</li>
+<li>stl</li>
+<li>x</li>
+<li>vrml</li>
+<li>stlsets the character encoding for all strings that are being input and output from the resources</li>
+</ul>
+</td></tr>
+  </table>
+  </dd>
+</dl>
+<p>The default character encoding is utf-8, can also set it to Shift_JIS for windows japanese unicode, iso-2022-jp List of possible sets: <a href="http://www.iana.org/assignments/character-sets/character-sets.xml">http://www.iana.org/assignments/character-sets/character-sets.xml</a> </p>
+
+</div>
+</div>
+<a class="anchor" id="a9e4b0f446f0fda2730c7b58912c405ef"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void mujinclient::ControllerClient::SetLanguage </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>language</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>sets the language code for all output </p>
+<p>Checkout <a href="http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes">http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes</a> </p>
+
+</div>
+</div>
+<hr/>このクラスの説明は次のファイルから生成されました:<ul>
+<li>/home/rdiankov/mujin/controllerclientcpp/include/mujincontrollerclient/<a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h (2013-01-13 13:43:54 +0900, commit:1652a31)</a></li>
+</ul>
+</div><!-- contents -->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+controllerclientcppに対してSun Jan 13 2013 14:28:39に生成されました。 &#160;<a href="http://www.doxygen.org/index.html">
+<img class="footer" src="doxygen.png" alt="doxygen"/>
+</a> 1.8.2
+</small></address>
+</body>
+</html>
