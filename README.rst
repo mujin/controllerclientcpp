@@ -3,9 +3,7 @@ MUJIN Controller C++ Client Library
 
 This is an open-source client library communicating with the MUJIN Controller WebAPI.
 
-`cURL C Bindings <http://curl.haxx.se/libcurl/c/>`_ used  for encrypted communication. 
-
-In the following documentation %MUJINCLIENTGIT% means the root directory where the sources are checked out.
+`C++ API Documentation <http://mujin.github.com/controllerclientcpp/>`_
 
 Running on Windows
 ------------------
@@ -20,6 +18,8 @@ Need to put ``C:\Program Files\mujincontrollerclient\bin`` in the PATH environme
 
 Building on Windows
 -------------------
+
+In the following documentation %MUJINCLIENTGIT% means the root directory where the sources are checked out.
 
 1. Checkout the source code and install
 

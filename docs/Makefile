@@ -11,17 +11,19 @@ ALIASES += openraveversion=`openrave-config --version`\\n\
 
 all: html_en
 
-build/%/coreapihtml/index.html: Doxyfile.html Doxyfile.% ../include/mujincontrollerclient/*.h
+../gh-pages/%/html/index.html: Doxyfile.html Doxyfile.% ../include/mujincontrollerclient/*.h
 	rm -f doxygenhtml_installed_$*
 	mkdir -p build
 	echo "$(doxycommands)" | cat Doxyfile.html Doxyfile.$* - > build/Doxyfile.html.$*
 	doxygen build/Doxyfile.html.$*
 	touch doxygenhtml_installed_$*
 
-doxygenhtml_installed_%: build/%/coreapihtml/index.html ;
+doxygenhtml_installed_%: ../gh-pages/%/html/index.html ;
 
-html_%: doxygenhtml_installed_% ;
-htmlall: html_en html_ja ;
+htmlall: doxygenhtml_installed_en doxygenhtml_installed_ja ;
+
+gh-pages: htmlall
+	cd ../gh-pages; git add en ja
 
 #sendtoserver: jsonall htmlall
 #	tar cjf openravedocs.tgz build/$(language)/coreapihtml build/$(language)/sphinxjson
