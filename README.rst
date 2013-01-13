@@ -146,3 +146,17 @@ Other Possible Clients
 - `Windows HTTP Services <http://msdn.microsoft.com/en-us/library/aa384273%28VS.85%29.aspx?ppud=4>`_
 
 - `libcurl.NET <http://sourceforge.net/projects/libcurl-net/>`_ - Windows only
+
+For Maintainers
+===============
+
+To setup building documentation, checkout `this tutorial <https://gist.github.com/825950>`_ so setup **gh-pages** folder. Then run::
+
+  cd gh-pages
+  git pull origin gh-pages
+  git rm -rf en ja
+  cd ../docs
+  make gh-pages
+  cd ../gh-pages
+  git commit -m "updated documentation" -a
+  git push origin gh-pages

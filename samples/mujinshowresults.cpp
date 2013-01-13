@@ -1,5 +1,5 @@
 // -*- coding: utf-8 -*-
-/** \example mujinclienttest.cpp
+/** \example mujinshowresults.cpp
 
     Shows how to get the result data data from an already generated task and optimization results.
  */
@@ -14,7 +14,7 @@ using namespace mujinclient;
 int main(int argc, char ** argv)
 {
     if( argc < 2 ) {
-        printf("need username:password. Example: mujinclienttest myuser:mypass [url]\n\nurl - [optional] For example https://controller.mujin.co.jp/\n");
+        std::cout << "need username:password. Example: mujinclienttest myuser:mypass [url]\n\nurl - [optional] For example https://controller.mujin.co.jp/" << std::endl;
         return 1;
     }
     ControllerClientPtr controller;

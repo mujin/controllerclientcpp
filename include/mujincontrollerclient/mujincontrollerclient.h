@@ -204,12 +204,13 @@ public:
 
         \param importuri The original URI to import from. For MUJIN network files use <b>mujin:/mypath/myfile.ext</b>
         \param importformat The format of the imported file. Can be:
-        - mujincollada
+        - **mujincollada**
         - **wincaps** (DensoWave WINCAPS III)
         - **rttoolbox** (Mitsubishi RT ToolBox)
         - **x** (DirectX)
         - **vrml**
         - **stl**
+        - **cecvirfitxml** (CEC Virfit XML environments)
         \param newuri Then new URI to save the imported results. Default is to save to MUJIN COLLADA, so end with <b>.mujin.dae</b> . Use <b>mujin:/mypath/myfile.mujin.dae</b>
      */
     virtual SceneResourcePtr ImportScene(const std::string& importuri, const std::string& importformat, const std::string& newuri) = 0;
