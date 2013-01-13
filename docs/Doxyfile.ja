@@ -1,0 +1,4 @@
+# -*- coding: utf-8 -*-
+PAPER_TYPE             = a4wide
+OUTPUT_LANGUAGE = Japanese
+OUTPUT_DIRECTORY = ./build/ja/

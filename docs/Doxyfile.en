@@ -1,0 +1,4 @@
+# -*- coding: utf-8 -*-
+PAPER_TYPE             = letter
+OUTPUT_LANGUAGE = English
+OUTPUT_DIRECTORY = ./build/en/
