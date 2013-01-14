@@ -120,6 +120,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a5ed3067862ba637f47be2d37be69eb54"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1OptimizationResource.html#a5ed3067862ba637f47be2d37be69eb54">Execute</a> ()</td></tr>
 <tr class="memdesc:a5ed3067862ba637f47be2d37be69eb54"><td class="mdescLeft">&#160;</td><td class="mdescRight">execute the optimization  <a href="#a5ed3067862ba637f47be2d37be69eb54"></a><br/></td></tr>
 <tr class="separator:a5ed3067862ba637f47be2d37be69eb54"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5bb19168f944a6c1818bc572f3427c1b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1OptimizationResource.html#a5bb19168f944a6c1818bc572f3427c1b">SetOptimizationInfo</a> (const <a class="el" href="structmujinclient_1_1RobotPlacementOptimizationInfo.html">RobotPlacementOptimizationInfo</a> &amp;optimizationinfo)</td></tr>
+<tr class="memdesc:a5bb19168f944a6c1818bc572f3427c1b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set new task info for tasks of type <b>robotplanning</b>  <a href="#a5bb19168f944a6c1818bc572f3427c1b"></a><br/></td></tr>
+<tr class="separator:a5bb19168f944a6c1818bc572f3427c1b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1c079af02ffd104bd197bf912c71d785"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1OptimizationResource.html#a1c079af02ffd104bd197bf912c71d785">GetRunTimeStatus</a> (<a class="el" href="structmujinclient_1_1JobStatus.html">JobStatus</a> &amp;status)</td></tr>
 <tr class="memdesc:a1c079af02ffd104bd197bf912c71d785"><td class="mdescLeft">&#160;</td><td class="mdescRight">get the run-time status of the executed optimization.  <a href="#a1c079af02ffd104bd197bf912c71d785"></a><br/></td></tr>
 <tr class="separator:a1c079af02ffd104bd197bf912c71d785"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -153,7 +156,7 @@ Public Member Functions</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><dl><dt><b>Examples: </b></dt><dd><a class="el" href="mujinshowresults_8cpp-example.html#_a4">mujinshowresults.cpp</a>.</dd>
 </dl>
-<p>Definition at line <a class="el" href="mujincontrollerclient_8h_source.html#l00379">379</a> of file <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a>.</p>
+<p>Definition at line <a class="el" href="mujincontrollerclient_8h_source.html#l00405">405</a> of file <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a class="anchor" id="aef085b25b59167d66eb3131a10fc2b36"></a>
 <div class="memitem">
@@ -202,7 +205,7 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="mujincontrollerclient_8h_source.html#l00383">383</a> of file <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a>.</p>
+<p>Definition at line <a class="el" href="mujincontrollerclient_8h_source.html#l00409">409</a> of file <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a>.</p>
 
 </div>
 </div>
@@ -300,13 +303,31 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="a5bb19168f944a6c1818bc572f3427c1b"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void mujinclient::OptimizationResource::SetOptimizationInfo </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structmujinclient_1_1RobotPlacementOptimizationInfo.html">RobotPlacementOptimizationInfo</a> &amp;&#160;</td>
+          <td class="paramname"><em>optimizationinfo</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Set new task info for tasks of type <b>robotplanning</b> </p>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li>/home/rdiankov/mujin/controllerclientcpp/include/mujincontrollerclient/<a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h (2013-01-13 14:51:37 +0900, commit:c88892a)</a></li>
+<li>/home/rdiankov/mujin/controllerclientcpp/include/mujincontrollerclient/<a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h (2013-01-15 02:32:27 +0900, commit:643dd14)</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Jan 15 2013 02:31:40 for controllerclientcpp by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Jan 15 2013 03:26:40 for controllerclientcpp by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.3
 </small></address>
