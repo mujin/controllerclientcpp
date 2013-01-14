@@ -193,6 +193,7 @@ struct ITLPlanningTaskInfo
         unit = "mm";
         outputtrajtype = "robotmaker";
         optimizationvalue = 1;
+        program.clear();
     }
     int startfromcurrent; ///< Will start planning from the current robot joint values, otherwise will start at the first waypoint in the program.
     int returntostart; ///< Plan the return path of the robot to where the entire trajectory started. Makes it possible to loop the robot motion.
@@ -201,6 +202,31 @@ struct ITLPlanningTaskInfo
     std::string outputtrajtype; ///< what format to output the trajectory in.
     Real optimizationvalue; ///< value in [0,1]. 0 is no optimization (fast), 1 is full optimization (slow)
     std::string program; ///< itl program
+};
+
+struct RobotPlacementOptimizationInfo
+{
+    RobotPlacementOptimizationInfo() {
+        SetDefaults();
+    }
+    inline void SetDefaults() {
+        name.clear();
+        frame = "0 robot";
+        unit = "mm";
+        minrange[0] = -400; minrange[1] = -400; minrange[2] = 0; minrange[3] = -180;
+        maxrange[0] = 400; maxrange[1] = 400; maxrange[2] = 400; maxrange[3] = 90;
+        stepsize[0] = 100; stepsize[1] = 100; stepsize[2] = 100; stepsize[3] = 90;
+        ignorebasecollision = 1;
+        maxstorecandidates = 0;
+    }
+    std::string name; ///< what to optimize
+    std::string frame; ///< The frame to define the optimization parameters in
+    std::string unit; ///< the unit that information is used in. m, mm, nm, inch, etc
+    Real maxrange[4]; ///< X, Y, Z, Angle (deg)
+    Real minrange[4]; ///< X, Y, Z, Angle (deg)
+    Real stepsize[4]; ///< X, Y, Z, Angle (deg)
+    int ignorebasecollision; ///< When moving the robot, allow collisions of the base with the environment, this allows users to search for a base placement and while ignoring small obstacles.
+    int maxstorecandidates; ///< The candidates are first ordered and then the top N are stored. If 0, then everything is stored
 };
 
 /// \brief Creates on MUJIN Controller instance.
@@ -361,15 +387,15 @@ public:
     /// \brief Gets or creates the a optimization part of the scene
     ///
     /// \param optimizationname the name of the optimization to search for or create
-    virtual OptimizationResourcePtr GetOrCreateOptimizationFromName(const std::string& optimizationname);
+    virtual OptimizationResourcePtr GetOrCreateOptimizationFromName(const std::string& optimizationname, const std::string& optimizationtype=std::string("robotplacement"));
 
     /// \brief gets a list of all the scene primary keys currently available to the user
     virtual void GetOptimizationPrimaryKeys(std::vector<std::string>& optimizationkeys);
 
-    /// \brief Get the task info for tasks of type itlplanning
+    /// \brief Get the task info for tasks of type <b>itlplanning</b>
     virtual void GetTaskInfo(ITLPlanningTaskInfo& taskinfo);
 
-    /// \brief Set new task info for tasks of type itlplanning
+    /// \brief Set new task info for tasks of type <b>itlplanning</b>
     virtual void SetTaskInfo(const ITLPlanningTaskInfo& taskinfo);
 
     /// \brief gets the result of the task execution. If no result has been computed yet, will return a NULL pointer.
@@ -385,6 +411,9 @@ public:
 
     /// \brief execute the optimization
     virtual void Execute();
+
+    /// \brief Set new task info for tasks of type <b>robotplanning</b>
+    void SetOptimizationInfo(const RobotPlacementOptimizationInfo& optimizationinfo);
 
     /// \brief get the run-time status of the executed optimization.
     virtual void GetRunTimeStatus(JobStatus& status);

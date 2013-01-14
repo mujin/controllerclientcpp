@@ -221,7 +221,7 @@ public:
         try {
             GetProfile();
         }
-        catch(const MujinException& ex) {
+        catch(const MujinException&) {
             // most likely username or password are
             throw MujinException(str(boost::format("failed to get controller profile, check username/password or if controller is active at %s")%_baseuri), MEC_UserAuthentication);
         }
@@ -614,16 +614,26 @@ void TaskResource::GetRunTimeStatus(JobStatus& status)
     throw MujinException("not implemented yet");
 }
 
-OptimizationResourcePtr TaskResource::GetOrCreateOptimizationFromName(const std::string& optimizationname)
+OptimizationResourcePtr TaskResource::GetOrCreateOptimizationFromName(const std::string& optimizationname, const std::string& optimizationtype)
 {
     GETCONTROLLERIMPL();
     boost::property_tree::ptree pt;
-    controller->CallGet(str(boost::format("task/%s/optimization/?format=json&limit=1&name=%s&fields=pk")%GetPrimaryKey()%optimizationname), pt);
+    controller->CallGet(str(boost::format("task/%s/optimization/?format=json&limit=1&name=%s&fields=pk,optimizationtype")%GetPrimaryKey()%optimizationname), pt);
+    // optimization exists
     boost::property_tree::ptree& objects = pt.get_child("objects");
-    if( objects.size() == 0 ) {
-        throw MUJIN_EXCEPTION_FORMAT("failed to get optimization %s from task pk", optimizationname%GetPrimaryKey(), MEC_InvalidArguments);
+    if( objects.size() > 0 ) {
+        std::string pk = objects.begin()->second.get<std::string>("pk");
+        std::string currentoptimizationtype = objects.begin()->second.get<std::string>("optimizationtype");
+        if( currentoptimizationtype != optimizationtype ) {
+            throw MUJIN_EXCEPTION_FORMAT("optimization pk %s exists and has type %s, expected is %s", pk%currentoptimizationtype%optimizationtype, MEC_InvalidState);
+        }
+        OptimizationResourcePtr optimization(new OptimizationResource(GetController(), pk));
+        return optimization;
     }
-    std::string pk = objects.begin()->second.get<std::string>("pk");
+
+    pt.clear();
+    controller->CallPost(str(boost::format("task/%s/optimization/?format=json&fields=pk")%GetPrimaryKey()), str(boost::format("{\"name\":\"%s\", \"optimizationtype\":\"%s\", \"taskpk\":\"%s\"}")%optimizationname%optimizationtype%GetPrimaryKey()), pt);
+    std::string pk = pt.get<std::string>("pk");
     OptimizationResourcePtr optimization(new OptimizationResource(GetController(), pk));
     return optimization;
 }
@@ -718,11 +728,22 @@ OptimizationResource::OptimizationResource(ControllerClientPtr controller, const
 
 void OptimizationResource::Execute()
 {
-    throw MujinException("not implemented yet");
+    GETCONTROLLERIMPL();
+    boost::property_tree::ptree pt;
+    controller->CallPost(str(boost::format("optimization/%s/")%GetPrimaryKey()), std::string(), pt, 200);
 }
 
 void OptimizationResource::GetRunTimeStatus(JobStatus& status) {
     throw MujinException("not implemented yet");
+}
+
+void OptimizationResource::SetOptimizationInfo(const RobotPlacementOptimizationInfo& optimizationinfo)
+{
+    GETCONTROLLERIMPL();
+    std::string ignorebasecollision = optimizationinfo.ignorebasecollision ? "True" : "False";
+    std::string optimizationgoalput = str(boost::format("{\"optimizationparametersxml\":\"<root><name>%s</name><maxstorecandidates>%d</maxstorecandidates><unit>%s</unit><ignorebasecollision>%s</ignorebasecollision><frame>%s</frame><maxrange_>%f</maxrange_><maxrange_>%f</maxrange_><maxrange_>%f</maxrange_><maxrange_>%f</maxrange_><minrange_>%f</minrange_><minrange_>%f</minrange_><minrange_>%f</minrange_><minrange_>%f</minrange_><stepsize_>%f</stepsize_><stepsize_>%f</stepsize_><stepsize_>%f</stepsize_><stepsize_>%f</stepsize_></root>\"}")%optimizationinfo.name%optimizationinfo.maxstorecandidates%optimizationinfo.unit%ignorebasecollision%optimizationinfo.frame%optimizationinfo.maxrange[0]%optimizationinfo.maxrange[1]%optimizationinfo.maxrange[2]%optimizationinfo.maxrange[3]%optimizationinfo.minrange[0]%optimizationinfo.minrange[1]%optimizationinfo.minrange[2]%optimizationinfo.minrange[3]%optimizationinfo.stepsize[0]%optimizationinfo.stepsize[1]%optimizationinfo.stepsize[2]%optimizationinfo.stepsize[3]);
+    boost::property_tree::ptree pt;
+    controller->CallPut(str(boost::format("optimization/%s/?format=json&fields=")%GetPrimaryKey()), optimizationgoalput, pt);
 }
 
 void OptimizationResource::GetResults(int fastestnum, std::vector<PlanningResultResourcePtr>& results)
