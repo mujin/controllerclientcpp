@@ -97,7 +97,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'検索');
 <div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;</div>
 <div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="keyword">using namespace </span>mujinclient;</div>
 <div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;</div>
-<div class="line"><a name="l00012"></a><span class="lineno"><a class="code" href="mujinimportscene_8cpp.html#a3c04138a5bfe5d72780bb7e82a18e627">   12</a></span>&#160;<span class="keywordtype">int</span> <a class="code" href="mujinimportscene_8cpp.html#a3c04138a5bfe5d72780bb7e82a18e627">main</a>(<span class="keywordtype">int</span> argc, <span class="keywordtype">char</span> ** argv)</div>
+<div class="line"><a name="l00012"></a><span class="lineno"><a class="code" href="mujinimportscene_8cpp.html#a3c04138a5bfe5d72780bb7e82a18e627">   12</a></span>&#160;<span class="keywordtype">int</span> <a class="code" href="mujinexecutetask_8cpp.html#a3c04138a5bfe5d72780bb7e82a18e627">main</a>(<span class="keywordtype">int</span> argc, <span class="keywordtype">char</span> ** argv)</div>
 <div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;{</div>
 <div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;    <span class="keywordflow">if</span>( argc &lt; 2 ) {</div>
 <div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;        std::cout &lt;&lt; <span class="stringliteral">&quot;need username:password. Example: mujinclienttest myuser:mypass [url]\n\nurl - [optional] For example https://controller.mujin.co.jp/&quot;</span> &lt;&lt; std::endl;</div>
@@ -105,49 +105,50 @@ var searchBox = new SearchBox("searchBox", "search",false,'検索');
 <div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;    }</div>
 <div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;    <a class="code" href="namespacemujinclient.html#aa0b8a533fc19b5930eca8bf825f2231d">ControllerClientPtr</a> controller;</div>
 <div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;    <span class="keywordflow">if</span>( argc &gt; 2 ) {</div>
-<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;        controller = <a class="code" href="namespacemujinclient.html#ad7c87ca5124addfb5c29bd130d79edff" title="creates the controller with an account.">CreateControllerClient</a>(argv[1], argv[2]);</div>
+<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;        controller = <a class="code" href="namespacemujinclient.html#ad7c87ca5124addfb5c29bd130d79edff" title="MUJINコントローラのクライアントを作成する。この関数はスレッドセーフではない。">CreateControllerClient</a>(argv[1], argv[2]);</div>
 <div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;    }</div>
 <div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;    <span class="keywordflow">else</span> {</div>
-<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;        controller = <a class="code" href="namespacemujinclient.html#ad7c87ca5124addfb5c29bd130d79edff" title="creates the controller with an account.">CreateControllerClient</a>(argv[1]);</div>
+<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;        controller = <a class="code" href="namespacemujinclient.html#ad7c87ca5124addfb5c29bd130d79edff" title="MUJINコントローラのクライアントを作成する。この関数はスレッドセーフではない。">CreateControllerClient</a>(argv[1]);</div>
 <div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;    }</div>
-<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;</div>
-<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;    <span class="comment">// try to import the scene, if it already exists delete it and import again</span></div>
-<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;    <span class="keywordflow">try</span> {</div>
-<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;        controller-&gt;ImportScene(<span class="stringliteral">&quot;mujin:/EMU_MUJIN/EMU_MUJIN.WPJ&quot;</span>, <span class="stringliteral">&quot;wincaps&quot;</span>, <span class="stringliteral">&quot;mujin:/test.mujin.dae&quot;</span>);</div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;    }</div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;    <span class="keywordflow">catch</span>(<span class="keyword">const</span> <a class="code" href="classmujinclient_1_1mujin__exception.html" title="Exception that all Mujin internal methods throw; the error codes are held in MujinErrorCode.">mujin_exception</a>&amp; ex) {</div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;        <span class="keywordflow">if</span>( ex.<a class="code" href="classmujinclient_1_1mujin__exception.html#a42a267693efdb3a913fb4f01d4294ecb">message</a>().find(<span class="stringliteral">&quot;need to remove it first&quot;</span>) != std::string::npos ) {</div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;            std::cout &lt;&lt; <span class="stringliteral">&quot;file already imported, would you like to delete and re-import? (yes/no) &quot;</span>;</div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;            std::string answer;</div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;            std::cin &gt;&gt; answer;</div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;            <span class="keywordflow">if</span>( answer == std::string(<span class="stringliteral">&quot;yes&quot;</span>) ) {</div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;                std::cout &lt;&lt; <span class="stringliteral">&quot;try removing the file and importing again&quot;</span> &lt;&lt; std::endl;</div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;                <a class="code" href="classmujinclient_1_1SceneResource.html">SceneResource</a> oldscene(controller,<span class="stringliteral">&quot;test&quot;</span>);</div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;                oldscene.<a class="code" href="classmujinclient_1_1WebResource.html#afb3d48a44adf5d9ae21e8e8028214e98" title="delete the resource and all its child resources">Delete</a>();</div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;                controller-&gt;ImportScene(<span class="stringliteral">&quot;mujin:/EMU_MUJIN/EMU_MUJIN.WPJ&quot;</span>, <span class="stringliteral">&quot;wincaps&quot;</span>, <span class="stringliteral">&quot;mujin:/test.mujin.dae&quot;</span>);</div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;            }</div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;        }</div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;        <span class="keywordflow">else</span> {</div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;            std::cout &lt;&lt; <span class="stringliteral">&quot;error importing scene&quot;</span> &lt;&lt; ex.<a class="code" href="classmujinclient_1_1mujin__exception.html#a42a267693efdb3a913fb4f01d4294ecb">message</a>() &lt;&lt; std::endl;</div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;        }</div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;    }</div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;</div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;    <span class="comment">// create the resource and query info</span></div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;    <a class="code" href="classmujinclient_1_1SceneResource.html">SceneResource</a> scene(controller,<span class="stringliteral">&quot;test&quot;</span>);</div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;    std::vector&lt;SceneResource::InstObjectPtr&gt; instobjects;</div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;    scene.<a class="code" href="classmujinclient_1_1SceneResource.html#a30be1947d761b2b86d556e48ab905641" title="gets a list of all the instance objects of the scene">GetInstObjects</a>(instobjects);</div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;    std::cout &lt;&lt; <span class="stringliteral">&quot;scene instance objects: &quot;</span>;</div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;    <span class="keywordflow">for</span>(<span class="keywordtype">size_t</span> i = 0; i &lt; instobjects.size(); ++i) {</div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;        std::cout &lt;&lt; instobjects[i]-&gt;name &lt;&lt; <span class="stringliteral">&quot;, &quot;</span>;</div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;    }</div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;    std::cout &lt;&lt; std::endl;</div>
-<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;    <span class="comment">// destroy all mujin controller resources</span></div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;    <a class="code" href="namespacemujinclient.html#a8ae80bf1bea1a9959dd23a310a3e5d03" title="called at the very end of an application to safely destroy all controller client resources">ControllerClientDestroy</a>();</div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;}</div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;    std::cout &lt;&lt; <span class="stringliteral">&quot;connected to controller v&quot;</span> &lt;&lt; controller-&gt;GetVersion() &lt;&lt; std::endl;</div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;</div>
+<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;    <span class="comment">// try to import the scene, if it already exists delete it and import again</span></div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;    <span class="keywordflow">try</span> {</div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;        controller-&gt;ImportScene(<span class="stringliteral">&quot;mujin:/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ&quot;</span>, <span class="stringliteral">&quot;wincaps&quot;</span>, <span class="stringliteral">&quot;mujin:/test.mujin.dae&quot;</span>);</div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;    }</div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;    <span class="keywordflow">catch</span>(<span class="keyword">const</span> <a class="code" href="classmujinclient_1_1MujinException.html" title="Exception that all Mujin internal methods throw; the error codes are held in MujinErrorCode.">MujinException</a>&amp; ex) {</div>
+<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;        <span class="keywordflow">if</span>( ex.<a class="code" href="classmujinclient_1_1MujinException.html#ad8072416a4bb914157a845b34cde62ff">message</a>().find(<span class="stringliteral">&quot;need to remove it first&quot;</span>) != std::string::npos ) {</div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;            std::cout &lt;&lt; <span class="stringliteral">&quot;file already imported, would you like to delete and re-import? (yes/no) &quot;</span>;</div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;            std::string answer;</div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;            std::cin &gt;&gt; answer;</div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;            <span class="keywordflow">if</span>( answer == std::string(<span class="stringliteral">&quot;yes&quot;</span>) ) {</div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;                std::cout &lt;&lt; <span class="stringliteral">&quot;try removing the file and importing again&quot;</span> &lt;&lt; std::endl;</div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;                <a class="code" href="classmujinclient_1_1SceneResource.html">SceneResource</a> oldscene(controller,<span class="stringliteral">&quot;test&quot;</span>);</div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;                oldscene.<a class="code" href="classmujinclient_1_1WebResource.html#afb3d48a44adf5d9ae21e8e8028214e98" title="delete the resource and all its child resources">Delete</a>();</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;                controller-&gt;ImportScene(<span class="stringliteral">&quot;mujin:/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ&quot;</span>, <span class="stringliteral">&quot;wincaps&quot;</span>, <span class="stringliteral">&quot;mujin:/test.mujin.dae&quot;</span>);</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;            }</div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;        }</div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;        <span class="keywordflow">else</span> {</div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;            std::cout &lt;&lt; <span class="stringliteral">&quot;error importing scene&quot;</span> &lt;&lt; ex.<a class="code" href="classmujinclient_1_1MujinException.html#ad8072416a4bb914157a845b34cde62ff">message</a>() &lt;&lt; std::endl;</div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;        }</div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;    }</div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;</div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;    <span class="comment">// create the resource and query info</span></div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;    <a class="code" href="classmujinclient_1_1SceneResource.html">SceneResource</a> scene(controller,<span class="stringliteral">&quot;test&quot;</span>);</div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;    std::vector&lt;SceneResource::InstObjectPtr&gt; instobjects;</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;    scene.<a class="code" href="classmujinclient_1_1SceneResource.html#a30be1947d761b2b86d556e48ab905641" title="gets a list of all the instance objects of the scene">GetInstObjects</a>(instobjects);</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;    std::cout &lt;&lt; <span class="stringliteral">&quot;scene instance objects: &quot;</span>;</div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;    <span class="keywordflow">for</span>(<span class="keywordtype">size_t</span> i = 0; i &lt; instobjects.size(); ++i) {</div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;        std::cout &lt;&lt; instobjects[i]-&gt;name &lt;&lt; <span class="stringliteral">&quot;, &quot;</span>;</div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;    }</div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;    std::cout &lt;&lt; std::endl;</div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;    <span class="comment">// destroy all mujin controller resources</span></div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;    <a class="code" href="namespacemujinclient.html#a8ae80bf1bea1a9959dd23a310a3e5d03" title="called at the very end of an application to safely destroy all controller client resources">ControllerClientDestroy</a>();</div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;}</div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-controllerclientcppに対してSun Jan 13 2013 15:10:17に生成されました。 &#160;<a href="http://www.doxygen.org/index.html">
+controllerclientcppに対してTue Jan 15 2013 02:29:07に生成されました。 &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.3
 </small></address>

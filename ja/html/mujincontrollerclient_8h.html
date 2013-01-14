@@ -126,15 +126,15 @@ mujincontrollerclient.hのインクルード依存関係図</div>
 <div class="dyncontent">
 <div class="center"><img src="mujincontrollerclient_8h__dep__incl.png" border="0" usemap="#_2home_2rdiankov_2mujin_2controllerclientcpp_2include_2mujincontrollerclient_2mujincontrollerclient_8hdep" alt=""/></div>
 <map name="_2home_2rdiankov_2mujin_2controllerclientcpp_2include_2mujincontrollerclient_2mujincontrollerclient_8hdep" id="_2home_2rdiankov_2mujin_2controllerclientcpp_2include_2mujincontrollerclient_2mujincontrollerclient_8hdep">
-<area shape="rect" href="mujinimportscene_8cpp.html" title="/home/rdiankov/mujin\l/controllerclientcpp\l/samples/mujinimportscene.cpp" alt="" coords="5,128,211,187"/><area shape="rect" href="mujinshowresults_8cpp.html" title="/home/rdiankov/mujin\l/controllerclientcpp\l/samples/mujinshowresults.cpp" alt="" coords="235,128,437,187"/></map>
+<area shape="rect" href="mujinexecutetask_8cpp.html" title="/home/rdiankov/mujin\l/controllerclientcpp\l/samples/mujinexecutetask.cpp" alt="" coords="5,128,211,187"/><area shape="rect" href="mujinimportscene_8cpp.html" title="/home/rdiankov/mujin\l/controllerclientcpp\l/samples/mujinimportscene.cpp" alt="" coords="235,128,440,187"/><area shape="rect" href="mujinshowresults_8cpp.html" title="/home/rdiankov/mujin\l/controllerclientcpp\l/samples/mujinshowresults.cpp" alt="" coords="464,128,667,187"/></map>
 </div>
 </div>
 <p><a href="mujincontrollerclient_8h_source.html">ソースコードを見る。</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 構成</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1mujin__exception.html">mujinclient::mujin_exception</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Exception that all Mujin internal methods throw; the error codes are held in <a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44">MujinErrorCode</a>.  <a href="classmujinclient_1_1mujin__exception.html#details">[詳細]</a><br/></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1MujinException.html">mujinclient::MujinException</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Exception that all Mujin internal methods throw; the error codes are held in <a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44">MujinErrorCode</a>.  <a href="classmujinclient_1_1MujinException.html#details">[詳細]</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1JobStatus.html">mujinclient::JobStatus</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -142,6 +142,9 @@ mujincontrollerclient.hのインクルード依存関係図</div>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">an affine transform  <a href="structmujinclient_1_1Transform.html#details">[詳細]</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1SceneInformation.html">mujinclient::SceneInformation</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1ITLPlanningTaskInfo.html">mujinclient::ITLPlanningTaskInfo</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">holds information about the itlplanning task goal  <a href="structmujinclient_1_1ITLPlanningTaskInfo.html#details">[詳細]</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1ControllerClient.html">mujinclient::ControllerClient</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates on MUJIN Controller instance.  <a href="classmujinclient_1_1ControllerClient.html#details">[詳細]</a><br/></td></tr>
@@ -215,26 +218,44 @@ mujincontrollerclient.hのインクルード依存関係図</div>
 <tr class="memitem:a1660f20af9a56ac9e25f5438db248f44"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44">mujinclient::MujinErrorCode</a> { <br/>
 &#160;&#160;<a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44aa8caf26da554fdb8cb1ae1c02caf794c">mujinclient::MEC_Failed</a> =0, 
 <a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44aeea15b02860646ddafb641777823e7ee">mujinclient::MEC_InvalidArguments</a> =1, 
-<a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44ac1665b54b6dfc6033af47ffb2e4cdb8b">mujinclient::MEC_EnvironmentNotLocked</a> =2, 
 <a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a0a63c959d4429077f0137ee7ae95e4c4">mujinclient::MEC_CommandNotSupported</a> =3, 
+<a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a35e2138a3c4019c16ab5af6c5a6586d2">mujinclient::MEC_Assert</a> =4, 
 <br/>
-&#160;&#160;<a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a35e2138a3c4019c16ab5af6c5a6586d2">mujinclient::MEC_Assert</a> =4, 
-<a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a802a9e92dbfcba0b50ad46a396dff494">mujinclient::MEC_NotInitialized</a> =9, 
+&#160;&#160;<a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a802a9e92dbfcba0b50ad46a396dff494">mujinclient::MEC_NotInitialized</a> =9, 
 <a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44ad6fffe92842e403040a31399653f6491">mujinclient::MEC_InvalidState</a> =10, 
 <a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a266d1769428ac7d5f9834ab6abb213f5">mujinclient::MEC_Timeout</a> =11, 
+<a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44aa15bad1e640efb7bbf1773c52123318f">mujinclient::MEC_HTTPClient</a> =12, 
 <br/>
-&#160;&#160;<a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44aa15bad1e640efb7bbf1773c52123318f">mujinclient::MEC_HTTPClient</a> =12, 
-<a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a3820ae34ca64688f18358c6be4ef2b10">mujinclient::MEC_HTTPServer</a> =13
+&#160;&#160;<a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a3820ae34ca64688f18358c6be4ef2b10">mujinclient::MEC_HTTPServer</a> =13, 
+<a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a34c445ec7125ccd0573cff6b7d6eea01">mujinclient::MEC_UserAuthentication</a> =14
 <br/>
  }</td></tr>
 <tr class="separator:a1660f20af9a56ac9e25f5438db248f44"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab875ea1c5742a8ec032f72ea939c8829"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829">mujinclient::JobStatusCode</a> { <br/>
+&#160;&#160;<a class="el" href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829a535c0f76d3cc8d51fabc8f4bb6318818">mujinclient::JSC_Pending</a> = 0, 
+<a class="el" href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829a550479d7f5cc60cf6e7e0b9ea899001a">mujinclient::JSC_Active</a> = 1, 
+<a class="el" href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829aeacb39216adeb97dfebb0861236484cc">mujinclient::JSC_Preempted</a> = 2, 
+<a class="el" href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829ab86597cf791dda7e9fbaa2d4a294222d">mujinclient::JSC_Succeeded</a> = 3, 
+<br/>
+&#160;&#160;<a class="el" href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829a60383becc8377fd2dbdb3614c8857e85">mujinclient::JSC_Aborted</a> = 4, 
+<a class="el" href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829a014f01de2fc93679508ea55cba6bffa7">mujinclient::JSC_Rejected</a> = 5, 
+<a class="el" href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829a2a4fefe3364525f6d19fb57d7ef23386">mujinclient::JSC_Preempting</a> = 6, 
+<a class="el" href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829a5cb621e09cae2371f4c7399c95cb398c">mujinclient::JSC_Recalling</a> = 7, 
+<br/>
+&#160;&#160;<a class="el" href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829a496b736eac82ac6044eae3017672b115">mujinclient::JSC_Recalled</a> = 8, 
+<a class="el" href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829aeadf2965ab3b79b4232980a4c6869901">mujinclient::JSC_Lost</a> = 9, 
+<a class="el" href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829a5d824abfa8d01f441403c2043fc4d4b3">mujinclient::JSC_Unknown</a> = 0xffffffff
+<br/>
+ }</td></tr>
+<tr class="memdesc:ab875ea1c5742a8ec032f72ea939c8829"><td class="mdescLeft">&#160;</td><td class="mdescRight">status code for a job  <a href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829">[詳細]</a><br/></td></tr>
+<tr class="separator:ab875ea1c5742a8ec032f72ea939c8829"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 関数</h2></td></tr>
 <tr class="memitem:ac35e1c3da4cd973aeb6665854af1f383"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacemujinclient.html#ac35e1c3da4cd973aeb6665854af1f383">mujinclient::GetErrorCodeString</a> (MujinErrorCode error)</td></tr>
 <tr class="separator:ac35e1c3da4cd973aeb6665854af1f383"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad7c87ca5124addfb5c29bd130d79edff"><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8h.html#a81c23aaf79aa6cb6063d11600bbba7ad">MUJINCLIENT_API</a> ControllerClientPtr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacemujinclient.html#ad7c87ca5124addfb5c29bd130d79edff">mujinclient::CreateControllerClient</a> (const std::string &amp;usernamepassword, const std::string &amp;url=&quot;https://controller.mujin.co.jp/&quot;, int options=0)</td></tr>
-<tr class="memdesc:ad7c87ca5124addfb5c29bd130d79edff"><td class="mdescLeft">&#160;</td><td class="mdescRight">creates the controller with an account.  <a href="#ad7c87ca5124addfb5c29bd130d79edff"></a><br/></td></tr>
+<tr class="memdesc:ad7c87ca5124addfb5c29bd130d79edff"><td class="mdescLeft">&#160;</td><td class="mdescRight">MUJINコントローラのクライアントを作成する。<b>この関数はスレッドセーフではない。</b>  <a href="#ad7c87ca5124addfb5c29bd130d79edff"></a><br/></td></tr>
 <tr class="separator:ad7c87ca5124addfb5c29bd130d79edff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8ae80bf1bea1a9959dd23a310a3e5d03"><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8h.html#a81c23aaf79aa6cb6063d11600bbba7ad">MUJINCLIENT_API</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacemujinclient.html#a8ae80bf1bea1a9959dd23a310a3e5d03">mujinclient::ControllerClientDestroy</a> ()</td></tr>
 <tr class="memdesc:a8ae80bf1bea1a9959dd23a310a3e5d03"><td class="mdescLeft">&#160;</td><td class="mdescRight">called at the very end of an application to safely destroy all controller client resources  <a href="#a8ae80bf1bea1a9959dd23a310a3e5d03"></a><br/></td></tr>
@@ -341,7 +362,7 @@ mujincontrollerclient.hのインクルード依存関係図</div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-controllerclientcppに対してSun Jan 13 2013 15:10:17に生成されました。 &#160;<a href="http://www.doxygen.org/index.html">
+controllerclientcppに対してTue Jan 15 2013 02:29:07に生成されました。 &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.3
 </small></address>

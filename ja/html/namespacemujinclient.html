@@ -94,8 +94,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'検索');
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 構成</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1mujin__exception.html">mujin_exception</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Exception that all Mujin internal methods throw; the error codes are held in <a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44">MujinErrorCode</a>.  <a href="classmujinclient_1_1mujin__exception.html#details">[詳細]</a><br/></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1MujinException.html">MujinException</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Exception that all Mujin internal methods throw; the error codes are held in <a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44">MujinErrorCode</a>.  <a href="classmujinclient_1_1MujinException.html#details">[詳細]</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1JobStatus.html">JobStatus</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -103,6 +103,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'検索');
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">an affine transform  <a href="structmujinclient_1_1Transform.html#details">[詳細]</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1SceneInformation.html">SceneInformation</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1ITLPlanningTaskInfo.html">ITLPlanningTaskInfo</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">holds information about the itlplanning task goal  <a href="structmujinclient_1_1ITLPlanningTaskInfo.html#details">[詳細]</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1ControllerClient.html">ControllerClient</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates on MUJIN Controller instance.  <a href="classmujinclient_1_1ControllerClient.html#details">[詳細]</a><br/></td></tr>
@@ -158,26 +161,44 @@ var searchBox = new SearchBox("searchBox", "search",false,'検索');
 <tr class="memitem:a1660f20af9a56ac9e25f5438db248f44"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44">MujinErrorCode</a> { <br/>
 &#160;&#160;<a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44aa8caf26da554fdb8cb1ae1c02caf794c">MEC_Failed</a> =0, 
 <a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44aeea15b02860646ddafb641777823e7ee">MEC_InvalidArguments</a> =1, 
-<a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44ac1665b54b6dfc6033af47ffb2e4cdb8b">MEC_EnvironmentNotLocked</a> =2, 
 <a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a0a63c959d4429077f0137ee7ae95e4c4">MEC_CommandNotSupported</a> =3, 
+<a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a35e2138a3c4019c16ab5af6c5a6586d2">MEC_Assert</a> =4, 
 <br/>
-&#160;&#160;<a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a35e2138a3c4019c16ab5af6c5a6586d2">MEC_Assert</a> =4, 
-<a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a802a9e92dbfcba0b50ad46a396dff494">MEC_NotInitialized</a> =9, 
+&#160;&#160;<a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a802a9e92dbfcba0b50ad46a396dff494">MEC_NotInitialized</a> =9, 
 <a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44ad6fffe92842e403040a31399653f6491">MEC_InvalidState</a> =10, 
 <a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a266d1769428ac7d5f9834ab6abb213f5">MEC_Timeout</a> =11, 
+<a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44aa15bad1e640efb7bbf1773c52123318f">MEC_HTTPClient</a> =12, 
 <br/>
-&#160;&#160;<a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44aa15bad1e640efb7bbf1773c52123318f">MEC_HTTPClient</a> =12, 
-<a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a3820ae34ca64688f18358c6be4ef2b10">MEC_HTTPServer</a> =13
+&#160;&#160;<a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a3820ae34ca64688f18358c6be4ef2b10">MEC_HTTPServer</a> =13, 
+<a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a34c445ec7125ccd0573cff6b7d6eea01">MEC_UserAuthentication</a> =14
 <br/>
  }</td></tr>
 <tr class="separator:a1660f20af9a56ac9e25f5438db248f44"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab875ea1c5742a8ec032f72ea939c8829"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829">JobStatusCode</a> { <br/>
+&#160;&#160;<a class="el" href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829a535c0f76d3cc8d51fabc8f4bb6318818">JSC_Pending</a> = 0, 
+<a class="el" href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829a550479d7f5cc60cf6e7e0b9ea899001a">JSC_Active</a> = 1, 
+<a class="el" href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829aeacb39216adeb97dfebb0861236484cc">JSC_Preempted</a> = 2, 
+<a class="el" href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829ab86597cf791dda7e9fbaa2d4a294222d">JSC_Succeeded</a> = 3, 
+<br/>
+&#160;&#160;<a class="el" href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829a60383becc8377fd2dbdb3614c8857e85">JSC_Aborted</a> = 4, 
+<a class="el" href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829a014f01de2fc93679508ea55cba6bffa7">JSC_Rejected</a> = 5, 
+<a class="el" href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829a2a4fefe3364525f6d19fb57d7ef23386">JSC_Preempting</a> = 6, 
+<a class="el" href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829a5cb621e09cae2371f4c7399c95cb398c">JSC_Recalling</a> = 7, 
+<br/>
+&#160;&#160;<a class="el" href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829a496b736eac82ac6044eae3017672b115">JSC_Recalled</a> = 8, 
+<a class="el" href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829aeadf2965ab3b79b4232980a4c6869901">JSC_Lost</a> = 9, 
+<a class="el" href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829a5d824abfa8d01f441403c2043fc4d4b3">JSC_Unknown</a> = 0xffffffff
+<br/>
+ }</td></tr>
+<tr class="memdesc:ab875ea1c5742a8ec032f72ea939c8829"><td class="mdescLeft">&#160;</td><td class="mdescRight">status code for a job  <a href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829">[詳細]</a><br/></td></tr>
+<tr class="separator:ab875ea1c5742a8ec032f72ea939c8829"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 関数</h2></td></tr>
 <tr class="memitem:ac35e1c3da4cd973aeb6665854af1f383"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacemujinclient.html#ac35e1c3da4cd973aeb6665854af1f383">GetErrorCodeString</a> (<a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44">MujinErrorCode</a> error)</td></tr>
 <tr class="separator:ac35e1c3da4cd973aeb6665854af1f383"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad7c87ca5124addfb5c29bd130d79edff"><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8h.html#a81c23aaf79aa6cb6063d11600bbba7ad">MUJINCLIENT_API</a> <a class="el" href="namespacemujinclient.html#aa0b8a533fc19b5930eca8bf825f2231d">ControllerClientPtr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacemujinclient.html#ad7c87ca5124addfb5c29bd130d79edff">CreateControllerClient</a> (const std::string &amp;usernamepassword, const std::string &amp;url=&quot;https://controller.mujin.co.jp/&quot;, int options=0)</td></tr>
-<tr class="memdesc:ad7c87ca5124addfb5c29bd130d79edff"><td class="mdescLeft">&#160;</td><td class="mdescRight">creates the controller with an account.  <a href="#ad7c87ca5124addfb5c29bd130d79edff"></a><br/></td></tr>
+<tr class="memdesc:ad7c87ca5124addfb5c29bd130d79edff"><td class="mdescLeft">&#160;</td><td class="mdescRight">MUJINコントローラのクライアントを作成する。<b>この関数はスレッドセーフではない。</b>  <a href="#ad7c87ca5124addfb5c29bd130d79edff"></a><br/></td></tr>
 <tr class="separator:ad7c87ca5124addfb5c29bd130d79edff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8ae80bf1bea1a9959dd23a310a3e5d03"><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8h.html#a81c23aaf79aa6cb6063d11600bbba7ad">MUJINCLIENT_API</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacemujinclient.html#a8ae80bf1bea1a9959dd23a310a3e5d03">ControllerClientDestroy</a> ()</td></tr>
 <tr class="memdesc:a8ae80bf1bea1a9959dd23a310a3e5d03"><td class="mdescLeft">&#160;</td><td class="mdescRight">called at the very end of an application to safely destroy all controller client resources  <a href="#a8ae80bf1bea1a9959dd23a310a3e5d03"></a><br/></td></tr>
@@ -347,6 +368,58 @@ var searchBox = new SearchBox("searchBox", "search",false,'検索');
 </div>
 </div>
 <h2 class="groupheader">列挙型</h2>
+<a class="anchor" id="ab875ea1c5742a8ec032f72ea939c8829"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829">mujinclient::JobStatusCode</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>status code for a job </p>
+<p>Definitions are very similar to <a href="http://ros.org/doc/api/actionlib_msgs/html/msg/GoalStatus.html">http://ros.org/doc/api/actionlib_msgs/html/msg/GoalStatus.html</a> </p>
+<table class="fieldtable">
+<tr><th colspan="2">列挙型の値</th></tr><tr><td class="fieldname"><em><a class="anchor" id="ab875ea1c5742a8ec032f72ea939c8829a535c0f76d3cc8d51fabc8f4bb6318818"></a>JSC_Pending</em>&nbsp;</td><td class="fielddoc">
+<p>The goal has yet to be processed. </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="ab875ea1c5742a8ec032f72ea939c8829a550479d7f5cc60cf6e7e0b9ea899001a"></a>JSC_Active</em>&nbsp;</td><td class="fielddoc">
+<p>The goal is currently being processed. </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="ab875ea1c5742a8ec032f72ea939c8829aeacb39216adeb97dfebb0861236484cc"></a>JSC_Preempted</em>&nbsp;</td><td class="fielddoc">
+<p>The goal received a cancel request after it started executing and has since completed its execution. </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="ab875ea1c5742a8ec032f72ea939c8829ab86597cf791dda7e9fbaa2d4a294222d"></a>JSC_Succeeded</em>&nbsp;</td><td class="fielddoc">
+<p>The goal was achieved successfully. </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="ab875ea1c5742a8ec032f72ea939c8829a60383becc8377fd2dbdb3614c8857e85"></a>JSC_Aborted</em>&nbsp;</td><td class="fielddoc">
+<p>The goal was aborted during execution due to some failure. </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="ab875ea1c5742a8ec032f72ea939c8829a014f01de2fc93679508ea55cba6bffa7"></a>JSC_Rejected</em>&nbsp;</td><td class="fielddoc">
+<p>The goal was rejected without being processed, because the goal was unattainable or invalid. </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="ab875ea1c5742a8ec032f72ea939c8829a2a4fefe3364525f6d19fb57d7ef23386"></a>JSC_Preempting</em>&nbsp;</td><td class="fielddoc">
+<p>The goal received a cancel request after it started executing and has not yet completed execution. </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="ab875ea1c5742a8ec032f72ea939c8829a5cb621e09cae2371f4c7399c95cb398c"></a>JSC_Recalling</em>&nbsp;</td><td class="fielddoc">
+<p>The goal received a cancel request before it started executing, but the server has not yet confirmed that the goal is canceled. </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="ab875ea1c5742a8ec032f72ea939c8829a496b736eac82ac6044eae3017672b115"></a>JSC_Recalled</em>&nbsp;</td><td class="fielddoc">
+<p>The goal received a cancel request before it started executing and was successfully cancelled. </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="ab875ea1c5742a8ec032f72ea939c8829aeadf2965ab3b79b4232980a4c6869901"></a>JSC_Lost</em>&nbsp;</td><td class="fielddoc">
+<p>An error happened and the job stopped being tracked. </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="ab875ea1c5742a8ec032f72ea939c8829a5d824abfa8d01f441403c2043fc4d4b3"></a>JSC_Unknown</em>&nbsp;</td><td class="fielddoc">
+<p>the job is </p>
+</td></tr>
+</table>
+
+<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00142">142</a> 行で定義されています。</p>
+
+</div>
+</div>
 <a class="anchor" id="a1660f20af9a56ac9e25f5438db248f44"></a>
 <div class="memitem">
 <div class="memproto">
@@ -361,8 +434,6 @@ var searchBox = new SearchBox("searchBox", "search",false,'検索');
 </td></tr>
 <tr><td class="fieldname"><em><a class="anchor" id="a1660f20af9a56ac9e25f5438db248f44aeea15b02860646ddafb641777823e7ee"></a>MEC_InvalidArguments</em>&nbsp;</td><td class="fielddoc">
 <p>passed in input arguments are not valid </p>
-</td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="a1660f20af9a56ac9e25f5438db248f44ac1665b54b6dfc6033af47ffb2e4cdb8b"></a>MEC_EnvironmentNotLocked</em>&nbsp;</td><td class="fielddoc">
 </td></tr>
 <tr><td class="fieldname"><em><a class="anchor" id="a1660f20af9a56ac9e25f5438db248f44a0a63c959d4429077f0137ee7ae95e4c4"></a>MEC_CommandNotSupported</em>&nbsp;</td><td class="fielddoc">
 <p>string command could not be parsed or is not supported </p>
@@ -383,6 +454,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'検索');
 </td></tr>
 <tr><td class="fieldname"><em><a class="anchor" id="a1660f20af9a56ac9e25f5438db248f44a3820ae34ca64688f18358c6be4ef2b10"></a>MEC_HTTPServer</em>&nbsp;</td><td class="fielddoc">
 <p>HTTP server error. </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a1660f20af9a56ac9e25f5438db248f44a34c445ec7125ccd0573cff6b7d6eea01"></a>MEC_UserAuthentication</em>&nbsp;</td><td class="fielddoc">
+<p>authentication failed </p>
 </td></tr>
 </table>
 
@@ -489,7 +563,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'検索');
 </div><div class="memdoc">
 
 <p>called at the very end of an application to safely destroy all controller client resources </p>
-<dl><dt><b>例: </b></dt><dd><a class="el" href="mujinimportscene_8cpp-example.html#a7">mujinimportscene.cpp</a>, と <a class="el" href="mujinshowresults_8cpp-example.html#a7">mujinshowresults.cpp</a>.</dd>
+<dl><dt><b>例: </b></dt><dd><a class="el" href="mujinexecutetask_8cpp-example.html#a8">mujinexecutetask.cpp</a>, <a class="el" href="mujinimportscene_8cpp-example.html#a7">mujinimportscene.cpp</a>, と <a class="el" href="mujinshowresults_8cpp-example.html#a7">mujinshowresults.cpp</a>.</dd>
 </dl>
 </div>
 </div>
@@ -523,16 +597,17 @@ var searchBox = new SearchBox("searchBox", "search",false,'検索');
       </table>
 </div><div class="memdoc">
 
-<p>creates the controller with an account. </p>
+<p>MUJINコントローラのクライアントを作成する。<b>この関数はスレッドセーフではない。</b> </p>
+<p>この関数はスレッドセーフではないため、呼び出す時に他のスレッドが走っていないようにご注意ください。 </p>
 <dl class="params"><dt>引数</dt><dd>
   <table class="params">
-    <tr><td class="paramname">usernamepassword</td><td>user:password <b>This function is not thread safe.</b> You must not call it when any other thread in the program (i.e. a thread sharing the same memory) is running. </td></tr>
-    <tr><td class="paramname">url</td><td>the URL of controller server, it needs to have a trailing slash. It can also be in the form of <a href="https://username@server/">https://username@server/</a> in order to force login of a particular user. </td></tr>
-    <tr><td class="paramname">options</td><td>extra options for connecting to the controller. If 1, the client will optimize usage to only allow GET calls </td></tr>
+    <tr><td class="paramname">usernamepassword</td><td>ユーザ:パスワード </td></tr>
+    <tr><td class="paramname">url</td><td>コントローラにアクセスするためのURLです。スラッシュ「/」で終わる必要があります。強制的にユーザも指定出来ます、例えば<b><a href="https://username@server/">https://username@server/</a></b>。 </td></tr>
+    <tr><td class="paramname">options</td><td>１が指定されたら、クライアントがGETのみを呼び出し出来ます。それで初期化がもっと速くなれます。 </td></tr>
   </table>
   </dd>
 </dl>
-<dl><dt><b>例: </b></dt><dd><a class="el" href="mujinimportscene_8cpp-example.html#a1">mujinimportscene.cpp</a>, と <a class="el" href="mujinshowresults_8cpp-example.html#a1">mujinshowresults.cpp</a>.</dd>
+<dl><dt><b>例: </b></dt><dd><a class="el" href="mujinexecutetask_8cpp-example.html#a1">mujinexecutetask.cpp</a>, <a class="el" href="mujinimportscene_8cpp-example.html#a1">mujinimportscene.cpp</a>, と <a class="el" href="mujinshowresults_8cpp-example.html#a1">mujinshowresults.cpp</a>.</dd>
 </dl>
 </div>
 </div>
@@ -565,7 +640,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'検索');
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-controllerclientcppに対してSun Jan 13 2013 15:10:17に生成されました。 &#160;<a href="http://www.doxygen.org/index.html">
+controllerclientcppに対してTue Jan 15 2013 02:29:07に生成されました。 &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.3
 </small></address>

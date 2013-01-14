@@ -118,17 +118,23 @@ Public メソッド</h2></td></tr>
 <tr class="memitem:a277ccf7d2128a445601aec81c558edb3"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1TaskResource.html#a277ccf7d2128a445601aec81c558edb3">~TaskResource</a> ()</td></tr>
 <tr class="separator:a277ccf7d2128a445601aec81c558edb3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9c63d368239492715dbd86bb250ed9d5"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1TaskResource.html#a9c63d368239492715dbd86bb250ed9d5">Execute</a> ()</td></tr>
-<tr class="memdesc:a9c63d368239492715dbd86bb250ed9d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">execute the task  <a href="#a9c63d368239492715dbd86bb250ed9d5"></a><br/></td></tr>
+<tr class="memdesc:a9c63d368239492715dbd86bb250ed9d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">execute the task.  <a href="#a9c63d368239492715dbd86bb250ed9d5"></a><br/></td></tr>
 <tr class="separator:a9c63d368239492715dbd86bb250ed9d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7d3da8dec7d32494461e3ee481d1ca32"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="structmujinclient_1_1JobStatus.html">JobStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1TaskResource.html#a7d3da8dec7d32494461e3ee481d1ca32">GetRunTimeStatus</a> ()</td></tr>
-<tr class="memdesc:a7d3da8dec7d32494461e3ee481d1ca32"><td class="mdescLeft">&#160;</td><td class="mdescRight">get the run-time status of the executed task  <a href="#a7d3da8dec7d32494461e3ee481d1ca32"></a><br/></td></tr>
-<tr class="separator:a7d3da8dec7d32494461e3ee481d1ca32"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a234786f81b4791a41d7630ac340d5354"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1TaskResource.html#a234786f81b4791a41d7630ac340d5354">GetRunTimeStatus</a> (<a class="el" href="structmujinclient_1_1JobStatus.html">JobStatus</a> &amp;status)</td></tr>
+<tr class="memdesc:a234786f81b4791a41d7630ac340d5354"><td class="mdescLeft">&#160;</td><td class="mdescRight">get the run-time status of the executed task.  <a href="#a234786f81b4791a41d7630ac340d5354"></a><br/></td></tr>
+<tr class="separator:a234786f81b4791a41d7630ac340d5354"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac8aa56710f0266debf61309208e48ffb"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespacemujinclient.html#a792d4a5c8226ed22db9f59b11908229d">OptimizationResourcePtr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1TaskResource.html#ac8aa56710f0266debf61309208e48ffb">GetOrCreateOptimizationFromName</a> (const std::string &amp;optimizationname)</td></tr>
 <tr class="memdesc:ac8aa56710f0266debf61309208e48ffb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets or creates the a optimization part of the scene.  <a href="#ac8aa56710f0266debf61309208e48ffb"></a><br/></td></tr>
 <tr class="separator:ac8aa56710f0266debf61309208e48ffb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a81325b517d692f89b3c3249acb449d05"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1TaskResource.html#a81325b517d692f89b3c3249acb449d05">GetOptimizationPrimaryKeys</a> (std::vector&lt; std::string &gt; &amp;optimizationkeys)</td></tr>
 <tr class="memdesc:a81325b517d692f89b3c3249acb449d05"><td class="mdescLeft">&#160;</td><td class="mdescRight">gets a list of all the scene primary keys currently available to the user  <a href="#a81325b517d692f89b3c3249acb449d05"></a><br/></td></tr>
 <tr class="separator:a81325b517d692f89b3c3249acb449d05"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a748b8dfaf99a4640f2490af1b120ffd7"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1TaskResource.html#a748b8dfaf99a4640f2490af1b120ffd7">GetTaskInfo</a> (<a class="el" href="structmujinclient_1_1ITLPlanningTaskInfo.html">ITLPlanningTaskInfo</a> &amp;taskinfo)</td></tr>
+<tr class="memdesc:a748b8dfaf99a4640f2490af1b120ffd7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the task info for tasks of type itlplanning.  <a href="#a748b8dfaf99a4640f2490af1b120ffd7"></a><br/></td></tr>
+<tr class="separator:a748b8dfaf99a4640f2490af1b120ffd7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9ce16a8639283ec5449307275800d0ff"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1TaskResource.html#a9ce16a8639283ec5449307275800d0ff">SetTaskInfo</a> (const <a class="el" href="structmujinclient_1_1ITLPlanningTaskInfo.html">ITLPlanningTaskInfo</a> &amp;taskinfo)</td></tr>
+<tr class="memdesc:a9ce16a8639283ec5449307275800d0ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set new task info for tasks of type itlplanning.  <a href="#a9ce16a8639283ec5449307275800d0ff"></a><br/></td></tr>
+<tr class="separator:a9ce16a8639283ec5449307275800d0ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9b41762baf730866cbee36d89ef603ab"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespacemujinclient.html#ac6864839d1aa167298fac02dc4388378">PlanningResultResourcePtr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1TaskResource.html#a9b41762baf730866cbee36d89ef603ab">GetResult</a> ()</td></tr>
 <tr class="memdesc:a9b41762baf730866cbee36d89ef603ab"><td class="mdescLeft">&#160;</td><td class="mdescRight">gets the result of the task execution. If no result has been computed yet, will return a NULL pointer.  <a href="#a9b41762baf730866cbee36d89ef603ab"></a><br/></td></tr>
 <tr class="separator:a9b41762baf730866cbee36d89ef603ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -146,6 +152,9 @@ Public メソッド</h2></td></tr>
 <tr class="memitem:af9afec94dd796d0d6a3e0293e3c8c278 inherit pub_methods_classmujinclient_1_1WebResource"><td class="memItemLeft" align="right" valign="top">virtual std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1WebResource.html#af9afec94dd796d0d6a3e0293e3c8c278">Get</a> (const std::string &amp;field)</td></tr>
 <tr class="memdesc:af9afec94dd796d0d6a3e0293e3c8c278 inherit pub_methods_classmujinclient_1_1WebResource"><td class="mdescLeft">&#160;</td><td class="mdescRight">gets an attribute of this web resource  <a href="#af9afec94dd796d0d6a3e0293e3c8c278"></a><br/></td></tr>
 <tr class="separator:af9afec94dd796d0d6a3e0293e3c8c278 inherit pub_methods_classmujinclient_1_1WebResource"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af30cb8ab9c94bcc85bd89acdf721c3a7 inherit pub_methods_classmujinclient_1_1WebResource"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1WebResource.html#af30cb8ab9c94bcc85bd89acdf721c3a7">Set</a> (const std::string &amp;field, const std::string &amp;newvalue)</td></tr>
+<tr class="memdesc:af30cb8ab9c94bcc85bd89acdf721c3a7 inherit pub_methods_classmujinclient_1_1WebResource"><td class="mdescLeft">&#160;</td><td class="mdescRight">sets an attribute of this web resource  <a href="#af30cb8ab9c94bcc85bd89acdf721c3a7"></a><br/></td></tr>
+<tr class="separator:af30cb8ab9c94bcc85bd89acdf721c3a7 inherit pub_methods_classmujinclient_1_1WebResource"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afb3d48a44adf5d9ae21e8e8028214e98 inherit pub_methods_classmujinclient_1_1WebResource"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1WebResource.html#afb3d48a44adf5d9ae21e8e8028214e98">Delete</a> ()</td></tr>
 <tr class="memdesc:afb3d48a44adf5d9ae21e8e8028214e98 inherit pub_methods_classmujinclient_1_1WebResource"><td class="mdescLeft">&#160;</td><td class="mdescRight">delete the resource and all its child resources  <a href="#afb3d48a44adf5d9ae21e8e8028214e98"></a><br/></td></tr>
 <tr class="separator:afb3d48a44adf5d9ae21e8e8028214e98 inherit pub_methods_classmujinclient_1_1WebResource"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -156,7 +165,7 @@ Public メソッド</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">説明</h2>
 <div class="textblock"><dl><dt><b>例: </b></dt><dd><a class="el" href="mujinshowresults_8cpp-example.html#_a3">mujinshowresults.cpp</a>.</dd>
 </dl>
-<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00286">286</a> 行で定義されています。</p>
+<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00346">346</a> 行で定義されています。</p>
 </div><h2 class="groupheader">コンストラクタとデストラクタ</h2>
 <a class="anchor" id="a1870ca58f24e7b543609db11cd6c47d7"></a>
 <div class="memitem">
@@ -205,7 +214,7 @@ Public メソッド</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00290">290</a> 行で定義されています。</p>
+<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00350">350</a> 行で定義されています。</p>
 
 </div>
 </div>
@@ -231,7 +240,8 @@ Public メソッド</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>execute the task </p>
+<p>execute the task. </p>
+<p>This operation is non-blocking and will return immediately after the execution is started. In order to check if the task is running or is complete, use <a class="el" href="classmujinclient_1_1TaskResource.html#a234786f81b4791a41d7630ac340d5354">GetRunTimeStatus()</a> and <a class="el" href="classmujinclient_1_1TaskResource.html#a9b41762baf730866cbee36d89ef603ab">GetResult()</a> </p>
 
 </div>
 </div>
@@ -318,7 +328,7 @@ Public メソッド</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a7d3da8dec7d32494461e3ee481d1ca32"></a>
+<a class="anchor" id="a234786f81b4791a41d7630ac340d5354"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -326,9 +336,10 @@ Public メソッド</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual <a class="el" href="structmujinclient_1_1JobStatus.html">JobStatus</a> mujinclient::TaskResource::GetRunTimeStatus </td>
+          <td class="memname">virtual void mujinclient::TaskResource::GetRunTimeStatus </td>
           <td>(</td>
-          <td class="paramname"></td><td>)</td>
+          <td class="paramtype"><a class="el" href="structmujinclient_1_1JobStatus.html">JobStatus</a> &amp;&#160;</td>
+          <td class="paramname"><em>status</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -339,7 +350,59 @@ Public メソッド</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>get the run-time status of the executed task </p>
+<p>get the run-time status of the executed task. </p>
+
+</div>
+</div>
+<a class="anchor" id="a748b8dfaf99a4640f2490af1b120ffd7"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void mujinclient::TaskResource::GetTaskInfo </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structmujinclient_1_1ITLPlanningTaskInfo.html">ITLPlanningTaskInfo</a> &amp;&#160;</td>
+          <td class="paramname"><em>taskinfo</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Get the task info for tasks of type itlplanning. </p>
+
+</div>
+</div>
+<a class="anchor" id="a9ce16a8639283ec5449307275800d0ff"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void mujinclient::TaskResource::SetTaskInfo </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structmujinclient_1_1ITLPlanningTaskInfo.html">ITLPlanningTaskInfo</a> &amp;&#160;</td>
+          <td class="paramname"><em>taskinfo</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Set new task info for tasks of type itlplanning. </p>
 
 </div>
 </div>
@@ -349,7 +412,7 @@ Public メソッド</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-controllerclientcppに対してSun Jan 13 2013 15:10:17に生成されました。 &#160;<a href="http://www.doxygen.org/index.html">
+controllerclientcppに対してTue Jan 15 2013 02:29:07に生成されました。 &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.3
 </small></address>

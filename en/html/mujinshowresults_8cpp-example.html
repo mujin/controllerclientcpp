@@ -90,7 +90,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><span class="keyword">using namespace </span>std;</div>
 <div class="line"><span class="keyword">using namespace </span>mujinclient;</div>
 <div class="line"></div>
-<div class="line"><span class="keywordtype">int</span> <a name="a0"></a><a class="code" href="mujinimportscene_8cpp.html#a3c04138a5bfe5d72780bb7e82a18e627">main</a>(<span class="keywordtype">int</span> argc, <span class="keywordtype">char</span> ** argv)</div>
+<div class="line"><span class="keywordtype">int</span> <a name="a0"></a><a class="code" href="mujinexecutetask_8cpp.html#a3c04138a5bfe5d72780bb7e82a18e627">main</a>(<span class="keywordtype">int</span> argc, <span class="keywordtype">char</span> ** argv)</div>
 <div class="line">{</div>
 <div class="line">    <span class="keywordflow">if</span>( argc &lt; 2 ) {</div>
 <div class="line">        std::cout &lt;&lt; <span class="stringliteral">&quot;need username:password. Example: mujinclienttest myuser:mypass [url]\n\nurl - [optional] For example https://controller.mujin.co.jp/&quot;</span> &lt;&lt; std::endl;</div>
@@ -98,11 +98,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line">    }</div>
 <div class="line">    <a class="code" href="namespacemujinclient.html#aa0b8a533fc19b5930eca8bf825f2231d">ControllerClientPtr</a> controller;</div>
 <div class="line">    <span class="keywordflow">if</span>( argc &gt; 2 ) {</div>
-<div class="line">        controller = <a name="a1"></a><a class="code" href="namespacemujinclient.html#ad7c87ca5124addfb5c29bd130d79edff" title="creates the controller with an account.">CreateControllerClient</a>(argv[1], argv[2]);</div>
+<div class="line">        controller = <a name="a1"></a><a class="code" href="namespacemujinclient.html#ad7c87ca5124addfb5c29bd130d79edff" title="creates the controller with an account. This function is not thread safe.">CreateControllerClient</a>(argv[1], argv[2]);</div>
 <div class="line">    }</div>
 <div class="line">    <span class="keywordflow">else</span> {</div>
-<div class="line">        controller = <a class="code" href="namespacemujinclient.html#ad7c87ca5124addfb5c29bd130d79edff" title="creates the controller with an account.">CreateControllerClient</a>(argv[1]);</div>
+<div class="line">        controller = <a class="code" href="namespacemujinclient.html#ad7c87ca5124addfb5c29bd130d79edff" title="creates the controller with an account. This function is not thread safe.">CreateControllerClient</a>(argv[1]);</div>
 <div class="line">    }</div>
+<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;connected to controller v&quot;</span> &lt;&lt; controller-&gt;GetVersion() &lt;&lt; std::endl;</div>
 <div class="line"></div>
 <div class="line">    <span class="comment">// get all supported keys</span></div>
 <div class="line">    std::vector&lt;std::string&gt; scenekeys;</div>
@@ -182,7 +183,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!-- fragment --> </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Jan 13 2013 15:10:16 for controllerclientcpp by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Jan 15 2013 02:29:05 for controllerclientcpp by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.3
 </small></address>
