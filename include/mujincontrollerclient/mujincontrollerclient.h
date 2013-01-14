@@ -67,6 +67,7 @@ enum MujinErrorCode {
     MEC_Timeout=11, ///< process timed out
     MEC_HTTPClient=12, ///< HTTP client error
     MEC_HTTPServer=13, ///< HTTP server error
+    MEC_UserAuthentication=14, ///< authentication failed
 };
 
 inline const char* GetErrorCodeString(MujinErrorCode error)
@@ -81,6 +82,7 @@ inline const char* GetErrorCodeString(MujinErrorCode error)
     case MEC_Timeout: return "Timeout";
     case MEC_HTTPClient: return "HTTPClient";
     case MEC_HTTPServer: return "HTTPServer";
+    case MEC_UserAuthentication: return "UserAuthentication";
     }
     // should throw an exception?
     return "";
@@ -147,8 +149,8 @@ enum JobStatusCode {
     JSC_Preempting      = 6, ///< The goal received a cancel request after it started executing and has not yet completed execution
     JSC_Recalling       = 7, ///< The goal received a cancel request before it started executing, but the server has not yet confirmed that the goal is canceled.
     JSC_Recalled        = 8, ///< The goal received a cancel request before it started executing and was successfully cancelled
-    JSC_Lost            = 9, ///< An unknokwn error happened and the job stopped being tracked.
-    JSC_Unknown = 0xffffffff,
+    JSC_Lost            = 9, ///< An error happened and the job stopped being tracked.
+    JSC_Unknown = 0xffffffff, ///< the job is
 };
 
 struct JobStatus
@@ -192,9 +194,9 @@ struct ITLPlanningTaskInfo
         outputtrajtype = "robotmaker";
         optimizationvalue = 1;
     }
-    int startfromcurrent;
-    int returntostart;
-    int usevrc;
+    int startfromcurrent; ///< Will start planning from the current robot joint values, otherwise will start at the first waypoint in the program.
+    int returntostart; ///< Plan the return path of the robot to where the entire trajectory started. Makes it possible to loop the robot motion.
+    int usevrc; ///< Use the Robot Virtual Controller for retiming and extra validation. Makes planning slow, but robot timing because very accurate.
     std::string unit; ///< the unit that information is used in. m, mm, nm, inch, etc
     std::string outputtrajtype; ///< what format to output the trajectory in.
     Real optimizationvalue; ///< value in [0,1]. 0 is no optimization (fast), 1 is full optimization (slow)
@@ -240,6 +242,9 @@ public:
     /// If the server is not responding, call this method to clear the server state and initialize everything.
     /// The method is blocking, when it returns the MUJIN Controller would have been restarted.
     virtual void RestartServer() = 0;
+
+    /// \brief returns the mujin controller version
+    virtual std::string GetVersion() = 0;
 
     /// \brief sends the cancel message to all jobs.
     ///

@@ -57,6 +57,42 @@
 
 namespace mujinclient {
 
+static bool PairStringLengthCompare(const std::pair<std::string, std::string>&p0, const std::pair<std::string, std::string>&p1)
+{
+    return p0.first.size() > p1.first.size();
+}
+
+static std::string& SearchAndReplace(std::string& out, const std::string& in, const std::vector< std::pair<std::string, std::string> >&_pairs)
+{
+    BOOST_ASSERT(&out != &in);
+    std::vector< std::pair<std::string, std::string> >::const_iterator itp, itbestp;
+    for(itp = _pairs.begin(); itp != _pairs.end(); ++itp) {
+        BOOST_ASSERT(itp->first.size()>0);
+    }
+    std::vector< std::pair<std::string, std::string> > pairs = _pairs;
+    stable_sort(pairs.begin(),pairs.end(),PairStringLengthCompare);
+    out.resize(0);
+    size_t startindex = 0;
+    while(startindex < in.size()) {
+        size_t nextindex=std::string::npos;
+        for(itp = pairs.begin(); itp != pairs.end(); ++itp) {
+            size_t index = in.find(itp->first,startindex);
+            if((nextindex == std::string::npos)|| ((index != std::string::npos)&&(index < nextindex)) ) {
+                nextindex = index;
+                itbestp = itp;
+            }
+        }
+        if( nextindex == std::string::npos ) {
+            out += in.substr(startindex);
+            break;
+        }
+        out += in.substr(startindex,nextindex-startindex);
+        out += itbestp->second;
+        startindex = nextindex+itbestp->first.size();
+    }
+    return out;
+}
+
 #define SKIP_PEER_VERIFICATION // temporary
 //#define SKIP_HOSTNAME_VERIFICATION
 
@@ -65,6 +101,7 @@ class ControllerClientImpl : public ControllerClient, public boost::enable_share
 public:
     ControllerClientImpl(const std::string& usernamepassword, const std::string& baseuri, int options)
     {
+        _httpheaders = NULL;
         _baseuri = baseuri;
         _baseapiuri = baseuri + std::string("api/v1/");
         //CURLcode code = curl_global_init(CURL_GLOBAL_SSL|CURL_GLOBAL_WIN32);
@@ -119,12 +156,21 @@ public:
         res = curl_easy_setopt(_curl, CURLOPT_WRITEDATA, &_buffer);
         CHECKCURLCODE(res, "failed to set write data");
 
+        std::string useragent = std::string("controllerclientcpp/")+MUJINCLIENT_VERSION_STRING;
+        res = curl_easy_setopt(_curl, CURLOPT_USERAGENT, useragent.c_str());
+        CHECKCURLCODE(res, "failed to set user-agent");
+
+        res = curl_easy_setopt(_curl, CURLOPT_FOLLOWLOCATION, 0); // do not bounce through pages since we need to detect when login sessions expired
+        CHECKCURLCODE(res, "failed to set follow location");
+        res = curl_easy_setopt(_curl, CURLOPT_MAXREDIRS, 10);
+        CHECKCURLCODE(res, "failed to max redirs");
+
         if( !(options & 1) ) {
             size_t index = usernamepassword.find_first_of(':');
             BOOST_ASSERT(index != std::string::npos );
 
             // make an initial GET call to get the CSRF token
-            std::string loginuri = _baseuri + "api/v1/"; //"login/";
+            std::string loginuri = _baseuri + "login/";
             curl_easy_setopt(_curl, CURLOPT_URL, loginuri.c_str());
             curl_easy_setopt(_curl, CURLOPT_HTTPGET, 1);
             CURLcode res = curl_easy_perform(_curl);
@@ -132,32 +178,67 @@ public:
             long http_code = 0;
             res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
             CHECKCURLCODE(res, "curl_easy_getinfo");
-            if( http_code != 200 && http_code != 302 ) {
+            if( http_code == 302 ) {
+                // most likely apache2-only authentication and login page isn't needed, however need to send another GET for the csrftoken
+                std::string loginuri = _baseuri + "api/v1/";
+                curl_easy_setopt(_curl, CURLOPT_URL, loginuri.c_str());
+                CURLcode res = curl_easy_perform(_curl);
+                CHECKCURLCODE(res, "curl_easy_perform failed");
+                long http_code = 0;
+                res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
+                CHECKCURLCODE(res, "curl_easy_getinfo");
+                res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
+                CHECKCURLCODE(res, "curl_easy_getinfo");
+                if( http_code != 200 ) {
+                    throw MUJIN_EXCEPTION_FORMAT("HTTP GET %s returned HTTP error code %s", loginuri%http_code, MEC_HTTPServer);
+                }
+                _csrfmiddlewaretoken = _GetCSRFFromCookies();
+            }
+            else if( http_code == 200 ) {
+                _csrfmiddlewaretoken = _GetCSRFFromCookies();
+
+                std::string data = str(boost::format("username=%s&password=%s&this_is_the_login_form=1&next=%%2F&csrfmiddlewaretoken=%s")%usernamepassword.substr(0,index)%usernamepassword.substr(index+1)%_csrfmiddlewaretoken);
+                //curl_easy_setopt(_curl, CURLOPT_POSTFIELDSIZE, data.size());
+                curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, data.c_str());
+                curl_easy_setopt(_curl, CURLOPT_REFERER, loginuri.c_str());
+                //std::cout << "---performing post---" << std::endl;
+                res = curl_easy_perform(_curl);
+                CHECKCURLCODE(res, "curl_easy_perform failed");
+                http_code = 0;
+                res = curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
+                CHECKCURLCODE(res, "curl_easy_getinfo failed");
+                if( http_code != 302 ) {
+                    throw MUJIN_EXCEPTION_FORMAT("User login failed. HTTP POST %s returned HTTP status %s", loginuri%http_code, MEC_UserAuthentication);
+                }
+                curl_easy_setopt(_curl, CURLOPT_REFERER, NULL);
+            }
+            else {
                 throw MUJIN_EXCEPTION_FORMAT("HTTP GET %s returned HTTP error code %s", loginuri%http_code, MEC_HTTPServer);
             }
-            _csrfmiddlewaretoken = _GetCSRFFromCookies();
-
-            std::string data = str(boost::format("username=%s&password=%s&this_is_the_login_form=1&next=%%2F&csrfmiddlewaretoken=%s")%usernamepassword.substr(0,index)%usernamepassword.substr(index+1)%_csrfmiddlewaretoken);
-            //curl_easy_setopt(_curl, CURLOPT_POSTFIELDSIZE, data.size());
-            curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, data.c_str());
-            curl_easy_setopt(_curl, CURLOPT_REFERER, loginuri.c_str());
-            //std::cout << "---performing post---" << std::endl;
-            res = curl_easy_perform(_curl);
-            CHECKCURLCODE(res, "curl_easy_perform failed");
-            http_code = 0;
-            res = curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
-            CHECKCURLCODE(res, "curl_easy_getinfo failed");
-            if( http_code != 200 && http_code != 302) {
-                throw MUJIN_EXCEPTION_FORMAT("HTTP POST %s returned HTTP error code %s", loginuri%http_code, MEC_HTTPServer);
-            }
         }
+
         _charset = "utf-8";
         _language = "en-us";
         _SetHTTPHeaders();
+
+        try {
+            GetProfile();
+        }
+        catch(const MujinException& ex) {
+            // most likely username or password are
+            throw MujinException(str(boost::format("failed to get controller profile, check username/password or if controller is active at %s")%_baseuri), MEC_UserAuthentication);
+        }
+    }
+
+    std::string GetVersion()
+    {
+        return _profile.get<std::string>("version");
     }
 
     virtual ~ControllerClientImpl() {
-        //curl_slist_free_all(slist); // free the list again
+        if( !!_httpheaders ) {
+            curl_slist_free_all(_httpheaders);
+        }
         curl_easy_cleanup(_curl);
     }
 
@@ -177,12 +258,24 @@ public:
 
     virtual void RestartServer()
     {
-        throw MujinException("not implemented");
+        boost::mutex::scoped_lock lock(_mutex);
+        _uri = _baseuri + std::string("ajax/restartserver/");;
+        curl_easy_setopt(_curl, CURLOPT_URL, _uri.c_str());
+        curl_easy_setopt(_curl, CURLOPT_POST, 1);
+        curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, NULL);
+        CURLcode res = curl_easy_perform(_curl);
+        CHECKCURLCODE(res, "curl_easy_perform failed");
+        long http_code = 0;
+        res = curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
+        CHECKCURLCODE(res, "curl_easy_getinfo failed");
+        if( http_code != 200 ) {
+            throw MUJIN_EXCEPTION_FORMAT0("Failed to restart server, please try again or contact MUJIN support", MEC_HTTPServer);
+        }
     }
 
     virtual void CancelAllJobs()
     {
-        throw MujinException("not implemented");
+        CallDelete("job/?format=json");
     }
 
     virtual void GetScenePrimaryKeys(std::vector<std::string>& scenekeys)
@@ -218,15 +311,15 @@ public:
         curl_easy_setopt(_curl, CURLOPT_HTTPGET, 1);
         CURLcode res = curl_easy_perform(_curl);
         CHECKCURLCODE(res, "curl_easy_perform failed");
-        if( _buffer.rdbuf()->in_avail() > 0 ) {
-            boost::property_tree::read_json(_buffer, pt);
-        }
         long http_code = 0;
         res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
         CHECKCURLCODE(res, "curl_easy_getinfo");
+        if( _buffer.rdbuf()->in_avail() > 0 ) {
+            boost::property_tree::read_json(_buffer, pt);
+        }
         if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
-            std::string error_message = pt.get<std::string>("error_message");
-            std::string traceback = pt.get<std::string>("traceback");
+            std::string error_message = pt.get<std::string>("error_message", std::string());
+            std::string traceback = pt.get<std::string>("traceback", std::string());
             throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s: %s", relativeuri%http_code%error_message, MEC_HTTPServer);
         }
         return http_code;
@@ -242,16 +335,42 @@ public:
         _buffer.clear();
         _buffer.str("");
         curl_easy_setopt(_curl, CURLOPT_POST, 1);
-        curl_easy_setopt(_curl, CURLOPT_POSTFIELDSIZE, data.size());
-        curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, data.c_str());
+        curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, data.size() > 0 ? data.c_str() : NULL);
         CURLcode res = curl_easy_perform(_curl);
         CHECKCURLCODE(res, "curl_easy_perform failed");
-        if( _buffer.rdbuf()->in_avail() > 0 ) {
-            boost::property_tree::read_json(_buffer, pt);
-        }
         long http_code = 0;
         res = curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
         CHECKCURLCODE(res, "curl_easy_getinfo failed");
+        if( _buffer.rdbuf()->in_avail() > 0 ) {
+            boost::property_tree::read_json(_buffer, pt);
+        }
+        if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
+            std::string error_message = pt.get<std::string>("error_message", std::string());
+            std::string traceback = pt.get<std::string>("traceback", std::string());
+            throw MUJIN_EXCEPTION_FORMAT("HTTP POST to '%s' returned HTTP status %s: %s", relativeuri%http_code%error_message, MEC_HTTPServer);
+        }
+        return http_code;
+    }
+
+    int CallPut(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode=202)
+    {
+        boost::mutex::scoped_lock lock(_mutex);
+        _uri = _baseapiuri;
+        _uri += relativeuri;
+        curl_easy_setopt(_curl, CURLOPT_URL, _uri.c_str());
+        _buffer.clear();
+        _buffer.str("");
+        curl_easy_setopt(_curl, CURLOPT_CUSTOMREQUEST, "PUT");
+        curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, data.size() > 0 ? data.c_str() : NULL);
+        CURLcode res = curl_easy_perform(_curl);
+        curl_easy_setopt(_curl, CURLOPT_CUSTOMREQUEST, NULL); // have to restore the default
+        CHECKCURLCODE(res, "curl_easy_perform failed");
+        long http_code = 0;
+        res = curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
+        CHECKCURLCODE(res, "curl_easy_getinfo failed");
+        if( _buffer.rdbuf()->in_avail() > 0 ) {
+            boost::property_tree::read_json(_buffer, pt);
+        }
         if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
             std::string error_message = pt.get<std::string>("error_message", std::string());
             std::string traceback = pt.get<std::string>("traceback", std::string());
@@ -296,6 +415,12 @@ public:
 
 protected:
 
+    void GetProfile()
+    {
+        _profile.clear();
+        CallGet("profile/", _profile);
+    }
+
     static int _writer(char *data, size_t size, size_t nmemb, std::stringstream *writerData)
     {
         if (writerData == NULL) {
@@ -309,6 +434,9 @@ protected:
     {
         // set the header to only send json
         std::string s = std::string("Content-Type: application/json; charset=") + _charset;
+        if( !!_httpheaders ) {
+            curl_slist_free_all(_httpheaders);
+        }
         _httpheaders = curl_slist_append(NULL, s.c_str());
         s = str(boost::format("Accept-Language: %s,en-us")%_language);
         _httpheaders = curl_slist_append(_httpheaders, s.c_str()); //,en;q=0.7,ja;q=0.3',")
@@ -352,6 +480,8 @@ protected:
     curl_slist *_httpheaders;
     std::string _charset, _language;
     std::string _csrfmiddlewaretoken;
+
+    boost::property_tree::ptree _profile; ///< user profile and versioning
 };
 
 typedef boost::shared_ptr<ControllerClientImpl> ControllerClientImplPtr;
@@ -398,7 +528,7 @@ TaskResourcePtr SceneResource::GetOrCreateTaskFromName(const std::string& taskna
 {
     GETCONTROLLERIMPL();
     boost::property_tree::ptree pt;
-    int http_code = controller->CallGet(str(boost::format("scene/%s/task/?format=json&limit=1&name=%s&fields=pk,tasktype")%GetPrimaryKey()%taskname), pt);
+    controller->CallGet(str(boost::format("scene/%s/task/?format=json&limit=1&name=%s&fields=pk,tasktype")%GetPrimaryKey()%taskname), pt);
     // task exists
     boost::property_tree::ptree& objects = pt.get_child("objects");
     if( objects.size() > 0 ) {
@@ -410,9 +540,11 @@ TaskResourcePtr SceneResource::GetOrCreateTaskFromName(const std::string& taskna
         TaskResourcePtr task(new TaskResource(GetController(), pk));
         return task;
     }
-    throw MujinException("not implemented");
-    // create a new task
-    TaskResourcePtr task(new TaskResource(GetController(), ""));
+
+    pt.clear();
+    controller->CallPost(str(boost::format("scene/%s/task/?format=json&fields=pk")%GetPrimaryKey()), str(boost::format("{\"name\":\"%s\", \"tasktype\":\"%s\", \"scenepk\":\"%s\"}")%taskname%tasktype%GetPrimaryKey()), pt);
+    std::string pk = pt.get<std::string>("pk");
+    TaskResourcePtr task(new TaskResource(GetController(), pk));
     return task;
 }
 
@@ -472,7 +604,9 @@ TaskResource::TaskResource(ControllerClientPtr controller, const std::string& pk
 
 void TaskResource::Execute()
 {
-    throw MujinException("not implemented yet");
+    GETCONTROLLERIMPL();
+    boost::property_tree::ptree pt;
+    controller->CallPost(str(boost::format("task/%s/")%GetPrimaryKey()), std::string(), pt);
 }
 
 void TaskResource::GetRunTimeStatus(JobStatus& status)
@@ -548,7 +682,20 @@ void TaskResource::GetTaskInfo(ITLPlanningTaskInfo& taskinfo)
 
 void TaskResource::SetTaskInfo(const ITLPlanningTaskInfo& taskinfo)
 {
+    GETCONTROLLERIMPL();
+    std::string startfromcurrent = taskinfo.startfromcurrent ? "True" : "False";
+    std::string usevrc = taskinfo.usevrc ? "True" : "False";
+    std::string returntostart = taskinfo.returntostart ? "True" : "False";
 
+    // because program will inside string, encode newlines
+    std::string program;
+    std::vector< std::pair<std::string, std::string> > serachpairs(2);
+    serachpairs[0].first = "\n"; serachpairs[0].second = "\\n";
+    serachpairs[1].first = "\r\n"; serachpairs[1].second = "\\n";
+    SearchAndReplace(program, taskinfo.program, serachpairs);
+    std::string taskgoalput = str(boost::format("{\"taskgoalxml\":\"<root><outputtrajtype>%s</outputtrajtype><program>%s</program><unit>%s</unit><optimizationvalue>%f</optimizationvalue><startfromcurrent>%s</startfromcurrent><usevrc>%s</usevrc><returntostart>%s</returntostart></root>\"}")%taskinfo.outputtrajtype%program%taskinfo.unit%taskinfo.optimizationvalue%startfromcurrent%usevrc%returntostart);
+    boost::property_tree::ptree pt;
+    controller->CallPut(str(boost::format("task/%s/?format=json&fields=")%GetPrimaryKey()), taskgoalput, pt);
 }
 
 PlanningResultResourcePtr TaskResource::GetResult()

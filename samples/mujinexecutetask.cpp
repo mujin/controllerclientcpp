@@ -24,7 +24,7 @@ int main(int argc, char ** argv)
     else {
         controller = CreateControllerClient(argv[1]);
     }
-
+    std::cout << "connected to controller v" << controller->GetVersion() << std::endl;
 
     SceneResourcePtr scene;
     try {
