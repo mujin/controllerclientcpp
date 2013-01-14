@@ -198,7 +198,7 @@ public:
                 _csrfmiddlewaretoken = _GetCSRFFromCookies();
 
                 std::string data = str(boost::format("username=%s&password=%s&this_is_the_login_form=1&next=%%2F&csrfmiddlewaretoken=%s")%usernamepassword.substr(0,index)%usernamepassword.substr(index+1)%_csrfmiddlewaretoken);
-                //curl_easy_setopt(_curl, CURLOPT_POSTFIELDSIZE, data.size());
+                curl_easy_setopt(_curl, CURLOPT_POSTFIELDSIZE, data.size());
                 curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, data.c_str());
                 curl_easy_setopt(_curl, CURLOPT_REFERER, loginuri.c_str());
                 //std::cout << "---performing post---" << std::endl;
@@ -262,6 +262,7 @@ public:
         _uri = _baseuri + std::string("ajax/restartserver/");;
         curl_easy_setopt(_curl, CURLOPT_URL, _uri.c_str());
         curl_easy_setopt(_curl, CURLOPT_POST, 1);
+        curl_easy_setopt(_curl, CURLOPT_POSTFIELDSIZE, 0);
         curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, NULL);
         CURLcode res = curl_easy_perform(_curl);
         CHECKCURLCODE(res, "curl_easy_perform failed");
@@ -335,6 +336,7 @@ public:
         _buffer.clear();
         _buffer.str("");
         curl_easy_setopt(_curl, CURLOPT_POST, 1);
+        curl_easy_setopt(_curl, CURLOPT_POSTFIELDSIZE, data.size());
         curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, data.size() > 0 ? data.c_str() : NULL);
         CURLcode res = curl_easy_perform(_curl);
         CHECKCURLCODE(res, "curl_easy_perform failed");
@@ -361,6 +363,7 @@ public:
         _buffer.clear();
         _buffer.str("");
         curl_easy_setopt(_curl, CURLOPT_CUSTOMREQUEST, "PUT");
+        curl_easy_setopt(_curl, CURLOPT_POSTFIELDSIZE, data.size());
         curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, data.size() > 0 ? data.c_str() : NULL);
         CURLcode res = curl_easy_perform(_curl);
         curl_easy_setopt(_curl, CURLOPT_CUSTOMREQUEST, NULL); // have to restore the default
@@ -606,7 +609,7 @@ void TaskResource::Execute()
 {
     GETCONTROLLERIMPL();
     boost::property_tree::ptree pt;
-    controller->CallPost(str(boost::format("task/%s/")%GetPrimaryKey()), std::string(), pt);
+    controller->CallPost(str(boost::format("task/%s/")%GetPrimaryKey()), std::string(), pt, 200);
 }
 
 void TaskResource::GetRunTimeStatus(JobStatus& status)

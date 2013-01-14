@@ -52,9 +52,15 @@ move(translation(0,0,20)*p[Work0/3])\n\
 movel(p[Work0/3])\n\
 ";
     task->SetTaskInfo(info);
+
+    // cancel all current jobs
+    controller->CancelAllJobs();
+
     task->Execute();
 
-    // query the results until they are complete
+    std::cout << "waiting for task result" << std::endl;
+
+    // query the results until they are complete, should take 100s
     PlanningResultResourcePtr result;
     JobStatus status;
     int iterations = 0, maxiterations = 4000;
@@ -63,11 +69,11 @@ movel(p[Work0/3])\n\
         if( !!result ) {
             break;
         }
-        task->GetRunTimeStatus(status);
-        std::cout << "current job status is: " << status.code << std::cout;
-        if( status.code != JSC_Active || status.code != JSC_Pending || status.code != JSC_Succeeded ) {
-            std::cout << "unexpected job status so quitting" << std::cout;
-        }
+//        task->GetRunTimeStatus(status);
+//        std::cout << "current job status is: " << status.code << std::cout;
+//        if( status.code != JSC_Active || status.code != JSC_Pending || status.code != JSC_Succeeded ) {
+//            std::cout << "unexpected job status so quitting" << std::cout;
+//        }
         boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
         ++iterations;
         if( iterations > maxiterations ) {
@@ -84,5 +90,7 @@ movel(p[Work0/3])\n\
         // output the trajectory in xml format
         std::cout << std::endl << "trajectory is: " << std::endl << result->Get("trajectory") << std::endl;
     }
+
+    std::cout << "final task_time is " << result->Get("task_time") << std::endl;
     ControllerClientDestroy();
 }
