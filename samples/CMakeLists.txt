@@ -18,7 +18,7 @@ macro(build_sample name)
   add_executable(${name} ${name}.cpp)
   set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${Boost_CFLAGS}" LINK_FLAGS "")
   add_dependencies(${name} mujincontrollerclient)
-  target_link_libraries (${name} mujincontrollerclient ${Boost_THREAD_LIBRARY} ${Boost_DATETIME_LIBRARY})
+  target_link_libraries (${name} mujincontrollerclient ${Boost_THREAD_LIBRARY} ${Boost_DATE_TIME_LIBRARY})
   install(TARGETS ${name} DESTINATION bin)
 endmacro(build_sample)
 
