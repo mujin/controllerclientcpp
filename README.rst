@@ -158,6 +158,7 @@ To setup building documentation, checkout `this tutorial <https://gist.github.co
   git pull origin gh-pages
   git rm -rf en ja
   cd ../docs
+  rm doxygenhtml_installed_*
   make gh-pages
   cd ../gh-pages
   git commit -m "updated documentation" -a
