@@ -180,23 +180,21 @@ public:
             CHECKCURLCODE(res, "curl_easy_getinfo");
             if( http_code == 302 ) {
                 // most likely apache2-only authentication and login page isn't needed, however need to send another GET for the csrftoken
-                std::string loginuri = _baseuri + "api/v1/";
+                loginuri = _baseuri + "api/v1/"; // pick some neutral page that is easy to load
                 curl_easy_setopt(_curl, CURLOPT_URL, loginuri.c_str());
                 CURLcode res = curl_easy_perform(_curl);
                 CHECKCURLCODE(res, "curl_easy_perform failed");
                 long http_code = 0;
-                res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
-                CHECKCURLCODE(res, "curl_easy_getinfo");
-                res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
+                res = curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
                 CHECKCURLCODE(res, "curl_easy_getinfo");
                 if( http_code != 200 ) {
                     throw MUJIN_EXCEPTION_FORMAT("HTTP GET %s returned HTTP error code %s", loginuri%http_code, MEC_HTTPServer);
                 }
                 _csrfmiddlewaretoken = _GetCSRFFromCookies();
+                curl_easy_setopt(_curl, CURLOPT_REFERER, loginuri.c_str()); // necessary for SSL to work
             }
             else if( http_code == 200 ) {
                 _csrfmiddlewaretoken = _GetCSRFFromCookies();
-
                 std::string data = str(boost::format("username=%s&password=%s&this_is_the_login_form=1&next=%%2F&csrfmiddlewaretoken=%s")%usernamepassword.substr(0,index)%usernamepassword.substr(index+1)%_csrfmiddlewaretoken);
                 curl_easy_setopt(_curl, CURLOPT_POSTFIELDSIZE, data.size());
                 curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, data.c_str());
@@ -207,10 +205,9 @@ public:
                 http_code = 0;
                 res = curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
                 CHECKCURLCODE(res, "curl_easy_getinfo failed");
-                if( http_code != 302 ) {
+                if( http_code != 200 && http_code != 302 ) {
                     throw MUJIN_EXCEPTION_FORMAT("User login failed. HTTP POST %s returned HTTP status %s", loginuri%http_code, MEC_UserAuthentication);
                 }
-                curl_easy_setopt(_curl, CURLOPT_REFERER, NULL);
             }
             else {
                 throw MUJIN_EXCEPTION_FORMAT("HTTP GET %s returned HTTP error code %s", loginuri%http_code, MEC_HTTPServer);
