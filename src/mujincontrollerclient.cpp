@@ -246,6 +246,12 @@ public:
         _SetHTTPHeaders();
     }
 
+    virtual void SetProxy(const std::string& serverport, const std::string& userpw)
+    {
+        curl_easy_setopt(_curl, CURLOPT_PROXY, serverport.c_str());
+        curl_easy_setopt(_curl, CURLOPT_PROXYUSERPWD, userpw.c_str());
+    }
+
     virtual void SetLanguage(const std::string& language)
     {
         boost::mutex::scoped_lock lock(_mutex);
