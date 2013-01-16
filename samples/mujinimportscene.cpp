@@ -15,45 +15,50 @@ int main(int argc, char ** argv)
         std::cout << "need username:password. Example: mujinclienttest myuser:mypass [url]\n\nurl - [optional] For example https://controller.mujin.co.jp/" << std::endl;
         return 1;
     }
-    ControllerClientPtr controller;
-    if( argc > 2 ) {
-        controller = CreateControllerClient(argv[1], argv[2]);
-    }
-    else {
-        controller = CreateControllerClient(argv[1]);
-    }
-    std::cout << "connected to controller v" << controller->GetVersion() << std::endl;
-
-    // try to import the scene, if it already exists delete it and import again
     try {
-        controller->ImportScene("mujin:/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ", "wincaps", "mujin:/test.mujin.dae");
-    }
-    catch(const MujinException& ex) {
-        if( ex.message().find("need to remove it first") != std::string::npos ) {
-            std::cout << "file already imported, would you like to delete and re-import? (yes/no) ";
-            std::string answer;
-            std::cin >> answer;
-            if( answer == std::string("yes") ) {
-                std::cout << "try removing the file and importing again" << std::endl;
-                SceneResource oldscene(controller,"test");
-                oldscene.Delete();
-                controller->ImportScene("mujin:/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ", "wincaps", "mujin:/test.mujin.dae");
-            }
+        ControllerClientPtr controller;
+        if( argc > 2 ) {
+            controller = CreateControllerClient(argv[1], argv[2]);
         }
         else {
-            std::cout << "error importing scene" << ex.message() << std::endl;
+            controller = CreateControllerClient(argv[1]);
         }
-    }
+        std::cout << "connected to controller v" << controller->GetVersion() << std::endl;
 
-    // create the resource and query info
-    SceneResource scene(controller,"test");
-    std::vector<SceneResource::InstObjectPtr> instobjects;
-    scene.GetInstObjects(instobjects);
-    std::cout << "scene instance objects: ";
-    for(size_t i = 0; i < instobjects.size(); ++i) {
-        std::cout << instobjects[i]->name << ", ";
+        // try to import the scene, if it already exists delete it and import again
+        try {
+            controller->ImportScene("mujin:/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ", "wincaps", "mujin:/test.mujin.dae");
+        }
+        catch(const MujinException& ex) {
+            if( ex.message().find("need to remove it first") != std::string::npos ) {
+                std::cout << "file already imported, would you like to delete and re-import? (yes/no) ";
+                std::string answer;
+                std::cin >> answer;
+                if( answer == std::string("yes") ) {
+                    std::cout << "try removing the file and importing again" << std::endl;
+                    SceneResource oldscene(controller,"test");
+                    oldscene.Delete();
+                    controller->ImportScene("mujin:/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ", "wincaps", "mujin:/test.mujin.dae");
+                }
+            }
+            else {
+                std::cout << "error importing scene" << ex.message() << std::endl;
+            }
+        }
+
+        // create the resource and query info
+        SceneResource scene(controller,"test");
+        std::vector<SceneResource::InstObjectPtr> instobjects;
+        scene.GetInstObjects(instobjects);
+        std::cout << "scene instance objects: ";
+        for(size_t i = 0; i < instobjects.size(); ++i) {
+            std::cout << instobjects[i]->name << ", ";
+        }
+        std::cout << std::endl;
     }
-    std::cout << std::endl;
+    catch(const MujinException& ex) {
+        std::cout << "exception thrown: " << ex.message() << std::endl;
+    }
     // destroy all mujin controller resources
     ControllerClientDestroy();
 }
