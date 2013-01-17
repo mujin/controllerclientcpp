@@ -102,7 +102,13 @@ public:
     ControllerClientImpl(const std::string& usernamepassword, const std::string& baseuri, const std::string& proxyserverport, const std::string& proxyuserpw, int options)
     {
         _httpheaders = NULL;
-        _baseuri = baseuri;
+        if( baseuri.size() > 0 ) {
+            _baseuri = baseuri;
+        }
+        else {
+            // use the default
+            _baseuri = "https://controller.mujin.co.jp/";
+        }
         _baseapiuri = baseuri + std::string("api/v1/");
         //CURLcode code = curl_global_init(CURL_GLOBAL_SSL|CURL_GLOBAL_WIN32);
         _curl = curl_easy_init();
