@@ -263,7 +263,7 @@ public:
     /// Checkout http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
     virtual void SetLanguage(const std::string& language) = 0;
 
-    /// \brief If necessary, sets the proxy to communicate to the controller server
+    /// \brief If necessary, changes the proxy to communicate to the controller server
     ///
     /// \param serverport Specify proxy server to use. To specify port number in this string, append :[port] to the end of the host name. The proxy string may be prefixed with [protocol]:// since any such prefix will be ignored. The proxy's port number may optionally be specified with the separate option. If not specified, will default to using port 1080 for proxies. Setting to empty string will disable the proxy.
     /// \param userpw If non-empty, [user name]:[password] to use for the connection to the HTTP proxy.
@@ -454,9 +454,11 @@ public:
     この関数はスレッドセーフではないため、呼び出す時に他のスレッドが走っていないようにご注意ください。
     \param usernamepassword ユーザ:パスワード
     \param url コントローラにアクセスするためのURLです。スラッシュ「/」で終わる必要があります。強制的にユーザも指定出来ます、例えば<b>https://username@server/</b>。
+    \param proxyserverport Specify proxy server to use. To specify port number in this string, append :[port] to the end of the host name. The proxy string may be prefixed with [protocol]:// since any such prefix will be ignored. The proxy's port number may optionally be specified with the separate option. If not specified, will default to using port 1080 for proxies. Setting to empty string will disable the proxy.
+    \param proxyuserpw If non-empty, [user name]:[password] to use for the connection to the HTTP proxy.
     \param options １が指定されたら、クライアントがGETのみを呼び出し出来ます。それで初期化がもっと速くなれます。
  */
-MUJINCLIENT_API ControllerClientPtr CreateControllerClient(const std::string& usernamepassword, const std::string& url="https://controller.mujin.co.jp/", int options=0);
+MUJINCLIENT_API ControllerClientPtr CreateControllerClient(const std::string& usernamepassword, const std::string& url="https://controller.mujin.co.jp/", const std::string& proxyserverport=std::string(), const std::string& proxyuserpw=std::string(), int options=0);
 
 /// \brief called at the very end of an application to safely destroy all controller client resources
 MUJINCLIENT_API void ControllerClientDestroy();

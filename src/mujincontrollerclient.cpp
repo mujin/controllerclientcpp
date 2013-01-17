@@ -99,7 +99,7 @@ static std::string& SearchAndReplace(std::string& out, const std::string& in, co
 class ControllerClientImpl : public ControllerClient, public boost::enable_shared_from_this<ControllerClientImpl>
 {
 public:
-    ControllerClientImpl(const std::string& usernamepassword, const std::string& baseuri, int options)
+    ControllerClientImpl(const std::string& usernamepassword, const std::string& baseuri, const std::string& proxyserverport, const std::string& proxyuserpw, int options)
     {
         _httpheaders = NULL;
         _baseuri = baseuri;
@@ -136,6 +136,8 @@ public:
          */
         curl_easy_setopt(_curl, CURLOPT_SSL_VERIFYHOST, 0L);
 #endif
+
+        SetProxy(proxyserverport, proxyuserpw);
 
         res = curl_easy_setopt(_curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
         CHECKCURLCODE(res, "failed to set auth");
@@ -809,9 +811,9 @@ void PlanningResultResource::GetTransforms(std::map<std::string, Transform>& tra
 }
 
 //    transformxml
-ControllerClientPtr CreateControllerClient(const std::string& usernamepassword, const std::string& baseurl, int options)
+ControllerClientPtr CreateControllerClient(const std::string& usernamepassword, const std::string& baseurl, const std::string& proxyserverport, const std::string& proxyuserpw, int options)
 {
-    return ControllerClientPtr(new ControllerClientImpl(usernamepassword, baseurl, options));
+    return ControllerClientPtr(new ControllerClientImpl(usernamepassword, baseurl, proxyserverport, proxyuserpw, options));
 }
 
 void ControllerClientDestroy()
