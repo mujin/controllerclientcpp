@@ -275,6 +275,9 @@ public:
     /// The method is blocking, when it returns the MUJIN Controller would have been restarted.
     virtual void RestartServer() = 0;
 
+    /// \brief Upgrade the controller with this data
+    virtual void Upgrade(const std::vector<unsigned char>& vdata) = 0;
+
     /// \brief returns the mujin controller version
     virtual std::string GetVersion() = 0;
 

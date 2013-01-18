@@ -270,7 +270,7 @@ public:
     virtual void RestartServer()
     {
         boost::mutex::scoped_lock lock(_mutex);
-        _uri = _baseuri + std::string("ajax/restartserver/");;
+        _uri = _baseuri + std::string("ajax/restartserver/");
         curl_easy_setopt(_curl, CURLOPT_URL, _uri.c_str());
         curl_easy_setopt(_curl, CURLOPT_POST, 1);
         curl_easy_setopt(_curl, CURLOPT_POSTFIELDSIZE, 0);
@@ -282,6 +282,39 @@ public:
         CHECKCURLCODE(res, "curl_easy_getinfo failed");
         if( http_code != 200 ) {
             throw MUJIN_EXCEPTION_FORMAT0("Failed to restart server, please try again or contact MUJIN support", MEC_HTTPServer);
+        }
+    }
+
+    virtual void Upgrade(const std::vector<unsigned char>& vdata)
+    {
+        BOOST_ASSERT(vdata.size()>0);
+        boost::mutex::scoped_lock lock(_mutex);
+        _uri = _baseuri + std::string("upgrade/");
+        curl_easy_setopt(_curl, CURLOPT_URL, _uri.c_str());
+        curl_easy_setopt(_curl, CURLOPT_POSTFIELDSIZE, NULL);
+        curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, NULL);
+
+        // set new headers and remove the Expect: 100-continue
+        struct curl_slist *headerlist=NULL;
+        headerlist = curl_slist_append(headerlist, "Expect:");
+        std::string s = std::string("X-CSRFToken: ")+_csrfmiddlewaretoken;
+        headerlist = curl_slist_append(headerlist, s.c_str());
+        curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, headerlist);
+
+        // Fill in the file upload field
+        struct curl_httppost *formpost=NULL, *lastptr=NULL;
+        curl_formadd(&formpost, &lastptr, CURLFORM_COPYNAME, "file", CURLFORM_BUFFER, "mujinpatch", CURLFORM_BUFFERPTR, &vdata[0], CURLFORM_BUFFERLENGTH, vdata.size(), CURLFORM_END);
+        curl_easy_setopt(_curl, CURLOPT_HTTPPOST, formpost);
+        CURLcode res = curl_easy_perform(_curl);
+        curl_formfree(formpost);
+        // reset the headers before any exceptions are thrown
+        _SetHTTPHeaders();
+        CHECKCURLCODE(res, "curl_easy_perform failed");
+        long http_code = 0;
+        res = curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
+        CHECKCURLCODE(res, "curl_easy_getinfo failed");
+        if( http_code != 200 ) {
+            throw MUJIN_EXCEPTION_FORMAT0("Failed to upgrade server, please try again or contact MUJIN support", MEC_HTTPServer);
         }
     }
 

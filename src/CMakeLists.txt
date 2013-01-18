@@ -15,6 +15,9 @@ include_directories(${MUJINCLIENT_INCLUDE_LOCAL_DIRS} ${CURL_INCLUDE_DIRS})
 link_directories(${MUJINCLIENT_LINK_DIRS})
 
 add_library(mujincontrollerclient SHARED mujincontrollerclient.cpp ${mujin_header_files})
+if( EXTRA_MSVC_DEPEND )
+  add_dependencies(mujincontrollerclient ${EXTRA_MSVC_DEPEND})
+endif()
 set_target_properties(mujincontrollerclient PROPERTIES COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} ${Boost_CFLAGS} -DMUJINCLIENT_DLL_EXPORTS -DMUJINCLIENT_DLL" LINK_FLAGS ""
   OUTPUT_NAME mujincontrollerclient${MUJINCLIENT_LIBRARY_SUFFIX}
   SOVERSION 0 # always have it 0 since we're including the soversion as part of the library name
