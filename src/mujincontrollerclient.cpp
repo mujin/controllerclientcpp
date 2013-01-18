@@ -109,7 +109,7 @@ public:
             // use the default
             _baseuri = "https://controller.mujin.co.jp/";
         }
-        _baseapiuri = baseuri + std::string("api/v1/");
+        _baseapiuri = _baseuri + std::string("api/v1/");
         //CURLcode code = curl_global_init(CURL_GLOBAL_SSL|CURL_GLOBAL_WIN32);
         _curl = curl_easy_init();
         BOOST_ASSERT(!!_curl);
@@ -143,7 +143,7 @@ public:
         curl_easy_setopt(_curl, CURLOPT_SSL_VERIFYHOST, 0L);
 #endif
 
-        SetProxy(proxyserverport, proxyuserpw);
+        //SetProxy(proxyserverport, proxyuserpw);
 
         res = curl_easy_setopt(_curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
         CHECKCURLCODE(res, "failed to set auth");
