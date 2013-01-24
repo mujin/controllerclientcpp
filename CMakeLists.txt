@@ -29,6 +29,8 @@ cmake_policy(SET CMP0002 NEW)
 # http://www.cmake.org/cmake/help/cmake-2.6.html#policy:CMP0003
 cmake_policy(SET CMP0003 NEW)
 
+option(OPT_SAMPLES "Build the samples" ON)
+
 # Use, i.e. don't skip the full RPATH for the build tree
 set(CMAKE_SKIP_BUILD_RPATH  FALSE)
 
@@ -215,4 +217,6 @@ install(FILES ${mujin_header_files} ${CMAKE_CURRENT_BINARY_DIR}/include/mujincon
 set(MUJINCLIENT_INCLUDE_LOCAL_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_subdirectory(src)
-add_subdirectory(samples)
+if( OPT_SAMPLES )
+  add_subdirectory(samples)
+endif()
