@@ -199,9 +199,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'検索');
 関数</h2></td></tr>
 <tr class="memitem:ac35e1c3da4cd973aeb6665854af1f383"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacemujinclient.html#ac35e1c3da4cd973aeb6665854af1f383">GetErrorCodeString</a> (<a class="el" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44">MujinErrorCode</a> error)</td></tr>
 <tr class="separator:ac35e1c3da4cd973aeb6665854af1f383"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad7c87ca5124addfb5c29bd130d79edff"><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8h.html#a81c23aaf79aa6cb6063d11600bbba7ad">MUJINCLIENT_API</a> <a class="el" href="namespacemujinclient.html#aa0b8a533fc19b5930eca8bf825f2231d">ControllerClientPtr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacemujinclient.html#ad7c87ca5124addfb5c29bd130d79edff">CreateControllerClient</a> (const std::string &amp;usernamepassword, const std::string &amp;url=&quot;https://controller.mujin.co.jp/&quot;, int options=0)</td></tr>
-<tr class="memdesc:ad7c87ca5124addfb5c29bd130d79edff"><td class="mdescLeft">&#160;</td><td class="mdescRight">MUJINコントローラのクライアントを作成する。<b>この関数はスレッドセーフではない。</b>  <a href="#ad7c87ca5124addfb5c29bd130d79edff"></a><br/></td></tr>
-<tr class="separator:ad7c87ca5124addfb5c29bd130d79edff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4154f688f4ec2cd2511ab6830a2777a7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8h.html#a81c23aaf79aa6cb6063d11600bbba7ad">MUJINCLIENT_API</a> <a class="el" href="namespacemujinclient.html#aa0b8a533fc19b5930eca8bf825f2231d">ControllerClientPtr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacemujinclient.html#a4154f688f4ec2cd2511ab6830a2777a7">CreateControllerClient</a> (const std::string &amp;usernamepassword, const std::string &amp;url=std::string(), const std::string &amp;proxyserverport=std::string(), const std::string &amp;proxyuserpw=std::string(), int options=0)</td></tr>
+<tr class="memdesc:a4154f688f4ec2cd2511ab6830a2777a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">MUJINコントローラのクライアントを作成する。<b>この関数はスレッドセーフではない。</b>  <a href="#a4154f688f4ec2cd2511ab6830a2777a7"></a><br/></td></tr>
+<tr class="separator:a4154f688f4ec2cd2511ab6830a2777a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8ae80bf1bea1a9959dd23a310a3e5d03"><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8h.html#a81c23aaf79aa6cb6063d11600bbba7ad">MUJINCLIENT_API</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacemujinclient.html#a8ae80bf1bea1a9959dd23a310a3e5d03">ControllerClientDestroy</a> ()</td></tr>
 <tr class="memdesc:a8ae80bf1bea1a9959dd23a310a3e5d03"><td class="mdescLeft">&#160;</td><td class="mdescRight">called at the very end of an application to safely destroy all controller client resources  <a href="#a8ae80bf1bea1a9959dd23a310a3e5d03"></a><br/></td></tr>
 <tr class="separator:a8ae80bf1bea1a9959dd23a310a3e5d03"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -565,11 +565,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'検索');
 </div><div class="memdoc">
 
 <p>called at the very end of an application to safely destroy all controller client resources </p>
-<dl><dt><b>例: </b></dt><dd><a class="el" href="mujinexecutetask_8cpp-example.html#a8">mujinexecutetask.cpp</a>, <a class="el" href="mujinimportscene_8cpp-example.html#a7">mujinimportscene.cpp</a>, と <a class="el" href="mujinshowresults_8cpp-example.html#a7">mujinshowresults.cpp</a>.</dd>
+<dl><dt><b>例: </b></dt><dd><a class="el" href="mujinexecutetask_8cpp-example.html#a9">mujinexecutetask.cpp</a>, <a class="el" href="mujinideal_8cpp-example.html#a25">mujinideal.cpp</a>, <a class="el" href="mujinimportscene_8cpp-example.html#a7">mujinimportscene.cpp</a>, と <a class="el" href="mujinshowresults_8cpp-example.html#a9">mujinshowresults.cpp</a>.</dd>
 </dl>
 </div>
 </div>
-<a class="anchor" id="ad7c87ca5124addfb5c29bd130d79edff"></a>
+<a class="anchor" id="a4154f688f4ec2cd2511ab6830a2777a7"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -583,7 +583,19 @@ var searchBox = new SearchBox("searchBox", "search",false,'検索');
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const std::string &amp;&#160;</td>
-          <td class="paramname"><em>url</em> = <code>&quot;https://controller.mujin.co.jp/&quot;</code>, </td>
+          <td class="paramname"><em>url</em> = <code>std::string()</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>proxyserverport</em> = <code>std::string()</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>proxyuserpw</em> = <code>std::string()</code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -604,12 +616,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'検索');
 <dl class="params"><dt>引数</dt><dd>
   <table class="params">
     <tr><td class="paramname">usernamepassword</td><td>ユーザ:パスワード </td></tr>
-    <tr><td class="paramname">url</td><td>コントローラにアクセスするためのURLです。スラッシュ「/」で終わる必要があります。強制的にユーザも指定出来ます、例えば<b><a href="https://username@server/">https://username@server/</a></b>。 </td></tr>
+    <tr><td class="paramname">url</td><td>コントローラにアクセスするためのURLです。スラッシュ「/」で終わる必要があります。強制的にユーザも指定出来ます、例えば<b><a href="https://username@server/">https://username@server/</a></b>。指定されていなければデフォールトのMUJINコントローラURLが使用されます。 </td></tr>
+    <tr><td class="paramname">proxyserverport</td><td>Specify proxy server to use. To specify port number in this string, append :[port] to the end of the host name. The proxy string may be prefixed with [protocol]:// since any such prefix will be ignored. The proxy's port number may optionally be specified with the separate option. If not specified, will default to using port 1080 for proxies. Setting to empty string will disable the proxy. </td></tr>
+    <tr><td class="paramname">proxyuserpw</td><td>If non-empty, [user name]:[password] to use for the connection to the HTTP proxy. </td></tr>
     <tr><td class="paramname">options</td><td>１が指定されたら、クライアントがGETのみを呼び出し出来ます。それで初期化がもっと速くなれます。 </td></tr>
   </table>
   </dd>
 </dl>
-<dl><dt><b>例: </b></dt><dd><a class="el" href="mujinexecutetask_8cpp-example.html#a1">mujinexecutetask.cpp</a>, <a class="el" href="mujinimportscene_8cpp-example.html#a1">mujinimportscene.cpp</a>, と <a class="el" href="mujinshowresults_8cpp-example.html#a1">mujinshowresults.cpp</a>.</dd>
+<dl><dt><b>例: </b></dt><dd><a class="el" href="mujinexecutetask_8cpp-example.html#a1">mujinexecutetask.cpp</a>, <a class="el" href="mujinideal_8cpp-example.html#a1">mujinideal.cpp</a>, <a class="el" href="mujinimportscene_8cpp-example.html#a1">mujinimportscene.cpp</a>, と <a class="el" href="mujinshowresults_8cpp-example.html#a1">mujinshowresults.cpp</a>.</dd>
 </dl>
 </div>
 </div>
@@ -642,7 +656,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'検索');
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-controllerclientcppに対してTue Jan 15 2013 03:26:41に生成されました。 &#160;<a href="http://www.doxygen.org/index.html">
+controllerclientcppに対してTue Mar 12 2013 23:58:12に生成されました。 &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.3
 </small></address>

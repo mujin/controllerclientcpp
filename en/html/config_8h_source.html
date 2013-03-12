@@ -127,13 +127,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;<span class="preprocessor"></span></div>
 <div class="line"><a name="l00038"></a><span class="lineno"><a class="code" href="config_8h.html#adec9c589baf19553b4c10c3c53e42e5c">   38</a></span>&#160;<span class="preprocessor">#define MUJINCLIENT_VERSION_MAJOR 0</span></div>
 <div class="line"><a name="l00039"></a><span class="lineno"><a class="code" href="config_8h.html#aafc04195e13e81ebe2ef7ebea44e6eff">   39</a></span>&#160;<span class="preprocessor"></span><span class="preprocessor">#define MUJINCLIENT_VERSION_MINOR 1</span></div>
-<div class="line"><a name="l00040"></a><span class="lineno"><a class="code" href="config_8h.html#ab32cfde04a5358e60787dab1a8d11f5c">   40</a></span>&#160;<span class="preprocessor"></span><span class="preprocessor">#define MUJINCLIENT_VERSION_PATCH 2</span></div>
+<div class="line"><a name="l00040"></a><span class="lineno"><a class="code" href="config_8h.html#ab32cfde04a5358e60787dab1a8d11f5c">   40</a></span>&#160;<span class="preprocessor"></span><span class="preprocessor">#define MUJINCLIENT_VERSION_PATCH 4</span></div>
 <div class="line"><a name="l00041"></a><span class="lineno"><a class="code" href="config_8h.html#ac6971fd10ea3969c4d632086a43b424d">   41</a></span>&#160;<span class="preprocessor"></span><span class="preprocessor">#define MUJINCLIENT_VERSION_COMBINED(major, minor, patch) (((major) &lt;&lt; 16) | ((minor) &lt;&lt; 8) | (patch))</span></div>
 <div class="line"><a name="l00042"></a><span class="lineno"><a class="code" href="config_8h.html#a138e12f9e446facc2aaec2afae08a1a7">   42</a></span>&#160;<span class="preprocessor"></span><span class="preprocessor">#define MUJINCLIENT_VERSION MUJINCLIENT_VERSION_COMBINED(MUJINCLIENT_VERSION_MAJOR, MUJINCLIENT_VERSION_MINOR, MUJINCLIENT_VERSION_PATCH)</span></div>
 <div class="line"><a name="l00043"></a><span class="lineno"><a class="code" href="config_8h.html#a7fe9d35a8d2ba76b2de3c5527a62baae">   43</a></span>&#160;<span class="preprocessor"></span><span class="preprocessor">#define MUJINCLIENT_VERSION_EXTRACT_MAJOR(version) (((version)&gt;&gt;16)&amp;0xff)</span></div>
 <div class="line"><a name="l00044"></a><span class="lineno"><a class="code" href="config_8h.html#a46891d9e16036e6f630c80b3f9e33d5c">   44</a></span>&#160;<span class="preprocessor"></span><span class="preprocessor">#define MUJINCLIENT_VERSION_EXTRACT_MINOR(version) (((version)&gt;&gt;8)&amp;0xff)</span></div>
 <div class="line"><a name="l00045"></a><span class="lineno"><a class="code" href="config_8h.html#af27956125ae9b8a1384fba3aeb5a6cbc">   45</a></span>&#160;<span class="preprocessor"></span><span class="preprocessor">#define MUJINCLIENT_VERSION_EXTRACT_PATCH(version) (((version))&amp;0xff)</span></div>
-<div class="line"><a name="l00046"></a><span class="lineno"><a class="code" href="config_8h.html#ac6f95b9490b4adba7660898838bfb156">   46</a></span>&#160;<span class="preprocessor"></span><span class="preprocessor">#define MUJINCLIENT_VERSION_STRING &quot;0.1.2&quot;</span></div>
+<div class="line"><a name="l00046"></a><span class="lineno"><a class="code" href="config_8h.html#ac6f95b9490b4adba7660898838bfb156">   46</a></span>&#160;<span class="preprocessor"></span><span class="preprocessor">#define MUJINCLIENT_VERSION_STRING &quot;0.1.4&quot;</span></div>
 <div class="line"><a name="l00047"></a><span class="lineno"><a class="code" href="config_8h.html#a3ba79e43a62df029631d961bee3825b3">   47</a></span>&#160;<span class="preprocessor"></span><span class="preprocessor">#define MUJINCLIENT_VERSION_STRING_FORMAT(version) boost::str(boost::format(&quot;%s.%s.%s&quot;)%(MUJINCLIENT_VERSION_EXTRACT_MAJOR(version))%(MUJINCLIENT_VERSION_EXTRACT_MINOR(version))%(MUJINCLIENT_VERSION_EXTRACT_PATCH(version)))</span></div>
 <div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;<span class="preprocessor"></span></div>
 <div class="line"><a name="l00049"></a><span class="lineno"><a class="code" href="config_8h.html#adb72fe35b2e8d0442654b4e136348d07">   49</a></span>&#160;<span class="preprocessor">#define MUJINCLIENT_VERSION_GE(major1, minor1, patch1, major2, minor2, patch2) (MUJINCLIENT_VERSION_COMBINED(major1, minor1, patch1) &gt;= MUJINCLIENT_VERSION_COMBINED(major2, minor2, patch2))</span></div>
@@ -143,7 +143,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Jan 15 2013 03:26:40 for controllerclientcpp by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Mar 12 2013 23:58:11 for controllerclientcpp by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.3
 </small></address>
