@@ -289,10 +289,23 @@ public:
     /// \brief gets a list of all the scene primary keys currently available to the user
     virtual void GetScenePrimaryKeys(std::vector<std::string>& scenekeys) = 0;
 
-    /** \brief import a scene using from scene identified by a URI
+    /** \brief Register a scene to be used by the MUJIN Controller
 
-        \param importuri The original URI to import from. For MUJIN network files use <b>mujin:/mypath/myfile.ext</b>
-        \param importformat The format of the imported file. Can be:
+        \param format The format of the source file. Can be:
+        - **mujincollada**
+        - **wincaps** (DensoWave WINCAPS III)
+        - **rttoolbox** (Mitsubishi RT ToolBox)
+        - **x** (DirectX)
+        - **vrml**
+        - **stl**
+        - **cecvirfitxml** (CEC Virfit XML environments)
+     */
+    virtual SceneResourcePtr RegisterScene(const std::string& uri, const std::string& format) = 0;
+
+    /** \brief import a scene into COLLADA format using from scene identified by a URI
+
+        \param sourceuri The original URI to import from. For MUJIN network files use <b>mujin:/mypath/myfile.ext</b>
+        \param sourceformat The format of the source file. Can be:
         - **mujincollada**
         - **wincaps** (DensoWave WINCAPS III)
         - **rttoolbox** (Mitsubishi RT ToolBox)
@@ -302,7 +315,7 @@ public:
         - **cecvirfitxml** (CEC Virfit XML environments)
         \param newuri Then new URI to save the imported results. Default is to save to MUJIN COLLADA, so end with <b>.mujin.dae</b> . Use <b>mujin:/mypath/myfile.mujin.dae</b>
      */
-    virtual SceneResourcePtr ImportScene(const std::string& importuri, const std::string& importformat, const std::string& newuri) = 0;
+    virtual SceneResourcePtr ImportScene(const std::string& sourceuri, const std::string& sourceformat, const std::string& newuri) = 0;
 };
 
 class MUJINCLIENT_API WebResource

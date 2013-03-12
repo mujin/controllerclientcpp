@@ -23,5 +23,6 @@ macro(build_sample name)
 endmacro(build_sample)
 
 build_sample(mujinexecutetask)
+build_sample(mujinexecutetask_fast)
 build_sample(mujinimportscene)
 build_sample(mujinshowresults)
