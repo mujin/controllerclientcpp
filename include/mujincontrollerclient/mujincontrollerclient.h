@@ -192,7 +192,7 @@ struct ITLPlanningTaskInfo
     inline void SetDefaults() {
         startfromcurrent = 0;
         returntostart = 1;
-        usevrc = 1;
+        vrcruns = 1;
         unit = "mm";
         outputtrajtype = "robotmaker";
         optimizationvalue = 1;
@@ -200,7 +200,7 @@ struct ITLPlanningTaskInfo
     }
     int startfromcurrent; ///< Will start planning from the current robot joint values, otherwise will start at the first waypoint in the program.
     int returntostart; ///< Plan the return path of the robot to where the entire trajectory started. Makes it possible to loop the robot motion.
-    int usevrc; ///< Use the Robot Virtual Controller for retiming and extra validation. Makes planning slow, but robot timing because very accurate.
+    int vrcruns; ///< Use the Robot Virtual Controller for retiming and extra validation. Makes planning slow, but robot timing because very accurate.
     std::string unit; ///< the unit that information is used in. m, mm, nm, inch, etc
     std::string outputtrajtype; ///< what format to output the trajectory in.
     Real optimizationvalue; ///< value in [0,1]. 0 is no optimization (fast), 1 is full optimization (slow)

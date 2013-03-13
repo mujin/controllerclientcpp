@@ -73,7 +73,7 @@ int main(int argc, char ** argv)
         taskinfo.returntostart = 0;
         taskinfo.speedoptimization = 0; ///< ignore all SPEED/ACCEL commands.
         taskinfo.ignorefigure = 1;
-        taskinfo.usevrc = 1; // 0
+        taskinfo.vrcruns = 1; // 0
         task->SetTaskInfo(taskinfo);
 
         task->Execute();

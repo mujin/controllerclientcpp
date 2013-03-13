@@ -802,8 +802,8 @@ void TaskResource::GetTaskInfo(ITLPlanningTaskInfo& taskinfo)
         else if( v.first == "returntostart" ) {
             taskinfo.returntostart = v.second.data() == std::string("True");
         }
-        else if( v.first == "usevrc" ) {
-            taskinfo.usevrc = v.second.data() == std::string("True");
+        else if( v.first == "vrcruns" ) {
+            taskinfo.vrcruns = boost::lexical_cast<int>(v.second.data());
         }
         else if( v.first == "unit" ) {
             taskinfo.unit = v.second.data();
@@ -824,7 +824,7 @@ void TaskResource::SetTaskInfo(const ITLPlanningTaskInfo& taskinfo)
 {
     GETCONTROLLERIMPL();
     std::string startfromcurrent = taskinfo.startfromcurrent ? "True" : "False";
-    std::string usevrc = taskinfo.usevrc ? "True" : "False";
+    std::string vrcruns = boost::lexical_cast<std::string>(taskinfo.vrcruns);
     std::string returntostart = taskinfo.returntostart ? "True" : "False";
 
     // because program will inside string, encode newlines
@@ -833,7 +833,7 @@ void TaskResource::SetTaskInfo(const ITLPlanningTaskInfo& taskinfo)
     serachpairs[0].first = "\n"; serachpairs[0].second = "\\n";
     serachpairs[1].first = "\r\n"; serachpairs[1].second = "\\n";
     SearchAndReplace(program, taskinfo.program, serachpairs);
-    std::string taskgoalput = str(boost::format("{\"taskgoalxml\":\"<root><outputtrajtype>%s</outputtrajtype><program>%s</program><unit>%s</unit><optimizationvalue>%f</optimizationvalue><startfromcurrent>%s</startfromcurrent><usevrc>%s</usevrc><returntostart>%s</returntostart></root>\"}")%taskinfo.outputtrajtype%program%taskinfo.unit%taskinfo.optimizationvalue%startfromcurrent%usevrc%returntostart);
+    std::string taskgoalput = str(boost::format("{\"taskgoalxml\":\"<root><outputtrajtype>%s</outputtrajtype><program>%s</program><unit>%s</unit><optimizationvalue>%f</optimizationvalue><startfromcurrent>%s</startfromcurrent><vrcruns>%s</vrcruns><returntostart>%s</returntostart></root>\"}")%taskinfo.outputtrajtype%program%taskinfo.unit%taskinfo.optimizationvalue%startfromcurrent%vrcruns%returntostart);
     boost::property_tree::ptree pt;
     controller->CallPut(str(boost::format("task/%s/?format=json&fields=")%GetPrimaryKey()), taskgoalput, pt);
 }
