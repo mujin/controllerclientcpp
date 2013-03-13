@@ -157,8 +157,11 @@ struct JobStatus
 {
     JobStatus() : code(JSC_Unknown) {
     }
-    JobStatusCode code;
-    std::string message;
+    JobStatusCode code; ///< status code on whether the job is active
+    std::string type; ///< the type of job running
+    std::string message; ///< current message of the job
+    double elapsedtime; ///< how long the job has been running for in seconds
+    std::string pk; ///< the primary key to differentiate this job
 };
 
 /// \brief an affine transform
@@ -285,6 +288,11 @@ public:
     ///
     /// The method is non-blocking
     virtual void CancelAllJobs() = 0;
+
+    /// \brief get all the run-time statuses
+    ///
+    /// \param options if options is 1, also get the message
+    virtual void GetRunTimeStatuses(std::vector<JobStatus>& statuses, int options=0);
 
     /// \brief gets a list of all the scene primary keys currently available to the user
     virtual void GetScenePrimaryKeys(std::vector<std::string>& scenekeys) = 0;

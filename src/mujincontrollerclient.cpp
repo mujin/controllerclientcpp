@@ -325,6 +325,23 @@ public:
         CallDelete("job/?format=json");
     }
 
+    virtual void GetRunTimeStatuses(std::vector<JobStatus>& statuses, int options)
+    {
+        boost::property_tree::ptree pt;
+        std::string url = "job/?format=json&fields=pk,status,fnname,elapsedtime";
+        if( options & 1 ) {
+            url += std::string(",status_text");
+        }
+        CallGet(url, pt);
+        boost::property_tree::ptree& objects = pt.get_child("objects");
+        size_t i = 0;
+        statuses.resize(objects.size());
+        BOOST_FOREACH(boost::property_tree::ptree::value_type &v, objects) {
+            statuses[i].pk = v.second.get<std::string>("pk");
+            i++;
+        }
+    }
+
     virtual void GetScenePrimaryKeys(std::vector<std::string>& scenekeys)
     {
         boost::property_tree::ptree pt;
