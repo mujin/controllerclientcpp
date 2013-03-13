@@ -128,7 +128,7 @@ int main(int argc, char ** argv)
         optimizationinfo.maxrange[3] = 90; // angle
         optimizationinfo.stepsize[3] = 90;
         optimizationinfo.ignorebasecollision = 1;
-        optimizationinfo.maxstorecandidates = 0; // infinity
+        optimizationinfo.topstorecandidates = 20; // store only the top 20 candidates
         optimization->SetOptimizationInfo(optimizationinfo);
 
         optimization->Execute();

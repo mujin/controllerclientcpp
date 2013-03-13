@@ -213,6 +213,7 @@ struct RobotPlacementOptimizationInfo
         SetDefaults();
     }
     inline void SetDefaults() {
+        topstorecandidates = 20;
         targetname.clear();
         frame = "0 robot";
         unit = "mm";
@@ -220,7 +221,6 @@ struct RobotPlacementOptimizationInfo
         maxrange[0] = 400; maxrange[1] = 400; maxrange[2] = 400; maxrange[3] = 90;
         stepsize[0] = 100; stepsize[1] = 100; stepsize[2] = 100; stepsize[3] = 90;
         ignorebasecollision = 1;
-        maxstorecandidates = 0;
     }
     std::string targetname; ///< what target object to optimize for. If blank, will use robot.
     std::string frame; ///< The frame to define the optimization parameters in
@@ -229,7 +229,7 @@ struct RobotPlacementOptimizationInfo
     Real minrange[4]; ///< X, Y, Z, Angle (deg)
     Real stepsize[4]; ///< X, Y, Z, Angle (deg)
     int ignorebasecollision; ///< When moving the robot, allow collisions of the base with the environment, this allows users to search for a base placement and while ignoring small obstacles.
-    int maxstorecandidates; ///< The candidates are first ordered and then the top N are stored. If 0, then everything is stored
+    int topstorecandidates; ///< In order to speed things up, store at least the top (fastest) N candidates. Candidates beyond the top N will not be computed.
 };
 
 /// \brief Creates on MUJIN Controller instance.
