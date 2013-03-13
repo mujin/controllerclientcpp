@@ -292,7 +292,7 @@ public:
     /// \brief get all the run-time statuses
     ///
     /// \param options if options is 1, also get the message
-    virtual void GetRunTimeStatuses(std::vector<JobStatus>& statuses, int options=0);
+    virtual void GetRunTimeStatuses(std::vector<JobStatus>& statuses, int options=0) = 0;
 
     /// \brief gets a list of all the scene primary keys currently available to the user
     virtual void GetScenePrimaryKeys(std::vector<std::string>& scenekeys) = 0;
