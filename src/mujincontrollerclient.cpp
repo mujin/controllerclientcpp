@@ -335,6 +335,15 @@ public:
         }
     }
 
+    virtual SceneResourcePtr RegisterScene(const std::string& uri, const std::string& format)
+    {
+        boost::property_tree::ptree pt;
+        CallPost("scene/?format=json&fields=pk", str(boost::format("{\"uri\":\"%s\", \"scenetype\":\"%s\"}")%uri%format), pt);
+        std::string pk = pt.get<std::string>("pk");
+        SceneResourcePtr scene(new SceneResource(shared_from_this(), pk));
+        return scene;
+    }
+
     virtual SceneResourcePtr ImportScene(const std::string& importuri, const std::string& importformat, const std::string& newuri)
     {
         boost::property_tree::ptree pt;

@@ -20,8 +20,19 @@ int main(int argc, char ** argv)
     try {
         ControllerClientPtr controller, controller2;
         // licensekey "username:password"
-        controller = CreateControllerClient(licensekey);
-        controller2 = CreateControllerClient(licensekey);
+        //controller = CreateControllerClient(licensekey);
+        if( argc >= 5 ) {
+            controller = CreateControllerClient(argv[1], argv[2], argv[3], argv[4]);
+        }
+        if( argc == 4 ) {
+            controller = CreateControllerClient(argv[1], argv[2], argv[3]);
+        }
+        else if( argc == 3 ) {
+            controller = CreateControllerClient(argv[1], argv[2]);
+        }
+        else {
+            controller = CreateControllerClient(argv[1]);
+        }
 
         std::vector<JobStatus> statuses;
         while(1) {
@@ -37,6 +48,7 @@ int main(int argc, char ** argv)
                     }
                 }
             }
+            boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
         }
 
         // can execute
