@@ -213,7 +213,7 @@ struct RobotPlacementOptimizationInfo
         SetDefaults();
     }
     inline void SetDefaults() {
-        name.clear();
+        targetname.clear();
         frame = "0 robot";
         unit = "mm";
         minrange[0] = -400; minrange[1] = -400; minrange[2] = 0; minrange[3] = -180;
@@ -222,7 +222,7 @@ struct RobotPlacementOptimizationInfo
         ignorebasecollision = 1;
         maxstorecandidates = 0;
     }
-    std::string name; ///< what to optimize
+    std::string targetname; ///< what target object to optimize for. If blank, will use robot.
     std::string frame; ///< The frame to define the optimization parameters in
     std::string unit; ///< the unit that information is used in. m, mm, nm, inch, etc
     Real maxrange[4]; ///< X, Y, Z, Angle (deg)
