@@ -338,6 +338,12 @@ public:
         statuses.resize(objects.size());
         BOOST_FOREACH(boost::property_tree::ptree::value_type &v, objects) {
             statuses[i].pk = v.second.get<std::string>("pk");
+            statuses[i].code = static_cast<JobStatusCode>(boost::lexical_cast<int>(v.second.get<std::string>("status")));
+            statuses[i].type = v.second.get<std::string>("fnname");
+            statuses[i].elapsedtime = v.second.get<double>("elapsedtime");
+            if( options & 1 ) {
+                statuses[i].message = v.second.get<std::string>("status_text");
+            }
             i++;
         }
     }
@@ -677,16 +683,36 @@ TaskResource::TaskResource(ControllerClientPtr controller, const std::string& pk
 {
 }
 
-void TaskResource::Execute()
+bool TaskResource::Execute()
 {
     GETCONTROLLERIMPL();
     boost::property_tree::ptree pt;
     controller->CallPost(str(boost::format("task/%s/")%GetPrimaryKey()), std::string(), pt, 200);
+    _jobpk = pt.get<std::string>("jobpk");
+    return true;
 }
 
-void TaskResource::GetRunTimeStatus(JobStatus& status)
+void TaskResource::GetRunTimeStatus(JobStatus& status, int options)
 {
-    throw MujinException("not implemented yet");
+    if( _jobpk.size() > 0 ) {
+        GETCONTROLLERIMPL();
+        boost::property_tree::ptree pt;
+        std::string url = str(boost::format("job/%s/?format=json&fields=pk,status,fnname,elapsedtime")%_jobpk);
+        if( options & 1 ) {
+            url += std::string(",status_text");
+        }
+        controller->CallGet(url, pt);
+        //pt.get("error_message")
+        status.pk = pt.get<std::string>("pk");
+        status.code = static_cast<JobStatusCode>(boost::lexical_cast<int>(pt.get<std::string>("status")));
+        status.type = pt.get<std::string>("fnname");
+        status.elapsedtime = pt.get<double>("elapsedtime");
+        if( options & 1 ) {
+            status.message = pt.get<std::string>("status_text");
+        }
+    }
+
+    status.code = JSC_Unknown;
 }
 
 OptimizationResourcePtr TaskResource::GetOrCreateOptimizationFromName(const std::string& optimizationname, const std::string& optimizationtype)

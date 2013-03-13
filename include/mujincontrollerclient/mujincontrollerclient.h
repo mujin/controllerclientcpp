@@ -150,7 +150,7 @@ enum JobStatusCode {
     JSC_Recalling       = 7, ///< The goal received a cancel request before it started executing, but the server has not yet confirmed that the goal is canceled.
     JSC_Recalled        = 8, ///< The goal received a cancel request before it started executing and was successfully cancelled
     JSC_Lost            = 9, ///< An error happened and the job stopped being tracked.
-    JSC_Unknown = 0xffffffff, ///< the job is
+    JSC_Unknown = 0xffffffff, ///< the job is unknown
 };
 
 struct JobStatus
@@ -409,10 +409,14 @@ public:
     /// \brief execute the task.
     ///
     /// This operation is non-blocking and will return immediately after the execution is started. In order to check if the task is running or is complete, use \ref GetRunTimeStatus() and \ref GetResult()
-    virtual void Execute();
+    /// \return true if task was executed fine
+    virtual bool Execute();
 
     /// \brief get the run-time status of the executed task.
-    virtual void GetRunTimeStatus(JobStatus& status);
+    ///
+    /// This will only work if the task has been previously Executed with execute
+    /// If the task is not currently running, will set status.code to JSC_Unknown
+    virtual void GetRunTimeStatus(JobStatus& status, int options = 1);
 
     /// \brief Gets or creates the a optimization part of the scene
     ///
@@ -430,6 +434,9 @@ public:
 
     /// \brief gets the result of the task execution. If no result has been computed yet, will return a NULL pointer.
     virtual PlanningResultResourcePtr GetResult();
+
+protected:
+    std::string _jobpk;
 };
 
 class MUJINCLIENT_API OptimizationResource : public WebResource

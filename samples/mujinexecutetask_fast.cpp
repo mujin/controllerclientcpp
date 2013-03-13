@@ -63,11 +63,12 @@ movel(translation(0,0,20)*p[Work0/3])\n\
             if( !!result ) {
                 break;
             }
-//        task->GetRunTimeStatus(status);
-//        std::cout << "current job status is: " << status.code << std::cout;
-//        if( status.code != JSC_Active || status.code != JSC_Pending || status.code != JSC_Succeeded ) {
-//            std::cout << "unexpected job status so quitting" << std::cout;
-//        }
+            task->GetRunTimeStatus(status);
+            std::cout << "current job status is: " << status.code << std::endl;
+            if( status.code != JSC_Active || status.code != JSC_Pending || status.code != JSC_Succeeded ) {
+                std::cout << "unexpected job status so quitting" << std::endl;
+            }
+
             boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
             ++iterations;
             if( iterations > maxiterations ) {
