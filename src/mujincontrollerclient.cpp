@@ -362,6 +362,7 @@ public:
 
     virtual SceneResourcePtr RegisterScene(const std::string& uri, const std::string& format)
     {
+        BOOST_ASSERT(format.size()>0);
         boost::property_tree::ptree pt;
         CallPost("scene/?format=json&fields=pk", str(boost::format("{\"uri\":\"%s\", \"scenetype\":\"%s\"}")%uri%format), pt);
         std::string pk = pt.get<std::string>("pk");
@@ -371,11 +372,18 @@ public:
 
     virtual SceneResourcePtr ImportScene(const std::string& importuri, const std::string& importformat, const std::string& newuri)
     {
+        BOOST_ASSERT(importformat.size()>0);
         boost::property_tree::ptree pt;
         CallPost("scene/?format=json&fields=pk", str(boost::format("{\"reference_uri\":\"%s\", \"reference_format\":\"%s\", \"uri\":\"%s\"}")%importuri%importformat%newuri), pt);
         std::string pk = pt.get<std::string>("pk");
         SceneResourcePtr scene(new SceneResource(shared_from_this(), pk));
         return scene;
+    }
+
+    virtual bool SyncUpload(const std::string& sourcefilename, const std::string& destinationdir, const std::string& scenetype)
+    {
+        BOOST_ASSERT(scenetype.size()>0);
+        throw MujinException("not implemented");
     }
 
     /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
@@ -494,6 +502,25 @@ public:
 
      */
 
+    virtual void SetDefaultSceneType(const std::string& scenetype)
+    {
+        _defaultscenetype = scenetype;
+    }
+
+    virtual const std::string& GetDefaultSceneType()
+    {
+        return _defaultscenetype;
+    }
+
+    virtual void SetDefaultTaskType(const std::string& tasktype)
+    {
+        _defaultscenetype = tasktype;
+    }
+
+    virtual const std::string& GetDefaultTaskType()
+    {
+        return _defaulttasktype;
+    }
 protected:
 
     void GetProfile()
@@ -563,6 +590,8 @@ protected:
     std::string _csrfmiddlewaretoken;
 
     boost::property_tree::ptree _profile; ///< user profile and versioning
+
+    std::string _defaultscenetype, _defaulttasktype;
 };
 
 typedef boost::shared_ptr<ControllerClientImpl> ControllerClientImplPtr;
@@ -911,6 +940,16 @@ ControllerClientPtr CreateControllerClient(const std::string& usernamepassword, 
 
 void ControllerClientDestroy()
 {
+}
+
+std::string GetPrimaryKeyFromURI_UTF8(const std::string& uri)
+{
+    throw MujinException("not implemented");
+}
+
+std::string GetPrimaryKeyFromURI_UTF16(const std::wstring& uri)
+{
+    throw MujinException("not implemented");
 }
 
 void ComputeMatrixFromTransform(Real matrix[12], const Transform &transform)

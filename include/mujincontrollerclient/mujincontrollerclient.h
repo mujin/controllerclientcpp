@@ -310,6 +310,12 @@ public:
      */
     virtual SceneResourcePtr RegisterScene(const std::string& uri, const std::string& format) = 0;
 
+    /// \brief registers scene with default scene type
+    virtual SceneResourcePtr RegisterScene(const std::string& uri)
+    {
+        return RegisterScene(uri,GetDefaultSceneType());
+    }
+
     /** \brief import a scene into COLLADA format using from scene identified by a URI
 
         \param sourceuri The original URI to import from. For MUJIN network files use <b>mujin:/mypath/myfile.ext</b>
@@ -324,6 +330,27 @@ public:
         \param newuri Then new URI to save the imported results. Default is to save to MUJIN COLLADA, so end with <b>.mujin.dae</b> . Use <b>mujin:/mypath/myfile.mujin.dae</b>
      */
     virtual SceneResourcePtr ImportScene(const std::string& sourceuri, const std::string& sourceformat, const std::string& newuri) = 0;
+
+    /** \brief uploads a particular scene's files into the network filesystem.
+
+        \param sourcefilename Local filesystem location of the top-level file. If the scenetype requires many files, will upload all of them.
+        \param destinationdir Destination folder in the network file system. By default use: "mujin:/"
+        \param scenetype The type of scene uploading.
+     */
+    virtual bool SyncUpload(const std::string& sourcefilename, const std::string& destinationdir, const std::string& scenetype) = 0;
+
+    virtual bool SyncUpload(const std::string& sourcefilename, const std::string& destinationdir)
+    {
+        return SyncUpload(sourcefilename, destinationdir, GetDefaultSceneType());
+    }
+
+    virtual void SetDefaultSceneType(const std::string& scenetype) = 0;
+
+    virtual const std::string& GetDefaultSceneType() = 0;
+
+    virtual void SetDefaultTaskType(const std::string& tasktype) = 0;
+
+    virtual const std::string& GetDefaultTaskType() = 0;
 };
 
 class MUJINCLIENT_API WebResource
@@ -390,7 +417,13 @@ public:
         \param tasktype The type of task to create. Supported types are:
         - itlplanning
      */
-    virtual TaskResourcePtr GetOrCreateTaskFromName(const std::string& taskname, const std::string& tasktype=std::string("itlplanning"));
+    virtual TaskResourcePtr GetOrCreateTaskFromName(const std::string& taskname, const std::string& tasktype);
+
+    virtual TaskResourcePtr GetOrCreateTaskFromName(const std::string& taskname)
+    {
+        return GetOrCreateTaskFromName(taskname, GetController()->GetDefaultTaskType());
+    }
+
 
     /// \brief gets a list of all the scene primary keys currently available to the user
     virtual void GetTaskPrimaryKeys(std::vector<std::string>& taskkeys);
@@ -495,6 +528,12 @@ MUJINCLIENT_API ControllerClientPtr CreateControllerClient(const std::string& us
 
 /// \brief called at the very end of an application to safely destroy all controller client resources
 MUJINCLIENT_API void ControllerClientDestroy();
+
+// \brief Get the url-encoded primary key of a scene from a scene uri (utf-8 encoded)
+MUJINCLIENT_API std::string GetPrimaryKeyFromURI_UTF8(const std::string& uri);
+
+// \brief Get the url-encoded primary key of a scene from a scene uri (utf-16 encoded)
+MUJINCLIENT_API std::string GetPrimaryKeyFromURI_UTF16(const std::wstring& uri);
 
 /// \brief Compute a 3x4 matrix from a Transform
 MUJINCLIENT_API void ComputeMatrixFromTransform(Real matrix[12], const Transform &transform);

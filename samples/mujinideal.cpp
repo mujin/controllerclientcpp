@@ -34,6 +34,11 @@ int main(int argc, char ** argv)
             controller = CreateControllerClient(argv[1]);
         }
 
+        controller->SetDefaultSceneType("wincaps");
+        controller->SetDefaultTaskType("itlplanning"); // densowaverc8pcs
+        controller->SetCharacterEncoding("Shift_JIS");
+        controller->SetLanguage("ja");
+
         std::vector<JobStatus> statuses;
         while(1) {
             controller->GetRunTimeStatus(statuses);
@@ -52,12 +57,13 @@ int main(int argc, char ** argv)
         }
 
         // can execute
-        SceneResourcePtr scene(controller,"WC3");
-        scene.Delete(); // delete tasks and optimizations
+        //SceneResourcePtr scene(controller,"WC3");
+        //scene.Delete(); // delete tasks and optimizations
 
         // upload to network drive
         // pac programs should be converted ITL in this call
-        scene->SyncUpload("C:\\mywincaps\\my.WPJ");
+        controller->SyncUpload("C:\\mywincaps\\my.WPJ");
+        SceneResourcePtr scene = controller->RegisterScene("mujin:/my.WPJ");
 
 
         TaskResourcePtr task = scene->GetOrCreateTaskFromName("MYPAC1");
@@ -108,7 +114,7 @@ int main(int argc, char ** argv)
         std::cout << std::endl << "robot program is: " << std::endl << robotprogram << std::endl;
         std::cout << "final task_time is " << result->Get("task_time") << std::endl;
 
-        OptimizationResourcePtr optimization = task->GetOrCreateOptimizationFromName("MYNAME0");
+        OptimizationResourcePtr optimization = task->GetOrCreateOptimizationFromName("MYNAME0","robotplacement");
 
         RobotPlacementOptimizationInfo optimizationinfo;
         optimizationinfo.name = "casesupply";
