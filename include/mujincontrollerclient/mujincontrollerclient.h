@@ -530,10 +530,10 @@ MUJINCLIENT_API ControllerClientPtr CreateControllerClient(const std::string& us
 MUJINCLIENT_API void ControllerClientDestroy();
 
 // \brief Get the url-encoded primary key of a scene from a scene uri (utf-8 encoded)
-MUJINCLIENT_API std::string GetPrimaryKeyFromURI_UTF8(const std::string& uri);
+MUJINCLIENT_API std::string GetScenePrimaryKeyFromURI_UTF8(const std::string& uri);
 
 // \brief Get the url-encoded primary key of a scene from a scene uri (utf-16 encoded)
-MUJINCLIENT_API std::string GetPrimaryKeyFromURI_UTF16(const std::wstring& uri);
+MUJINCLIENT_API std::string GetScenePrimaryKeyFromURI_UTF16(const std::wstring& uri);
 
 /// \brief Compute a 3x4 matrix from a Transform
 MUJINCLIENT_API void ComputeMatrixFromTransform(Real matrix[12], const Transform &transform);

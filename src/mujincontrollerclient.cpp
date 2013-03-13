@@ -942,12 +942,12 @@ void ControllerClientDestroy()
 {
 }
 
-std::string GetPrimaryKeyFromURI_UTF8(const std::string& uri)
+std::string GetScenePrimaryKeyFromURI_UTF8(const std::string& uri)
 {
     throw MujinException("not implemented");
 }
 
-std::string GetPrimaryKeyFromURI_UTF16(const std::wstring& uri)
+std::string GetScenePrimaryKeyFromURI_UTF16(const std::wstring& uri)
 {
     throw MujinException("not implemented");
 }
