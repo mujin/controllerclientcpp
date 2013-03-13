@@ -143,9 +143,7 @@ public:
         curl_easy_setopt(_curl, CURLOPT_SSL_VERIFYHOST, 0L);
 #endif
 
-        if( proxyserverport.size() > 0 ) {
-            SetProxy(proxyserverport, proxyuserpw);
-        }
+        SetProxy(proxyserverport, proxyuserpw);
 
         res = curl_easy_setopt(_curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
         CHECKCURLCODE(res, "failed to set auth");
