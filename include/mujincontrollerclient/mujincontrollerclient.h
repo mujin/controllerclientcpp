@@ -53,6 +53,74 @@
 #include <boost/weak_ptr.hpp>
 #include <boost/format.hpp>
 
+#ifdef WIN32
+#include <windows.h>
+#endif // WIN32
+
+namespace Encoding {
+	inline std::wstring UTF8toUTF16(const std::string& utf8) {
+		std::wstring utf16(L"");
+	  
+		if (!utf8.empty()) {
+			size_t nLen16 = 0;
+			if ((nLen16 = ::MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), -1, NULL, 0)) > 0) {
+				utf16.resize(nLen16);
+				::MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), -1, &utf16[0], nLen16);
+			}
+		}
+		return utf16;
+	}
+
+	inline std::string UTF16toUTF8(const std::wstring& utf16) {
+		std::string utf8("");
+	  
+		if (!utf16.empty()) {
+			size_t nLen8 = 0;
+			if ((nLen8 = ::WideCharToMultiByte(CP_UTF8, 0, utf16.c_str(), -1, NULL, 0, NULL, NULL)) > 0) {
+				utf8.resize(nLen8);
+				::WideCharToMultiByte(CP_UTF8, 0, utf16.c_str(), -1, &utf8[0], nLen8, NULL, NULL);
+			}
+		}
+		return utf8;
+	}
+
+	inline std::string UTF16toMBS(const std::wstring& utf16) {
+		std::string mbs("");
+	  
+		if (!utf16.empty()) {
+			size_t nLenA = 0;
+			if ((nLenA = ::WideCharToMultiByte(CP_ACP, 0, utf16.c_str(), -1, NULL, 0, NULL, NULL)) > 0) {
+				mbs.resize(nLenA);
+				::WideCharToMultiByte(CP_ACP, 0, utf16.c_str(), -1, &mbs[0], nLenA, NULL, NULL);
+			}
+		}
+		return mbs;
+	}
+
+	inline std::wstring MBStoUTF16(const std::string& mbs) {
+		std::wstring utf16(L"");
+	  
+		if (!mbs.empty()) {
+			size_t nLen16 = 0;
+			if ((nLen16 = ::MultiByteToWideChar(CP_ACP, 0, mbs.c_str(), -1, NULL, 0)) > 0) {
+				utf16.resize(nLen16);
+				::MultiByteToWideChar(CP_ACP, 0, mbs.c_str(), -1, &utf16[0], nLen16);
+			}
+		}
+		return utf16;
+	}
+
+	inline std::string MBStoUTF8(const std::string& mbs) {
+		// MBS -> UTF16 -> UTF8
+		return UTF16toUTF8(MBStoUTF16(mbs));
+	}
+
+	inline std::string UTF8toMBS(const std::string& utf8) {
+		// UTF8 -> UTF16 -> MBS
+		return UTF16toMBS(UTF8toUTF16(utf8));
+	}
+}
+
 namespace mujinclient {
 
 #include <mujincontrollerclient/config.h>
