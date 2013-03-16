@@ -942,13 +942,23 @@ void ControllerClientDestroy()
 {
 }
 
+//URI encoded UTF-8 to MultiByte
 std::string GetScenePrimaryKeyFromURI_UTF8(const std::string& uri)
 {
-    throw MujinException("not implemented");
+	char *lpa = curl_unescape(uri.c_str(), 0); // URI decoding (UTF-8)
+	std::string str = Encoding::UTF8toMBS(std::string(lpa));
+	curl_free(lpa);
+
+	return str;
 }
 
 std::string GetScenePrimaryKeyFromURI_UTF16(const std::wstring& uri)
 {
+	//WCHAR* lpw = curl_unicode_unescape(uri.c_str(), 0); // URI decoding (UTF-16)
+	//std::string str = Encoding::UTF16toMBS(std::wstring(lpw));
+	//curl_free(lpw);
+	//return str;
+
     throw MujinException("not implemented");
 }
 
