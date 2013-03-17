@@ -53,9 +53,9 @@
 #include <boost/weak_ptr.hpp>
 #include <boost/format.hpp>
 
-#ifdef WIN32
+#ifdef _WIN32 || _WIN64
 #include <windows.h>
-#endif // WIN32
+#endif // _WIN32 || _WIN64
 
 namespace Encoding {
 	inline std::wstring UTF8toUTF16(const std::string& utf8) {
