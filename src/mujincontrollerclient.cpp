@@ -17,7 +17,6 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
-#include <boost/property_tree/xml_parser.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>
@@ -27,6 +26,8 @@
 #include <sstream>
 #include <iostream>
 #include <curl/curl.h>
+
+#include "utf8.h"
 
 #ifdef _MSC_VER
 #ifndef __PRETTY_FUNCTION__
@@ -115,7 +116,7 @@ public:
         BOOST_ASSERT(!!_curl);
 
 #ifdef _DEBUG
-        curl_easy_setopt(_curl, CURLOPT_VERBOSE, 1L);
+        //curl_easy_setopt(_curl, CURLOPT_VERBOSE, 1L);
 #endif
 
         CURLcode res;
@@ -370,7 +371,7 @@ public:
         return scene;
     }
 
-    virtual SceneResourcePtr ImportScene(const std::string& importuri, const std::string& importformat, const std::string& newuri)
+    virtual SceneResourcePtr ImportSceneToCOLLADA(const std::string& importuri, const std::string& importformat, const std::string& newuri)
     {
         BOOST_ASSERT(importformat.size()>0);
         boost::property_tree::ptree pt;
@@ -408,6 +409,35 @@ public:
             std::string error_message = pt.get<std::string>("error_message", std::string());
             std::string traceback = pt.get<std::string>("traceback", std::string());
             throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s: %s", relativeuri%http_code%error_message, MEC_HTTPServer);
+        }
+        return http_code;
+    }
+
+    /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
+    int CallGet(const std::string& relativeuri, std::string& outputdata, int expectedhttpcode=200)
+    {
+        boost::mutex::scoped_lock lock(_mutex);
+        _uri = _baseapiuri;
+        _uri += relativeuri;
+        curl_easy_setopt(_curl, CURLOPT_URL, _uri.c_str());
+        _buffer.clear();
+        _buffer.str("");
+        curl_easy_setopt(_curl, CURLOPT_HTTPGET, 1);
+        CURLcode res = curl_easy_perform(_curl);
+        CHECKCURLCODE(res, "curl_easy_perform failed");
+        long http_code = 0;
+        res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
+        CHECKCURLCODE(res, "curl_easy_getinfo");
+        outputdata = _buffer.str();
+        if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
+            if( outputdata.size() > 0 ) {
+                boost::property_tree::ptree pt;
+                boost::property_tree::read_json(_buffer, pt);
+                std::string error_message = pt.get<std::string>("error_message", std::string());
+                std::string traceback = pt.get<std::string>("traceback", std::string());
+                throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s: %s", relativeuri%http_code%error_message, MEC_HTTPServer);
+            }
+            throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s", relativeuri%http_code, MEC_HTTPServer);
         }
         return http_code;
     }
@@ -521,6 +551,25 @@ public:
     {
         return _defaulttasktype;
     }
+
+    std::string GetScenePrimaryKeyFromURI_UTF8(const std::string& uri)
+    {
+        size_t index = uri.find(":/");
+        MUJIN_ASSERT_OP_FORMAT(index,!=,std::string::npos, "bad URI: %s", uri, MEC_InvalidArguments);
+        uri.substr(index+2);
+        char* pcurlresult = curl_easy_escape(_curl, uri.c_str()+index+2,uri.size()-index-2);
+        std::string sresult(pcurlresult);
+        curl_free(pcurlresult); // have to release the result
+        return sresult;
+    }
+
+    std::string GetScenePrimaryKeyFromURI_UTF16(const std::wstring& uri)
+    {
+        std::string utf8line;
+        utf8::utf16to8(uri.begin(), uri.end(), std::back_inserter(utf8line));
+        return GetScenePrimaryKeyFromURI_UTF8(utf8line);
+    }
+
 protected:
 
     void GetProfile()
@@ -658,6 +707,22 @@ TaskResourcePtr SceneResource::GetOrCreateTaskFromName(const std::string& taskna
     return task;
 }
 
+TaskResourcePtr SceneResource::GetTaskFromName(const std::string& taskname)
+{
+    GETCONTROLLERIMPL();
+    boost::property_tree::ptree pt;
+    controller->CallGet(str(boost::format("scene/%s/task/?format=json&limit=1&name=%s&fields=pk,tasktype")%GetPrimaryKey()%taskname), pt);
+    // task exists
+    boost::property_tree::ptree& objects = pt.get_child("objects");
+    if( objects.size() == 0 ) {
+        throw MUJIN_EXCEPTION_FORMAT("could not find task with name %s", taskname, MEC_InvalidState);
+    }
+
+    std::string pk = objects.begin()->second.get<std::string>("pk");
+    TaskResourcePtr task(new TaskResource(GetController(), pk));
+    return task;
+}
+
 void SceneResource::GetTaskPrimaryKeys(std::vector<std::string>& taskkeys)
 {
     GETCONTROLLERIMPL();
@@ -781,59 +846,57 @@ void TaskResource::GetOptimizationPrimaryKeys(std::vector<std::string>& optimiza
     }
 }
 
-void TaskResource::GetTaskInfo(ITLPlanningTaskInfo& taskinfo)
+void TaskResource::GetTaskParameters(ITLPlanningTaskParameters& taskparameters)
 {
     GETCONTROLLERIMPL();
     boost::property_tree::ptree pt;
-    controller->CallGet(str(boost::format("task/%s/?format=json&fields=taskgoalxml&tasktype")%GetPrimaryKey()), pt);
+    controller->CallGet(str(boost::format("task/%s/?format=json&fields=taskparameters,tasktype")%GetPrimaryKey()), pt);
     std::string tasktype = pt.get<std::string>("tasktype");
     if( tasktype != "itlplanning" ) {
         throw MUJIN_EXCEPTION_FORMAT("task %s is type %s, expected itlplanning", GetPrimaryKey()%tasktype, MEC_InvalidArguments);
     }
-    std::stringstream sstrans(pt.get<std::string>("taskgoalxml"));
-    boost::property_tree::ptree pttrans;
-    boost::property_tree::read_xml(sstrans, pttrans);
-    boost::property_tree::ptree& objects = pttrans.get_child("root");
-    taskinfo.SetDefaults();
-    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, objects) {
+    boost::property_tree::ptree& taskparametersjson = pt.get_child("taskparameters");
+    taskparameters.SetDefaults();
+    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, taskparametersjson) {
         if( v.first == "startfromcurrent" ) {
-            taskinfo.startfromcurrent = v.second.data() == std::string("True");
+            taskparameters.startfromcurrent = v.second.data() == std::string("True");
         }
         else if( v.first == "returntostart" ) {
-            taskinfo.returntostart = v.second.data() == std::string("True");
+            taskparameters.returntostart = v.second.data() == std::string("True");
+        }
+        else if( v.first == "ignorefigure" ) {
+            taskparameters.ignorefigure = v.second.data() == std::string("True");
         }
         else if( v.first == "vrcruns" ) {
-            taskinfo.vrcruns = boost::lexical_cast<int>(v.second.data());
+            taskparameters.vrcruns = boost::lexical_cast<int>(v.second.data());
         }
         else if( v.first == "unit" ) {
-            taskinfo.unit = v.second.data();
-        }
-        else if( v.first == "outputtrajtype" ) {
-            taskinfo.outputtrajtype = v.second.data();
+            taskparameters.unit = v.second.data();
         }
         else if( v.first == "optimizationvalue" ) {
-            taskinfo.optimizationvalue = boost::lexical_cast<Real>(v.second.data());
+            taskparameters.optimizationvalue = boost::lexical_cast<Real>(v.second.data());
         }
         else if( v.first == "program" ) {
-            taskinfo.program = v.second.data();
+            taskparameters.program = v.second.data();
         }
     }
 }
 
-void TaskResource::SetTaskInfo(const ITLPlanningTaskInfo& taskinfo)
+void TaskResource::SetTaskParameters(const ITLPlanningTaskParameters& taskparameters)
 {
     GETCONTROLLERIMPL();
-    std::string startfromcurrent = taskinfo.startfromcurrent ? "True" : "False";
-    std::string vrcruns = boost::lexical_cast<std::string>(taskinfo.vrcruns);
-    std::string returntostart = taskinfo.returntostart ? "True" : "False";
+    std::string startfromcurrent = taskparameters.startfromcurrent ? "True" : "False";
+    std::string returntostart = taskparameters.returntostart ? "True" : "False";
+    std::string ignorefigure = taskparameters.ignorefigure ? "True" : "False";
+    std::string vrcruns = boost::lexical_cast<std::string>(taskparameters.vrcruns);
 
     // because program will inside string, encode newlines
     std::string program;
     std::vector< std::pair<std::string, std::string> > serachpairs(2);
     serachpairs[0].first = "\n"; serachpairs[0].second = "\\n";
     serachpairs[1].first = "\r\n"; serachpairs[1].second = "\\n";
-    SearchAndReplace(program, taskinfo.program, serachpairs);
-    std::string taskgoalput = str(boost::format("{\"taskgoalxml\":\"<root><outputtrajtype>%s</outputtrajtype><program>%s</program><unit>%s</unit><optimizationvalue>%f</optimizationvalue><startfromcurrent>%s</startfromcurrent><vrcruns>%s</vrcruns><returntostart>%s</returntostart></root>\"}")%taskinfo.outputtrajtype%program%taskinfo.unit%taskinfo.optimizationvalue%startfromcurrent%vrcruns%returntostart);
+    SearchAndReplace(program, taskparameters.program, serachpairs);
+    std::string taskgoalput = str(boost::format("{\"tasktype\": \"itlplanning\", \"taskparameters\":{\"optimizationvalue\":%f, \"program\":\"%s\", \"unit\":\"%s\", \"returntostart\":\"%s\", \"startfromcurrent\":\"%s\", \"ignorefigure\":\"%s\", \"vrcruns\":%d} }")%taskparameters.optimizationvalue%program%taskparameters.unit%returntostart%startfromcurrent%ignorefigure%vrcruns);
     boost::property_tree::ptree pt;
     controller->CallPut(str(boost::format("task/%s/?format=json&fields=")%GetPrimaryKey()), taskgoalput, pt);
 }
@@ -867,11 +930,11 @@ void OptimizationResource::GetRunTimeStatus(JobStatus& status) {
     throw MujinException("not implemented yet");
 }
 
-void OptimizationResource::SetOptimizationInfo(const RobotPlacementOptimizationInfo& optimizationinfo)
+void OptimizationResource::SetOptimizationParameters(const RobotPlacementOptimizationParameters& optparams)
 {
     GETCONTROLLERIMPL();
-    std::string ignorebasecollision = optimizationinfo.ignorebasecollision ? "True" : "False";
-    std::string optimizationgoalput = str(boost::format("{\"optimizationparametersxml\":\"<root><name>%s</name><topstorecandidates>%d</topstorecandidates><unit>%s</unit><ignorebasecollision>%s</ignorebasecollision><frame>%s</frame><maxrange_>%f</maxrange_><maxrange_>%f</maxrange_><maxrange_>%f</maxrange_><maxrange_>%f</maxrange_><minrange_>%f</minrange_><minrange_>%f</minrange_><minrange_>%f</minrange_><minrange_>%f</minrange_><stepsize_>%f</stepsize_><stepsize_>%f</stepsize_><stepsize_>%f</stepsize_><stepsize_>%f</stepsize_></root>\"}")%optimizationinfo.targetname%optimizationinfo.topstorecandidates%optimizationinfo.unit%ignorebasecollision%optimizationinfo.frame%optimizationinfo.maxrange[0]%optimizationinfo.maxrange[1]%optimizationinfo.maxrange[2]%optimizationinfo.maxrange[3]%optimizationinfo.minrange[0]%optimizationinfo.minrange[1]%optimizationinfo.minrange[2]%optimizationinfo.minrange[3]%optimizationinfo.stepsize[0]%optimizationinfo.stepsize[1]%optimizationinfo.stepsize[2]%optimizationinfo.stepsize[3]);
+    std::string ignorebasecollision = optparams.ignorebasecollision ? "True" : "False";
+    std::string optimizationgoalput = str(boost::format("{\"optimizationtype\": \"robotplacement\", \"optimizationparameters\":{\"targetname\":\"%s\", \"frame\":\"%s\", \"ignorebasecollision\":\"%s\", \"unit\":\"%s\", \"maxrange_\":[ %.15f, %.15f, %.15f, %.15f],  \"minrange_\":[ %.15f, %.15f, %.15f, %.15f], \"stepsize_\":[ %.15f, %.15f, %.15f, %.15f], \"topstorecandidates\":%d} }")%optparams.targetname%optparams.frame%ignorebasecollision%optparams.unit%optparams.maxrange[0]%optparams.maxrange[1]%optparams.maxrange[2]%optparams.maxrange[3]%optparams.minrange[0]%optparams.minrange[1]%optparams.minrange[2]%optparams.minrange[3]%optparams.stepsize[0]%optparams.stepsize[1]%optparams.stepsize[2]%optparams.stepsize[3]%optparams.topstorecandidates);
     boost::property_tree::ptree pt;
     controller->CallPut(str(boost::format("optimization/%s/?format=json&fields=")%GetPrimaryKey()), optimizationgoalput, pt);
 }
@@ -893,46 +956,69 @@ PlanningResultResource::PlanningResultResource(ControllerClientPtr controller, c
 {
 }
 
-void PlanningResultResource::GetTransforms(std::map<std::string, Transform>& transforms)
+void PlanningResultResource::GetEnvironmentState(EnvironmentState& envstate)
 {
     GETCONTROLLERIMPL();
     boost::property_tree::ptree pt;
-    controller->CallGet(str(boost::format("%s/%s/?format=json&fields=transformxml")%GetResourceName()%GetPrimaryKey()), pt);
-    std::stringstream sstrans(pt.get<std::string>("transformxml"));
-    boost::property_tree::ptree pttrans;
-    boost::property_tree::read_xml(sstrans, pttrans);
-    boost::property_tree::ptree& objects = pttrans.get_child("root");
-    transforms.clear();
-    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, objects) {
-        if( v.first == "transforms_" ) {
-            Transform t;
-            std::string name;
-            int itranslation=0, iquat=0;
-            BOOST_FOREACH(boost::property_tree::ptree::value_type &vtrans, v.second) {
-                if( vtrans.first == "name" ) {
-                    name = vtrans.second.data();
-                }
-                else if( vtrans.first == "translation_" && itranslation < 3 ) {
-                    t.translation[itranslation++] = boost::lexical_cast<Real>(vtrans.second.data());
-                }
-                else if( vtrans.first == "quat_" && iquat < 4 ) {
-                    t.quat[iquat++] = boost::lexical_cast<Real>(vtrans.second.data());
-                }
-            }
-            // normalize the quaternion
-            Real dist2 = t.quat[0]*t.quat[0] + t.quat[1]*t.quat[1] + t.quat[2]*t.quat[2] + t.quat[3]*t.quat[3];
-            if( dist2 > 0 ) {
-                Real fnorm =1/std::sqrt(dist2);
-                t.quat[0] *= fnorm; t.quat[1] *= fnorm; t.quat[2] *= fnorm; t.quat[3] *= fnorm;
-            }
-            transforms[name] = t;
+    controller->CallGet(str(boost::format("%s/%s/?format=json&fields=envstate")%GetResourceName()%GetPrimaryKey()), pt);
+    boost::property_tree::ptree& envstatejson = pt.get_child("envstate");
+    envstate.clear();
+    BOOST_FOREACH(boost::property_tree::ptree::value_type &objstatejson, envstatejson) {
+        InstanceObjectState objstate;
+        std::string name = objstatejson.second.get<std::string>("name");
+        boost::property_tree::ptree& quatjson = objstatejson.second.get_child("quat_");
+        int iquat=0;
+        Real dist2 = 0;
+        BOOST_FOREACH(boost::property_tree::ptree::value_type &v, quatjson) {
+            BOOST_ASSERT(iquat<4);
+            Real f = boost::lexical_cast<Real>(v.second.data());
+            dist2 += f * f;
+            objstate.transform.quat[iquat++] = f;
         }
+        // normalize the quaternion
+        if( dist2 > 0 ) {
+            Real fnorm =1/std::sqrt(dist2);
+            objstate.transform.quat[0] *= fnorm;
+            objstate.transform.quat[1] *= fnorm;
+            objstate.transform.quat[2] *= fnorm;
+            objstate.transform.quat[3] *= fnorm;
+        }
+        boost::property_tree::ptree& translationjson = objstatejson.second.get_child("translation_");
+        int itranslation=0;
+        BOOST_FOREACH(boost::property_tree::ptree::value_type &v, translationjson) {
+            BOOST_ASSERT(iquat<3);
+            objstate.transform.translation[itranslation++] = boost::lexical_cast<Real>(v.second.data());
+        }
+        envstate[name] = objstate;
     }
-    //std::string fieldvalue = pt.get<std::string>(field);
-    //return fieldvalue;
 }
 
-//    transformxml
+void PlanningResultResource::GetAllRawProgramData(std::string& outputdata, const std::string& programtype)
+{
+    GETCONTROLLERIMPL();
+    controller->CallGet(str(boost::format("%s/%s/program/?format=json&type=%s")%GetResourceName()%GetPrimaryKey()%programtype), outputdata);
+}
+
+void PlanningResultResource::GetRobotRawProgramData(std::string& outputdata, const std::string& robotpk, const std::string& programtype)
+{
+    GETCONTROLLERIMPL();
+    controller->CallGet(str(boost::format("%s/%s/program/%s/?format=json&type=%s")%GetResourceName()%GetPrimaryKey()%robotpk%programtype), outputdata);
+}
+
+void PlanningResultResource::GetPrograms(RobotControllerPrograms& programs, const std::string& programtype)
+{
+    GETCONTROLLERIMPL();
+    boost::property_tree::ptree pt;
+    programs.programs.clear();
+    controller->CallGet(str(boost::format("%s/%s/program/?format=json&type=%s")%GetResourceName()%GetPrimaryKey()%programtype), pt);
+    BOOST_FOREACH(boost::property_tree::ptree::value_type &robotdatajson, pt) {
+        std::string robotpk = robotdatajson.first;
+        std::string program = robotdatajson.second.get<std::string>("program");
+        std::string currenttype = robotdatajson.second.get<std::string>("type");
+        programs.programs[robotpk] = RobotProgramData(program, currenttype);
+    }
+}
+
 ControllerClientPtr CreateControllerClient(const std::string& usernamepassword, const std::string& baseurl, const std::string& proxyserverport, const std::string& proxyuserpw, int options)
 {
     return ControllerClientPtr(new ControllerClientImpl(usernamepassword, baseurl, proxyserverport, proxyuserpw, options));
@@ -940,26 +1026,6 @@ ControllerClientPtr CreateControllerClient(const std::string& usernamepassword, 
 
 void ControllerClientDestroy()
 {
-}
-
-//URI encoded UTF-8 to MultiByte
-std::string GetScenePrimaryKeyFromURI_UTF8(const std::string& uri)
-{
-	char *lpa = curl_unescape(uri.c_str(), 0); // URI decoding (UTF-8)
-	std::string str = Encoding::UTF8toMBS(std::string(lpa));
-	curl_free(lpa);
-
-	return str;
-}
-
-std::string GetScenePrimaryKeyFromURI_UTF16(const std::wstring& uri)
-{
-	//WCHAR* lpw = curl_unicode_unescape(uri.c_str(), 0); // URI decoding (UTF-16)
-	//std::string str = Encoding::UTF16toMBS(std::wstring(lpw));
-	//curl_free(lpw);
-	//return str;
-
-    throw MujinException("not implemented");
 }
 
 void ComputeMatrixFromTransform(Real matrix[12], const Transform &transform)

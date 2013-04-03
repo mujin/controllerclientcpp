@@ -53,74 +53,6 @@
 #include <boost/weak_ptr.hpp>
 #include <boost/format.hpp>
 
-#ifdef _WIN32 || _WIN64
-#include <windows.h>
-#endif // _WIN32 || _WIN64
-
-namespace Encoding {
-	inline std::wstring UTF8toUTF16(const std::string& utf8) {
-		std::wstring utf16(L"");
-	  
-		if (!utf8.empty()) {
-			size_t nLen16 = 0;
-			if ((nLen16 = ::MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), -1, NULL, 0)) > 0) {
-				utf16.resize(nLen16);
-				::MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), -1, &utf16[0], nLen16);
-			}
-		}
-		return utf16;
-	}
-
-	inline std::string UTF16toUTF8(const std::wstring& utf16) {
-		std::string utf8("");
-	  
-		if (!utf16.empty()) {
-			size_t nLen8 = 0;
-			if ((nLen8 = ::WideCharToMultiByte(CP_UTF8, 0, utf16.c_str(), -1, NULL, 0, NULL, NULL)) > 0) {
-				utf8.resize(nLen8);
-				::WideCharToMultiByte(CP_UTF8, 0, utf16.c_str(), -1, &utf8[0], nLen8, NULL, NULL);
-			}
-		}
-		return utf8;
-	}
-
-	inline std::string UTF16toMBS(const std::wstring& utf16) {
-		std::string mbs("");
-	  
-		if (!utf16.empty()) {
-			size_t nLenA = 0;
-			if ((nLenA = ::WideCharToMultiByte(CP_ACP, 0, utf16.c_str(), -1, NULL, 0, NULL, NULL)) > 0) {
-				mbs.resize(nLenA);
-				::WideCharToMultiByte(CP_ACP, 0, utf16.c_str(), -1, &mbs[0], nLenA, NULL, NULL);
-			}
-		}
-		return mbs;
-	}
-
-	inline std::wstring MBStoUTF16(const std::string& mbs) {
-		std::wstring utf16(L"");
-	  
-		if (!mbs.empty()) {
-			size_t nLen16 = 0;
-			if ((nLen16 = ::MultiByteToWideChar(CP_ACP, 0, mbs.c_str(), -1, NULL, 0)) > 0) {
-				utf16.resize(nLen16);
-				::MultiByteToWideChar(CP_ACP, 0, mbs.c_str(), -1, &utf16[0], nLen16);
-			}
-		}
-		return utf16;
-	}
-
-	inline std::string MBStoUTF8(const std::string& mbs) {
-		// MBS -> UTF16 -> UTF8
-		return UTF16toUTF8(MBStoUTF16(mbs));
-	}
-
-	inline std::string UTF8toMBS(const std::string& utf8) {
-		// UTF8 -> UTF16 -> MBS
-		return UTF16toMBS(UTF8toUTF16(utf8));
-	}
-}
-
 namespace mujinclient {
 
 #include <mujincontrollerclient/config.h>
@@ -155,7 +87,6 @@ inline const char* GetErrorCodeString(MujinErrorCode error)
     // should throw an exception?
     return "";
 }
-
 
 /// \brief Exception that all Mujin internal methods throw; the error codes are held in \ref MujinErrorCode.
 class MUJINCLIENT_API MujinException : public std::exception
@@ -243,6 +174,14 @@ struct Transform
     Real translation[3]; ///< translation x,y,z
 };
 
+struct InstanceObjectState
+{
+    Transform transform; ///< the transform of this instance object
+    std::vector<Real> jointvalues; ///< the joint values
+};
+
+typedef std::map<std::string, InstanceObjectState> EnvironmentState;
+
 struct SceneInformation
 {
     std::string pk; ///< primary key
@@ -251,33 +190,48 @@ struct SceneInformation
     std::string name;
 };
 
-/// \brief holds information about the itlplanning task goal
-struct ITLPlanningTaskInfo
+/// \brief holds information about the itlplanning task parameters
+class ITLPlanningTaskParameters
 {
-    ITLPlanningTaskInfo() {
+public:
+    ITLPlanningTaskParameters() {
         SetDefaults();
     }
-    inline void SetDefaults() {
+    virtual void SetDefaults() {
         startfromcurrent = 0;
         returntostart = 1;
         vrcruns = 1;
+        ignorefigure = 1;
         unit = "mm";
-        outputtrajtype = "robotmaker";
         optimizationvalue = 1;
         program.clear();
     }
     int startfromcurrent; ///< Will start planning from the current robot joint values, otherwise will start at the first waypoint in the program.
     int returntostart; ///< Plan the return path of the robot to where the entire trajectory started. Makes it possible to loop the robot motion.
     int vrcruns; ///< Use the Robot Virtual Controller for retiming and extra validation. Makes planning slow, but robot timing because very accurate.
+    int ignorefigure; ///< if 1, ignores the figure/structure flags for every goal parameter. These flags fix the configuration of the robot from the multitute of possibilities. If 0, will attempt to use the flags and error if task is not possible with them.
     std::string unit; ///< the unit that information is used in. m, mm, nm, inch, etc
-    std::string outputtrajtype; ///< what format to output the trajectory in.
     Real optimizationvalue; ///< value in [0,1]. 0 is no optimization (fast), 1 is full optimization (slow)
     std::string program; ///< itl program
 };
 
-struct RobotPlacementOptimizationInfo
+/// program is wincaps rc8 pac script
+class DensoWaveWincapsTaskParameters : public ITLPlanningTaskParameters
 {
-    RobotPlacementOptimizationInfo() {
+public:
+    DensoWaveWincapsTaskParameters() : ITLPlanningTaskParameters() {
+        SetDefaults();
+    }
+    void SetDefaults() {
+        ITLPlanningTaskParameters::SetDefaults();
+        preservespeedparameters = 0;
+    }
+    int preservespeedparameters; ///< if 1, preserves all SPEED/ACCEL commands as best as possible.
+};
+
+struct RobotPlacementOptimizationParameters
+{
+    RobotPlacementOptimizationParameters() {
         SetDefaults();
     }
     inline void SetDefaults() {
@@ -298,6 +252,25 @@ struct RobotPlacementOptimizationInfo
     Real stepsize[4]; ///< X, Y, Z, Angle (deg)
     int ignorebasecollision; ///< When moving the robot, allow collisions of the base with the environment, this allows users to search for a base placement and while ignoring small obstacles.
     int topstorecandidates; ///< In order to speed things up, store at least the top (fastest) N candidates. Candidates beyond the top N will not be computed.
+};
+
+/// \brief program data for an individual robot
+class RobotProgramData
+{
+public:
+    RobotProgramData() {
+    }
+    RobotProgramData(const std::string& programdata, const std::string& type) : programdata(programdata), type(type) {
+    }
+    std::string programdata; ///< the program data
+    std::string type; ///< the type of program
+};
+
+/// \brief program data for all robots.
+class RobotControllerPrograms
+{
+public:
+    std::map<std::string, RobotProgramData> programs; ///< the keys are the robot instance primary keys of the scene
 };
 
 /// \brief Creates on MUJIN Controller instance.
@@ -367,7 +340,7 @@ public:
 
     /** \brief Register a scene to be used by the MUJIN Controller
 
-        \param format The format of the source file. Can be:
+        \param scenetype The format of the source file. Can be:
         - **mujincollada**
         - **wincaps** (DensoWave WINCAPS III)
         - **rttoolbox** (Mitsubishi RT ToolBox)
@@ -376,7 +349,7 @@ public:
         - **stl**
         - **cecvirfitxml** (CEC Virfit XML environments)
      */
-    virtual SceneResourcePtr RegisterScene(const std::string& uri, const std::string& format) = 0;
+    virtual SceneResourcePtr RegisterScene(const std::string& uri, const std::string& scenetype) = 0;
 
     /// \brief registers scene with default scene type
     virtual SceneResourcePtr RegisterScene(const std::string& uri)
@@ -387,7 +360,7 @@ public:
     /** \brief import a scene into COLLADA format using from scene identified by a URI
 
         \param sourceuri The original URI to import from. For MUJIN network files use <b>mujin:/mypath/myfile.ext</b>
-        \param sourceformat The format of the source file. Can be:
+        \param sourcescenetype The format of the source file. Can be:
         - **mujincollada**
         - **wincaps** (DensoWave WINCAPS III)
         - **rttoolbox** (Mitsubishi RT ToolBox)
@@ -397,7 +370,7 @@ public:
         - **cecvirfitxml** (CEC Virfit XML environments)
         \param newuri Then new URI to save the imported results. Default is to save to MUJIN COLLADA, so end with <b>.mujin.dae</b> . Use <b>mujin:/mypath/myfile.mujin.dae</b>
      */
-    virtual SceneResourcePtr ImportScene(const std::string& sourceuri, const std::string& sourceformat, const std::string& newuri) = 0;
+    virtual SceneResourcePtr ImportSceneToCOLLADA(const std::string& sourceuri, const std::string& sourcescenetype, const std::string& newuri) = 0;
 
     /** \brief uploads a particular scene's files into the network filesystem.
 
@@ -419,6 +392,30 @@ public:
     virtual void SetDefaultTaskType(const std::string& tasktype) = 0;
 
     virtual const std::string& GetDefaultTaskType() = 0;
+
+    /** \brief Get the url-encoded primary key of a scene from a scene uri (utf-8 encoded)
+
+        For example, the URI
+
+        mujin:/検証動作_121122.mujin.dae
+
+        is represented as:
+
+        "mujin:/\xe6\xa4\x9c\xe8\xa8\xbc\xe5\x8b\x95\xe4\xbd\x9c_121122.mujin.dae"
+
+        Return value will be: "%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C_121122"
+        \param uri utf-8 encoded URI
+     */
+    std::string GetScenePrimaryKeyFromURI_UTF8(const std::string& uri);
+
+    /** \brief Get the url-encoded primary key of a scene from a scene uri (utf-16 encoded)
+
+        If input URL is L"mujin:/\u691c\u8a3c\u52d5\u4f5c_121122.mujin.dae"
+        Return value will be: "%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C_121122"
+
+        \param uri utf-16 encoded URI
+     */
+    std::string GetScenePrimaryKeyFromURI_UTF16(const std::wstring& uri);
 };
 
 class MUJINCLIENT_API WebResource
@@ -481,6 +478,7 @@ public:
 
     /** \brief Gets or creates the a task part of the scene
 
+        If task exists already, validates it with tasktype.
         \param taskname the name of the task to search for or create. If the name already exists and is not tasktype, an exception is thrown
         \param tasktype The type of task to create. Supported types are:
         - itlplanning
@@ -492,6 +490,7 @@ public:
         return GetOrCreateTaskFromName(taskname, GetController()->GetDefaultTaskType());
     }
 
+    virtual TaskResourcePtr GetTaskFromName(const std::string& taskname);
 
     /// \brief gets a list of all the scene primary keys currently available to the user
     virtual void GetTaskPrimaryKeys(std::vector<std::string>& taskkeys);
@@ -528,10 +527,10 @@ public:
     virtual void GetOptimizationPrimaryKeys(std::vector<std::string>& optimizationkeys);
 
     /// \brief Get the task info for tasks of type <b>itlplanning</b>
-    virtual void GetTaskInfo(ITLPlanningTaskInfo& taskinfo);
+    virtual void GetTaskParameters(ITLPlanningTaskParameters& taskparameters);
 
     /// \brief Set new task info for tasks of type <b>itlplanning</b>
-    virtual void SetTaskInfo(const ITLPlanningTaskInfo& taskinfo);
+    virtual void SetTaskParameters(const ITLPlanningTaskParameters& taskparameters);
 
     /// \brief gets the result of the task execution. If no result has been computed yet, will return a NULL pointer.
     virtual PlanningResultResourcePtr GetResult();
@@ -551,7 +550,7 @@ public:
     virtual void Execute();
 
     /// \brief Set new task info for tasks of type <b>robotplanning</b>
-    void SetOptimizationInfo(const RobotPlacementOptimizationInfo& optimizationinfo);
+    void SetOptimizationParameters(const RobotPlacementOptimizationParameters& optparams);
 
     /// \brief get the run-time status of the executed optimization.
     virtual void GetRunTimeStatus(JobStatus& status);
@@ -570,9 +569,38 @@ public:
     }
 
     /// \brief Get all the transforms the results are storing. Depending on the optimization, can be more than just the robot
-    virtual void GetTransforms(std::map<std::string, Transform>& transforms);
-};
+    virtual void GetEnvironmentState(EnvironmentState& envstate);
 
+    /** \brief Gets the raw program information
+
+        \param[in] programtype The type of program to return. Possible values are:
+        - auto - special type that returns the most suited programs
+        - mujinxml - \b xml
+        - melfabasicv - \b json with Mitsubishi-specific programs
+        - densowaverc8pac - \b json with DensoWave-specific programs
+        - cecvirfitsim - zip file
+
+        If \b auto is set, then the robot-maker specific program is returned if possible. If not possible, then mujin xml is returned. All the programs for all robots planned are returned.
+
+        \param[out] outputdata The raw program data
+     */
+    virtual void GetAllRawProgramData(std::string& outputdata, const std::string& programtype="auto");
+
+    /** \brief Gets the raw program information of a specific robot, if supported.
+
+       \param[in] programtype The type of program to return.
+       \param[in] robotpk The primary key of the robot instance in the scene.
+       \param[out] outputdata The raw program data
+       \throw mujin_exception If robot program is not supported, will throw an exception
+     */
+    virtual void GetRobotRawProgramData(std::string& outputdata, const std::string& robotpk, const std::string& programtype="auto");
+
+    /// \brief Gets parsed program information
+    ///
+    /// If the robot doesn't have a recognizable controller, then no programs might be returned.
+    /// \param[out] programs The programs for each robot. The best suited program for each robot is determined from its controller.
+    virtual void GetPrograms(RobotControllerPrograms& programs, const std::string& programtype="auto");
+};
 
 /** \en \brief creates the controller with an account. <b>This function is not thread safe.</b>
 
@@ -596,12 +624,6 @@ MUJINCLIENT_API ControllerClientPtr CreateControllerClient(const std::string& us
 
 /// \brief called at the very end of an application to safely destroy all controller client resources
 MUJINCLIENT_API void ControllerClientDestroy();
-
-// \brief Get the url-encoded primary key of a scene from a scene uri (utf-8 encoded)
-MUJINCLIENT_API std::string GetScenePrimaryKeyFromURI_UTF8(const std::string& uri);
-
-// \brief Get the url-encoded primary key of a scene from a scene uri (utf-16 encoded)
-MUJINCLIENT_API std::string GetScenePrimaryKeyFromURI_UTF16(const std::wstring& uri);
 
 /// \brief Compute a 3x4 matrix from a Transform
 MUJINCLIENT_API void ComputeMatrixFromTransform(Real matrix[12], const Transform &transform);

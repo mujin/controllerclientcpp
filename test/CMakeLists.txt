@@ -14,7 +14,5 @@
 include_directories(${MUJINCLIENT_INCLUDE_LOCAL_DIRS})
 link_directories(${MUJINCLIENT_LINK_DIRS})
 
-build_sample(mujinexecutetask)
-build_sample(mujinexecutetask_fast)
-build_sample(mujinimportscene)
-build_sample(mujinshowresults)
+build_sample(settaskparameters)
+build_sample(showresults)

@@ -40,11 +40,11 @@ int main(int argc, char ** argv)
         }
         catch(const MujinException& ex) {
             // failed to get name, so need to improt scene first
-            scene = controller->ImportScene("mujin:/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ", "wincaps", "mujin:/densowave_wincaps_data/threegoaltouch.mujin.dae");
+            scene = controller->ImportSceneToCOLLADA("mujin:/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ", "wincaps", "mujin:/densowave_wincaps_data/threegoaltouch.mujin.dae");
         }
 
         TaskResourcePtr task = scene->GetOrCreateTaskFromName("task0", "itlplanning");
-        ITLPlanningTaskInfo info;
+        ITLPlanningTaskParameters info;
         info.program = "settool(1)\n\
 move(translation(0,0,20)*p[Work0/2])\n\
 movel(p[Work0/2])\n\
@@ -58,7 +58,7 @@ movel(translation(0,0,20)*p[Work0/1])\n\
 move(translation(0,0,20)*p[Work0/3])\n\
 movel(p[Work0/3])\n\
 ";
-        task->SetTaskInfo(info);
+        task->SetTaskParameters(info);
 
         // cancel all current jobs
         controller->CancelAllJobs();

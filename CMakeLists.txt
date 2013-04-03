@@ -17,8 +17,8 @@ set( CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS TRUE )
 
 # Define here the needed parameters
 set (MUJINCLIENT_VERSION_MAJOR 0)
-set (MUJINCLIENT_VERSION_MINOR 1)
-set (MUJINCLIENT_VERSION_PATCH 4)
+set (MUJINCLIENT_VERSION_MINOR 2)
+set (MUJINCLIENT_VERSION_PATCH 0)
 set (MUJINCLIENT_VERSION ${MUJINCLIENT_VERSION_MAJOR}.${MUJINCLIENT_VERSION_MINOR}.${MUJINCLIENT_VERSION_PATCH})
 set (CLIENT_SOVERSION ${MUJINCLIENT_VERSION_MAJOR}.${MUJINCLIENT_VERSION_MINOR})
 message(STATUS "Compiling MUJIN Controller Client C++ Version ${MUJINCLIENT_VERSION}, soversion=${CLIENT_SOVERSION}")
@@ -30,6 +30,7 @@ cmake_policy(SET CMP0002 NEW)
 cmake_policy(SET CMP0003 NEW)
 
 option(OPT_SAMPLES "Build the samples" ON)
+option(OPT_BUILD_TESTS "Build the tests" OFF)
 
 # Use, i.e. don't skip the full RPATH for the build tree
 set(CMAKE_SKIP_BUILD_RPATH  FALSE)
@@ -216,7 +217,18 @@ install(FILES ${mujin_header_files} ${CMAKE_CURRENT_BINARY_DIR}/include/mujincon
 
 set(MUJINCLIENT_INCLUDE_LOCAL_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
+macro(build_sample name)
+  add_executable(${name} ${name}.cpp)
+  set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${Boost_CFLAGS}" LINK_FLAGS "")
+  add_dependencies(${name} mujincontrollerclient)
+  target_link_libraries (${name} mujincontrollerclient ${Boost_THREAD_LIBRARY} ${Boost_DATE_TIME_LIBRARY})
+  install(TARGETS ${name} DESTINATION bin)
+endmacro(build_sample)
+
 add_subdirectory(src)
 if( OPT_SAMPLES )
   add_subdirectory(samples)
+endif()
+if( OPT_BUILD_TESTS )
+  add_subdirectory(test)
 endif()

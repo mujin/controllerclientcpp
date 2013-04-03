@@ -1,7 +1,7 @@
 // -*- coding: utf-8 -*-
-/** \example mujinideal.cpp
+/** \example mujinideal_densowave.cpp
 
-    Shows how to execute a task on a specific scene and get the results. If the scene does not exist, will import it first.
+    Ideal usage of MUJIN Controller on DensoWave Wincaps RC8 files running on Windows.
  */
 #include <mujincontrollerclient/mujincontrollerclient.h>
 
@@ -68,13 +68,13 @@ int main(int argc, char ** argv)
 
         TaskResourcePtr task = scene->GetOrCreateTaskFromName("MYPAC1");
 
-        ITLPlanningTaskInfo taskinfo;
-        task->GetTaskInfo(taskinfo);
-        taskinfo.returntostart = 0;
-        taskinfo.speedoptimization = 0; ///< ignore all SPEED/ACCEL commands.
-        taskinfo.ignorefigure = 1;
-        taskinfo.vrcruns = 1; // 0
-        task->SetTaskInfo(taskinfo);
+        ITLPlanningTaskParameters taskparameters;
+        task->GetTaskParameters(taskparameters);
+        taskparameters.returntostart = 0;
+        taskparameters.speedoptimization = 0; ///< ignore all SPEED/ACCEL commands.
+        taskparameters.ignorefigure = 1;
+        taskparameters.vrcruns = 1; // 0
+        task->SetTaskParameters(taskparameters);
 
         task->Execute();
         // wait for task to finish
@@ -116,20 +116,20 @@ int main(int argc, char ** argv)
 
         OptimizationResourcePtr optimization = task->GetOrCreateOptimizationFromName("MYNAME0","robotplacement");
 
-        RobotPlacementOptimizationInfo optimizationinfo;
-        optimizationinfo.name = "casesupply";
-        optimizationinfo.frame = "Work1";
-        optimizationinfo.unit = "mm";
-        optimizationinfo.minrange[0] = -SX; // X
-        optimizationinfo.maxrange[0] = SX; // X
-        optimizationinfo.stepsize[0] = 100; // X
+        RobotPlacementOptimizationParameters optparams;
+        optparams.name = "casesupply";
+        optparams.frame = "Work1";
+        optparams.unit = "mm";
+        optparams.minrange[0] = -SX; // X
+        optparams.maxrange[0] = SX; // X
+        optparams.stepsize[0] = 100; // X
 
-        optimizationinfo.minrange[3] = -180; // angle
-        optimizationinfo.maxrange[3] = 90; // angle
-        optimizationinfo.stepsize[3] = 90;
-        optimizationinfo.ignorebasecollision = 1;
-        optimizationinfo.topstorecandidates = 20; // store only the top 20 candidates
-        optimization->SetOptimizationInfo(optimizationinfo);
+        optparams.minrange[3] = -180; // angle
+        optparams.maxrange[3] = 90; // angle
+        optparams.stepsize[3] = 90;
+        optparams.ignorebasecollision = 1;
+        optparams.topstorecandidates = 20; // store only the top 20 candidates
+        optimization->SetOptimizationParameters(optparams);
 
         optimization->Execute();
 

@@ -65,7 +65,7 @@ int main(int argc, char ** argv)
         cout << "program is " << task->Get("taskgoalxml") << endl;
 
         PlanningResultResourcePtr result = task->GetResult();
-        std::map<std::string, Transform> transforms;
+        EnvironmentState envstate;
         if( !!result ) {
             cout << "result for task exists and can be completed in " << result->Get("task_time") << " seconds." << endl;
         }
@@ -87,12 +87,12 @@ int main(int argc, char ** argv)
             cout << endl;
 
             PlanningResultResourcePtr bestresult = results.at(0);
-            bestresult->GetTransforms(transforms);
+            bestresult->GetEnvironmentState(envstate);
             cout << "robot position of best result is: ";
-            for(std::map<std::string, Transform>::iterator it = transforms.begin(); it != transforms.end(); ++it) {
-                Transform tfirst = it->second;
+            for(EnvironmentState::iterator it = envstate.begin(); it != envstate.end(); ++it) {
+                InstanceObjectState objstate = it->second;
                 // for now only output translation
-                cout << it->first << "=(" << tfirst.translation[0] << ", " << tfirst.translation[1] << ", " << tfirst.translation[2] << "), ";
+                cout << it->first << "=(" << objstate.transform.translation[0] << ", " << objstate.transform.translation[1] << ", " << objstate.transform.translation[2] << "), ";
             }
             cout << endl;
             std::string robotprogram = bestresult->Get("robot_programs");

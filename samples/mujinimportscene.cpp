@@ -33,7 +33,7 @@ int main(int argc, char ** argv)
 
         // try to import the scene, if it already exists delete it and import again
         try {
-            controller->ImportScene("mujin:/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ", "wincaps", "mujin:/test.mujin.dae");
+            controller->ImportSceneToCOLLADA("mujin:/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ", "wincaps", "mujin:/test.mujin.dae");
         }
         catch(const MujinException& ex) {
             if( ex.message().find("need to remove it first") != std::string::npos ) {
@@ -44,7 +44,7 @@ int main(int argc, char ** argv)
                     std::cout << "try removing the file and importing again" << std::endl;
                     SceneResource oldscene(controller,"test");
                     oldscene.Delete();
-                    controller->ImportScene("mujin:/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ", "wincaps", "mujin:/test.mujin.dae");
+                    controller->ImportSceneToCOLLADA("mujin:/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ", "wincaps", "mujin:/test.mujin.dae");
                 }
             }
             else {
