@@ -375,14 +375,16 @@ public:
     /** \brief uploads a particular scene's files into the network filesystem.
 
         \param sourcefilename Local filesystem location of the top-level file. If the scenetype requires many files, will upload all of them.
-        \param destinationdir Destination folder in the network file system. By default use: "mujin:/"
+        \param destinationdir Destination folder in the network file system. Should always have trailing slash. By default use: "mujin:/"
         \param scenetype The type of scene uploading.
+        \throw mujin_exception if the upload fails, will throw an exception
      */
-    virtual bool SyncUpload(const std::string& sourcefilename, const std::string& destinationdir, const std::string& scenetype) = 0;
+    virtual void SyncUpload(const std::string& sourcefilename, const std::string& destinationdir, const std::string& scenetype) = 0;
 
-    virtual bool SyncUpload(const std::string& sourcefilename, const std::string& destinationdir)
+    /// \see SyncUpload
+    virtual void SyncUpload(const std::string& sourcefilename, const std::string& destinationdir)
     {
-        return SyncUpload(sourcefilename, destinationdir, GetDefaultSceneType());
+        SyncUpload(sourcefilename, destinationdir, GetDefaultSceneType());
     }
 
     virtual void SetDefaultSceneType(const std::string& scenetype) = 0;
@@ -467,7 +469,7 @@ public:
         std::string name;
         std::string object_pk;
         std::string reference_uri;
-        Real rotate[4]; // quaternion
+        Real rotate[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
         Real translate[3];
     };
     typedef boost::shared_ptr<InstObject> InstObjectPtr;

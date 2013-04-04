@@ -16,3 +16,4 @@ link_directories(${MUJINCLIENT_LINK_DIRS})
 
 build_sample(settaskparameters)
 build_sample(showresults)
+build_sample(uploadregister)

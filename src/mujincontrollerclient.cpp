@@ -22,10 +22,19 @@
 #include <boost/format.hpp>
 #include <boost/function.hpp>
 #include <boost/enable_shared_from_this.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 
 #include <sstream>
 #include <iostream>
 #include <curl/curl.h>
+
+#if defined(_WIN32) || defined(_WIN64)
+// win32 specific includes?
+#else
+#include <sys/stat.h>
+#include <fcntl.h>
+#endif
+
 
 #include "utf8.h"
 
@@ -55,6 +64,24 @@
 #define MUJIN_ASSERT_OP_FORMAT0(expr1,op,expr2,s, errorcode) { if( !((expr1) op (expr2)) ) { throw mujinclient::MujinException(boost::str(boost::format("[%s:%d] %s %s %s, (eval %s %s %s) " s)%(__PRETTY_FUNCTION__)%(__LINE__)%(# expr1)%(# op)%(# expr2)%(expr1)%(# op)%(expr2)),errorcode); } }
 
 #define MUJIN_ASSERT_OP(expr1,op,expr2) { if( !((expr1) op (expr2)) ) { throw mujinclient::MujinException(boost::str(boost::format("[%s:%d] %s %s %s, (eval %s %s %s) ")%(__PRETTY_FUNCTION__)%(__LINE__)%(# expr1)%(# op)%(# expr2)%(expr1)%(# op)%(expr2)),MEC_Assert); } }
+
+#include <boost/filesystem/operations.hpp>
+
+#if !defined(BOOST_FILESYSTEM_VERSION) || BOOST_FILESYSTEM_VERSION <= 2
+namespace boost {
+namespace filesystem {
+inline path absolute(const path& p)
+{
+    return complete(p, initial_path());
+}
+
+inline path absolute(const path& p, const path& base)
+{
+    return complete(p, base);
+}
+}
+}
+#endif
 
 namespace mujinclient {
 
@@ -102,15 +129,33 @@ class ControllerClientImpl : public ControllerClient, public boost::enable_share
 public:
     ControllerClientImpl(const std::string& usernamepassword, const std::string& baseuri, const std::string& proxyserverport, const std::string& proxyuserpw, int options)
     {
+        size_t usernameindex = usernamepassword.find_first_of(':');
+        BOOST_ASSERT(usernameindex != std::string::npos );
+        std::string username = usernamepassword.substr(0,usernameindex);
+        std::string password = usernamepassword.substr(usernameindex+1);
+
         _httpheaders = NULL;
         if( baseuri.size() > 0 ) {
             _baseuri = baseuri;
+            // ensure trailing slash
+            if( _baseuri[_baseuri.size()-1] != '/' ) {
+                _baseuri.push_back('/');
+            }
         }
         else {
             // use the default
             _baseuri = "https://controller.mujin.co.jp/";
         }
         _baseapiuri = _baseuri + std::string("api/v1/");
+        // hack for now since webdav server and api server could be running on different ports
+        if( boost::algorithm::ends_with(_baseuri, ":8000/") ) {
+            // testing on localhost, however the webdav server is running on port 80...
+            _basewebdavuri = str(boost::format("%s/u/%s/")%_baseuri.substr(0,_baseuri.size()-6)%username);
+        }
+        else {
+            _basewebdavuri = str(boost::format("%su/%s/")%_baseuri%username);
+        }
+
         //CURLcode code = curl_global_init(CURL_GLOBAL_SSL|CURL_GLOBAL_WIN32);
         _curl = curl_easy_init();
         BOOST_ASSERT(!!_curl);
@@ -177,9 +222,6 @@ public:
         CHECKCURLCODE(res, "failed to max redirs");
 
         if( !(options & 1) ) {
-            size_t index = usernamepassword.find_first_of(':');
-            BOOST_ASSERT(index != std::string::npos );
-
             // make an initial GET call to get the CSRF token
             std::string loginuri = _baseuri + "login/";
             curl_easy_setopt(_curl, CURLOPT_URL, loginuri.c_str());
@@ -206,7 +248,7 @@ public:
             }
             else if( http_code == 200 ) {
                 _csrfmiddlewaretoken = _GetCSRFFromCookies();
-                std::string data = str(boost::format("username=%s&password=%s&this_is_the_login_form=1&next=%%2F&csrfmiddlewaretoken=%s")%usernamepassword.substr(0,index)%usernamepassword.substr(index+1)%_csrfmiddlewaretoken);
+                std::string data = str(boost::format("username=%s&password=%s&this_is_the_login_form=1&next=%%2F&csrfmiddlewaretoken=%s")%username%password%_csrfmiddlewaretoken);
                 curl_easy_setopt(_curl, CURLOPT_POSTFIELDSIZE, data.size());
                 curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, data.c_str());
                 curl_easy_setopt(_curl, CURLOPT_REFERER, loginuri.c_str());
@@ -361,11 +403,11 @@ public:
         }
     }
 
-    virtual SceneResourcePtr RegisterScene(const std::string& uri, const std::string& format)
+    virtual SceneResourcePtr RegisterScene(const std::string& uri, const std::string& scenetype)
     {
-        BOOST_ASSERT(format.size()>0);
+        BOOST_ASSERT(scenetype.size()>0);
         boost::property_tree::ptree pt;
-        CallPost("scene/?format=json&fields=pk", str(boost::format("{\"uri\":\"%s\", \"scenetype\":\"%s\"}")%uri%format), pt);
+        CallPost("scene/?format=json&fields=pk", str(boost::format("{\"uri\":\"%s\", \"scenetype\":\"%s\"}")%uri%scenetype), pt);
         std::string pk = pt.get<std::string>("pk");
         SceneResourcePtr scene(new SceneResource(shared_from_this(), pk));
         return scene;
@@ -381,10 +423,103 @@ public:
         return scene;
     }
 
-    virtual bool SyncUpload(const std::string& sourcefilename, const std::string& destinationdir, const std::string& scenetype)
+    class CustomRequestSetter
     {
-        BOOST_ASSERT(scenetype.size()>0);
-        throw MujinException("not implemented");
+public:
+        CustomRequestSetter(CURL *curl, const char* method) : _curl(curl) {
+            curl_easy_setopt(_curl, CURLOPT_CUSTOMREQUEST, method);
+        }
+        ~CustomRequestSetter() {
+            curl_easy_setopt(_curl, CURLOPT_CUSTOMREQUEST, NULL);
+        }
+protected:
+        CURL* _curl;
+    };
+
+    virtual void SyncUpload(const std::string& sourcefilename, const std::string& destinationdir, const std::string& scenetype)
+    {
+        boost::mutex::scoped_lock lock(_mutex);
+        std::string baseuploaduri;
+        if( destinationdir.size() >= 7 && destinationdir.substr(0,7) == "mujin:/" ) {
+            baseuploaduri = _basewebdavuri;
+            baseuploaduri += destinationdir.substr(7);
+
+            // go through every directory
+            boost::filesystem::path bfpdestinationdir(destinationdir.substr(7));
+            std::list<std::string> listCreateDirs;
+            while( !bfpdestinationdir.parent_path().empty() ) {
+                boost::filesystem::path bfpparent = bfpdestinationdir.parent_path();
+                listCreateDirs.push_front(bfpparent.string());
+                bfpdestinationdir = bfpparent;
+            }
+
+            CustomRequestSetter setter(_curl, "MKCOL");
+            for(std::list<std::string>::iterator itdir = listCreateDirs.begin(); itdir != listCreateDirs.end(); ++itdir) {
+                // first have to create the directory structure up to destinationdir
+                _uri = _basewebdavuri + *itdir;
+                curl_easy_setopt(_curl, CURLOPT_URL, _uri.c_str());
+                CURLcode res = curl_easy_perform(_curl);
+                CHECKCURLCODE(res, "curl_easy_perform failed");
+                long http_code = 0;
+                res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
+                /* creating directories
+
+                   Responses from a MKCOL request MUST NOT be cached as MKCOL has non-idempotent semantics.
+
+                   201 (Created) - The collection or structured resource was created in its entirety.
+
+                   403 (Forbidden) - This indicates at least one of two conditions: 1) the server does not allow the creation of collections at the given location in its namespace, or 2) the parent collection of the Request-URI exists but cannot accept members.
+
+                   405 (Method Not Allowed) - MKCOL can only be executed on a deleted/non-existent resource.
+
+                   409 (Conflict) - A collection cannot be made at the Request-URI until one or more intermediate collections have been created.
+
+                   415 (Unsupported Media Type)- The server does not support the request type of the body.
+
+                   507 (Insufficient Storage) - The resource does not have sufficient space to record the state of the resource after the execution of this method.
+
+                 */
+                if( http_code != 201 && http_code != 301 ) {
+                    throw MUJIN_EXCEPTION_FORMAT("HTTP MKCOL failed with HTTP status %d", http_code, MEC_HTTPServer);
+                }
+            }
+        }
+        else {
+            baseuploaduri = destinationdir;
+        }
+        // ensure trailing slash
+        if( baseuploaduri[baseuploaduri.size()-1] != '/' ) {
+            baseuploaduri.push_back('/');
+        }
+
+        // tell it to "upload" to the URL
+        curl_easy_setopt(_curl, CURLOPT_HTTPGET, 0L);
+        curl_easy_setopt(_curl, CURLOPT_UPLOAD, 1L);
+        //curl_easy_setopt(_curl, CURLOPT_NOBODY, 1L);
+#if defined(_WIN32) || defined(_WIN64)
+        curl_easy_setopt(_curl, CURLOPT_READFUNCTION, _ReadUploadCallback);
+#endif
+
+        boost::filesystem::path bfpsourcefilename(sourcefilename);
+        if( scenetype == "wincaps" ) {
+            // scenefilenames is the WPJ file, so have to open it up to see what directory it points to
+            // note that the encoding is utf-16
+            // <clsProject Object="True">
+            //   <WCNPath VT="8">.\threegoaltouch\threegoaltouch.WCN;</WCNPath>
+            // </clsProject>
+        }
+
+        _UploadSingleFile(sourcefilename, baseuploaduri+bfpsourcefilename.filename());
+        //std::string = bfpsourcefilename.filename();
+
+
+        /* webdav operations
+           const char *postdata =
+           "<?xml version=\"1.0\"?><D:searchrequest xmlns:D=\"DAV:\" >"
+           "<D:sql>SELECT \"http://schemas.microsoft.com/repl/contenttag\""
+           " from SCOPE ('deep traversal of \"/exchange/adb/Calendar/\"') "
+           "WHERE \"DAV:isfolder\" = True</D:sql></D:searchrequest>\r\n";
+         */
     }
 
     /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
@@ -521,17 +656,6 @@ public:
         return _buffer;
     }
 
-    /* webdav operations
-       const char *postdata =
-       "<?xml version=\"1.0\"?><D:searchrequest xmlns:D=\"DAV:\" >"
-       "<D:sql>SELECT \"http://schemas.microsoft.com/repl/contenttag\""
-       " from SCOPE ('deep traversal of \"/exchange/adb/Calendar/\"') "
-       "WHERE \"DAV:isfolder\" = True</D:sql></D:searchrequest>\r\n";
-
-       CURLOPT_UPLOAD
-
-     */
-
     virtual void SetDefaultSceneType(const std::string& scenetype)
     {
         _defaultscenetype = scenetype;
@@ -628,11 +752,75 @@ protected:
         return csrfmiddlewaretoken;
     }
 
+    /// \brief uploads a single file, assumes the directory already exists
+    ///
+    /// overwrites the file if it already exists
+    void _UploadSingleFile(const std::string& filename, const std::string& uri)
+    {
+        FILE * fd = fopen(filename.c_str(), "rb");
+        if(!fd) {
+            throw MUJIN_EXCEPTION_FORMAT("failed to open filename %s for uploading", filename, MEC_InvalidArguments);
+        }
+
+#if defined(_WIN32) || defined(_WIN64)
+        fseek(fd,0,SEEK_END);
+        curl_off_t filesize = ftell(fd);
+        fseek(fd,0,SEEK_SET);
+#else
+        // to get the file size
+        struct stat file_info;
+        if(fstat(fileno(fd), &file_info) != 0) {
+            fclose(fd); // make sure to close the handle
+            throw MUJIN_EXCEPTION_FORMAT("failed to stat filename %s for filesize", filename, MEC_InvalidArguments);
+        }
+        curl_off_t filesize = (curl_off_t)file_info.st_size;
+#endif
+
+        _uri = uri;
+        curl_easy_setopt(_curl, CURLOPT_URL, _uri.c_str());
+        curl_easy_setopt(_curl, CURLOPT_READDATA, fd);
+        curl_easy_setopt(_curl, CURLOPT_INFILESIZE_LARGE, filesize);
+
+        curl_easy_setopt(_curl, CURLOPT_VERBOSE, 1L);
+
+        CURLcode res = curl_easy_perform(_curl);
+        fclose(fd); // make sure to close the handle
+        CHECKCURLCODE(res, "curl_easy_perform failed");
+        long http_code = 0;
+        res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
+        if( http_code != 201 ) {
+            if( http_code == 400 ) {
+                throw MUJIN_EXCEPTION_FORMAT("upload failed with HTTP status %s, perhaps file exists already?", http_code, MEC_HTTPServer);
+            }
+            else {
+                throw MUJIN_EXCEPTION_FORMAT("upload failed with HTTP status %s", http_code, MEC_HTTPServer);
+            }
+        }
+        // now extract transfer info
+        //double speed_upload, total_time;
+        //curl_easy_getinfo(_curl, CURLINFO_SPEED_UPLOAD, &speed_upload);
+        //curl_easy_getinfo(_curl, CURLINFO_TOTAL_TIME, &total_time);
+        //printf("http code: %d, Speed: %.3f bytes/sec during %.3f seconds\n", http_code, speed_upload, total_time);
+    }
+
+    /// \brief read upload function for win32.
+    /// MUST also provide this read callback using CURLOPT_READFUNCTION. Failing to do so will give you a crash since a DLL may not use the variable's memory when passed in to it from an app like this. */
+    static size_t _ReadUploadCallback(void *ptr, size_t size, size_t nmemb, void *stream)
+    {
+        curl_off_t nread;
+        // in real-world cases, this would probably get this data differently as this fread() stuff is exactly what the library already would do by default internally
+        size_t retcode = fread(ptr, size, nmemb, (FILE*)stream);
+
+        nread = (curl_off_t)retcode;
+        //fprintf(stderr, "*** We read %" CURL_FORMAT_CURL_OFF_T " bytes from file\n", nread);
+        return retcode;
+    }
+
     int _lastmode;
     CURL *_curl;
     boost::mutex _mutex;
     std::stringstream _buffer;
-    std::string _baseuri, _baseapiuri, _uri;
+    std::string _baseuri, _baseapiuri, _basewebdavuri, _uri;
 
     curl_slist *_httpheaders;
     std::string _charset, _language;
