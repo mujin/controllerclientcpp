@@ -796,15 +796,24 @@ protected:
         return output;
     }
 
-    /// \param destinationdir the directory inside the user webdav folder
+    /// \param destinationdir the directory inside the user webdav folder. has a trailing slash
     void _EnsureWebDAVDirectories(const std::string& destinationdir)
     {
         // go through every directory
         boost::filesystem::path bfpdestinationdir(destinationdir);
         std::list<std::string> listCreateDirs;
-        while( !bfpdestinationdir.parent_path().empty() ) {
+        while( !bfpdestinationdir.empty() ) {
             boost::filesystem::path bfpparent = bfpdestinationdir.parent_path();
-            listCreateDirs.push_front(bfpparent.string());
+#if defined(BOOST_FILESYSTEM_VERSION) && BOOST_FILESYSTEM_VERSION >= 3
+            std::string filename = bfpdestinationdir.filename().string();
+#else
+            std::string filename = bfpdestinationdir.filename();
+#endif
+            if( filename != "." ) {
+                char* pescapedname = curl_easy_escape(_curl, filename.c_str(), filename.size());
+                listCreateDirs.push_front(pescapedname);
+                curl_free(pescapedname);
+            }
             bfpdestinationdir = bfpparent;
         }
 
@@ -817,11 +826,14 @@ protected:
         //}
 
         CurlCustomRequestSetter setter(_curl, "MKCOL");
+        std::string totaluri = "";
         for(std::list<std::string>::iterator itdir = listCreateDirs.begin(); itdir != listCreateDirs.end(); ++itdir) {
             // first have to create the directory structure up to destinationdir
-            char* pescapeddir = curl_easy_escape(_curl, itdir->c_str(), itdir->size());
-            _uri = _basewebdavuri + std::string(pescapeddir);
-            curl_free(pescapeddir);
+            if( totaluri.size() > 0 ) {
+                totaluri += '/';
+            }
+            totaluri += *itdir;
+            _uri = _basewebdavuri + totaluri;
             curl_easy_setopt(_curl, CURLOPT_URL, _uri.c_str());
             CURLcode res = curl_easy_perform(_curl);
             CHECKCURLCODE(res, "curl_easy_perform failed");
