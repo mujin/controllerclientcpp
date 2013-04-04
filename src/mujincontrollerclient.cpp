@@ -34,8 +34,17 @@
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
 #else
+
+#if BOOST_VERSION >= 104400
+// boost filesystem v3 is present after v1.44, so force using it
+#define BOOST_FILESYSTEM_VERSION 3
+#endif
+
+// only use boost filesystem on linux since it is difficult to get working correctly with windows
+#include <boost/filesystem/operations.hpp>
 #include <sys/stat.h>
 #include <fcntl.h>
+
 #endif // defined(_WIN32) || defined(_WIN64)
 
 #include "utf8.h"
@@ -66,24 +75,6 @@
 #define MUJIN_ASSERT_OP_FORMAT0(expr1,op,expr2,s, errorcode) { if( !((expr1) op (expr2)) ) { throw mujinclient::MujinException(boost::str(boost::format("[%s:%d] %s %s %s, (eval %s %s %s) " s)%(__PRETTY_FUNCTION__)%(__LINE__)%(# expr1)%(# op)%(# expr2)%(expr1)%(# op)%(expr2)),errorcode); } }
 
 #define MUJIN_ASSERT_OP(expr1,op,expr2) { if( !((expr1) op (expr2)) ) { throw mujinclient::MujinException(boost::str(boost::format("[%s:%d] %s %s %s, (eval %s %s %s) ")%(__PRETTY_FUNCTION__)%(__LINE__)%(# expr1)%(# op)%(# expr2)%(expr1)%(# op)%(expr2)),MEC_Assert); } }
-
-#include <boost/filesystem/operations.hpp>
-
-#if !defined(BOOST_FILESYSTEM_VERSION) || BOOST_FILESYSTEM_VERSION <= 2
-namespace boost {
-namespace filesystem {
-inline path absolute(const path& p)
-{
-    return complete(p, initial_path());
-}
-
-inline path absolute(const path& p, const path& base)
-{
-    return complete(p, base);
-}
-}
-}
-#endif
 
 BOOST_STATIC_ASSERT(sizeof(unsigned short) == 2); // need this for utf-16 reading
 
@@ -121,6 +112,7 @@ std::map<int, std::string> InitializeCodePageMap()
     mapCodePageToCharset[28592] = "latin2";
     mapCodePageToCharset[936] = "ISO-IR-58";
     mapCodePageToCharset[1258] = "windows-1258";
+    mapCodePageToCharset[65001] = "utf-8";
     return mapCodePageToCharset;
 }
 static std::map<int, std::string> s_mapCodePageToCharset = InitializeCodePageMap();
@@ -224,6 +216,11 @@ std::string ConvertFileSystemEncodingToUTF8(const std::string& fs)
 
 }
 
+#ifdef _WIN32
+const char s_filesep = '\\';
+#else
+const char s_filesep = '/';
+#endif
 
 static bool PairStringLengthCompare(const std::pair<std::string, std::string>&p0, const std::pair<std::string, std::string>&p1)
 {
@@ -617,7 +614,15 @@ protected:
             baseuploaduri.push_back('/');
         }
 
-		boost::filesystem::path bfpsourcefilename(encoding::ConvertUTF8ToFileSystemEncoding(sourcefilename));
+		size_t nBaseFilenameStartIndex = sourcefilename.find_last_of(s_filesep);
+        if( nBaseFilenameStartIndex == std::string::npos ) {
+            // there's no path?
+            nBaseFilenameStartIndex = 0;
+        }
+        else {
+            nBaseFilenameStartIndex++;
+        }
+
         if( scenetype == "wincaps" ) {
             // scenefilenames is the WPJ file, so have to open it up to see what directory it points to
             // note that the encoding is utf-16
@@ -625,7 +630,7 @@ protected:
             //   <WCNPath VT="8">.\threegoaltouch\threegoaltouch.WCN;</WCNPath>
             // </clsProject>
             // first have to get the raw utf-16 data
-            std::ifstream wpjfilestream(bfpsourcefilename.string().c_str(), std::ios::binary|std::ios::in);
+            std::ifstream wpjfilestream(encoding::ConvertUTF8ToFileSystemEncoding(sourcefilename), std::ios::binary|std::ios::in);
             if( !wpjfilestream ) {
                 throw MUJIN_EXCEPTION_FORMAT("failed to open file %s", sourcefilename, MEC_InvalidArguments);
             }
@@ -646,36 +651,45 @@ protected:
                 if( strWCNPath.at(strWCNPath.size()-1) == ';') {
                     strWCNPath.resize(strWCNPath.size()-1);
                 }
+
+                std::string strWCNURI = strWCNPath;
+                size_t lastindex = 0;
+                for(size_t i = 0; i < strWCNURI.size(); ++i) {
+                    if( strWCNURI[i] == '\\' ) {
+                        strWCNURI[i] = '/';
+                        lastindex = i;
+                    }
+                }
+
+                if( strWCNPath.size() >= 2 && (strWCNPath[0] == '.' && strWCNPath[1] == '\\') ) {
+                    // don't need the prefix
+                    strWCNPath = strWCNPath.substr(2);
+                    strWCNURI = strWCNURI.substr(2);
+                    if( lastindex < 2 ) {
+                        lastindex = 0;
+                    }
+                    else {
+                        lastindex -= 2;
+                    }
+                }
+
+
 #if defined(_WIN32) || defined(_WIN64)
 #else
                 // separator are in windows, so have to convert
-                for(size_t i = 0; i < strWCNPath.size(); ++i) {
-                    if( strWCNPath[i] == '\\' ) {
-                        strWCNPath[i] = '/';
-                    }
-                }
+                strWCNPath = strWCNURI;
 #endif
-				boost::filesystem::path winpath(encoding::ConvertUTF8ToFileSystemEncoding(strWCNPath));
-                boost::filesystem::path copydir = bfpsourcefilename.parent_path() / winpath.parent_path().normalize();
-                std::string winpathdir = winpath.parent_path().string();
-                if( winpathdir.size() >= 2 && (winpathdir.substr(0,2) == "./" || winpathdir.substr(0,2) == ".\\") ) {
-                    // don't need the ./ prefix
-                    winpathdir = winpathdir.substr(2);
-                }
-                _UploadDirectoryToWebDAV(copydir, baseuploaduri+_EncodeWithoutSeparator(winpathdir));
+
+                std::string sCopyDir = sourcefilename.substr(0,nBaseFilenameStartIndex) + strWCNPath.substr(0,lastindex);
+                _UploadDirectoryToWebDAV_UTF8(sCopyDir, baseuploaduri+_EncodeWithoutSeparator(strWCNURI.substr(0,lastindex)));
             }
         }
 
 		// sourcefilenamebase is utf-8
-#if defined(BOOST_FILESYSTEM_VERSION) && BOOST_FILESYSTEM_VERSION >= 3
-        std::string sourcefilenamebase = boost::filesystem::path(sourcefilename).filename().string();
-#else
-        std::string sourcefilenamebase = boost::filesystem::path(sourcefilename).filename();
-#endif
-        char* pescapeddir = curl_easy_escape(_curl, sourcefilenamebase.c_str(), 0);
+        char* pescapeddir = curl_easy_escape(_curl, sourcefilename.substr(nBaseFilenameStartIndex).c_str(), 0);
         std::string uploadfileuri = baseuploaduri + std::string(pescapeddir);
         curl_free(pescapeddir);
-        _UploadFileToWebDAV(bfpsourcefilename, uploadfileuri);
+        _UploadFileToWebDAV_UTF8(sourcefilename, uploadfileuri);
 
         /* webdav operations
            const char *postdata =
@@ -1010,9 +1024,9 @@ protected:
     /// \brief recursively uploads a directory and creates directories along the way if they don't exist
     ///
 	/// overwrites all the files
-	/// \param copydir is already file-system encoded 
+	/// \param copydir is utf-8 encoded
 	/// \param uri is URI-encoded
-    void _UploadDirectoryToWebDAV(const boost::filesystem::path& copydir, const std::string& uri)
+    void _UploadDirectoryToWebDAV_UTF8(const std::string& copydir, const std::string& uri)
     {
         {
             // make sure the directory is created
@@ -1026,8 +1040,44 @@ protected:
                 throw MUJIN_EXCEPTION_FORMAT("HTTP MKCOL failed for %s with HTTP status %d: %s", uri%http_code%_errormessage, MEC_HTTPServer);
             }
         }
-        std::cout << "uploading " << copydir.string() << " -> " << uri << std::endl;
-        for(boost::filesystem::directory_iterator itdir(copydir); itdir != boost::filesystem::directory_iterator(); ++itdir) {
+
+        std::string sCopyDir_FS = encoding::ConvertUTF8ToFileSystemEncoding(copydir);
+        std::cout << "uploading " << sCopyDir_FS << " -> " << uri << std::endl;
+
+#if defined(_WIN32) || defined(_WIN64)
+        WIN32_FIND_DATA ffd;
+        std::string searchstr = sCopyDir_FS + std::string("\\*");
+        HANDLE hFind = FindFirstFile(searchstr.c_str(), &ffd);
+        if (hFind == INVALID_HANDLE_VALUE)  {
+            throw MUJIN_EXCEPTION_FORMAT("could not retrieve file data for %s", sCopyDir_FS, MEC_Assert);
+        }
+
+        do {
+            std::string filename = std::string(ffd.cFileName);
+            if( filename != "." && filename != ".." ) {
+                std::string filename_utf8 = encoding::ConvertMBStoUTF8(filename);
+                std::string newcopydir = str(boost::format("%s\\%s")%copydir%filename_utf8);
+                char* pescapeddir = curl_easy_escape(_curl, filename_utf8.c_str(), filename_utf8.size());
+                std::string newuri = str(boost::format("%s/%s")%uri%pescapeddir);
+                curl_free(pescapeddir);
+
+                if( ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) {
+                    _UploadDirectoryToWebDAV_UTF8(newcopydir, newuri);
+                }
+                else if( ffd.dwFileAttributes == 0 || ffd.dwFileAttributes == FILE_ATTRIBUTE_READONLY || ffd.dwFileAttributes == FILE_ATTRIBUTE_NORMAL || ffd.dwFileAttributes == FILE_ATTRIBUTE_ARCHIVE ) {
+                    _UploadFileToWebDAV_UTF8(newcopydir, newuri);
+                }
+            }
+        } while(FindNextFile(hFind,&ffd) != 0);
+
+        DWORD err = GetLastError();
+        FindClose(hFind);
+        if( err !=  ERROR_NO_MORE_FILES ) {
+            throw MUJIN_EXCEPTION_FORMAT("system error 0x%x when recursing through %s", err%sCopyDir_FS, MEC_HTTPServer);
+        }
+        
+#else
+        for(boost::filesystem::directory_iterator itdir(boost::filesystem::path(copydir)); itdir != boost::filesystem::directory_iterator(); ++itdir) {
 #if defined(BOOST_FILESYSTEM_VERSION) && BOOST_FILESYSTEM_VERSION >= 3
 			std::string dirfilename = encoding::ConvertFileSystemEncodingToUTF8(itdir->path().filename().string());
 #else
@@ -1037,22 +1087,24 @@ protected:
             std::string newuri = str(boost::format("%s/%s")%uri%pescapeddir);
             curl_free(pescapeddir);
             if( boost::filesystem::is_directory(itdir->status()) ) {
-                _UploadDirectoryToWebDAV(itdir->path(), newuri);
+                _UploadDirectoryToWebDAV_UTF8(itdir->path(), newuri);
             }
             else if( boost::filesystem::is_regular_file(itdir->status()) ) {
-                _UploadFileToWebDAV(itdir->path(), newuri);
+                _UploadFileToWebDAV_UTF8(itdir->path(), newuri);
             }
         }
+#endif // defined(_WIN32) || defined(_WIN64)
     }
 
     /// \brief uploads a single file, assumes the directory already exists
     ///
     /// overwrites the file if it already exists
-	void _UploadFileToWebDAV(const boost::filesystem::path& bfpfilename, const std::string& uri)
+	void _UploadFileToWebDAV_UTF8(const std::string& filename, const std::string& uri)
     {
-        FILE * fd = fopen(bfpfilename.string().c_str(), "rb");
+        std::string sFilename_FS = encoding::ConvertUTF8ToFileSystemEncoding(filename);
+        FILE * fd = fopen(sFilename_FS.c_str(), "rb");
         if(!fd) {
-            throw MUJIN_EXCEPTION_FORMAT("failed to open filename %s for uploading", bfpfilename.string(), MEC_InvalidArguments);
+            throw MUJIN_EXCEPTION_FORMAT("failed to open filename %s for uploading", sFilename_FS, MEC_InvalidArguments);
         }
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -1116,7 +1168,7 @@ protected:
 
     int _lastmode;
     CURL *_curl;
-    boost::mutex _mutex;
+	boost::mutex _mutex;
     std::stringstream _buffer;
     std::string _baseuri, _baseapiuri, _basewebdavuri, _uri;
 

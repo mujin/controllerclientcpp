@@ -47,11 +47,6 @@
 #include <sstream>
 
 #include <boost/version.hpp>
-#if BOOST_VERSION >= 104400
-// boost filesystem v3 is present after v1.44, so force using it
-#define BOOST_FILESYSTEM_VERSION 3
-#endif
-
 #include <boost/shared_ptr.hpp>
 #include <boost/weak_ptr.hpp>
 #include <boost/format.hpp>

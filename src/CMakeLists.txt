@@ -24,5 +24,5 @@ set_target_properties(mujincontrollerclient PROPERTIES COMPILE_FLAGS "${EXTRA_CO
   VERSION ${MUJINCLIENT_VERSION}
   CLEAN_DIRECT_OUTPUT 1
   )
-target_link_libraries(mujincontrollerclient ${CURL_LIBRARIES} ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY})
+target_link_libraries(mujincontrollerclient ${CURL_LIBRARIES} ${EXTRA_LIBRARIES})
 install(TARGETS mujincontrollerclient RUNTIME DESTINATION bin LIBRARY DESTINATION bin ARCHIVE DESTINATION lib${LIB_SUFFIX})
