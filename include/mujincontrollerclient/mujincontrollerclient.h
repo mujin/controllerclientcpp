@@ -21,8 +21,6 @@
 #define BOOST_ENABLE_ASSERT_HANDLER
 #endif
 
-#define BOOST_FILESYSTEM_VERSION 3 // use boost filesystem v3
-
 #ifdef _MSC_VER
 
 #pragma warning(disable:4251) // needs to have dll-interface to be used by clients of class
@@ -49,6 +47,11 @@
 #include <sstream>
 
 #include <boost/version.hpp>
+#if BOOST_VERSION >= 104400
+// boost filesystem v3 is present after v1.44, so force using it
+#define BOOST_FILESYSTEM_VERSION 3
+#endif
+
 #include <boost/shared_ptr.hpp>
 #include <boost/weak_ptr.hpp>
 #include <boost/format.hpp>
@@ -374,7 +377,7 @@ public:
 
     /** \brief uploads a particular scene's files into the network filesystem.
 
-        \param sourcefilename UTF-8 encoded local filesystem location of the top-level file. If the scenetype requires many files, will upload all of them.
+        \param sourcefilename URI-encoded local filesystem location of the top-level file. If the scenetype requires many files, will upload all of them.
         \param destinationdir UTF-8 encoded destination folder in the network file system. Should always have trailing slash. By default use: "mujin:/"
         \param scenetype The type of scene uploading.
         \throw mujin_exception if the upload fails, will throw an exception

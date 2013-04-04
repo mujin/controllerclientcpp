@@ -19,6 +19,7 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/static_assert.hpp>
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>
 #include <boost/function.hpp>
@@ -36,7 +37,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #endif
-
 
 #include "utf8.h"
 
@@ -84,6 +84,8 @@ inline path absolute(const path& p, const path& base)
 }
 }
 #endif
+
+BOOST_STATIC_ASSERT(sizeof(unsigned short) == 2); // need this for utf-16 reading
 
 namespace mujinclient {
 
@@ -487,8 +489,8 @@ protected:
             std::stringstream wpjfilestream2;
             wpjfilestream2 << wpjfilestream.rdbuf() << '\0';
             std::string wpjfilestreamdata = wpjfilestream2.str();
-            uint16_t* pstart = (uint16_t*)wpjfilestreamdata.c_str();
-            uint16_t* pend = pstart + wpjfilestreamdata.size()/2;
+            const unsigned short* pstart = reinterpret_cast<const unsigned short*>(wpjfilestreamdata.c_str());
+            const unsigned short* pend = pstart + wpjfilestreamdata.size()/2;
             std::stringstream utf8stream;
             utf8::utf16to8(pstart, pend, std::ostream_iterator<char>(utf8stream));
             boost::property_tree::ptree wpj;
@@ -513,7 +515,7 @@ protected:
                 boost::filesystem::path winpath(strWCNPath);
                 boost::filesystem::path copydir = bfpsourcefilename.parent_path() / winpath.parent_path().normalize();
                 std::string winpathdir = winpath.parent_path().string();
-                if( winpathdir.size() >= 2 && winpathdir.substr(0,2) == "./" ) {
+                if( winpathdir.size() >= 2 && (winpathdir.substr(0,2) == "./" || winpathdir.substr(0,2) == ".\\") ) {
                     // don't need the ./ prefix
                     winpathdir = winpathdir.substr(2);
                 }
@@ -521,7 +523,12 @@ protected:
             }
         }
 
-        char* pescapeddir = curl_easy_escape(_curl, bfpsourcefilename.filename().c_str(), 0);
+#if defined(BOOST_FILESYSTEM_VERSION) && BOOST_FILESYSTEM_VERSION >= 3
+        std::string sourcefilenamebase = bfpsourcefilename.filename().string();
+#else
+        std::string sourcefilenamebase = bfpsourcefilename.filename();
+#endif
+        char* pescapeddir = curl_easy_escape(_curl, sourcefilenamebase.c_str(), 0);
         std::string uploadfileuri = baseuploaduri + std::string(pescapeddir);
         curl_free(pescapeddir);
         _UploadFileToWebDAV(sourcefilename, uploadfileuri);
@@ -862,7 +869,12 @@ protected:
         }
         std::cout << "uploading " << copydir.string() << " -> " << uri << std::endl;
         for(boost::filesystem::directory_iterator itdir(copydir); itdir != boost::filesystem::directory_iterator(); ++itdir) {
-            char* pescapeddir = curl_easy_escape(_curl, itdir->filename().c_str(), itdir->filename().size());
+#if defined(BOOST_FILESYSTEM_VERSION) && BOOST_FILESYSTEM_VERSION >= 3
+            std::string dirfilename = itdir->path().filename().string();
+#else
+            std::string dirfilename = itdir->path().filename();
+#endif
+            char* pescapeddir = curl_easy_escape(_curl, dirfilename.c_str(), dirfilename.size());
             std::string newuri = str(boost::format("%s/%s")%uri%pescapeddir);
             curl_free(pescapeddir);
             if( boost::filesystem::is_directory(itdir->status()) ) {
