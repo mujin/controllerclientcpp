@@ -36,7 +36,6 @@ int main(int argc, char ** argv)
 
         controller->SetDefaultSceneType("wincaps");
         controller->SetDefaultTaskType("itlplanning"); // densowaverc8pcs
-        controller->SetCharacterEncoding("Shift_JIS");
         controller->SetLanguage("ja");
 
         std::vector<JobStatus> statuses;
