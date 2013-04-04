@@ -23,7 +23,7 @@ int main(int argc, char ** argv)
         }
         std::cout << "connected to controller v" << controller->GetVersion() << std::endl;
 
-        controller->SyncUpload("../densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ", "mujin:/testupload/", "wincaps");
+        controller->SyncUpload_UTF8("../densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ", "mujin:/testupload/", "wincaps");
         //SceneResourcePtr scene = controller->RegisterScene("mujin:/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ", "wincaps");
     }
     catch(const MujinException& ex) {

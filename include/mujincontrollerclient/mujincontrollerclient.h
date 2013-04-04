@@ -359,7 +359,7 @@ public:
 
     /** \brief import a scene into COLLADA format using from scene identified by a URI
 
-        \param sourceuri The original URI to import from. For MUJIN network files use <b>mujin:/mypath/myfile.ext</b>
+        \param sourceuri URI-encoded original URI to import from. For MUJIN network files use <b>mujin:/mypath/myfile.ext</b>
         \param sourcescenetype The format of the source file. Can be:
         - **mujincollada**
         - **wincaps** (DensoWave WINCAPS III)
@@ -374,17 +374,17 @@ public:
 
     /** \brief uploads a particular scene's files into the network filesystem.
 
-        \param sourcefilename Local filesystem location of the top-level file. If the scenetype requires many files, will upload all of them.
-        \param destinationdir Destination folder in the network file system. Should always have trailing slash. By default use: "mujin:/"
+        \param sourcefilename UTF-8 encoded local filesystem location of the top-level file. If the scenetype requires many files, will upload all of them.
+        \param destinationdir UTF-8 encoded destination folder in the network file system. Should always have trailing slash. By default use: "mujin:/"
         \param scenetype The type of scene uploading.
         \throw mujin_exception if the upload fails, will throw an exception
      */
-    virtual void SyncUpload(const std::string& sourcefilename, const std::string& destinationdir, const std::string& scenetype) = 0;
+    virtual void SyncUpload_UTF8(const std::string& sourcefilename, const std::string& destinationdir, const std::string& scenetype) = 0;
 
     /// \see SyncUpload
-    virtual void SyncUpload(const std::string& sourcefilename, const std::string& destinationdir)
+    virtual void SyncUpload_UTF8(const std::string& sourcefilename, const std::string& destinationdir)
     {
-        SyncUpload(sourcefilename, destinationdir, GetDefaultSceneType());
+        SyncUpload_UTF8(sourcefilename, destinationdir, GetDefaultSceneType());
     }
 
     virtual void SetDefaultSceneType(const std::string& scenetype) = 0;

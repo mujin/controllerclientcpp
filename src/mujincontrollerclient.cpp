@@ -17,6 +17,7 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/property_tree/xml_parser.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>
@@ -25,6 +26,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 
 #include <sstream>
+#include <fstream>
 #include <iostream>
 #include <curl/curl.h>
 
@@ -46,7 +48,7 @@
 
 #define GETCONTROLLERIMPL() ControllerClientImplPtr controller = boost::dynamic_pointer_cast<ControllerClientImpl>(GetController());
 #define CHECKCURLCODE(code, msg) if (code != CURLE_OK) { \
-        throw MujinException(str(boost::format("[%s:%d] curl function failed with error '%s': %s")%(__PRETTY_FUNCTION__)%(__LINE__)%curl_easy_strerror(code)%(msg)), MEC_HTTPClient); \
+        throw MujinException(str(boost::format("[%s:%d] curl function %s with error='%s': %s")%(__PRETTY_FUNCTION__)%(__LINE__)%(msg)%curl_easy_strerror(code)%_errormessage), MEC_HTTPClient); \
 }
 
 #define MUJIN_EXCEPTION_FORMAT0(s, errorcode) mujinclient::MujinException(boost::str(boost::format("[%s:%d] " s)%(__PRETTY_FUNCTION__)%(__LINE__)),errorcode)
@@ -163,6 +165,8 @@ public:
 #ifdef _DEBUG
         //curl_easy_setopt(_curl, CURLOPT_VERBOSE, 1L);
 #endif
+        _errormessage.resize(CURL_ERROR_SIZE);
+        curl_easy_setopt(_curl, CURLOPT_ERRORBUFFER, &_errormessage[0]);
 
         CURLcode res;
 #ifdef SKIP_PEER_VERIFICATION
@@ -423,66 +427,42 @@ public:
         return scene;
     }
 
-    class CustomRequestSetter
+    class CurlCustomRequestSetter
     {
 public:
-        CustomRequestSetter(CURL *curl, const char* method) : _curl(curl) {
+        CurlCustomRequestSetter(CURL *curl, const char* method) : _curl(curl) {
             curl_easy_setopt(_curl, CURLOPT_CUSTOMREQUEST, method);
         }
-        ~CustomRequestSetter() {
+        ~CurlCustomRequestSetter() {
             curl_easy_setopt(_curl, CURLOPT_CUSTOMREQUEST, NULL);
         }
 protected:
         CURL* _curl;
     };
 
-    virtual void SyncUpload(const std::string& sourcefilename, const std::string& destinationdir, const std::string& scenetype)
+    class CurlUploadSetter
     {
+public:
+        CurlUploadSetter(CURL *curl) : _curl(curl) {
+            curl_easy_setopt(_curl, CURLOPT_UPLOAD, 1L);
+        }
+        ~CurlUploadSetter() {
+            curl_easy_setopt(_curl, CURLOPT_UPLOAD, 0L);
+        }
+protected:
+        CURL* _curl;
+    };
+
+    virtual void SyncUpload_UTF8(const std::string& sourcefilename, const std::string& destinationdir, const std::string& scenetype)
+    {
+        // TODO use curl_multi_perform to allow uploading of multiple files simultaneously
+        // TODO should LOCK with WebDAV repository?
         boost::mutex::scoped_lock lock(_mutex);
         std::string baseuploaduri;
         if( destinationdir.size() >= 7 && destinationdir.substr(0,7) == "mujin:/" ) {
             baseuploaduri = _basewebdavuri;
-            baseuploaduri += destinationdir.substr(7);
-
-            // go through every directory
-            boost::filesystem::path bfpdestinationdir(destinationdir.substr(7));
-            std::list<std::string> listCreateDirs;
-            while( !bfpdestinationdir.parent_path().empty() ) {
-                boost::filesystem::path bfpparent = bfpdestinationdir.parent_path();
-                listCreateDirs.push_front(bfpparent.string());
-                bfpdestinationdir = bfpparent;
-            }
-
-            CustomRequestSetter setter(_curl, "MKCOL");
-            for(std::list<std::string>::iterator itdir = listCreateDirs.begin(); itdir != listCreateDirs.end(); ++itdir) {
-                // first have to create the directory structure up to destinationdir
-                _uri = _basewebdavuri + *itdir;
-                curl_easy_setopt(_curl, CURLOPT_URL, _uri.c_str());
-                CURLcode res = curl_easy_perform(_curl);
-                CHECKCURLCODE(res, "curl_easy_perform failed");
-                long http_code = 0;
-                res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
-                /* creating directories
-
-                   Responses from a MKCOL request MUST NOT be cached as MKCOL has non-idempotent semantics.
-
-                   201 (Created) - The collection or structured resource was created in its entirety.
-
-                   403 (Forbidden) - This indicates at least one of two conditions: 1) the server does not allow the creation of collections at the given location in its namespace, or 2) the parent collection of the Request-URI exists but cannot accept members.
-
-                   405 (Method Not Allowed) - MKCOL can only be executed on a deleted/non-existent resource.
-
-                   409 (Conflict) - A collection cannot be made at the Request-URI until one or more intermediate collections have been created.
-
-                   415 (Unsupported Media Type)- The server does not support the request type of the body.
-
-                   507 (Insufficient Storage) - The resource does not have sufficient space to record the state of the resource after the execution of this method.
-
-                 */
-                if( http_code != 201 && http_code != 301 ) {
-                    throw MUJIN_EXCEPTION_FORMAT("HTTP MKCOL failed with HTTP status %d", http_code, MEC_HTTPServer);
-                }
-            }
+            baseuploaduri += _EncodeWithoutSeparator(destinationdir.substr(7));
+            _EnsureWebDAVDirectories(destinationdir.substr(7));
         }
         else {
             baseuploaduri = destinationdir;
@@ -492,14 +472,6 @@ protected:
             baseuploaduri.push_back('/');
         }
 
-        // tell it to "upload" to the URL
-        curl_easy_setopt(_curl, CURLOPT_HTTPGET, 0L);
-        curl_easy_setopt(_curl, CURLOPT_UPLOAD, 1L);
-        //curl_easy_setopt(_curl, CURLOPT_NOBODY, 1L);
-#if defined(_WIN32) || defined(_WIN64)
-        curl_easy_setopt(_curl, CURLOPT_READFUNCTION, _ReadUploadCallback);
-#endif
-
         boost::filesystem::path bfpsourcefilename(sourcefilename);
         if( scenetype == "wincaps" ) {
             // scenefilenames is the WPJ file, so have to open it up to see what directory it points to
@@ -507,11 +479,52 @@ protected:
             // <clsProject Object="True">
             //   <WCNPath VT="8">.\threegoaltouch\threegoaltouch.WCN;</WCNPath>
             // </clsProject>
+            // first have to get the raw utf-16 data
+            std::ifstream wpjfilestream(sourcefilename.c_str(), std::ios::binary|std::ios::in);
+            if( !wpjfilestream ) {
+                throw MUJIN_EXCEPTION_FORMAT("failed to open file %s", sourcefilename, MEC_InvalidArguments);
+            }
+            std::stringstream wpjfilestream2;
+            wpjfilestream2 << wpjfilestream.rdbuf() << '\0';
+            std::string wpjfilestreamdata = wpjfilestream2.str();
+            uint16_t* pstart = (uint16_t*)wpjfilestreamdata.c_str();
+            uint16_t* pend = pstart + wpjfilestreamdata.size()/2;
+            std::stringstream utf8stream;
+            utf8::utf16to8(pstart, pend, std::ostream_iterator<char>(utf8stream));
+            boost::property_tree::ptree wpj;
+            boost::property_tree::read_xml(utf8stream, wpj);
+            boost::property_tree::ptree& clsProject = wpj.get_child("clsProject");
+            boost::property_tree::ptree& WCNPath = clsProject.get_child("WCNPath");
+            std::string strWCNPath = WCNPath.data();
+            if( strWCNPath.size() > 0 ) {
+                // post process the string to get the real filesystem directory
+                if( strWCNPath.at(strWCNPath.size()-1) == ';') {
+                    strWCNPath.resize(strWCNPath.size()-1);
+                }
+#if defined(_WIN32) || defined(_WIN64)
+#else
+                // separator are in windows, so have to convert
+                for(size_t i = 0; i < strWCNPath.size(); ++i) {
+                    if( strWCNPath[i] == '\\' ) {
+                        strWCNPath[i] = '/';
+                    }
+                }
+#endif
+                boost::filesystem::path winpath(strWCNPath);
+                boost::filesystem::path copydir = bfpsourcefilename.parent_path() / winpath.parent_path().normalize();
+                std::string winpathdir = winpath.parent_path().string();
+                if( winpathdir.size() >= 2 && winpathdir.substr(0,2) == "./" ) {
+                    // don't need the ./ prefix
+                    winpathdir = winpathdir.substr(2);
+                }
+                _UploadDirectoryToWebDAV(copydir, baseuploaduri+_EncodeWithoutSeparator(winpathdir));
+            }
         }
 
-        _UploadSingleFile(sourcefilename, baseuploaduri+bfpsourcefilename.filename());
-        //std::string = bfpsourcefilename.filename();
-
+        char* pescapeddir = curl_easy_escape(_curl, bfpsourcefilename.filename().c_str(), 0);
+        std::string uploadfileuri = baseuploaduri + std::string(pescapeddir);
+        curl_free(pescapeddir);
+        _UploadFileToWebDAV(sourcefilename, uploadfileuri);
 
         /* webdav operations
            const char *postdata =
@@ -752,10 +765,119 @@ protected:
         return csrfmiddlewaretoken;
     }
 
+    // encode a URL without the / separator
+    std::string _EncodeWithoutSeparator(const std::string& raw)
+    {
+        std::string output;
+        size_t startindex = 0;
+        for(size_t i = 0; i < raw.size(); ++i) {
+            if( raw[i] == '/' ) {
+                if( startindex != i ) {
+                    char* pescaped = curl_easy_escape(_curl, raw.c_str()+startindex, i-startindex);
+                    output += std::string(pescaped);
+                    curl_free(pescaped);
+                    startindex = i+1;
+                }
+                output += '/';
+            }
+        }
+        if( startindex != raw.size() ) {
+            char* pescaped = curl_easy_escape(_curl, raw.c_str()+startindex, raw.size()-startindex);
+            output += std::string(pescaped);
+            curl_free(pescaped);
+        }
+        return output;
+    }
+
+    /// \param destinationdir the directory inside the user webdav folder
+    void _EnsureWebDAVDirectories(const std::string& destinationdir)
+    {
+        // go through every directory
+        boost::filesystem::path bfpdestinationdir(destinationdir);
+        std::list<std::string> listCreateDirs;
+        while( !bfpdestinationdir.parent_path().empty() ) {
+            boost::filesystem::path bfpparent = bfpdestinationdir.parent_path();
+            listCreateDirs.push_front(bfpparent.string());
+            bfpdestinationdir = bfpparent;
+        }
+
+        // Check that the directory exists
+        //curl_easy_setopt(_curl, CURLOPT_URL, buff);
+        //curl_easy_setopt(_curl, CURLOPT_CUSTOMREQUEST, "PROPFIND");
+        //res = curl_easy_perform(self->send_handle);
+        //if(res != 0) {
+        // // does not exist
+        //}
+
+        CurlCustomRequestSetter setter(_curl, "MKCOL");
+        for(std::list<std::string>::iterator itdir = listCreateDirs.begin(); itdir != listCreateDirs.end(); ++itdir) {
+            // first have to create the directory structure up to destinationdir
+            char* pescapeddir = curl_easy_escape(_curl, itdir->c_str(), itdir->size());
+            _uri = _basewebdavuri + std::string(pescapeddir);
+            curl_free(pescapeddir);
+            curl_easy_setopt(_curl, CURLOPT_URL, _uri.c_str());
+            CURLcode res = curl_easy_perform(_curl);
+            CHECKCURLCODE(res, "curl_easy_perform failed");
+            long http_code = 0;
+            res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
+            /* creating directories
+
+               Responses from a MKCOL request MUST NOT be cached as MKCOL has non-idempotent semantics.
+
+               201 (Created) - The collection or structured resource was created in its entirety.
+
+               403 (Forbidden) - This indicates at least one of two conditions: 1) the server does not allow the creation of collections at the given location in its namespace, or 2) the parent collection of the Request-URI exists but cannot accept members.
+
+               405 (Method Not Allowed) - MKCOL can only be executed on a deleted/non-existent resource.
+
+               409 (Conflict) - A collection cannot be made at the Request-URI until one or more intermediate collections have been created.
+
+               415 (Unsupported Media Type)- The server does not support the request type of the body.
+
+               507 (Insufficient Storage) - The resource does not have sufficient space to record the state of the resource after the execution of this method.
+
+             */
+            if( http_code != 201 && http_code != 301 ) {
+                throw MUJIN_EXCEPTION_FORMAT("HTTP MKCOL failed with HTTP status %d: %s", http_code%_errormessage, MEC_HTTPServer);
+            }
+        }
+    }
+
+    /// \brief recursively uploads a directory and creates directories along the way if they don't exist
+    ///
+    /// overwrites all the files
+    void _UploadDirectoryToWebDAV(const boost::filesystem::path& copydir, const std::string& uri)
+    {
+        {
+            // make sure the directory is created
+            CurlCustomRequestSetter setter(_curl, "MKCOL");
+            curl_easy_setopt(_curl, CURLOPT_URL, uri.c_str());
+            CURLcode res = curl_easy_perform(_curl);
+            CHECKCURLCODE(res, "curl_easy_perform failed");
+            long http_code = 0;
+            res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
+            if( http_code != 201 && http_code != 301 ) {
+                throw MUJIN_EXCEPTION_FORMAT("HTTP MKCOL failed for %s with HTTP status %d: %s", uri%http_code%_errormessage, MEC_HTTPServer);
+            }
+        }
+        std::cout << "uploading " << copydir.string() << " -> " << uri << std::endl;
+        for(boost::filesystem::directory_iterator itdir(copydir); itdir != boost::filesystem::directory_iterator(); ++itdir) {
+            char* pescapeddir = curl_easy_escape(_curl, itdir->filename().c_str(), itdir->filename().size());
+            std::string newuri = str(boost::format("%s/%s")%uri%pescapeddir);
+            curl_free(pescapeddir);
+            if( boost::filesystem::is_directory(itdir->status()) ) {
+                _UploadDirectoryToWebDAV(itdir->path(), newuri);
+            }
+            else if( boost::filesystem::is_regular_file(itdir->status()) ) {
+                _UploadFileToWebDAV(itdir->path().string(), newuri);
+            }
+        }
+    }
+
     /// \brief uploads a single file, assumes the directory already exists
     ///
     /// overwrites the file if it already exists
-    void _UploadSingleFile(const std::string& filename, const std::string& uri)
+    void _UploadFileToWebDAV(const std::string& filename, const std::string& uri)
     {
         FILE * fd = fopen(filename.c_str(), "rb");
         if(!fd) {
@@ -776,19 +898,27 @@ protected:
         curl_off_t filesize = (curl_off_t)file_info.st_size;
 #endif
 
-        _uri = uri;
-        curl_easy_setopt(_curl, CURLOPT_URL, _uri.c_str());
+        // tell it to "upload" to the URL
+        CurlUploadSetter uploadsetter(_curl);
+        curl_easy_setopt(_curl, CURLOPT_HTTPGET, 0L);
+        curl_easy_setopt(_curl, CURLOPT_URL, uri.c_str());
         curl_easy_setopt(_curl, CURLOPT_READDATA, fd);
         curl_easy_setopt(_curl, CURLOPT_INFILESIZE_LARGE, filesize);
+        //curl_easy_setopt(_curl, CURLOPT_NOBODY, 1L);
+#if defined(_WIN32) || defined(_WIN64)
+        curl_easy_setopt(_curl, CURLOPT_READFUNCTION, _ReadUploadCallback);
+#endif
 
-        curl_easy_setopt(_curl, CURLOPT_VERBOSE, 1L);
+
+        //curl_easy_setopt(_curl, CURLOPT_VERBOSE, 1L);
 
         CURLcode res = curl_easy_perform(_curl);
         fclose(fd); // make sure to close the handle
         CHECKCURLCODE(res, "curl_easy_perform failed");
         long http_code = 0;
         res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
-        if( http_code != 201 ) {
+        // 204 is when it overwrites the file?
+        if( http_code != 201 && http_code != 204 ) {
             if( http_code == 400 ) {
                 throw MUJIN_EXCEPTION_FORMAT("upload failed with HTTP status %s, perhaps file exists already?", http_code, MEC_HTTPServer);
             }
@@ -827,6 +957,7 @@ protected:
     std::string _csrfmiddlewaretoken;
 
     boost::property_tree::ptree _profile; ///< user profile and versioning
+    std::string _errormessage; ///< set when an error occurs in libcurl
 
     std::string _defaultscenetype, _defaulttasktype;
 };
