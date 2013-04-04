@@ -6,7 +6,6 @@ var searchData=
   ['computematrixfromtransform',['ComputeMatrixFromTransform',['../namespacemujinclient.html#aa9f3d9271232898dc59387fd812219f9',1,'mujinclient']]],
   ['computezxyfrommatrix',['ComputeZXYFromMatrix',['../namespacemujinclient.html#abce651aa8bbd46444e4b458f4161bf31',1,'mujinclient']]],
   ['computezxyfromtransform',['ComputeZXYFromTransform',['../namespacemujinclient.html#a83fbee6d466d1956403999a8b78a7180',1,'mujinclient']]],
-  ['config_2eh',['config.h',['../config_8h.html',1,'']]],
   ['controllerclient',['ControllerClient',['../classmujinclient_1_1ControllerClient.html',1,'mujinclient']]],
   ['controllerclientdestroy',['ControllerClientDestroy',['../namespacemujinclient.html#a8ae80bf1bea1a9959dd23a310a3e5d03',1,'mujinclient']]],
   ['controllerclientptr',['ControllerClientPtr',['../namespacemujinclient.html#aa0b8a533fc19b5930eca8bf825f2231d',1,'mujinclient']]],

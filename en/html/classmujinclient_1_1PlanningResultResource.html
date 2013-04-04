@@ -117,9 +117,18 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ac199377d55bdeed018aeea9dd1ef522c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aecd6e7690b31e533f80aa2fc9b46b837"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1PlanningResultResource.html#aecd6e7690b31e533f80aa2fc9b46b837">~PlanningResultResource</a> ()</td></tr>
 <tr class="separator:aecd6e7690b31e533f80aa2fc9b46b837"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab876a1492ced274511670704a28ce76f"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1PlanningResultResource.html#ab876a1492ced274511670704a28ce76f">GetTransforms</a> (std::map&lt; std::string, <a class="el" href="structmujinclient_1_1Transform.html">Transform</a> &gt; &amp;transforms)</td></tr>
-<tr class="memdesc:ab876a1492ced274511670704a28ce76f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get all the transforms the results are storing. Depending on the optimization, can be more than just the robot.  <a href="#ab876a1492ced274511670704a28ce76f"></a><br/></td></tr>
-<tr class="separator:ab876a1492ced274511670704a28ce76f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9063350f78b663a2a0118f1aa6a9cce1"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1PlanningResultResource.html#a9063350f78b663a2a0118f1aa6a9cce1">GetEnvironmentState</a> (<a class="el" href="namespacemujinclient.html#a974c2ef40a0f222a6559c0798004c021">EnvironmentState</a> &amp;envstate)</td></tr>
+<tr class="memdesc:a9063350f78b663a2a0118f1aa6a9cce1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get all the transforms the results are storing. Depending on the optimization, can be more than just the robot.  <a href="#a9063350f78b663a2a0118f1aa6a9cce1"></a><br/></td></tr>
+<tr class="separator:a9063350f78b663a2a0118f1aa6a9cce1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a03ce0d6cfd5719f80a65f1d601389122"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1PlanningResultResource.html#a03ce0d6cfd5719f80a65f1d601389122">GetAllRawProgramData</a> (std::string &amp;outputdata, const std::string &amp;programtype=&quot;auto&quot;)</td></tr>
+<tr class="memdesc:a03ce0d6cfd5719f80a65f1d601389122"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the raw program information.  <a href="#a03ce0d6cfd5719f80a65f1d601389122"></a><br/></td></tr>
+<tr class="separator:a03ce0d6cfd5719f80a65f1d601389122"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac7e7f0d6148ac68415886f34754ee1a0"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1PlanningResultResource.html#ac7e7f0d6148ac68415886f34754ee1a0">GetRobotRawProgramData</a> (std::string &amp;outputdata, const std::string &amp;robotpk, const std::string &amp;programtype=&quot;auto&quot;)</td></tr>
+<tr class="memdesc:ac7e7f0d6148ac68415886f34754ee1a0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the raw program information of a specific robot, if supported.  <a href="#ac7e7f0d6148ac68415886f34754ee1a0"></a><br/></td></tr>
+<tr class="separator:ac7e7f0d6148ac68415886f34754ee1a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a84d4bffc6c7972c689353a690095fce3"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1PlanningResultResource.html#a84d4bffc6c7972c689353a690095fce3">GetPrograms</a> (<a class="el" href="classmujinclient_1_1RobotControllerPrograms.html">RobotControllerPrograms</a> &amp;programs, const std::string &amp;programtype=&quot;auto&quot;)</td></tr>
+<tr class="memdesc:a84d4bffc6c7972c689353a690095fce3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets parsed program information.  <a href="#a84d4bffc6c7972c689353a690095fce3"></a><br/></td></tr>
+<tr class="separator:a84d4bffc6c7972c689353a690095fce3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classmujinclient_1_1WebResource"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classmujinclient_1_1WebResource')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classmujinclient_1_1WebResource.html">mujinclient::WebResource</a></td></tr>
 <tr class="memitem:a9637f51e8ada769519c3d91cc4efae91 inherit pub_methods_classmujinclient_1_1WebResource"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1WebResource.html#a9637f51e8ada769519c3d91cc4efae91">WebResource</a> (<a class="el" href="namespacemujinclient.html#aa0b8a533fc19b5930eca8bf825f2231d">ControllerClientPtr</a> controller, const std::string &amp;resourcename, const std::string &amp;pk)</td></tr>
 <tr class="separator:a9637f51e8ada769519c3d91cc4efae91 inherit pub_methods_classmujinclient_1_1WebResource"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -146,7 +155,7 @@ Public Member Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
-<p>Definition at line <a class="el" href="mujincontrollerclient_8h_source.html#l00449">449</a> of file <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a>.</p>
+<p>Definition at line <a class="el" href="mujincontrollerclient_8h_source.html#l00569">569</a> of file <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a class="anchor" id="ac199377d55bdeed018aeea9dd1ef522c"></a>
 <div class="memitem">
@@ -195,12 +204,12 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="mujincontrollerclient_8h_source.html#l00453">453</a> of file <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a>.</p>
+<p>Definition at line <a class="el" href="mujincontrollerclient_8h_source.html#l00573">573</a> of file <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a class="anchor" id="ab876a1492ced274511670704a28ce76f"></a>
+<a class="anchor" id="a03ce0d6cfd5719f80a65f1d601389122"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -208,10 +217,66 @@ Public Member Functions</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void mujinclient::PlanningResultResource::GetTransforms </td>
+          <td class="memname">virtual void mujinclient::PlanningResultResource::GetAllRawProgramData </td>
           <td>(</td>
-          <td class="paramtype">std::map&lt; std::string, <a class="el" href="structmujinclient_1_1Transform.html">Transform</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>transforms</em></td><td>)</td>
+          <td class="paramtype">std::string &amp;&#160;</td>
+          <td class="paramname"><em>outputdata</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>programtype</em> = <code>&quot;auto&quot;</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Gets the raw program information. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">programtype</td><td>The type of program to return. Possible values are:<ul>
+<li>auto - special type that returns the most suited programs</li>
+<li>mujinxml - <b>xml</b> </li>
+<li>melfabasicv - <b>json</b> with Mitsubishi-specific programs</li>
+<li>densowaverc8pac - <b>json</b> with DensoWave-specific programs</li>
+<li>cecvirfitsim - zip file</li>
+</ul>
+</td></tr>
+  </table>
+  </dd>
+</dl>
+<p>If <b>auto</b> is set, then the robot-maker specific program is returned if possible. If not possible, then mujin xml is returned. All the programs for all robots planned are returned.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[out]</td><td class="paramname">outputdata</td><td>The raw program data </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a9063350f78b663a2a0118f1aa6a9cce1"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void mujinclient::PlanningResultResource::GetEnvironmentState </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacemujinclient.html#a974c2ef40a0f222a6559c0798004c021">EnvironmentState</a> &amp;&#160;</td>
+          <td class="paramname"><em>envstate</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -226,13 +291,112 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="a84d4bffc6c7972c689353a690095fce3"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void mujinclient::PlanningResultResource::GetPrograms </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classmujinclient_1_1RobotControllerPrograms.html">RobotControllerPrograms</a> &amp;&#160;</td>
+          <td class="paramname"><em>programs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>programtype</em> = <code>&quot;auto&quot;</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Gets parsed program information. </p>
+<p>If the robot doesn't have a recognizable controller, then no programs might be returned. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[out]</td><td class="paramname">programs</td><td>The programs for each robot. The best suited program for each robot is determined from its controller. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ac7e7f0d6148ac68415886f34754ee1a0"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void mujinclient::PlanningResultResource::GetRobotRawProgramData </td>
+          <td>(</td>
+          <td class="paramtype">std::string &amp;&#160;</td>
+          <td class="paramname"><em>outputdata</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>robotpk</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>programtype</em> = <code>&quot;auto&quot;</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Gets the raw program information of a specific robot, if supported. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">programtype</td><td>The type of program to return. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">robotpk</td><td>The primary key of the robot instance in the scene. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">outputdata</td><td>The raw program data </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mujin_exception</td><td>If robot program is not supported, will throw an exception </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>/home/rdiankov/mujin/controllerclientcpp/include/mujincontrollerclient/<a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h (2013-01-15 02:32:27 +0900, commit:643dd14)</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Mar 12 2013 23:58:11 for controllerclientcpp by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Apr 4 2013 18:28:27 for controllerclientcpp by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.3
 </small></address>

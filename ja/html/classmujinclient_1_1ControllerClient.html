@@ -125,21 +125,46 @@ Public メソッド</h2></td></tr>
 <tr class="memitem:ac57697fbb9e267d4c5ceae150bb249bc"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1ControllerClient.html#ac57697fbb9e267d4c5ceae150bb249bc">CancelAllJobs</a> ()=0</td></tr>
 <tr class="memdesc:ac57697fbb9e267d4c5ceae150bb249bc"><td class="mdescLeft">&#160;</td><td class="mdescRight">sends the cancel message to all jobs.  <a href="#ac57697fbb9e267d4c5ceae150bb249bc"></a><br/></td></tr>
 <tr class="separator:ac57697fbb9e267d4c5ceae150bb249bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abdc45d80225ae8f7d30012a13a5522b1"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1ControllerClient.html#abdc45d80225ae8f7d30012a13a5522b1">GetRunTimeStatuses</a> (std::vector&lt; <a class="el" href="structmujinclient_1_1JobStatus.html">JobStatus</a> &gt; &amp;statuses, int options=0)=0</td></tr>
+<tr class="memdesc:abdc45d80225ae8f7d30012a13a5522b1"><td class="mdescLeft">&#160;</td><td class="mdescRight">get all the run-time statuses  <a href="#abdc45d80225ae8f7d30012a13a5522b1"></a><br/></td></tr>
+<tr class="separator:abdc45d80225ae8f7d30012a13a5522b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab22536a72eef5c1f71c9d7b7b208211f"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1ControllerClient.html#ab22536a72eef5c1f71c9d7b7b208211f">GetScenePrimaryKeys</a> (std::vector&lt; std::string &gt; &amp;scenekeys)=0</td></tr>
 <tr class="memdesc:ab22536a72eef5c1f71c9d7b7b208211f"><td class="mdescLeft">&#160;</td><td class="mdescRight">gets a list of all the scene primary keys currently available to the user  <a href="#ab22536a72eef5c1f71c9d7b7b208211f"></a><br/></td></tr>
 <tr class="separator:ab22536a72eef5c1f71c9d7b7b208211f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a43ae6d0e284ad6491ab9465a5090522a"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespacemujinclient.html#a9a7bf2721c91516d69ca08837e26b7b8">SceneResourcePtr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1ControllerClient.html#a43ae6d0e284ad6491ab9465a5090522a">RegisterScene</a> (const std::string &amp;uri, const std::string &amp;format)=0</td></tr>
-<tr class="memdesc:a43ae6d0e284ad6491ab9465a5090522a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Register a scene to be used by the MUJIN Controller.  <a href="#a43ae6d0e284ad6491ab9465a5090522a"></a><br/></td></tr>
-<tr class="separator:a43ae6d0e284ad6491ab9465a5090522a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acb6435c814b2c3e6ac4900cfe700e84b"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespacemujinclient.html#a9a7bf2721c91516d69ca08837e26b7b8">SceneResourcePtr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1ControllerClient.html#acb6435c814b2c3e6ac4900cfe700e84b">ImportScene</a> (const std::string &amp;sourceuri, const std::string &amp;sourceformat, const std::string &amp;newuri)=0</td></tr>
-<tr class="memdesc:acb6435c814b2c3e6ac4900cfe700e84b"><td class="mdescLeft">&#160;</td><td class="mdescRight">import a scene into COLLADA format using from scene identified by a URI  <a href="#acb6435c814b2c3e6ac4900cfe700e84b"></a><br/></td></tr>
-<tr class="separator:acb6435c814b2c3e6ac4900cfe700e84b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad125bb54d5584847010d169377dcc6fb"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespacemujinclient.html#a9a7bf2721c91516d69ca08837e26b7b8">SceneResourcePtr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1ControllerClient.html#ad125bb54d5584847010d169377dcc6fb">RegisterScene</a> (const std::string &amp;uri, const std::string &amp;scenetype)=0</td></tr>
+<tr class="memdesc:ad125bb54d5584847010d169377dcc6fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Register a scene to be used by the MUJIN Controller.  <a href="#ad125bb54d5584847010d169377dcc6fb"></a><br/></td></tr>
+<tr class="separator:ad125bb54d5584847010d169377dcc6fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac16deb1623aa4e0ef4cbc458297c2ed0"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespacemujinclient.html#a9a7bf2721c91516d69ca08837e26b7b8">SceneResourcePtr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1ControllerClient.html#ac16deb1623aa4e0ef4cbc458297c2ed0">RegisterScene</a> (const std::string &amp;uri)</td></tr>
+<tr class="memdesc:ac16deb1623aa4e0ef4cbc458297c2ed0"><td class="mdescLeft">&#160;</td><td class="mdescRight">registers scene with default scene type  <a href="#ac16deb1623aa4e0ef4cbc458297c2ed0"></a><br/></td></tr>
+<tr class="separator:ac16deb1623aa4e0ef4cbc458297c2ed0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a786a3a92770adfd3e4d5e559ba795d67"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespacemujinclient.html#a9a7bf2721c91516d69ca08837e26b7b8">SceneResourcePtr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1ControllerClient.html#a786a3a92770adfd3e4d5e559ba795d67">ImportSceneToCOLLADA</a> (const std::string &amp;sourceuri, const std::string &amp;sourcescenetype, const std::string &amp;newuri)=0</td></tr>
+<tr class="memdesc:a786a3a92770adfd3e4d5e559ba795d67"><td class="mdescLeft">&#160;</td><td class="mdescRight">import a scene into COLLADA format using from scene identified by a URI  <a href="#a786a3a92770adfd3e4d5e559ba795d67"></a><br/></td></tr>
+<tr class="separator:a786a3a92770adfd3e4d5e559ba795d67"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a87bb48d73fead10f8d9b88cfe1aaf39b"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1ControllerClient.html#a87bb48d73fead10f8d9b88cfe1aaf39b">SyncUpload_UTF8</a> (const std::string &amp;sourcefilename, const std::string &amp;destinationdir, const std::string &amp;scenetype)=0</td></tr>
+<tr class="memdesc:a87bb48d73fead10f8d9b88cfe1aaf39b"><td class="mdescLeft">&#160;</td><td class="mdescRight">uploads a particular scene's files into the network filesystem.  <a href="#a87bb48d73fead10f8d9b88cfe1aaf39b"></a><br/></td></tr>
+<tr class="separator:a87bb48d73fead10f8d9b88cfe1aaf39b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac34f18effd3eb738e3cfeb6516a8cbd6"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1ControllerClient.html#ac34f18effd3eb738e3cfeb6516a8cbd6">SyncUpload_UTF8</a> (const std::string &amp;sourcefilename, const std::string &amp;destinationdir)</td></tr>
+<tr class="separator:ac34f18effd3eb738e3cfeb6516a8cbd6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab92a5008ebda3a775cefdcf77c685985"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1ControllerClient.html#ab92a5008ebda3a775cefdcf77c685985">SetDefaultSceneType</a> (const std::string &amp;scenetype)=0</td></tr>
+<tr class="separator:ab92a5008ebda3a775cefdcf77c685985"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab7af01ed3c3408dac6d0eb418642370c"><td class="memItemLeft" align="right" valign="top">virtual const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1ControllerClient.html#ab7af01ed3c3408dac6d0eb418642370c">GetDefaultSceneType</a> ()=0</td></tr>
+<tr class="separator:ab7af01ed3c3408dac6d0eb418642370c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a62f87ee08506a8a2a6e8d05650bb364b"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1ControllerClient.html#a62f87ee08506a8a2a6e8d05650bb364b">SetDefaultTaskType</a> (const std::string &amp;tasktype)=0</td></tr>
+<tr class="separator:a62f87ee08506a8a2a6e8d05650bb364b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9a6748c49a391d8b5a87b6e324028be3"><td class="memItemLeft" align="right" valign="top">virtual const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1ControllerClient.html#a9a6748c49a391d8b5a87b6e324028be3">GetDefaultTaskType</a> ()=0</td></tr>
+<tr class="separator:a9a6748c49a391d8b5a87b6e324028be3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3d7c6da2ef3bf1c017e18556357443cd"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1ControllerClient.html#a3d7c6da2ef3bf1c017e18556357443cd">GetScenePrimaryKeyFromURI_UTF8</a> (const std::string &amp;uri)</td></tr>
+<tr class="memdesc:a3d7c6da2ef3bf1c017e18556357443cd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the url-encoded primary key of a scene from a scene uri (utf-8 encoded)  <a href="#a3d7c6da2ef3bf1c017e18556357443cd"></a><br/></td></tr>
+<tr class="separator:a3d7c6da2ef3bf1c017e18556357443cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a82dde3a0ad47bade8a3b994c975e0013"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1ControllerClient.html#a82dde3a0ad47bade8a3b994c975e0013">GetScenePrimaryKeyFromURI_UTF16</a> (const std::wstring &amp;uri)</td></tr>
+<tr class="memdesc:a82dde3a0ad47bade8a3b994c975e0013"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the url-encoded primary key of a scene from a scene uri (utf-16 encoded)  <a href="#a82dde3a0ad47bade8a3b994c975e0013"></a><br/></td></tr>
+<tr class="separator:a82dde3a0ad47bade8a3b994c975e0013"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">説明</h2>
 <div class="textblock"><p>Creates on MUJIN Controller instance. </p>
 <p>Only one call can be made at a time. In order to make multiple calls simultaneously, create another instance. </p>
 
-<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00235">235</a> 行で定義されています。</p>
+<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00282">282</a> 行で定義されています。</p>
 </div><h2 class="groupheader">コンストラクタとデストラクタ</h2>
 <a class="anchor" id="aed474739b50d254eabd381256a69fe6b"></a>
 <div class="memitem">
@@ -162,7 +187,7 @@ Public メソッド</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00238">238</a> 行で定義されています。</p>
+<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00285">285</a> 行で定義されています。</p>
 
 </div>
 </div>
@@ -190,6 +215,148 @@ Public メソッド</h2></td></tr>
 
 <p>sends the cancel message to all jobs. </p>
 <p>The method is non-blocking </p>
+
+</div>
+</div>
+<a class="anchor" id="ab7af01ed3c3408dac6d0eb418642370c"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual const std::string&amp; mujinclient::ControllerClient::GetDefaultSceneType </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a9a6748c49a391d8b5a87b6e324028be3"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual const std::string&amp; mujinclient::ControllerClient::GetDefaultTaskType </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="abdc45d80225ae8f7d30012a13a5522b1"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void mujinclient::ControllerClient::GetRunTimeStatuses </td>
+          <td>(</td>
+          <td class="paramtype">std::vector&lt; <a class="el" href="structmujinclient_1_1JobStatus.html">JobStatus</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>statuses</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>options</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>get all the run-time statuses </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">options</td><td>if options is 1, also get the message </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a82dde3a0ad47bade8a3b994c975e0013"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string mujinclient::ControllerClient::GetScenePrimaryKeyFromURI_UTF16 </td>
+          <td>(</td>
+          <td class="paramtype">const std::wstring &amp;&#160;</td>
+          <td class="paramname"><em>uri</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get the url-encoded primary key of a scene from a scene uri (utf-16 encoded) </p>
+<p>If input URL is L"mujin:/\u691c\u8a3c\u52d5\u4f5c_121122.mujin.dae" Return value will be: "%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C_121122"</p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">uri</td><td>utf-16 encoded URI </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a3d7c6da2ef3bf1c017e18556357443cd"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string mujinclient::ControllerClient::GetScenePrimaryKeyFromURI_UTF8 </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>uri</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get the url-encoded primary key of a scene from a scene uri (utf-8 encoded) </p>
+<p>For example, the URI</p>
+<p>mujin:/検証動作_121122.mujin.dae</p>
+<p>is represented as:</p>
+<p>"mujin:/\xe6\xa4\x9c\xe8\xa8\xbc\xe5\x8b\x95\xe4\xbd\x9c_121122.mujin.dae"</p>
+<p>Return value will be: "%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C_121122" </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">uri</td><td>utf-8 encoded URI </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -244,7 +411,7 @@ Public メソッド</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="acb6435c814b2c3e6ac4900cfe700e84b"></a>
+<a class="anchor" id="a786a3a92770adfd3e4d5e559ba795d67"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -252,7 +419,7 @@ Public メソッド</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual <a class="el" href="namespacemujinclient.html#a9a7bf2721c91516d69ca08837e26b7b8">SceneResourcePtr</a> mujinclient::ControllerClient::ImportScene </td>
+          <td class="memname">virtual <a class="el" href="namespacemujinclient.html#a9a7bf2721c91516d69ca08837e26b7b8">SceneResourcePtr</a> mujinclient::ControllerClient::ImportSceneToCOLLADA </td>
           <td>(</td>
           <td class="paramtype">const std::string &amp;&#160;</td>
           <td class="paramname"><em>sourceuri</em>, </td>
@@ -261,7 +428,7 @@ Public メソッド</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const std::string &amp;&#160;</td>
-          <td class="paramname"><em>sourceformat</em>, </td>
+          <td class="paramname"><em>sourcescenetype</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -285,8 +452,8 @@ Public メソッド</h2></td></tr>
 <p>import a scene into COLLADA format using from scene identified by a URI </p>
 <dl class="params"><dt>引数</dt><dd>
   <table class="params">
-    <tr><td class="paramname">sourceuri</td><td>The original URI to import from. For MUJIN network files use <b>mujin:/mypath/myfile.ext</b> </td></tr>
-    <tr><td class="paramname">sourceformat</td><td>The format of the source file. Can be:<ul>
+    <tr><td class="paramname">sourceuri</td><td>URI-encoded original URI to import from. For MUJIN network files use <b>mujin:/mypath/myfile.ext</b> </td></tr>
+    <tr><td class="paramname">sourcescenetype</td><td>The format of the source file. Can be:<ul>
 <li><b>mujincollada</b></li>
 <li><b>wincaps</b> (DensoWave WINCAPS III)</li>
 <li><b>rttoolbox</b> (Mitsubishi RT ToolBox)</li>
@@ -303,7 +470,7 @@ Public メソッド</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a43ae6d0e284ad6491ab9465a5090522a"></a>
+<a class="anchor" id="ad125bb54d5584847010d169377dcc6fb"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -320,7 +487,7 @@ Public メソッド</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const std::string &amp;&#160;</td>
-          <td class="paramname"><em>format</em>&#160;</td>
+          <td class="paramname"><em>scenetype</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -338,7 +505,7 @@ Public メソッド</h2></td></tr>
 <p>Register a scene to be used by the MUJIN Controller. </p>
 <dl class="params"><dt>引数</dt><dd>
   <table class="params">
-    <tr><td class="paramname">format</td><td>The format of the source file. Can be:<ul>
+    <tr><td class="paramname">scenetype</td><td>The format of the source file. Can be:<ul>
 <li><b>mujincollada</b></li>
 <li><b>wincaps</b> (DensoWave WINCAPS III)</li>
 <li><b>rttoolbox</b> (Mitsubishi RT ToolBox)</li>
@@ -351,6 +518,34 @@ Public メソッド</h2></td></tr>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a class="anchor" id="ac16deb1623aa4e0ef4cbc458297c2ed0"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual <a class="el" href="namespacemujinclient.html#a9a7bf2721c91516d69ca08837e26b7b8">SceneResourcePtr</a> mujinclient::ControllerClient::RegisterScene </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>uri</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>registers scene with default scene type </p>
+
+<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00358">358</a> 行で定義されています。</p>
 
 </div>
 </div>
@@ -420,6 +615,54 @@ Public メソッド</h2></td></tr>
   </dd>
 </dl>
 <p>The default character encoding is utf-8, can also set it to Shift_JIS for windows japanese unicode, iso-2022-jp List of possible sets: <a href="http://www.iana.org/assignments/character-sets/character-sets.xml">http://www.iana.org/assignments/character-sets/character-sets.xml</a> </p>
+
+</div>
+</div>
+<a class="anchor" id="ab92a5008ebda3a775cefdcf77c685985"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void mujinclient::ControllerClient::SetDefaultSceneType </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>scenetype</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a62f87ee08506a8a2a6e8d05650bb364b"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void mujinclient::ControllerClient::SetDefaultTaskType </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>tasktype</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
 
 </div>
 </div>
@@ -493,6 +736,99 @@ Public メソッド</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="a87bb48d73fead10f8d9b88cfe1aaf39b"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void mujinclient::ControllerClient::SyncUpload_UTF8 </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>sourcefilename</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>destinationdir</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>scenetype</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>uploads a particular scene's files into the network filesystem. </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">sourcefilename</td><td>URI-encoded local filesystem location of the top-level file. If the scenetype requires many files, will upload all of them. </td></tr>
+    <tr><td class="paramname">destinationdir</td><td>UTF-8 encoded destination folder in the network file system. Should always have trailing slash. By default use: "mujin:/" </td></tr>
+    <tr><td class="paramname">scenetype</td><td>The type of scene uploading. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>例外</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mujin_exception</td><td>if the upload fails, will throw an exception </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ac34f18effd3eb738e3cfeb6516a8cbd6"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void mujinclient::ControllerClient::SyncUpload_UTF8 </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>sourcefilename</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>destinationdir</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="section see"><dt>参照</dt><dd>SyncUpload </dd></dl>
+
+<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00388">388</a> 行で定義されています。</p>
+
+</div>
+</div>
 <a class="anchor" id="a608e4b1f5253d4ad79bc428b6550b369"></a>
 <div class="memitem">
 <div class="memproto">
@@ -525,7 +861,7 @@ Public メソッド</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-controllerclientcppに対してTue Mar 12 2013 23:58:12に生成されました。 &#160;<a href="http://www.doxygen.org/index.html">
+controllerclientcppに対してThu Apr 4 2013 18:28:28に生成されました。 &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.3
 </small></address>

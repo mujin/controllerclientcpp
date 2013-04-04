@@ -144,7 +144,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line">        cout &lt;&lt; <span class="stringliteral">&quot;program is &quot;</span> &lt;&lt; task-&gt;Get(<span class="stringliteral">&quot;taskgoalxml&quot;</span>) &lt;&lt; endl;</div>
 <div class="line"></div>
 <div class="line">        <a class="code" href="namespacemujinclient.html#ac6864839d1aa167298fac02dc4388378">PlanningResultResourcePtr</a> result = task-&gt;GetResult();</div>
-<div class="line">        std::map&lt;std::string, Transform&gt; transforms;</div>
+<div class="line">        <a class="code" href="namespacemujinclient.html#a974c2ef40a0f222a6559c0798004c021">EnvironmentState</a> envstate;</div>
 <div class="line">        <span class="keywordflow">if</span>( !!result ) {</div>
 <div class="line">            cout &lt;&lt; <span class="stringliteral">&quot;result for task exists and can be completed in &quot;</span> &lt;&lt; result-&gt;Get(<span class="stringliteral">&quot;task_time&quot;</span>) &lt;&lt; <span class="stringliteral">&quot; seconds.&quot;</span> &lt;&lt; endl;</div>
 <div class="line">        }</div>
@@ -166,12 +166,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line">            cout &lt;&lt; endl;</div>
 <div class="line"></div>
 <div class="line">            <a class="code" href="namespacemujinclient.html#ac6864839d1aa167298fac02dc4388378">PlanningResultResourcePtr</a> bestresult = results.at(0);</div>
-<div class="line">            bestresult-&gt;GetTransforms(transforms);</div>
+<div class="line">            bestresult-&gt;GetEnvironmentState(envstate);</div>
 <div class="line">            cout &lt;&lt; <span class="stringliteral">&quot;robot position of best result is: &quot;</span>;</div>
-<div class="line">            <span class="keywordflow">for</span>(std::map&lt;std::string, Transform&gt;::iterator it = transforms.begin(); it != transforms.end(); ++it) {</div>
-<div class="line">                <a name="_a5"></a><a class="code" href="structmujinclient_1_1Transform.html" title="an affine transform">Transform</a> tfirst = it-&gt;second;</div>
+<div class="line">            <span class="keywordflow">for</span>(EnvironmentState::iterator it = envstate.begin(); it != envstate.end(); ++it) {</div>
+<div class="line">                <a name="_a5"></a><a class="code" href="structmujinclient_1_1InstanceObjectState.html">InstanceObjectState</a> objstate = it-&gt;second;</div>
 <div class="line">                <span class="comment">// for now only output translation</span></div>
-<div class="line">                cout &lt;&lt; it-&gt;first &lt;&lt; <span class="stringliteral">&quot;=(&quot;</span> &lt;&lt; tfirst.<a name="a6"></a><a class="code" href="structmujinclient_1_1Transform.html#a7be9672fd534ae62aa442d1b764c7ee3" title="translation x,y,z">translation</a>[0] &lt;&lt; <span class="stringliteral">&quot;, &quot;</span> &lt;&lt; tfirst.<a class="code" href="structmujinclient_1_1Transform.html#a7be9672fd534ae62aa442d1b764c7ee3" title="translation x,y,z">translation</a>[1] &lt;&lt; <span class="stringliteral">&quot;, &quot;</span> &lt;&lt; tfirst.<a class="code" href="structmujinclient_1_1Transform.html#a7be9672fd534ae62aa442d1b764c7ee3" title="translation x,y,z">translation</a>[2] &lt;&lt; <span class="stringliteral">&quot;), &quot;</span>;</div>
+<div class="line">                cout &lt;&lt; it-&gt;first &lt;&lt; <span class="stringliteral">&quot;=(&quot;</span> &lt;&lt; objstate.<a name="a6"></a><a class="code" href="structmujinclient_1_1InstanceObjectState.html#a07ae66e5f8d6b2b283fcad4608a26af9" title="the transform of this instance object">transform</a>.<a name="a7"></a><a class="code" href="structmujinclient_1_1Transform.html#a7be9672fd534ae62aa442d1b764c7ee3" title="translation x,y,z">translation</a>[0] &lt;&lt; <span class="stringliteral">&quot;, &quot;</span> &lt;&lt; objstate.<a class="code" href="structmujinclient_1_1InstanceObjectState.html#a07ae66e5f8d6b2b283fcad4608a26af9" title="the transform of this instance object">transform</a>.<a class="code" href="structmujinclient_1_1Transform.html#a7be9672fd534ae62aa442d1b764c7ee3" title="translation x,y,z">translation</a>[1] &lt;&lt; <span class="stringliteral">&quot;, &quot;</span> &lt;&lt; objstate.<a class="code" href="structmujinclient_1_1InstanceObjectState.html#a07ae66e5f8d6b2b283fcad4608a26af9" title="the transform of this instance object">transform</a>.<a class="code" href="structmujinclient_1_1Transform.html#a7be9672fd534ae62aa442d1b764c7ee3" title="translation x,y,z">translation</a>[2] &lt;&lt; <span class="stringliteral">&quot;), &quot;</span>;</div>
 <div class="line">            }</div>
 <div class="line">            cout &lt;&lt; endl;</div>
 <div class="line">            std::string robotprogram = bestresult-&gt;Get(<span class="stringliteral">&quot;robot_programs&quot;</span>);</div>
@@ -184,16 +184,16 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line">            }</div>
 <div class="line">        }</div>
 <div class="line">    }</div>
-<div class="line">    <span class="keywordflow">catch</span>(<span class="keyword">const</span> <a name="_a7"></a><a class="code" href="classmujinclient_1_1MujinException.html" title="Exception that all Mujin internal methods throw; the error codes are held in MujinErrorCode.">MujinException</a>&amp; ex) {</div>
-<div class="line">        std::cout &lt;&lt; <span class="stringliteral">&quot;exception thrown: &quot;</span> &lt;&lt; ex.<a name="a8"></a><a class="code" href="classmujinclient_1_1MujinException.html#ad8072416a4bb914157a845b34cde62ff">message</a>() &lt;&lt; std::endl;</div>
+<div class="line">    <span class="keywordflow">catch</span>(<span class="keyword">const</span> <a name="_a8"></a><a class="code" href="classmujinclient_1_1MujinException.html" title="Exception that all Mujin internal methods throw; the error codes are held in MujinErrorCode.">MujinException</a>&amp; ex) {</div>
+<div class="line">        std::cout &lt;&lt; <span class="stringliteral">&quot;exception thrown: &quot;</span> &lt;&lt; ex.<a name="a9"></a><a class="code" href="classmujinclient_1_1MujinException.html#ad8072416a4bb914157a845b34cde62ff">message</a>() &lt;&lt; std::endl;</div>
 <div class="line">    }</div>
 <div class="line">    <span class="comment">// destroy all mujin controller resources</span></div>
-<div class="line">    <a name="a9"></a><a class="code" href="namespacemujinclient.html#a8ae80bf1bea1a9959dd23a310a3e5d03" title="called at the very end of an application to safely destroy all controller client resources">ControllerClientDestroy</a>();</div>
+<div class="line">    <a name="a10"></a><a class="code" href="namespacemujinclient.html#a8ae80bf1bea1a9959dd23a310a3e5d03" title="called at the very end of an application to safely destroy all controller client resources">ControllerClientDestroy</a>();</div>
 <div class="line">}</div>
 </div><!-- fragment --> </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Mar 12 2013 23:58:11 for controllerclientcpp by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Apr 4 2013 18:28:26 for controllerclientcpp by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.3
 </small></address>

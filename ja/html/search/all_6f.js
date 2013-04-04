@@ -5,6 +5,5 @@ var searchData=
   ['optimizationresource',['OptimizationResource',['../classmujinclient_1_1OptimizationResource.html#aef085b25b59167d66eb3131a10fc2b36',1,'mujinclient::OptimizationResource']]],
   ['optimizationresourceptr',['OptimizationResourcePtr',['../namespacemujinclient.html#a792d4a5c8226ed22db9f59b11908229d',1,'mujinclient']]],
   ['optimizationresourceweakptr',['OptimizationResourceWeakPtr',['../namespacemujinclient.html#a516bdfdd4496b5ebc30349be5a130c6d',1,'mujinclient']]],
-  ['optimizationvalue',['optimizationvalue',['../structmujinclient_1_1ITLPlanningTaskInfo.html#a7e3ec0ca9b1abb24cc11ff86a16a7a91',1,'mujinclient::ITLPlanningTaskInfo']]],
-  ['outputtrajtype',['outputtrajtype',['../structmujinclient_1_1ITLPlanningTaskInfo.html#aafa25ec3bf3d1a26e92adc1e5ca33974',1,'mujinclient::ITLPlanningTaskInfo']]]
+  ['optimizationvalue',['optimizationvalue',['../classmujinclient_1_1ITLPlanningTaskParameters.html#a5956fe320ffb03737884a4d677c59d7c',1,'mujinclient::ITLPlanningTaskParameters']]]
 ];

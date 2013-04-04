@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['startfromcurrent',['startfromcurrent',['../structmujinclient_1_1ITLPlanningTaskInfo.html#a444d9b117677c8b140b32c7085236f4d',1,'mujinclient::ITLPlanningTaskInfo']]],
-  ['stepsize',['stepsize',['../structmujinclient_1_1RobotPlacementOptimizationInfo.html#a3a6c6b435efd3b3cc875712c885821a2',1,'mujinclient::RobotPlacementOptimizationInfo']]]
+  ['startfromcurrent',['startfromcurrent',['../classmujinclient_1_1ITLPlanningTaskParameters.html#a95e66f04566d99ba1b3c1b75a84017ee',1,'mujinclient::ITLPlanningTaskParameters']]],
+  ['stepsize',['stepsize',['../structmujinclient_1_1RobotPlacementOptimizationParameters.html#ac7096d41e0bde14afb042c922d24d12d',1,'mujinclient::RobotPlacementOptimizationParameters']]]
 ];

@@ -153,7 +153,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'検索');
 <div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;        cout &lt;&lt; <span class="stringliteral">&quot;program is &quot;</span> &lt;&lt; task-&gt;Get(<span class="stringliteral">&quot;taskgoalxml&quot;</span>) &lt;&lt; endl;</div>
 <div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;</div>
 <div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;        <a class="code" href="namespacemujinclient.html#ac6864839d1aa167298fac02dc4388378">PlanningResultResourcePtr</a> result = task-&gt;GetResult();</div>
-<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;        std::map&lt;std::string, Transform&gt; transforms;</div>
+<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;        <a class="code" href="namespacemujinclient.html#a974c2ef40a0f222a6559c0798004c021">EnvironmentState</a> envstate;</div>
 <div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;        <span class="keywordflow">if</span>( !!result ) {</div>
 <div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;            cout &lt;&lt; <span class="stringliteral">&quot;result for task exists and can be completed in &quot;</span> &lt;&lt; result-&gt;Get(<span class="stringliteral">&quot;task_time&quot;</span>) &lt;&lt; <span class="stringliteral">&quot; seconds.&quot;</span> &lt;&lt; endl;</div>
 <div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;        }</div>
@@ -175,12 +175,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'検索');
 <div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;            cout &lt;&lt; endl;</div>
 <div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;</div>
 <div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;            <a class="code" href="namespacemujinclient.html#ac6864839d1aa167298fac02dc4388378">PlanningResultResourcePtr</a> bestresult = results.at(0);</div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;            bestresult-&gt;GetTransforms(transforms);</div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;            bestresult-&gt;GetEnvironmentState(envstate);</div>
 <div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;            cout &lt;&lt; <span class="stringliteral">&quot;robot position of best result is: &quot;</span>;</div>
-<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;            <span class="keywordflow">for</span>(std::map&lt;std::string, Transform&gt;::iterator it = transforms.begin(); it != transforms.end(); ++it) {</div>
-<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;                <a class="code" href="structmujinclient_1_1Transform.html" title="an affine transform">Transform</a> tfirst = it-&gt;second;</div>
+<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;            <span class="keywordflow">for</span>(EnvironmentState::iterator it = envstate.begin(); it != envstate.end(); ++it) {</div>
+<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;                <a class="code" href="structmujinclient_1_1InstanceObjectState.html">InstanceObjectState</a> objstate = it-&gt;second;</div>
 <div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;                <span class="comment">// for now only output translation</span></div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;                cout &lt;&lt; it-&gt;first &lt;&lt; <span class="stringliteral">&quot;=(&quot;</span> &lt;&lt; tfirst.<a class="code" href="structmujinclient_1_1Transform.html#a7be9672fd534ae62aa442d1b764c7ee3" title="translation x,y,z">translation</a>[0] &lt;&lt; <span class="stringliteral">&quot;, &quot;</span> &lt;&lt; tfirst.<a class="code" href="structmujinclient_1_1Transform.html#a7be9672fd534ae62aa442d1b764c7ee3" title="translation x,y,z">translation</a>[1] &lt;&lt; <span class="stringliteral">&quot;, &quot;</span> &lt;&lt; tfirst.<a class="code" href="structmujinclient_1_1Transform.html#a7be9672fd534ae62aa442d1b764c7ee3" title="translation x,y,z">translation</a>[2] &lt;&lt; <span class="stringliteral">&quot;), &quot;</span>;</div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;                cout &lt;&lt; it-&gt;first &lt;&lt; <span class="stringliteral">&quot;=(&quot;</span> &lt;&lt; objstate.<a class="code" href="structmujinclient_1_1InstanceObjectState.html#a07ae66e5f8d6b2b283fcad4608a26af9" title="the transform of this instance object">transform</a>.<a class="code" href="structmujinclient_1_1Transform.html#a7be9672fd534ae62aa442d1b764c7ee3" title="translation x,y,z">translation</a>[0] &lt;&lt; <span class="stringliteral">&quot;, &quot;</span> &lt;&lt; objstate.<a class="code" href="structmujinclient_1_1InstanceObjectState.html#a07ae66e5f8d6b2b283fcad4608a26af9" title="the transform of this instance object">transform</a>.<a class="code" href="structmujinclient_1_1Transform.html#a7be9672fd534ae62aa442d1b764c7ee3" title="translation x,y,z">translation</a>[1] &lt;&lt; <span class="stringliteral">&quot;, &quot;</span> &lt;&lt; objstate.<a class="code" href="structmujinclient_1_1InstanceObjectState.html#a07ae66e5f8d6b2b283fcad4608a26af9" title="the transform of this instance object">transform</a>.<a class="code" href="structmujinclient_1_1Transform.html#a7be9672fd534ae62aa442d1b764c7ee3" title="translation x,y,z">translation</a>[2] &lt;&lt; <span class="stringliteral">&quot;), &quot;</span>;</div>
 <div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;            }</div>
 <div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;            cout &lt;&lt; endl;</div>
 <div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;            std::string robotprogram = bestresult-&gt;Get(<span class="stringliteral">&quot;robot_programs&quot;</span>);</div>
@@ -202,7 +202,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'検索');
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-controllerclientcppに対してTue Mar 12 2013 23:58:12に生成されました。 &#160;<a href="http://www.doxygen.org/index.html">
+controllerclientcppに対してThu Apr 4 2013 18:28:28に生成されました。 &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.3
 </small></address>
