@@ -110,8 +110,12 @@ int main(int argc, char ** argv)
         }
 
         // task succeed
-        std::string robotprogram = result->Get("robot_programs");
-        std::cout << std::endl << "robot program is: " << std::endl << robotprogram << std::endl;
+        RobotControllerPrograms programs;
+        result->GetPrograms(programs);
+        std::cout << "found " << programs.programs.size() << " programs" << std::endl;
+        for(std::map<std::string, RobotProgramData>::iterator it = programs.programs.begin(); it != programs.programs.end(); ++it ) {
+            std::cout << "[" << it->first << "]" << std::endl << it->second.programdata << std::endl << std::endl;
+        }
         std::cout << "final task_time is " << result->Get("task_time") << std::endl;
 
         OptimizationResourcePtr optimization = task->GetOrCreateOptimizationFromName("MYNAME0","robotplacement");

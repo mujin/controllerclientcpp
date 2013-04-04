@@ -89,15 +89,12 @@ movel(p[Work0/3])\n\
             }
         }
 
-        std::string robotprogram = result->Get("robot_programs");
-        if( robotprogram.size() > 0 ) {
-            std::cout << std::endl << "robot program is: " << std::endl << robotprogram << std::endl;
+        RobotControllerPrograms programs;
+        result->GetPrograms(programs);
+        std::cout << "found " << programs.programs.size() << " programs" << std::endl;
+        for(std::map<std::string, RobotProgramData>::iterator it = programs.programs.begin(); it != programs.programs.end(); ++it ) {
+            std::cout << "[" << it->first << "]" << std::endl << it->second.programdata << std::endl << std::endl;
         }
-        else {
-            // output the trajectory in xml format
-            std::cout << std::endl << "trajectory is: " << std::endl << result->Get("trajectory") << std::endl;
-        }
-
         std::cout << "final task_time is " << result->Get("task_time") << std::endl;
     }
     catch(const MujinException& ex) {

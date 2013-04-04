@@ -95,14 +95,14 @@ int main(int argc, char ** argv)
                 cout << it->first << "=(" << objstate.transform.translation[0] << ", " << objstate.transform.translation[1] << ", " << objstate.transform.translation[2] << "), ";
             }
             cout << endl;
-            std::string robotprogram = bestresult->Get("robot_programs");
-            if( robotprogram.size() > 0 ) {
-                cout << endl << "robot program is: " << endl << robotprogram << endl;
+
+            RobotControllerPrograms programs;
+            result->GetPrograms(programs);
+            std::cout << "found " << programs.programs.size() << " programs" << std::endl;
+            for(std::map<std::string, RobotProgramData>::iterator it = programs.programs.begin(); it != programs.programs.end(); ++it ) {
+                std::cout << "[" << it->first << "]" << std::endl << it->second.programdata << std::endl << std::endl;
             }
-            else {
-                // output the trajectory in xml format
-                cout << endl << "trajectory is: " << endl << bestresult->Get("trajectory") << endl;
-            }
+            std::cout << "final task_time is " << result->Get("task_time") << std::endl;
         }
     }
     catch(const MujinException& ex) {
