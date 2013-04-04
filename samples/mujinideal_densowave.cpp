@@ -62,7 +62,7 @@ int main(int argc, char ** argv)
 
         // upload to network drive
         // pac programs should be converted ITL in this call
-        controller->SyncUpload("C:\\mywincaps\\my.WPJ");
+        controller->SyncUpload_UTF8("C:\\mywincaps\\my.WPJ", "mujin:/");
         SceneResourcePtr scene = controller->RegisterScene("mujin:/my.WPJ");
 
 

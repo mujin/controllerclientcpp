@@ -1,5 +1,5 @@
 // -*- coding: utf-8 -*-
-/** \example mujinexecutetask.cpp
+/** \example mujinexecutetask_fast.cpp
 
     Shows how to quickly register a scene and execute a task and get the results. Because the scene is directly used instead of imported.
  */
