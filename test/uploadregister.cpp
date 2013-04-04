@@ -23,9 +23,9 @@ int main(int argc, char ** argv)
         }
         std::cout << "connected to controller v" << controller->GetVersion() << std::endl;
 
-        //std::string sourcefilename = "../share/mujincontrollerclient/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ";
+        std::string sourcefilename = "../share/mujincontrollerclient/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ";
         //std::string sourcefilename = "F:\\dev\\densowave\\wincaps\\rc8test\\test0\\test0.WPJ";
-        std::string sourcefilename = "F:\\dev\\densowave\\wincaps\\レイアウト評価\\レイアウト評価.WPJ";
+        //std::string sourcefilename = "F:\\dev\\densowave\\wincaps\\レイアウト評価\\レイアウト評価.WPJ";
         //controller->SyncUpload_UTF8(sourcefilename, "mujin:/testupload/", "wincaps");
         controller->SyncUpload_UTF8(sourcefilename, "mujin:/", "wincaps");
         //SceneResourcePtr scene = controller->RegisterScene("mujin:/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ", "wincaps");

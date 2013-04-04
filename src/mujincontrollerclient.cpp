@@ -94,7 +94,7 @@ std::map<int, std::string> InitializeCodePageMap()
     mapCodePageToCharset[866] = "IBM866";
     mapCodePageToCharset[852] = "IBM852";
     mapCodePageToCharset[949] = "KS_C_5601-1987";
-    mapCodePageToCharset[50220/*CODE_JPN_JIS*/] = "ISO-2022-JP";
+    mapCodePageToCharset[50220 /*CODE_JPN_JIS*/] = "ISO-2022-JP";
     mapCodePageToCharset[874] = "windows-874";
     mapCodePageToCharset[20866] = "koi8-r";
     mapCodePageToCharset[1251] = "x-cp1251";
@@ -108,7 +108,7 @@ std::map<int, std::string> InitializeCodePageMap()
     mapCodePageToCharset[1250] = "x-cp1250";
     mapCodePageToCharset[950] = "x-x-big5";
     mapCodePageToCharset[932] = "Shift_JIS";
-    mapCodePageToCharset[51932/*CODE_JPN_EUC*/] = "EUC-JP";
+    mapCodePageToCharset[51932 /*CODE_JPN_EUC*/] = "EUC-JP";
     mapCodePageToCharset[28592] = "latin2";
     mapCodePageToCharset[936] = "ISO-IR-58";
     mapCodePageToCharset[1258] = "windows-1258";
@@ -126,8 +126,8 @@ inline std::wstring ConvertUTF8toUTF16(const std::string& utf8)
         if ((nLen16 = ::MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), -1, NULL, 0)) > 0) {
             utf16.resize(nLen16);
             ::MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), -1, &utf16[0], nLen16);
-			// remove the null terminated char that was written
-			utf16.resize(nLen16-1);
+            // remove the null terminated char that was written
+            utf16.resize(nLen16-1);
         }
     }
     return utf16;
@@ -142,8 +142,8 @@ inline std::string ConvertUTF16toUTF8(const std::wstring& utf16)
         if ((nLen8 = ::WideCharToMultiByte(CP_UTF8, 0, utf16.c_str(), -1, NULL, 0, NULL, NULL)) > 0) {
             utf8.resize(nLen8);
             ::WideCharToMultiByte(CP_UTF8, 0, utf16.c_str(), -1, &utf8[0], nLen8, NULL, NULL);
-			// remove the null terminated char that was written
-			utf8.resize(nLen8-1);
+            // remove the null terminated char that was written
+            utf8.resize(nLen8-1);
         }
     }
     return utf8;
@@ -158,8 +158,8 @@ inline std::string ConvertUTF16toMBS(const std::wstring& utf16)
         if ((nLenA = ::WideCharToMultiByte(CP_ACP, 0, utf16.c_str(), -1, NULL, 0, NULL, NULL)) > 0) {
             mbs.resize(nLenA);
             ::WideCharToMultiByte(CP_ACP, 0, utf16.c_str(), -1, &mbs[0], nLenA, NULL, NULL);
-			// remove the null terminated char that was written
-			mbs.resize(nLenA-1);
+            // remove the null terminated char that was written
+            mbs.resize(nLenA-1);
         }
     }
     return mbs;
@@ -174,8 +174,8 @@ inline std::wstring ConvertMBStoUTF16(const std::string& mbs)
         if ((nLen16 = ::MultiByteToWideChar(CP_ACP, 0, mbs.c_str(), -1, NULL, 0)) > 0) {
             utf16.resize(nLen16);
             ::MultiByteToWideChar(CP_ACP, 0, mbs.c_str(), -1, &utf16[0], nLen16);
-			// remove the null terminated char that was written
-			utf16.resize(nLen16-1);
+            // remove the null terminated char that was written
+            utf16.resize(nLen16-1);
         }
     }
     return utf16;
@@ -196,10 +196,10 @@ inline std::string ConvertUTF8toMBS(const std::string& utf8)
 std::string ConvertUTF8ToFileSystemEncoding(const std::string& utf8)
 {
 #if defined(_WIN32) || defined(_WIN64)
-	return encoding::ConvertUTF8toMBS(utf8);
+    return encoding::ConvertUTF8toMBS(utf8);
 #else
-	// most linux systems use utf-8, can use getenv("LANG") to double-check
-	return utf8;
+    // most linux systems use utf-8, can use getenv("LANG") to double-check
+    return utf8;
 #endif
 }
 
@@ -207,10 +207,10 @@ std::string ConvertUTF8ToFileSystemEncoding(const std::string& utf8)
 std::string ConvertFileSystemEncodingToUTF8(const std::string& fs)
 {
 #if defined(_WIN32) || defined(_WIN64)
-	return encoding::ConvertMBStoUTF8(fs);
+    return encoding::ConvertMBStoUTF8(fs);
 #else
-	// most linux systems use utf-8, can use getenv("LANG") to double-check
-	return fs;
+    // most linux systems use utf-8, can use getenv("LANG") to double-check
+    return fs;
 #endif
 }
 
@@ -614,7 +614,7 @@ protected:
             baseuploaduri.push_back('/');
         }
 
-		size_t nBaseFilenameStartIndex = sourcefilename.find_last_of(s_filesep);
+        size_t nBaseFilenameStartIndex = sourcefilename.find_last_of(s_filesep);
         if( nBaseFilenameStartIndex == std::string::npos ) {
             // there's no path?
             nBaseFilenameStartIndex = 0;
@@ -630,7 +630,7 @@ protected:
             //   <WCNPath VT="8">.\threegoaltouch\threegoaltouch.WCN;</WCNPath>
             // </clsProject>
             // first have to get the raw utf-16 data
-            std::ifstream wpjfilestream(encoding::ConvertUTF8ToFileSystemEncoding(sourcefilename), std::ios::binary|std::ios::in);
+            std::ifstream wpjfilestream(encoding::ConvertUTF8ToFileSystemEncoding(sourcefilename).c_str(), std::ios::binary|std::ios::in);
             if( !wpjfilestream ) {
                 throw MUJIN_EXCEPTION_FORMAT("failed to open file %s", sourcefilename, MEC_InvalidArguments);
             }
@@ -685,7 +685,7 @@ protected:
             }
         }
 
-		// sourcefilenamebase is utf-8
+        // sourcefilenamebase is utf-8
         char* pescapeddir = curl_easy_escape(_curl, sourcefilename.substr(nBaseFilenameStartIndex).c_str(), 0);
         std::string uploadfileuri = baseuploaduri + std::string(pescapeddir);
         curl_free(pescapeddir);
@@ -957,8 +957,8 @@ protected:
     /// \param destinationdir the directory inside the user webdav folder. has a trailing slash
     void _EnsureWebDAVDirectories(const std::string& uriDestinationDir)
     {
-		std::list<std::string> listCreateDirs;
-		std::string output;
+        std::list<std::string> listCreateDirs;
+        std::string output;
         size_t startindex = 0;
         for(size_t i = 0; i < uriDestinationDir.size(); ++i) {
             if( uriDestinationDir[i] == '/' ) {
@@ -1023,9 +1023,9 @@ protected:
 
     /// \brief recursively uploads a directory and creates directories along the way if they don't exist
     ///
-	/// overwrites all the files
-	/// \param copydir is utf-8 encoded
-	/// \param uri is URI-encoded
+    /// overwrites all the files
+    /// \param copydir is utf-8 encoded
+    /// \param uri is URI-encoded
     void _UploadDirectoryToWebDAV_UTF8(const std::string& copydir, const std::string& uri)
     {
         {
@@ -1075,11 +1075,12 @@ protected:
         if( err !=  ERROR_NO_MORE_FILES ) {
             throw MUJIN_EXCEPTION_FORMAT("system error 0x%x when recursing through %s", err%sCopyDir_FS, MEC_HTTPServer);
         }
-        
+
 #else
-        for(boost::filesystem::directory_iterator itdir(boost::filesystem::path(copydir)); itdir != boost::filesystem::directory_iterator(); ++itdir) {
+        boost::filesystem::path bfpcopydir(copydir);
+        for(boost::filesystem::directory_iterator itdir(bfpcopydir); itdir != boost::filesystem::directory_iterator(); ++itdir) {
 #if defined(BOOST_FILESYSTEM_VERSION) && BOOST_FILESYSTEM_VERSION >= 3
-			std::string dirfilename = encoding::ConvertFileSystemEncodingToUTF8(itdir->path().filename().string());
+            std::string dirfilename = encoding::ConvertFileSystemEncodingToUTF8(itdir->path().filename().string());
 #else
             std::string dirfilename = encoding::ConvertFileSystemEncodingToUTF8(itdir->path().filename());
 #endif
@@ -1087,10 +1088,10 @@ protected:
             std::string newuri = str(boost::format("%s/%s")%uri%pescapeddir);
             curl_free(pescapeddir);
             if( boost::filesystem::is_directory(itdir->status()) ) {
-                _UploadDirectoryToWebDAV_UTF8(itdir->path(), newuri);
+                _UploadDirectoryToWebDAV_UTF8(itdir->path().string(), newuri);
             }
             else if( boost::filesystem::is_regular_file(itdir->status()) ) {
-                _UploadFileToWebDAV_UTF8(itdir->path(), newuri);
+                _UploadFileToWebDAV_UTF8(itdir->path().string(), newuri);
             }
         }
 #endif // defined(_WIN32) || defined(_WIN64)
@@ -1099,7 +1100,7 @@ protected:
     /// \brief uploads a single file, assumes the directory already exists
     ///
     /// overwrites the file if it already exists
-	void _UploadFileToWebDAV_UTF8(const std::string& filename, const std::string& uri)
+    void _UploadFileToWebDAV_UTF8(const std::string& filename, const std::string& uri)
     {
         std::string sFilename_FS = encoding::ConvertUTF8ToFileSystemEncoding(filename);
         FILE * fd = fopen(sFilename_FS.c_str(), "rb");
@@ -1116,7 +1117,7 @@ protected:
         struct stat file_info;
         if(fstat(fileno(fd), &file_info) != 0) {
             fclose(fd); // make sure to close the handle
-            throw MUJIN_EXCEPTION_FORMAT("failed to stat filename %s for filesize", bfpfilename.string(), MEC_InvalidArguments);
+            throw MUJIN_EXCEPTION_FORMAT("failed to stat filename %s for filesize", sFilename_FS, MEC_InvalidArguments);
         }
         curl_off_t filesize = (curl_off_t)file_info.st_size;
 #endif
@@ -1140,10 +1141,10 @@ protected:
         // 204 is when it overwrites the file?
         if( http_code != 201 && http_code != 204 ) {
             if( http_code == 400 ) {
-                throw MUJIN_EXCEPTION_FORMAT("upload failed with HTTP status %s, perhaps file exists already?", http_code, MEC_HTTPServer);
+                throw MUJIN_EXCEPTION_FORMAT("upload of %s failed with HTTP status %s, perhaps file exists already?", sFilename_FS%http_code, MEC_HTTPServer);
             }
             else {
-                throw MUJIN_EXCEPTION_FORMAT("upload failed with HTTP status %s", http_code, MEC_HTTPServer);
+                throw MUJIN_EXCEPTION_FORMAT("upload of %s failed with HTTP status %s", sFilename_FS%http_code, MEC_HTTPServer);
             }
         }
         // now extract transfer info
@@ -1168,7 +1169,7 @@ protected:
 
     int _lastmode;
     CURL *_curl;
-	boost::mutex _mutex;
+    boost::mutex _mutex;
     std::stringstream _buffer;
     std::string _baseuri, _baseapiuri, _basewebdavuri, _uri;
 
