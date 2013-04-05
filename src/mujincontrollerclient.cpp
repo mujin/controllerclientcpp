@@ -204,6 +204,19 @@ std::string ConvertUTF8ToFileSystemEncoding(const std::string& utf8)
 }
 
 /// \brief converts utf-8 encoded string into the encoding  string that the filesystem uses
+std::string ConvertUTF16ToFileSystemEncoding(const std::wstring& utf16)
+{
+#if defined(_WIN32) || defined(_WIN64)
+	return encoding::ConvertUTF16toMBS(utf16);
+#else
+	// most linux systems use utf-8, can use getenv("LANG") to double-check
+    std::string utf8;
+    utf8::utf16to8(utf8.begin(), utf16.end(), std::back_inserter(utf8));
+	return utf8;
+#endif
+}
+
+/// \brief converts utf-8 encoded string into the encoding  string that the filesystem uses
 std::string ConvertFileSystemEncodingToUTF8(const std::string& fs)
 {
 #if defined(_WIN32) || defined(_WIN64)
@@ -218,8 +231,10 @@ std::string ConvertFileSystemEncodingToUTF8(const std::string& fs)
 
 #ifdef _WIN32
 const char s_filesep = '\\';
+const char s_wfilesep = L'\\';
 #else
 const char s_filesep = '/';
+const char s_wfilesep = L'/';
 #endif
 
 static bool PairStringLengthCompare(const std::pair<std::string, std::string>&p0, const std::pair<std::string, std::string>&p1)
@@ -257,6 +272,71 @@ static std::string& SearchAndReplace(std::string& out, const std::string& in, co
     }
     return out;
 }
+
+template <typename T>
+std::wstring ParseWincapsWCNPath(const T& sourcefilename, const boost::function<std::string(const T&)>& ConvertToFileSystemEncoding)
+{
+    // scenefilenames is the WPJ file, so have to open it up to see what directory it points to
+    // note that the encoding is utf-16
+    // <clsProject Object="True">
+    //   <WCNPath VT="8">.\threegoaltouch\threegoaltouch.WCN;</WCNPath>
+    // </clsProject>
+    // first have to get the raw utf-16 data
+    std::ifstream wpjfilestream(sourcefilename.c_str(), std::ios::binary|std::ios::in);
+    if( !wpjfilestream ) {
+        throw MUJIN_EXCEPTION_FORMAT("failed to open file %s", ConvertToFileSystemEncoding(sourcefilename), MEC_InvalidArguments);
+    }
+    std::wstringstream utf16stream;
+    bool readbom = false;
+    while(!wpjfilestream.eof() ) {
+        unsigned short c;
+        wpjfilestream.read(reinterpret_cast<char*>(&c),sizeof(c));
+        if( !wpjfilestream ) {
+            break;
+        }
+        if( readbom || c != 0xfeff ) {
+            utf16stream << static_cast<wchar_t>(c);
+        }
+        else {
+            readbom = true;
+        }
+    }
+    boost::property_tree::wptree wpj;
+    boost::property_tree::read_xml(utf16stream, wpj);
+    boost::property_tree::wptree& clsProject = wpj.get_child(L"clsProject");
+    boost::property_tree::wptree& WCNPath = clsProject.get_child(L"WCNPath");
+    std::wstring strWCNPath = WCNPath.data();
+    if( strWCNPath.size() > 0 ) {
+        // post process the string to get the real filesystem directory
+        if( strWCNPath.at(strWCNPath.size()-1) == L';') {
+            strWCNPath.resize(strWCNPath.size()-1);
+        }
+
+        if( strWCNPath.size() >= 2 && (strWCNPath[0] == L'.' && strWCNPath[1] == L'\\') ) {
+            // don't need the prefix
+            strWCNPath = strWCNPath.substr(2);
+        }
+    }
+
+    return strWCNPath;
+}
+
+class FileHandler
+{
+public:
+    FileHandler(const char* pfilename) {
+        _fd = fopen(pfilename, "rb");
+    }
+    FileHandler(const wchar_t* pfilename) {
+        _fd = _wfopen(pfilename, L"rb");
+    }
+    ~FileHandler() {
+        if( !!_fd ) {
+            fclose(_fd);
+        }
+    }
+    FILE* _fd;
+};
 
 #define SKIP_PEER_VERIFICATION // temporary
 //#define SKIP_HOSTNAME_VERIFICATION
@@ -624,62 +704,19 @@ protected:
         }
 
         if( scenetype == "wincaps" ) {
-            // scenefilenames is the WPJ file, so have to open it up to see what directory it points to
-            // note that the encoding is utf-16
-            // <clsProject Object="True">
-            //   <WCNPath VT="8">.\threegoaltouch\threegoaltouch.WCN;</WCNPath>
-            // </clsProject>
-            // first have to get the raw utf-16 data
-            std::ifstream wpjfilestream(encoding::ConvertUTF8ToFileSystemEncoding(sourcefilename), std::ios::binary|std::ios::in);
-            if( !wpjfilestream ) {
-                throw MUJIN_EXCEPTION_FORMAT("failed to open file %s", sourcefilename, MEC_InvalidArguments);
-            }
-            std::stringstream wpjfilestream2;
-            wpjfilestream2 << wpjfilestream.rdbuf() << '\0';
-            std::string wpjfilestreamdata = wpjfilestream2.str();
-            const unsigned short* pstart = reinterpret_cast<const unsigned short*>(wpjfilestreamdata.c_str());
-            const unsigned short* pend = pstart + wpjfilestreamdata.size()/2;
-            std::stringstream utf8stream;
-            utf8::utf16to8(pstart, pend, std::ostream_iterator<char>(utf8stream));
-            boost::property_tree::ptree wpj;
-            boost::property_tree::read_xml(utf8stream, wpj);
-            boost::property_tree::ptree& clsProject = wpj.get_child("clsProject");
-            boost::property_tree::ptree& WCNPath = clsProject.get_child("WCNPath");
-            std::string strWCNPath = WCNPath.data();
-            if( strWCNPath.size() > 0 ) {
-                // post process the string to get the real filesystem directory
-                if( strWCNPath.at(strWCNPath.size()-1) == ';') {
-                    strWCNPath.resize(strWCNPath.size()-1);
-                }
-
+            std::wstring strWCNPath_utf16 = ParseWincapsWCNPath<std::string>(sourcefilename, encoding::ConvertUTF8ToFileSystemEncoding);
+            if( strWCNPath_utf16.size() > 0 ) {
+                std::string strWCNPath;
+                utf8::utf16to8(strWCNPath_utf16.begin(), strWCNPath_utf16.end(), std::back_inserter(strWCNPath));
                 std::string strWCNURI = strWCNPath;
                 size_t lastindex = 0;
                 for(size_t i = 0; i < strWCNURI.size(); ++i) {
                     if( strWCNURI[i] == '\\' ) {
                         strWCNURI[i] = '/';
+                        strWCNPath[i] = s_filesep;
                         lastindex = i;
                     }
                 }
-
-                if( strWCNPath.size() >= 2 && (strWCNPath[0] == '.' && strWCNPath[1] == '\\') ) {
-                    // don't need the prefix
-                    strWCNPath = strWCNPath.substr(2);
-                    strWCNURI = strWCNURI.substr(2);
-                    if( lastindex < 2 ) {
-                        lastindex = 0;
-                    }
-                    else {
-                        lastindex -= 2;
-                    }
-                }
-
-
-#if defined(_WIN32) || defined(_WIN64)
-#else
-                // separator are in windows, so have to convert
-                strWCNPath = strWCNURI;
-#endif
-
                 std::string sCopyDir = sourcefilename.substr(0,nBaseFilenameStartIndex) + strWCNPath.substr(0,lastindex);
                 _UploadDirectoryToWebDAV_UTF8(sCopyDir, baseuploaduri+_EncodeWithoutSeparator(strWCNURI.substr(0,lastindex)));
             }
@@ -698,6 +735,71 @@ protected:
            " from SCOPE ('deep traversal of \"/exchange/adb/Calendar/\"') "
            "WHERE \"DAV:isfolder\" = True</D:sql></D:searchrequest>\r\n";
          */
+    }
+
+    virtual void SyncUpload_UTF16(const std::wstring& sourcefilename_utf16, const std::wstring& destinationdir_utf16, const std::string& scenetype)
+    {
+        // TODO use curl_multi_perform to allow uploading of multiple files simultaneously
+        // TODO should LOCK with WebDAV repository?
+        boost::mutex::scoped_lock lock(_mutex);
+        std::string baseuploaduri;
+        std::string destinationdir_utf8;
+        utf8::utf16to8(destinationdir_utf16.begin(), destinationdir_utf16.end(), std::back_inserter(destinationdir_utf8));
+
+        if( destinationdir_utf8.size() >= 7 && destinationdir_utf8.substr(0,7) == "mujin:/" ) {
+            baseuploaduri = _basewebdavuri;
+            std::string s = destinationdir_utf8.substr(7);
+            baseuploaduri += _EncodeWithoutSeparator(s);
+            _EnsureWebDAVDirectories(s);
+        }
+        else {
+            baseuploaduri = destinationdir_utf8;
+        }
+        // ensure trailing slash
+        if( baseuploaduri[baseuploaduri.size()-1] != '/' ) {
+            baseuploaduri.push_back('/');
+        }
+
+		size_t nBaseFilenameStartIndex = sourcefilename_utf16.find_last_of(s_wfilesep);
+        if( nBaseFilenameStartIndex == std::string::npos ) {
+            // there's no path?
+            nBaseFilenameStartIndex = 0;
+        }
+        else {
+            nBaseFilenameStartIndex++;
+        }
+
+        if( scenetype == "wincaps" ) {
+            std::wstring strWCNPath_utf16 = ParseWincapsWCNPath<std::wstring>(sourcefilename_utf16, encoding::ConvertUTF16ToFileSystemEncoding);
+            if( strWCNPath_utf16.size() > 0 ) {
+                std::string strWCNURI;
+                utf8::utf16to8(strWCNPath_utf16.begin(), strWCNPath_utf16.end(), std::back_inserter(strWCNURI));
+                size_t lastindex_utf8 = 0;
+                for(size_t i = 0; i < strWCNURI.size(); ++i) {
+                    if( strWCNURI[i] == '\\' ) {
+                        strWCNURI[i] = '/';
+                        lastindex_utf8 = i;
+                    }
+                }
+                size_t lastindex_utf16 = 0;
+                for(size_t i = 0; i < strWCNPath_utf16.size(); ++i) {
+                    if( strWCNPath_utf16[i] == '\\' ) {
+                        strWCNPath_utf16[i] = s_wfilesep;
+                        lastindex_utf16 = i;
+                    }
+                }
+                std::wstring sCopyDir_utf16 = sourcefilename_utf16.substr(0,nBaseFilenameStartIndex) + strWCNPath_utf16.substr(0,lastindex_utf16);
+                _UploadDirectoryToWebDAV_UTF16(sCopyDir_utf16, baseuploaduri+_EncodeWithoutSeparator(strWCNURI.substr(0,lastindex_utf8)));
+            }
+        }
+
+		// sourcefilenamebase is utf-8
+        std::string sourcefilenamedir_utf8;
+        utf8::utf16to8(sourcefilename_utf16.begin(), sourcefilename_utf16.begin()+nBaseFilenameStartIndex, std::back_inserter(sourcefilenamedir_utf8));
+        char* pescapeddir = curl_easy_escape(_curl, sourcefilenamedir_utf8.c_str(), 0);
+        std::string uploadfileuri = baseuploaduri + std::string(pescapeddir);
+        curl_free(pescapeddir);
+        //_UploadFileToWebDAV_UTF16(sourcefilename_utf16, uploadfileuri);
     }
 
     /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
@@ -1045,10 +1147,10 @@ protected:
         std::cout << "uploading " << sCopyDir_FS << " -> " << uri << std::endl;
 
 #if defined(_WIN32) || defined(_WIN64)
-        WIN32_FIND_DATA ffd;
+        WIN32_FIND_DATAA ffd;
         std::string searchstr = sCopyDir_FS + std::string("\\*");
-        HANDLE hFind = FindFirstFile(searchstr.c_str(), &ffd);
-        if (hFind == INVALID_HANDLE_VALUE)  {
+        HANDLE hFind = FindFirstFileA(searchstr.c_str(), &ffd);
+        if (hFind == INVALID_HANDLE_VALUE) {
             throw MUJIN_EXCEPTION_FORMAT("could not retrieve file data for %s", sCopyDir_FS, MEC_Assert);
         }
 
@@ -1068,12 +1170,89 @@ protected:
                     _UploadFileToWebDAV_UTF8(newcopydir, newuri);
                 }
             }
-        } while(FindNextFile(hFind,&ffd) != 0);
+        } while(FindNextFileA(hFind,&ffd) != 0);
+
+        DWORD err = GetLastError();
+        FindClose(hFind);
+        if( err != ERROR_NO_MORE_FILES ) {
+            throw MUJIN_EXCEPTION_FORMAT("system error 0x%x when recursing through %s", err%sCopyDir_FS, MEC_HTTPServer);
+        }
+
+#else
+        boost::filesystem::path bfpcopydir(copydir);
+        for(boost::filesystem::directory_iterator itdir(bfpcopydir); itdir != boost::filesystem::directory_iterator(); ++itdir) {
+#if defined(BOOST_FILESYSTEM_VERSION) && BOOST_FILESYSTEM_VERSION >= 3
+            std::string dirfilename = encoding::ConvertFileSystemEncodingToUTF8(itdir->path().filename().string());
+#else
+            std::string dirfilename = encoding::ConvertFileSystemEncodingToUTF8(itdir->path().filename());
+#endif
+            char* pescapeddir = curl_easy_escape(_curl, dirfilename.c_str(), dirfilename.size());
+            std::string newuri = str(boost::format("%s/%s")%uri%pescapeddir);
+            curl_free(pescapeddir);
+            if( boost::filesystem::is_directory(itdir->status()) ) {
+                _UploadDirectoryToWebDAV_UTF8(itdir->path().string(), newuri);
+            }
+            else if( boost::filesystem::is_regular_file(itdir->status()) ) {
+                _UploadFileToWebDAV_UTF8(itdir->path().string(), newuri);
+            }
+        }
+#endif // defined(_WIN32) || defined(_WIN64)
+    }
+
+    /// \brief recursively uploads a directory and creates directories along the way if they don't exist
+    ///
+	/// overwrites all the files
+	/// \param copydir is utf-16 encoded
+	/// \param uri is URI-encoded
+    void _UploadDirectoryToWebDAV_UTF16(const std::wstring& copydir, const std::string& uri)
+    {
+        {
+            // make sure the directory is created
+            CurlCustomRequestSetter setter(_curl, "MKCOL");
+            curl_easy_setopt(_curl, CURLOPT_URL, uri.c_str());
+            CURLcode res = curl_easy_perform(_curl);
+            CHECKCURLCODE(res, "curl_easy_perform failed");
+            long http_code = 0;
+            res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
+            if( http_code != 201 && http_code != 301 ) {
+                throw MUJIN_EXCEPTION_FORMAT("HTTP MKCOL failed for %s with HTTP status %d: %s", uri%http_code%_errormessage, MEC_HTTPServer);
+            }
+        }
+
+        std::wstring sCopyDir_FS = copydir;
+        std::cout << "uploading " << encoding::ConvertUTF16ToFileSystemEncoding(copydir) << " -> " << uri << std::endl;
+
+#if defined(_WIN32) || defined(_WIN64)
+        WIN32_FIND_DATAW ffd;
+        std::wstring searchstr = sCopyDir_FS + std::wstring(L"\\*");
+        HANDLE hFind = FindFirstFileW(searchstr.c_str(), &ffd);
+        if (hFind == INVALID_HANDLE_VALUE)  {
+            throw MUJIN_EXCEPTION_FORMAT("could not retrieve file data for %s", encoding::ConvertUTF16ToFileSystemEncoding(copydir), MEC_Assert);
+        }
+
+        do {
+            std::wstring filename = std::wstring(ffd.cFileName);
+            if( filename != L"." && filename != L".." ) {
+                std::string filename_utf8;
+                utf8::utf16to8(filename.begin(), filename.end(), std::back_inserter(filename_utf8));
+                std::wstring newcopydir = str(boost::wformat(L"%s\\%s")%copydir%filename);
+                char* pescapeddir = curl_easy_escape(_curl, filename_utf8.c_str(), filename_utf8.size());
+                std::string newuri = str(boost::format("%s/%s")%uri%pescapeddir);
+                curl_free(pescapeddir);
+
+                if( ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) {
+                    _UploadDirectoryToWebDAV_UTF16(newcopydir, newuri);
+                }
+                else if( ffd.dwFileAttributes == 0 || ffd.dwFileAttributes == FILE_ATTRIBUTE_READONLY || ffd.dwFileAttributes == FILE_ATTRIBUTE_NORMAL || ffd.dwFileAttributes == FILE_ATTRIBUTE_ARCHIVE ) {
+                    _UploadFileToWebDAV_UTF16(newcopydir, newuri);
+                }
+            }
+        } while(FindNextFileW(hFind,&ffd) != 0);
 
         DWORD err = GetLastError();
         FindClose(hFind);
         if( err !=  ERROR_NO_MORE_FILES ) {
-            throw MUJIN_EXCEPTION_FORMAT("system error 0x%x when recursing through %s", err%sCopyDir_FS, MEC_HTTPServer);
+            throw MUJIN_EXCEPTION_FORMAT("system error 0x%x when recursing through %s", err%encoding::ConvertUTF16ToFileSystemEncoding(copydir), MEC_HTTPServer);
         }
         
 #else
@@ -1099,14 +1278,38 @@ protected:
     /// \brief uploads a single file, assumes the directory already exists
     ///
     /// overwrites the file if it already exists
+    /// \param filename utf-8 encoded
 	void _UploadFileToWebDAV_UTF8(const std::string& filename, const std::string& uri)
     {
         std::string sFilename_FS = encoding::ConvertUTF8ToFileSystemEncoding(filename);
-        FILE * fd = fopen(sFilename_FS.c_str(), "rb");
-        if(!fd) {
+        FileHandler handler(sFilename_FS.c_str());
+        if(!handler._fd) {
             throw MUJIN_EXCEPTION_FORMAT("failed to open filename %s for uploading", sFilename_FS, MEC_InvalidArguments);
         }
+        _UploadFileToWebDAV(handler._fd, uri);
+    }
 
+    void _UploadFileToWebDAV_UTF16(const std::wstring& filename, const std::string& uri)
+    {
+        std::string filename_fs = encoding::ConvertUTF16ToFileSystemEncoding(filename);
+#if defined(_WIN32) || defined(_WIN64)
+        FileHandler handler(filename.c_str());
+#else
+        // linux does not support wide-char fopen        
+        FileHandler handler(filename_fs.c_str());
+#endif
+        if(!handler._fd) {
+            throw MUJIN_EXCEPTION_FORMAT("failed to open filename %s for uploading", filename_fs, MEC_InvalidArguments);
+        }
+        _UploadFileToWebDAV(handler._fd, uri);
+    }
+
+    /// \brief uploads a single file, assumes the directory already exists
+    ///
+    /// overwrites the file if it already exists.
+    /// \param fd FILE pointer of binary reading file. does not close the handle
+    void _UploadFileToWebDAV(FILE* fd, const std::string& uri)
+    {
 #if defined(_WIN32) || defined(_WIN64)
         fseek(fd,0,SEEK_END);
         curl_off_t filesize = ftell(fd);
@@ -1115,8 +1318,7 @@ protected:
         // to get the file size
         struct stat file_info;
         if(fstat(fileno(fd), &file_info) != 0) {
-            fclose(fd); // make sure to close the handle
-            throw MUJIN_EXCEPTION_FORMAT("failed to stat filename %s for filesize", bfpfilename.string(), MEC_InvalidArguments);
+            throw MUJIN_EXCEPTION_FORMAT("failed to stat filename %s for filesize", filename, MEC_InvalidArguments);
         }
         curl_off_t filesize = (curl_off_t)file_info.st_size;
 #endif
@@ -1133,7 +1335,6 @@ protected:
 #endif
 
         CURLcode res = curl_easy_perform(_curl);
-        fclose(fd); // make sure to close the handle
         CHECKCURLCODE(res, "curl_easy_perform failed");
         long http_code = 0;
         res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);

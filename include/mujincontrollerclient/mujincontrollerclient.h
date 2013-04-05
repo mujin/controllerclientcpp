@@ -302,7 +302,7 @@ public:
 
     /// \brief sets the language code for all output
     ///
-    /// Checkout http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
+    /// Check out http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
     virtual void SetLanguage(const std::string& language) = 0;
 
     /// \brief If necessary, changes the proxy to communicate to the controller server
@@ -372,9 +372,9 @@ public:
 
     /** \brief uploads a particular scene's files into the network filesystem.
 
-        \param sourcefilename URI-encoded local filesystem location of the top-level file. If the scenetype requires many files, will upload all of them.
+        \param sourcefilename UTF-8 encoded local filesystem location of the top-level file. If the scenetype requires many files, will upload all of them.
         \param destinationdir UTF-8 encoded destination folder in the network file system. Should always have trailing slash. By default use: "mujin:/"
-        \param scenetype The type of scene uploading.
+        \param scenetype UTF-8 encoded type of scene uploading.
         \throw mujin_exception if the upload fails, will throw an exception
      */
     virtual void SyncUpload_UTF8(const std::string& sourcefilename, const std::string& destinationdir, const std::string& scenetype) = 0;
@@ -383,6 +383,19 @@ public:
     virtual void SyncUpload_UTF8(const std::string& sourcefilename, const std::string& destinationdir)
     {
         SyncUpload_UTF8(sourcefilename, destinationdir, GetDefaultSceneType());
+    }
+
+    /// \see SyncUpload
+    ///
+    /// \param sourcefilename UTF-16 encoded
+    /// \param destinationdir UTF-16 encoded
+    /// \param scenetype UTF-16 encoded
+    virtual void SyncUpload_UTF16(const std::wstring& sourcefilename, const std::wstring& destinationdir, const std::string& scenetype) = 0;
+
+    /// \see SyncUpload
+    virtual void SyncUpload_UTF16(const std::wstring& sourcefilename, const std::wstring& destinationdir)
+    {
+        SyncUpload_UTF16(sourcefilename, destinationdir, GetDefaultSceneType());
     }
 
     virtual void SetDefaultSceneType(const std::string& scenetype) = 0;
@@ -606,7 +619,7 @@ public:
 
     You must not call it when any other thread in the program (i.e. a thread sharing the same memory) is running.
     \param usernamepassword user:password
-    \param url the URL of controller server, it needs to have a trailing slash. It can also be in the form of https://username@server/ in order to force login of a particular user. If not specified, will use the default mujin controller URL
+    \param url the URI-encoded URL of controller server, it needs to have a trailing slash. It can also be in the form of https://username@server/ in order to force login of a particular user. If not specified, will use the default mujin controller URL
     \param proxyserverport Specify proxy server to use. To specify port number in this string, append :[port] to the end of the host name. The proxy string may be prefixed with [protocol]:// since any such prefix will be ignored. The proxy's port number may optionally be specified with the separate option. If not specified, will default to using port 1080 for proxies. Setting to empty string will disable the proxy.
     \param proxyuserpw If non-empty, [user name]:[password] to use for the connection to the HTTP proxy.
     \param options extra options for connecting to the controller. If 1, the client will optimize usage to only allow GET calls
