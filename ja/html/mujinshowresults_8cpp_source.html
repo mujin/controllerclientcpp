@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.3"/>
-<title>controllerclientcpp: /home/rdiankov/mujin/controllerclientcpp/samples/mujinshowresults.cpp (2013-01-15 02:32:27 +0900, commit:643dd14) ソースファイル</title>
+<title>controllerclientcpp: /home/rdiankov/mujin/controllerclientcpp/samples/mujinshowresults.cpp (2013-04-05 23:34:49 +0900, commit:13d12b0) ソースファイル</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">controllerclientcpp
-   &#160;<span id="projectnumber">0.2.0</span>
+   &#160;<span id="projectnumber">0.2.2</span>
    </div>
   </td>
  </tr>
@@ -183,14 +183,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'検索');
 <div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;                cout &lt;&lt; it-&gt;first &lt;&lt; <span class="stringliteral">&quot;=(&quot;</span> &lt;&lt; objstate.<a class="code" href="structmujinclient_1_1InstanceObjectState.html#a07ae66e5f8d6b2b283fcad4608a26af9" title="the transform of this instance object">transform</a>.<a class="code" href="structmujinclient_1_1Transform.html#a7be9672fd534ae62aa442d1b764c7ee3" title="translation x,y,z">translation</a>[0] &lt;&lt; <span class="stringliteral">&quot;, &quot;</span> &lt;&lt; objstate.<a class="code" href="structmujinclient_1_1InstanceObjectState.html#a07ae66e5f8d6b2b283fcad4608a26af9" title="the transform of this instance object">transform</a>.<a class="code" href="structmujinclient_1_1Transform.html#a7be9672fd534ae62aa442d1b764c7ee3" title="translation x,y,z">translation</a>[1] &lt;&lt; <span class="stringliteral">&quot;, &quot;</span> &lt;&lt; objstate.<a class="code" href="structmujinclient_1_1InstanceObjectState.html#a07ae66e5f8d6b2b283fcad4608a26af9" title="the transform of this instance object">transform</a>.<a class="code" href="structmujinclient_1_1Transform.html#a7be9672fd534ae62aa442d1b764c7ee3" title="translation x,y,z">translation</a>[2] &lt;&lt; <span class="stringliteral">&quot;), &quot;</span>;</div>
 <div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;            }</div>
 <div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;            cout &lt;&lt; endl;</div>
-<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;            std::string robotprogram = bestresult-&gt;Get(<span class="stringliteral">&quot;robot_programs&quot;</span>);</div>
-<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;            <span class="keywordflow">if</span>( robotprogram.size() &gt; 0 ) {</div>
-<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;                cout &lt;&lt; endl &lt;&lt; <span class="stringliteral">&quot;robot program is: &quot;</span> &lt;&lt; endl &lt;&lt; robotprogram &lt;&lt; endl;</div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;            }</div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;            <span class="keywordflow">else</span> {</div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;                <span class="comment">// output the trajectory in xml format</span></div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;                cout &lt;&lt; endl &lt;&lt; <span class="stringliteral">&quot;trajectory is: &quot;</span> &lt;&lt; endl &lt;&lt; bestresult-&gt;Get(<span class="stringliteral">&quot;trajectory&quot;</span>) &lt;&lt; endl;</div>
-<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;            }</div>
+<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;</div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;            <a class="code" href="classmujinclient_1_1RobotControllerPrograms.html" title="program data for all robots.">RobotControllerPrograms</a> programs;</div>
+<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;            result-&gt;GetPrograms(programs);</div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;            std::cout &lt;&lt; <span class="stringliteral">&quot;found &quot;</span> &lt;&lt; programs.<a class="code" href="classmujinclient_1_1RobotControllerPrograms.html#a2b1ab51e0a550773982c52448027bb42" title="the keys are the robot instance primary keys of the scene">programs</a>.size() &lt;&lt; <span class="stringliteral">&quot; programs&quot;</span> &lt;&lt; std::endl;</div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;            <span class="keywordflow">for</span>(std::map&lt;std::string, RobotProgramData&gt;::iterator it = programs.<a class="code" href="classmujinclient_1_1RobotControllerPrograms.html#a2b1ab51e0a550773982c52448027bb42" title="the keys are the robot instance primary keys of the scene">programs</a>.begin(); it != programs.<a class="code" href="classmujinclient_1_1RobotControllerPrograms.html#a2b1ab51e0a550773982c52448027bb42" title="the keys are the robot instance primary keys of the scene">programs</a>.end(); ++it ) {</div>
+<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;                std::cout &lt;&lt; <span class="stringliteral">&quot;[&quot;</span> &lt;&lt; it-&gt;first &lt;&lt; <span class="stringliteral">&quot;]&quot;</span> &lt;&lt; std::endl &lt;&lt; it-&gt;second.programdata &lt;&lt; std::endl &lt;&lt; std::endl;</div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;            }</div>
+<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;            std::cout &lt;&lt; <span class="stringliteral">&quot;final task_time is &quot;</span> &lt;&lt; result-&gt;Get(<span class="stringliteral">&quot;task_time&quot;</span>) &lt;&lt; std::endl;</div>
 <div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;        }</div>
 <div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;    }</div>
 <div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;    <span class="keywordflow">catch</span>(<span class="keyword">const</span> <a class="code" href="classmujinclient_1_1MujinException.html" title="Exception that all Mujin internal methods throw; the error codes are held in MujinErrorCode.">MujinException</a>&amp; ex) {</div>
@@ -202,7 +202,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'検索');
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-controllerclientcppに対してThu Apr 4 2013 18:30:08に生成されました。 &#160;<a href="http://www.doxygen.org/index.html">
+controllerclientcppに対してSat Apr 6 2013 00:27:42に生成されました。 &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.3
 </small></address>
