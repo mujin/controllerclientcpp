@@ -245,8 +245,9 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
     _language = "en-us";
 #if defined(_WIN32) || defined(_WIN64)
     UINT codepage = GetACP();
-    if( encoding::s_mapCodePageToCharset.find(codepage) != encoding::s_mapCodePageToCharset.end() ) {
-        _charset = encoding::s_mapCodePageToCharset[codepage];
+    std::map<int, std::string>::const_iterator itcodepage = encoding::GetCodePageMap().find(codepage);
+    if( itcodepage != encoding::GetCodePageMap().end() ) {
+        _charset = itcodepage->second;
     }
 #endif
     std::cout << "setting character set to " << _charset << std::endl;
