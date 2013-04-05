@@ -14,7 +14,9 @@
 include_directories(${MUJINCLIENT_INCLUDE_LOCAL_DIRS} ${CURL_INCLUDE_DIRS})
 link_directories(${MUJINCLIENT_LINK_DIRS})
 
-add_library(libmujincontrollerclient SHARED common.cpp controllerclientimpl.cpp mujincontrollerclient.cpp ${mujin_header_files})
+set(SOURCE_FILES common.cpp controllerclientimpl.cpp mujincontrollerclient.cpp ${mujin_header_files} common.h controllerclientimpl.h utf8.h)
+
+add_library(libmujincontrollerclient SHARED ${SOURCE_FILES})
 if( EXTRA_MSVC_DEPEND )
   add_dependencies(libmujincontrollerclient ${EXTRA_MSVC_DEPEND})
 endif()
@@ -36,7 +38,7 @@ if( OPT_BUILD_STATIC )
     set(LIBMUJINCONTROLLERCLIENT_NAME mujincontrollerclient${MUJINCLIENT_LIBRARY_SUFFIX})
   endif()
 
-  add_library(libmujincontrollerclient_static STATIC common.cpp controllerclientimpl.cpp mujincontrollerclient.cpp ${mujin_header_files})
+  add_library(libmujincontrollerclient_static STATIC ${SOURCE_FILES})
   set_target_properties(libmujincontrollerclient_static PROPERTIES OUTPUT_NAME ${LIBMUJINCONTROLLERCLIENT_NAME}
                                            SOVERSION 0 # always have it 0 since we're including the soversion as part of the library name
                                            VERSION ${MUJINCLIENT_VERSION}
