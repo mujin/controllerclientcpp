@@ -207,12 +207,12 @@ std::string ConvertUTF8ToFileSystemEncoding(const std::string& utf8)
 std::string ConvertUTF16ToFileSystemEncoding(const std::wstring& utf16)
 {
 #if defined(_WIN32) || defined(_WIN64)
-	return encoding::ConvertUTF16toMBS(utf16);
+    return encoding::ConvertUTF16toMBS(utf16);
 #else
-	// most linux systems use utf-8, can use getenv("LANG") to double-check
+    // most linux systems use utf-8, can use getenv("LANG") to double-check
     std::string utf8;
-    utf8::utf16to8(utf8.begin(), utf16.end(), std::back_inserter(utf8));
-	return utf8;
+    utf8::utf16to8(utf16.begin(), utf16.end(), std::back_inserter(utf8));
+    return utf8;
 #endif
 }
 
@@ -282,7 +282,12 @@ std::wstring ParseWincapsWCNPath(const T& sourcefilename, const boost::function<
     //   <WCNPath VT="8">.\threegoaltouch\threegoaltouch.WCN;</WCNPath>
     // </clsProject>
     // first have to get the raw utf-16 data
+#if defined(_WIN32) || defined(_WIN64)
     std::ifstream wpjfilestream(sourcefilename.c_str(), std::ios::binary|std::ios::in);
+#else
+    // linux doesn't mix ifstream and wstring
+    std::ifstream wpjfilestream(ConvertToFileSystemEncoding(sourcefilename).c_str(), std::ios::binary|std::ios::in);
+#endif
     if( !wpjfilestream ) {
         throw MUJIN_EXCEPTION_FORMAT("failed to open file %s", ConvertToFileSystemEncoding(sourcefilename), MEC_InvalidArguments);
     }
@@ -294,6 +299,7 @@ std::wstring ParseWincapsWCNPath(const T& sourcefilename, const boost::function<
         if( !wpjfilestream ) {
             break;
         }
+        // skip the first character (BOM) due to a bug in boost property_tree (should be fixed in 1.49)
         if( readbom || c != 0xfeff ) {
             utf16stream << static_cast<wchar_t>(c);
         }
@@ -327,9 +333,11 @@ public:
     FileHandler(const char* pfilename) {
         _fd = fopen(pfilename, "rb");
     }
+#if defined(_WIN32) || defined(_WIN64)
     FileHandler(const wchar_t* pfilename) {
         _fd = _wfopen(pfilename, L"rb");
     }
+#endif
     ~FileHandler() {
         if( !!_fd ) {
             fclose(_fd);
@@ -760,7 +768,7 @@ protected:
             baseuploaduri.push_back('/');
         }
 
-		size_t nBaseFilenameStartIndex = sourcefilename_utf16.find_last_of(s_wfilesep);
+        size_t nBaseFilenameStartIndex = sourcefilename_utf16.find_last_of(s_wfilesep);
         if( nBaseFilenameStartIndex == std::string::npos ) {
             // there's no path?
             nBaseFilenameStartIndex = 0;
@@ -793,13 +801,13 @@ protected:
             }
         }
 
-		// sourcefilenamebase is utf-8
+        // sourcefilenamebase is utf-8
         std::string sourcefilenamedir_utf8;
-        utf8::utf16to8(sourcefilename_utf16.begin(), sourcefilename_utf16.begin()+nBaseFilenameStartIndex, std::back_inserter(sourcefilenamedir_utf8));
+        utf8::utf16to8(sourcefilename_utf16.begin()+nBaseFilenameStartIndex, sourcefilename_utf16.end(), std::back_inserter(sourcefilenamedir_utf8));
         char* pescapeddir = curl_easy_escape(_curl, sourcefilenamedir_utf8.c_str(), 0);
         std::string uploadfileuri = baseuploaduri + std::string(pescapeddir);
         curl_free(pescapeddir);
-        //_UploadFileToWebDAV_UTF16(sourcefilename_utf16, uploadfileuri);
+        _UploadFileToWebDAV_UTF16(sourcefilename_utf16, uploadfileuri);
     }
 
     /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
@@ -1125,9 +1133,9 @@ protected:
 
     /// \brief recursively uploads a directory and creates directories along the way if they don't exist
     ///
-	/// overwrites all the files
-	/// \param copydir is utf-8 encoded
-	/// \param uri is URI-encoded
+    /// overwrites all the files
+    /// \param copydir is utf-8 encoded
+    /// \param uri is URI-encoded
     void _UploadDirectoryToWebDAV_UTF8(const std::string& copydir, const std::string& uri)
     {
         {
@@ -1201,9 +1209,9 @@ protected:
 
     /// \brief recursively uploads a directory and creates directories along the way if they don't exist
     ///
-	/// overwrites all the files
-	/// \param copydir is utf-16 encoded
-	/// \param uri is URI-encoded
+    /// overwrites all the files
+    /// \param copydir is utf-16 encoded
+    /// \param uri is URI-encoded
     void _UploadDirectoryToWebDAV_UTF16(const std::wstring& copydir, const std::string& uri)
     {
         {
@@ -1256,21 +1264,23 @@ protected:
         }
 
 #else
-        boost::filesystem::path bfpcopydir(copydir);
-        for(boost::filesystem::directory_iterator itdir(bfpcopydir); itdir != boost::filesystem::directory_iterator(); ++itdir) {
+        boost::filesystem::wpath bfpcopydir(copydir);
+        for(boost::filesystem::wdirectory_iterator itdir(bfpcopydir); itdir != boost::filesystem::wdirectory_iterator(); ++itdir) {
 #if defined(BOOST_FILESYSTEM_VERSION) && BOOST_FILESYSTEM_VERSION >= 3
-            std::string dirfilename = encoding::ConvertFileSystemEncodingToUTF8(itdir->path().filename().string());
+            std::wstring dirfilename_utf16 = itdir->path().filename().string();
 #else
-            std::string dirfilename = encoding::ConvertFileSystemEncodingToUTF8(itdir->path().filename());
+            std::wstring dirfilename_utf16 = itdir->path().filename();
 #endif
+            std::string dirfilename;
+            utf8::utf16to8(dirfilename_utf16.begin(), dirfilename_utf16.end(), std::back_inserter(dirfilename));
             char* pescapeddir = curl_easy_escape(_curl, dirfilename.c_str(), dirfilename.size());
             std::string newuri = str(boost::format("%s/%s")%uri%pescapeddir);
             curl_free(pescapeddir);
             if( boost::filesystem::is_directory(itdir->status()) ) {
-                _UploadDirectoryToWebDAV_UTF8(itdir->path().string(), newuri);
+                _UploadDirectoryToWebDAV_UTF16(itdir->path().string(), newuri);
             }
             else if( boost::filesystem::is_regular_file(itdir->status()) ) {
-                _UploadFileToWebDAV_UTF8(itdir->path().string(), newuri);
+                _UploadFileToWebDAV_UTF16(itdir->path().string(), newuri);
             }
         }
 #endif // defined(_WIN32) || defined(_WIN64)
@@ -1280,7 +1290,7 @@ protected:
     ///
     /// overwrites the file if it already exists
     /// \param filename utf-8 encoded
-	void _UploadFileToWebDAV_UTF8(const std::string& filename, const std::string& uri)
+    void _UploadFileToWebDAV_UTF8(const std::string& filename, const std::string& uri)
     {
         std::string sFilename_FS = encoding::ConvertUTF8ToFileSystemEncoding(filename);
         FileHandler handler(sFilename_FS.c_str());
@@ -1296,7 +1306,7 @@ protected:
 #if defined(_WIN32) || defined(_WIN64)
         FileHandler handler(filename.c_str());
 #else
-        // linux does not support wide-char fopen        
+        // linux does not support wide-char fopen
         FileHandler handler(filename_fs.c_str());
 #endif
         if(!handler._fd) {
