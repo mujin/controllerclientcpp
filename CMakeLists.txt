@@ -31,6 +31,7 @@ cmake_policy(SET CMP0003 NEW)
 
 option(OPT_SAMPLES "Build the samples" ON)
 option(OPT_BUILD_TESTS "Build the tests" OFF)
+option(OPT_BUILD_STATIC "Build static libraries for the client" ON)
 
 # Use, i.e. don't skip the full RPATH for the build tree
 set(CMAKE_SKIP_BUILD_RPATH  FALSE)
@@ -221,8 +222,8 @@ set(MUJINCLIENT_INCLUDE_LOCAL_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include)
 macro(build_sample name)
   add_executable(${name} ${name}.cpp)
   set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${Boost_CFLAGS}" LINK_FLAGS "")
-  add_dependencies(${name} mujincontrollerclient)
-  target_link_libraries (${name} mujincontrollerclient ${Boost_THREAD_LIBRARY} ${Boost_DATE_TIME_LIBRARY} ${EXTRA_LIBRARIES})
+  add_dependencies(${name} libmujincontrollerclient)
+  target_link_libraries (${name} libmujincontrollerclient ${Boost_THREAD_LIBRARY} ${Boost_DATE_TIME_LIBRARY} ${EXTRA_LIBRARIES})
   install(TARGETS ${name} DESTINATION bin)
 endmacro(build_sample)
 

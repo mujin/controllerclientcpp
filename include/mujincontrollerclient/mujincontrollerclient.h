@@ -14,8 +14,8 @@
 /** \file mujincontrollerclient.h
     \brief  Defines the public headers of the MUJIN Controller Client
  */
-#ifndef MUJINCLIENT_H
-#define MUJINCLIENT_H
+#ifndef MUJIN_CONTROLLERCLIENT_H
+#define MUJIN_CONTROLLERCLIENT_H
 
 #ifndef MUJINCLIENT_DISABLE_ASSERT_HANDLER
 #define BOOST_ENABLE_ASSERT_HANDLER

@@ -14,15 +14,36 @@
 include_directories(${MUJINCLIENT_INCLUDE_LOCAL_DIRS} ${CURL_INCLUDE_DIRS})
 link_directories(${MUJINCLIENT_LINK_DIRS})
 
-add_library(mujincontrollerclient SHARED mujincontrollerclient.cpp ${mujin_header_files})
+add_library(libmujincontrollerclient SHARED common.cpp controllerclientimpl.cpp mujincontrollerclient.cpp ${mujin_header_files})
 if( EXTRA_MSVC_DEPEND )
-  add_dependencies(mujincontrollerclient ${EXTRA_MSVC_DEPEND})
+  add_dependencies(libmujincontrollerclient ${EXTRA_MSVC_DEPEND})
 endif()
-set_target_properties(mujincontrollerclient PROPERTIES COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} ${Boost_CFLAGS} -DMUJINCLIENT_DLL_EXPORTS -DMUJINCLIENT_DLL" LINK_FLAGS ""
+set_target_properties(libmujincontrollerclient PROPERTIES COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} ${Boost_CFLAGS} -DMUJINCLIENT_DLL_EXPORTS -DMUJINCLIENT_DLL" LINK_FLAGS ""
   OUTPUT_NAME mujincontrollerclient${MUJINCLIENT_LIBRARY_SUFFIX}
   SOVERSION 0 # always have it 0 since we're including the soversion as part of the library name
   VERSION ${MUJINCLIENT_VERSION}
   CLEAN_DIRECT_OUTPUT 1
   )
-target_link_libraries(mujincontrollerclient ${CURL_LIBRARIES} ${EXTRA_LIBRARIES})
-install(TARGETS mujincontrollerclient RUNTIME DESTINATION bin LIBRARY DESTINATION bin ARCHIVE DESTINATION lib${LIB_SUFFIX})
+target_link_libraries(libmujincontrollerclient ${CURL_LIBRARIES} ${EXTRA_LIBRARIES})
+install(TARGETS libmujincontrollerclient RUNTIME DESTINATION bin LIBRARY DESTINATION bin ARCHIVE DESTINATION lib${LIB_SUFFIX})
+
+if( OPT_BUILD_STATIC )
+  # visual studio needs static lib built
+  if( MSVC )
+    # static version needs to have different name
+    set(LIBMUJINCONTROLLERCLIENT_NAME libmujincontrollerclient${MUJINCLIENT_LIBRARY_SUFFIX})
+  else()
+    set(LIBMUJINCONTROLLERCLIENT_NAME mujincontrollerclient${MUJINCLIENT_LIBRARY_SUFFIX})
+  endif()
+
+  add_library(libmujincontrollerclient_static STATIC common.cpp controllerclientimpl.cpp mujincontrollerclient.cpp ${mujin_header_files})
+  set_target_properties(libmujincontrollerclient_static PROPERTIES OUTPUT_NAME ${LIBMUJINCONTROLLERCLIENT_NAME}
+                                           SOVERSION 0 # always have it 0 since we're including the soversion as part of the library name
+                                           VERSION ${MUJINCLIENT_VERSION}
+                                           CLEAN_DIRECT_OUTPUT 1
+                                           COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} ${Boost_CFLAGS} -DMUJINCLIENT_DLL_EXPORTS -DMUJINCLIENT_DLL"
+                                           LINK_FLAGS "")
+  
+  target_link_libraries(libmujincontrollerclient_static ${CURL_LIBRARIES} ${EXTRA_LIBRARIES})
+  install(TARGETS libmujincontrollerclient_static DESTINATION lib${LIB_SUFFIX})
+endif()
