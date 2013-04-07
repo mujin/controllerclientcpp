@@ -1,0 +1,23 @@
+// -*- coding: utf-8 -*-
+namespace mujinclient
+{
+
+/**
+\~
+\mainpage MUJIN Controller Client C++
+
+\ref ChangeLog
+
+\page ChangeLog
+
+\section v0_2_3 Version 0.2.3 (Unreleased)
+
+- Add functions to convert between names and primary keys \ref ControllerClient::GetPrimaryKeyFromName_UTF8, \ref ControllerClient::GetPrimaryKeyFromName_UTF16
+
+\section v0_2_2 Version 0.2.2
+
+- Support \ref ControllerClient::SyncUpload_UTF8 and \ref ControllerClient::SyncUpload_UTF16 calls to upload files to MUJIN Controller.
+
+*/
+
+}

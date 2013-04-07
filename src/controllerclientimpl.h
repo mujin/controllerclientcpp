@@ -66,8 +66,12 @@ public:
     virtual const std::string& GetDefaultTaskType();
 
     std::string GetScenePrimaryKeyFromURI_UTF8(const std::string& uri);
-
     std::string GetScenePrimaryKeyFromURI_UTF16(const std::wstring& uri);
+    std::string GetPrimaryKeyFromName_UTF8(const std::string& name);
+    std::string GetPrimaryKeyFromName_UTF16(const std::wstring& name);
+    std::string GetNameFromPrimaryKey_UTF8(const std::string& pk);
+    std::wstring GetNameFromPrimaryKey_UTF16(const std::string& pk);
+
 
 protected:
 

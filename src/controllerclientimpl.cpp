@@ -706,6 +706,38 @@ std::string ControllerClientImpl::GetScenePrimaryKeyFromURI_UTF16(const std::wst
     return GetScenePrimaryKeyFromURI_UTF8(utf8line);
 }
 
+std::string ControllerClientImpl::GetPrimaryKeyFromName_UTF8(const std::string& name)
+{
+    char* pcurlresult = curl_easy_escape(_curl, name.c_str(), name.size());
+    std::string sresult(pcurlresult);
+    curl_free(pcurlresult); // have to release the result
+    return sresult;
+}
+
+std::string ControllerClientImpl::GetPrimaryKeyFromName_UTF16(const std::wstring& name)
+{
+    std::string name_utf8;
+    utf8::utf16to8(name.begin(), name.end(), std::back_inserter(name_utf8));
+    return GetPrimaryKeyFromName_UTF8(name_utf8);
+}
+
+std::string ControllerClientImpl::GetNameFromPrimaryKey_UTF8(const std::string& pk)
+{
+    int outlength=0;
+    char* punescaped = curl_easy_unescape(_curl, pk.c_str(), pk.size(), &outlength);
+    std::string utf8; utf8.reserve(outlength);
+    std::copy(punescaped,punescaped+outlength,utf8.begin());
+    return utf8;
+}
+
+std::wstring ControllerClientImpl::GetNameFromPrimaryKey_UTF16(const std::string& pk)
+{
+    std::string utf8 = GetNameFromPrimaryKey_UTF8(pk);
+    std::wstring utf16;
+    utf8::utf8to16(utf8.begin(), utf8.end(), std::back_inserter(utf16));
+    return utf16;
+}
+
 void ControllerClientImpl::GetProfile()
 {
     _profile.clear();

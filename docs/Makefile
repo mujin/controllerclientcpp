@@ -11,7 +11,7 @@ ALIASES += mujinclientversion=$(mujinclient_version)\\n\
 
 all: html_en
 
-../gh-pages/%/html/index.html: Doxyfile.html Doxyfile.% ../include/mujincontrollerclient/*.h ../samples/*.cpp
+../gh-pages/%/html/index.html: Doxyfile.html Doxyfile.% ../include/mujincontrollerclient/*.h ../samples/*.cpp mainpage.dox
 	rm -f doxygenhtml_installed_$*
 	mkdir -p build
 	echo "$(doxycommands)" | cat Doxyfile.html Doxyfile.$* - > build/Doxyfile.html.$*

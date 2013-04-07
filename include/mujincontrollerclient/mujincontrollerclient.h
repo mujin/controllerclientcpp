@@ -280,7 +280,7 @@ public:
     virtual ~ControllerClient() {
     }
 
-//    /** \brief Returns a list of filenames in the user system of a particular type
+//    \brief Returns a list of filenames in the user system of a particular type
 //
 //        \param scenetype the type of scene possible values are:
 //        - mujincollada
@@ -291,7 +291,7 @@ public:
 //        - x
 //        - vrml
 //        - stl
-//     */
+//
 //    virtual void GetSceneFilenames(const std::string& scenetype, std::vector<std::string>& scenefilenames) = 0;
 
     /// \brief sets the character encoding for all strings that are being input and output from the resources
@@ -419,7 +419,7 @@ public:
         Return value will be: "%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C_121122"
         \param uri utf-8 encoded URI
      */
-    std::string GetScenePrimaryKeyFromURI_UTF8(const std::string& uri);
+    virtual std::string GetScenePrimaryKeyFromURI_UTF8(const std::string& uri) = 0;
 
     /** \brief Get the url-encoded primary key of a scene from a scene uri (utf-16 encoded)
 
@@ -428,7 +428,27 @@ public:
 
         \param uri utf-16 encoded URI
      */
-    std::string GetScenePrimaryKeyFromURI_UTF16(const std::wstring& uri);
+    virtual std::string GetScenePrimaryKeyFromURI_UTF16(const std::wstring& uri) = 0;
+
+    /// \brief returns the primary key of a name
+    ///
+    /// \param name utf-8 encoded
+    virtual std::string GetPrimaryKeyFromName_UTF8(const std::string& name) = 0;
+
+    /// \brief returns the primary key of a name
+    ///
+    /// \param name utf-16 encoded
+    virtual std::string GetPrimaryKeyFromName_UTF16(const std::wstring& name) = 0;
+
+    /// \brief returns the uncoded name from a primary key
+    ///
+    /// \return utf-8 encoded name
+    virtual std::string GetNameFromPrimaryKey_UTF8(const std::string& pk) = 0;
+
+    /// \brief returns the uncoded name from a primary key
+    ///
+    /// \return utf-16 encoded name
+    virtual std::wstring GetNameFromPrimaryKey_UTF16(const std::string& pk) = 0;
 };
 
 class MUJINCLIENT_API WebResource
@@ -601,9 +621,9 @@ public:
 
     /** \brief Gets the raw program information of a specific robot, if supported.
 
-       \param[in] programtype The type of program to return.
        \param[in] robotpk The primary key of the robot instance in the scene.
        \param[out] outputdata The raw program data
+       \param[in] programtype The type of program to return.
        \throw mujin_exception If robot program is not supported, will throw an exception
      */
     virtual void GetRobotRawProgramData(std::string& outputdata, const std::string& robotpk, const std::string& programtype="auto");
@@ -612,6 +632,7 @@ public:
     ///
     /// If the robot doesn't have a recognizable controller, then no programs might be returned.
     /// \param[out] programs The programs for each robot. The best suited program for each robot is determined from its controller.
+    /// \param[in] programtype The type of program to return.
     virtual void GetPrograms(RobotControllerPrograms& programs, const std::string& programtype="auto");
 };
 
