@@ -72,7 +72,6 @@ public:
     std::string GetNameFromPrimaryKey_UTF8(const std::string& pk);
     std::wstring GetNameFromPrimaryKey_UTF16(const std::string& pk);
 
-
 protected:
 
     void GetProfile();
