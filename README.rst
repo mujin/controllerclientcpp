@@ -11,12 +11,12 @@ Releases and Versions
 - The latest stable build is managed by the **latest_stable** branch, please use it.  It is tested on Linux GCC and Microsoft Visual C++.
   
   - **Do not use master branch** if you are not a developer. 
-
+  
 - Versions are three numbers: MAJOR.MINOR.PATCH
   
   - Official releases always have the MINOR and PATCH version as an even number. For example 0.2.4, 0.2.6, 0.4.0, 0.4.2.
   - All versions with the same MAJOR.MINOR number have the same API ande are ABI compatible.
-
+  
 - Git tags for official release like v0.2.4.
 
 Running on Windows
@@ -111,15 +111,16 @@ If libcurl libraries do not exist for the specific Visual Studio version
     cmake -DOPENSSL_ROOT_DIR=%MUJINCLIENTGIT%\msvc_binaries\vcXX -DCMAKE_REQUIRED_INCLUDES=%MUJINCLIENTGIT%\msvc_binaries\vcXX\include -DBUILD_CURL_TESTS=OFF -DCURL_USE_ARES=OFF -DCURL_STATICLIB=OFF -DCMAKE_INSTALL_PREFIX=%MUJINCLIENTGIT%\msvc_binaries\vcXX -G "Visual Studio XX" ..
     msbuild CURL.sln /p:Configuration=Release
 
-3. To install, for Visual Studio 9 2008 and above use::
+3. To install, for Visual Studio 9 2008 and above use
+  ::
   
     msbuild INSTALL.vcxproj /p:Configuration=Release
   
   otherwise use::
   
     msbuild INSTALL.vcproj /p:Configuration=Release
-
-where "Visual Studio XX" is the cmake generator for visual studio. for example: "Visual Studio 8 2005" or "Visual Studio 10". 
+  
+  where "Visual Studio XX" is the cmake generator for visual studio. for example: "Visual Studio 8 2005" or "Visual Studio 10". 
 
 Updating the Windows Libraries
 ------------------------------
@@ -127,18 +128,18 @@ Updating the Windows Libraries
 Several libraries are being managed in this repository. If necessary, get upgraded versions from the following places:
 
 1. `boost <http://www.boostpro.com/download/>`_ (any version >= 1.45 is fine).
-
+  
   - Select Multi-threaded DLL libraries.
   - No extra libraries need to be selected, only the header files.
   
   There is a default included boost (v1.44) if one cannot be detected.
 
 2. `cURL <http://curl.haxx.se/libcurl/>`_
-
+  
   - The patches applied to curl are written in ``curl-7.28.1.patches``
 
 3. `OpenSSL <http://www.openssl.org>`_
-
+  
   - Once updated, cURL has to be recompiled just to make sure the symbols match.
 
 Licenses
