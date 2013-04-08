@@ -5,10 +5,10 @@ This is an open-source client library communicating with the MUJIN Controller We
 
 `C++ API Documentation <http://mujin.github.com/controllerclientcpp/>`_
 
-Releases and Versioning
------------------------
+Releases and Versions
+---------------------
 
-- The latest stable build is managed by the **latest_stable** branch, please use this.  This build is tested on Linux GCC and Microsoft Visual C++.
+- The latest stable build is managed by the **latest_stable** branch, please use it.  It is tested on Linux GCC and Microsoft Visual C++.
   
   - **Do not use master branch** if you are not a developer. 
 
@@ -30,7 +30,7 @@ In order to use the library, link with ``lib\mujincontrollerclient-vcXX-mt.lib``
 
 Need to put ``C:\Program Files\mujincontrollerclient\bin`` in the PATH environment variable, or register all the DLLs with windows system.
 
-**Note:** Several examples require that the **densowave_wincaps_data** folder is uploaded to the user network filesystem.
+**Note:** Several examples require the files inside **C:\Program Files\mujincontrollerclient\share** folder.
 
 Building on Windows
 -------------------
@@ -46,22 +46,27 @@ In the following documentation %MUJINCLIENTGIT% means the root directory where t
 2. Download and install `CMake <http://www.cmake.org/cmake/resources/software.html>`_ (>= v2.8.10)
 
 3. Run CMake on ``%MUJINCLIENTGIT%``, choose the correct Visual Studio version for the Generator.
-
-.. image:: https://raw.github.com/mujin/controllerclientcpp/master/docs/build_cmake.png
-
-Can modify the ``CMAKE_INSTALL_PREFIX`` variable in order to change the install directory. Default is ``C:\Program Files``
+  
+  The most important CMake options are:
+  
+  - **CMAKE_INSTALL_PREFIX** - Set the install directory. Default is ``C:\Program Files``  
+  - **CMAKE_BUILD_TYPE** - Set the type to build. By default should be **Release**.
+  - **OPT_SAMPLES** - Build the samples
+  - **OPT_BUILD_STATIC** -Build static libraries for the client
+  - **OPT_BUILD_TESTS** - Build the tests  
+  
+  .. image:: https://raw.github.com/mujin/controllerclientcpp/master/docs/build_cmake.png
 
 4. Open the **build/mujincontrollerclientcpp.sln** solution and compile the **ALL_BUILD** project.
-
-.. image:: https://raw.github.com/mujin/controllerclientcpp/master/docs/build_visualstudio.png
+  
+  .. image:: https://raw.github.com/mujin/controllerclientcpp/master/docs/build_visualstudio.png
 
 5. To build the project using the Visual Studio Command Prompt::
+   
+     cd %MUJINCLIENTGIT%\build
+     msbuild mujincontrollerclient.sln /p:Configuration=Release
 
-    cd %MUJINCLIENTGIT%\build
-    msbuild mujincontrollerclient.sln /p:Configuration=Release
-
-6. In order to Install into ``c:\Program Files``, compile the **INSTALL** project. For Visual Studio 9 2008 and above use
-  ::
+6. In order to Install into ``c:\Program Files``, compile the **INSTALL** project. For Visual Studio 9 2008 and above use::
   
     msbuild INSTALL.vcxproj /p:Configuration=Release
   
@@ -75,17 +80,16 @@ Building OpenSSL
 
 If OpenSSL libraries do not exist for the specific Visual Studio version
 
-
 1. Download and Install `Starberry Perl <http://strawberryperl.com/>`_
 
 2. Download and Install `NASM <http://sourceforge.net/projects/nasm/files/Win32%20binaries/2.07/nasm-2.07-installer.exe/download>`_
-
+  
   - add ``C:\Program Files\NASM`` to the **PATH** variable.
 
 3. Uncompress **openssl-1.0.1c.tar.gz**.
 
 4. Open the Visual Studio Command Prompt, cd into ``openssl-1.0.1c``, set the XX depending on the VC++ version, and run::
-
+  
     perl Configure VC-WIN32 --prefix=%MUJINCLIENTGIT%\msvc_binaries\vcXX
     ms\do_nasm
     nmake -f ms\ntdll.mak
@@ -107,8 +111,7 @@ If libcurl libraries do not exist for the specific Visual Studio version
     cmake -DOPENSSL_ROOT_DIR=%MUJINCLIENTGIT%\msvc_binaries\vcXX -DCMAKE_REQUIRED_INCLUDES=%MUJINCLIENTGIT%\msvc_binaries\vcXX\include -DBUILD_CURL_TESTS=OFF -DCURL_USE_ARES=OFF -DCURL_STATICLIB=OFF -DCMAKE_INSTALL_PREFIX=%MUJINCLIENTGIT%\msvc_binaries\vcXX -G "Visual Studio XX" ..
     msbuild CURL.sln /p:Configuration=Release
 
-3. To install, for Visual Studio 9 2008 and above use
-  ::
+3. To install, for Visual Studio 9 2008 and above use::
   
     msbuild INSTALL.vcxproj /p:Configuration=Release
   
