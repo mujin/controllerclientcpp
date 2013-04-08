@@ -13,10 +13,9 @@ Releases and Versioning
   - **Do not use master branch** if you are not a developer. 
 
 - Versions are three numbers: MAJOR.MINOR.PATCH
-
- - Official releases always have the MINOR and PATCH version as an even number. For example 0.2.4, 0.2.6, 0.4.0, 0.4.2.
-
- - All versions with the same MAJOR.MINOR number have the same API ande are ABI compatible.
+  
+  - Official releases always have the MINOR and PATCH version as an even number. For example 0.2.4, 0.2.6, 0.4.0, 0.4.2.
+  - All versions with the same MAJOR.MINOR number have the same API ande are ABI compatible.
 
 Running on Windows
 ------------------
