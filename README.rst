@@ -5,6 +5,19 @@ This is an open-source client library communicating with the MUJIN Controller We
 
 `C++ API Documentation <http://mujin.github.com/controllerclientcpp/>`_
 
+Releases and Versioning
+-----------------------
+
+- The latest stable build is managed by the **latest_stable** branch, please use this.  This build is tested on Linux GCC and Microsoft Visual C++.
+  
+  - **Do not use master branch** if you are not a developer. 
+
+- Versions are three numbers: MAJOR.MINOR.PATCH
+
+ - Official releases always have the MINOR and PATCH version as an even number. For example 0.2.4, 0.2.6, 0.4.0, 0.4.2.
+
+ - All versions with the same MAJOR.MINOR number have the same API ande are ABI compatible.
+
 Running on Windows
 ------------------
 
