@@ -234,16 +234,16 @@ struct RobotPlacementOptimizationParameters
     }
     inline void SetDefaults() {
         topstorecandidates = 20;
-        targetname.clear();
-        frame = "0 robot";
+        targetpk.clear();
+        framepk = "0 robot";
         unit = "mm";
         minrange[0] = -400; minrange[1] = -400; minrange[2] = 0; minrange[3] = -180;
         maxrange[0] = 400; maxrange[1] = 400; maxrange[2] = 400; maxrange[3] = 90;
         stepsize[0] = 100; stepsize[1] = 100; stepsize[2] = 100; stepsize[3] = 90;
         ignorebasecollision = 1;
     }
-    std::string targetname; ///< what target object to optimize for. If blank, will use robot.
-    std::string frame; ///< The frame to define the optimization parameters in
+    std::string targetpk; ///< the primary key of the target object to optimize for. If blank, will use robot.
+    std::string framepk; ///< The primary key of the frame to define the optimization parameters in. If blank, will use the target's coordinate system.
     std::string unit; ///< the unit that information is used in. m, mm, nm, inch, etc
     Real maxrange[4]; ///< X, Y, Z, Angle (deg)
     Real minrange[4]; ///< X, Y, Z, Angle (deg)
@@ -512,18 +512,34 @@ public:
     /** \brief Gets or creates the a task part of the scene
 
         If task exists already, validates it with tasktype.
-        \param taskname the name of the task to search for or create. If the name already exists and is not tasktype, an exception is thrown
+        \param taskname utf-8 encoded name of the task to search for or create. If the name already exists and is not tasktype, an exception is thrown
         \param tasktype The type of task to create. Supported types are:
         - itlplanning
      */
-    virtual TaskResourcePtr GetOrCreateTaskFromName(const std::string& taskname, const std::string& tasktype);
+    virtual TaskResourcePtr GetOrCreateTaskFromName_UTF8(const std::string& taskname, const std::string& tasktype);
 
-    virtual TaskResourcePtr GetOrCreateTaskFromName(const std::string& taskname)
+    virtual TaskResourcePtr GetOrCreateTaskFromName_UTF8(const std::string& taskname)
     {
-        return GetOrCreateTaskFromName(taskname, GetController()->GetDefaultTaskType());
+        return GetOrCreateTaskFromName_UTF8(taskname, GetController()->GetDefaultTaskType());
     }
 
-    virtual TaskResourcePtr GetTaskFromName(const std::string& taskname);
+    virtual TaskResourcePtr GetTaskFromName_UTF8(const std::string& taskname);
+
+    /** \brief Gets or creates the a task part of the scene
+
+        If task exists already, validates it with tasktype.
+        \param taskname utf-16 encoded name of the task to search for or create. If the name already exists and is not tasktype, an exception is thrown
+        \param tasktype The type of task to create. Supported types are:
+        - itlplanning
+     */
+    virtual TaskResourcePtr GetOrCreateTaskFromName_UTF16(const std::wstring& taskname, const std::string& tasktype);
+
+    virtual TaskResourcePtr GetOrCreateTaskFromName_UTF16(const std::wstring& taskname)
+    {
+        return GetOrCreateTaskFromName_UTF16(taskname, GetController()->GetDefaultTaskType());
+    }
+
+    virtual TaskResourcePtr GetTaskFromName_UTF16(const std::wstring& taskname);
 
     /// \brief gets a list of all the scene primary keys currently available to the user
     virtual void GetTaskPrimaryKeys(std::vector<std::string>& taskkeys);
@@ -554,7 +570,9 @@ public:
     /// \brief Gets or creates the a optimization part of the scene
     ///
     /// \param optimizationname the name of the optimization to search for or create
-    virtual OptimizationResourcePtr GetOrCreateOptimizationFromName(const std::string& optimizationname, const std::string& optimizationtype=std::string("robotplacement"));
+    virtual OptimizationResourcePtr GetOrCreateOptimizationFromName_UTF8(const std::string& optimizationname, const std::string& optimizationtype=std::string("robotplacement"));
+
+    virtual OptimizationResourcePtr GetOrCreateOptimizationFromName_UTF16(const std::wstring& optimizationname, const std::string& optimizationtype=std::string("robotplacement"));
 
     /// \brief gets a list of all the scene primary keys currently available to the user
     virtual void GetOptimizationPrimaryKeys(std::vector<std::string>& optimizationkeys);

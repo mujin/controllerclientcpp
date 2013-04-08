@@ -54,11 +54,12 @@ SceneResource::SceneResource(ControllerClientPtr controller, const std::string& 
 {
 }
 
-TaskResourcePtr SceneResource::GetOrCreateTaskFromName(const std::string& taskname, const std::string& tasktype)
+TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& taskname, const std::string& tasktype)
 {
     GETCONTROLLERIMPL();
+    boost::shared_ptr<char> pescapedtaskname = controller->GetURLEscapedString(taskname);
     boost::property_tree::ptree pt;
-    controller->CallGet(str(boost::format("scene/%s/task/?format=json&limit=1&name=%s&fields=pk,tasktype")%GetPrimaryKey()%taskname), pt);
+    controller->CallGet(str(boost::format("scene/%s/task/?format=json&limit=1&name=%s&fields=pk,tasktype")%GetPrimaryKey()%*pescapedtaskname), pt);
     // task exists
     boost::property_tree::ptree& objects = pt.get_child("objects");
     if( objects.size() > 0 ) {
@@ -78,11 +79,12 @@ TaskResourcePtr SceneResource::GetOrCreateTaskFromName(const std::string& taskna
     return task;
 }
 
-TaskResourcePtr SceneResource::GetTaskFromName(const std::string& taskname)
+TaskResourcePtr SceneResource::GetTaskFromName_UTF8(const std::string& taskname)
 {
     GETCONTROLLERIMPL();
+    boost::shared_ptr<char> pescapedtaskname = controller->GetURLEscapedString(taskname);
     boost::property_tree::ptree pt;
-    controller->CallGet(str(boost::format("scene/%s/task/?format=json&limit=1&name=%s&fields=pk,tasktype")%GetPrimaryKey()%taskname), pt);
+    controller->CallGet(str(boost::format("scene/%s/task/?format=json&limit=1&name=%s&fields=pk,tasktype")%GetPrimaryKey()%pescapedtaskname), pt);
     // task exists
     boost::property_tree::ptree& objects = pt.get_child("objects");
     if( objects.size() == 0 ) {
@@ -92,6 +94,20 @@ TaskResourcePtr SceneResource::GetTaskFromName(const std::string& taskname)
     std::string pk = objects.begin()->second.get<std::string>("pk");
     TaskResourcePtr task(new TaskResource(GetController(), pk));
     return task;
+}
+
+TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF16(const std::wstring& taskname, const std::string& tasktype)
+{
+    std::string taskname_utf8;
+    utf8::utf16to8(taskname.begin(), taskname.end(), std::back_inserter(taskname_utf8));
+    return GetOrCreateTaskFromName_UTF8(taskname_utf8, tasktype);
+}
+
+TaskResourcePtr SceneResource::GetTaskFromName_UTF16(const std::wstring& taskname)
+{
+    std::string taskname_utf8;
+    utf8::utf16to8(taskname.begin(), taskname.end(), std::back_inserter(taskname_utf8));
+    return GetTaskFromName_UTF8(taskname_utf8);
 }
 
 void SceneResource::GetTaskPrimaryKeys(std::vector<std::string>& taskkeys)
@@ -180,11 +196,12 @@ void TaskResource::GetRunTimeStatus(JobStatus& status, int options)
     status.code = JSC_Unknown;
 }
 
-OptimizationResourcePtr TaskResource::GetOrCreateOptimizationFromName(const std::string& optimizationname, const std::string& optimizationtype)
+OptimizationResourcePtr TaskResource::GetOrCreateOptimizationFromName_UTF8(const std::string& optimizationname, const std::string& optimizationtype)
 {
     GETCONTROLLERIMPL();
+    boost::shared_ptr<char> pescapedoptimizationname = controller->GetURLEscapedString(optimizationname);
     boost::property_tree::ptree pt;
-    controller->CallGet(str(boost::format("task/%s/optimization/?format=json&limit=1&name=%s&fields=pk,optimizationtype")%GetPrimaryKey()%optimizationname), pt);
+    controller->CallGet(str(boost::format("task/%s/optimization/?format=json&limit=1&name=%s&fields=pk,optimizationtype")%GetPrimaryKey()%pescapedoptimizationname), pt);
     // optimization exists
     boost::property_tree::ptree& objects = pt.get_child("objects");
     if( objects.size() > 0 ) {
@@ -202,6 +219,13 @@ OptimizationResourcePtr TaskResource::GetOrCreateOptimizationFromName(const std:
     std::string pk = pt.get<std::string>("pk");
     OptimizationResourcePtr optimization(new OptimizationResource(GetController(), pk));
     return optimization;
+}
+
+OptimizationResourcePtr TaskResource::GetOrCreateOptimizationFromName_UTF16(const std::wstring& optimizationname, const std::string& optimizationtype)
+{
+    std::string optimizationname_utf8;
+    utf8::utf16to8(optimizationname.begin(), optimizationname.end(), std::back_inserter(optimizationname_utf8));
+    return GetOrCreateOptimizationFromName_UTF8(optimizationname_utf8, optimizationtype);
 }
 
 void TaskResource::GetOptimizationPrimaryKeys(std::vector<std::string>& optimizationkeys)
@@ -305,7 +329,7 @@ void OptimizationResource::SetOptimizationParameters(const RobotPlacementOptimiz
 {
     GETCONTROLLERIMPL();
     std::string ignorebasecollision = optparams.ignorebasecollision ? "True" : "False";
-    std::string optimizationgoalput = str(boost::format("{\"optimizationtype\": \"robotplacement\", \"optimizationparameters\":{\"targetname\":\"%s\", \"frame\":\"%s\", \"ignorebasecollision\":\"%s\", \"unit\":\"%s\", \"maxrange_\":[ %.15f, %.15f, %.15f, %.15f],  \"minrange_\":[ %.15f, %.15f, %.15f, %.15f], \"stepsize_\":[ %.15f, %.15f, %.15f, %.15f], \"topstorecandidates\":%d} }")%optparams.targetname%optparams.frame%ignorebasecollision%optparams.unit%optparams.maxrange[0]%optparams.maxrange[1]%optparams.maxrange[2]%optparams.maxrange[3]%optparams.minrange[0]%optparams.minrange[1]%optparams.minrange[2]%optparams.minrange[3]%optparams.stepsize[0]%optparams.stepsize[1]%optparams.stepsize[2]%optparams.stepsize[3]%optparams.topstorecandidates);
+    std::string optimizationgoalput = str(boost::format("{\"optimizationtype\": \"robotplacement\", \"optimizationparameters\":{\"targetname\":\"%s\", \"frame\":\"%s\", \"ignorebasecollision\":\"%s\", \"unit\":\"%s\", \"maxrange_\":[ %.15f, %.15f, %.15f, %.15f],  \"minrange_\":[ %.15f, %.15f, %.15f, %.15f], \"stepsize_\":[ %.15f, %.15f, %.15f, %.15f], \"topstorecandidates\":%d} }")%optparams.targetpk%optparams.framepk%ignorebasecollision%optparams.unit%optparams.maxrange[0]%optparams.maxrange[1]%optparams.maxrange[2]%optparams.maxrange[3]%optparams.minrange[0]%optparams.minrange[1]%optparams.minrange[2]%optparams.minrange[3]%optparams.stepsize[0]%optparams.stepsize[1]%optparams.stepsize[2]%optparams.stepsize[3]%optparams.topstorecandidates);
     boost::property_tree::ptree pt;
     controller->CallPut(str(boost::format("optimization/%s/?format=json&fields=")%GetPrimaryKey()), optimizationgoalput, pt);
 }

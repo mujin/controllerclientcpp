@@ -43,7 +43,7 @@ int main(int argc, char ** argv)
             scene = controller->ImportSceneToCOLLADA("mujin:/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ", "wincaps", "mujin:/densowave_wincaps_data/threegoaltouch.mujin.dae");
         }
 
-        TaskResourcePtr task = scene->GetOrCreateTaskFromName("task0", "itlplanning");
+        TaskResourcePtr task = scene->GetOrCreateTaskFromName_UTF8("task0", "itlplanning");
         ITLPlanningTaskParameters info;
         info.program = "settool(1)\n\
 move(translation(0,0,20)*p[Work0/2])\n\

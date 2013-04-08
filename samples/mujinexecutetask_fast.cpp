@@ -36,7 +36,7 @@ int main(int argc, char ** argv)
         controller->SyncUpload_UTF8("../share/mujincontrollerclient/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ", "mujin:/densowave_wincaps_data/threegoaltouch/", "wincaps");
         SceneResourcePtr scene = controller->RegisterScene("mujin:/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ", "wincaps");
 
-        TaskResourcePtr task = scene->GetOrCreateTaskFromName("task0", "itlplanning");
+        TaskResourcePtr task = scene->GetOrCreateTaskFromName_UTF8("task0", "itlplanning");
         ITLPlanningTaskParameters info;
         info.program = "settool(1)\n\
 move(translation(0,0,20)*p[Work0/2])\n\

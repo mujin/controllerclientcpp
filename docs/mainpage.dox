@@ -10,9 +10,11 @@ namespace mujinclient
 
 \page ChangeLog
 
-\section v0_2_3 Version 0.2.3 (Unreleased)
+\section v0_2_4 Version 0.2.4 (Unreleased)
 
-- Add functions to convert between names and primary keys \ref ControllerClient::GetPrimaryKeyFromName_UTF8, \ref ControllerClient::GetPrimaryKeyFromName_UTF16
+- Add functions to convert between names and primary keys \ref ControllerClient::GetPrimaryKeyFromName_UTF8, \ref ControllerClient::GetPrimaryKeyFromName_UTF16, etc.
+
+- Added UTF-16 (wchar_t) support for functions that take names as arguments.
 
 \section v0_2_2 Version 0.2.2
 

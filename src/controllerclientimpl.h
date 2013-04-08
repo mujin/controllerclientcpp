@@ -72,6 +72,16 @@ public:
     std::string GetNameFromPrimaryKey_UTF8(const std::string& pk);
     std::wstring GetNameFromPrimaryKey_UTF16(const std::string& pk);
 
+    inline CURL* GetCURL() const
+    {
+        return _curl;
+    }
+
+    inline boost::shared_ptr<char> GetURLEscapedString(const std::string& name) const
+    {
+        return boost::shared_ptr<char>(curl_easy_escape(_curl, name.c_str(), name.size()), curl_free);
+    }
+
 protected:
 
     void GetProfile();
