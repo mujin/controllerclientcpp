@@ -10,6 +10,10 @@ namespace mujinclient
 
 \page ChangeLog
 
+\section v0_2_5 Version 0.2.5
+
+- Add utf-8 and utf-16 versions for \ref ControllerClient::RegisterScene_UTF8 and \ref ControllerClient::ImportSceneToCOLLADA_UTF8
+
 \section v0_2_4 Version 0.2.4
 
 - Add functions to convert between names and primary keys \ref ControllerClient::GetPrimaryKeyFromName_UTF8, \ref ControllerClient::GetPrimaryKeyFromName_UTF16, etc.

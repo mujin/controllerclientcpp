@@ -338,6 +338,7 @@ public:
 
     /** \brief Register a scene to be used by the MUJIN Controller
 
+        \param uri utf-8 encoded URI of the file on the MUJIN Controller to import. Usually starts with \b mujin:/
         \param scenetype The format of the source file. Can be:
         - **mujincollada**
         - **wincaps** (DensoWave WINCAPS III)
@@ -347,17 +348,28 @@ public:
         - **stl**
         - **cecvirfitxml** (CEC Virfit XML environments)
      */
-    virtual SceneResourcePtr RegisterScene(const std::string& uri, const std::string& scenetype) = 0;
+    virtual SceneResourcePtr RegisterScene_UTF8(const std::string& uri, const std::string& scenetype) = 0;
 
     /// \brief registers scene with default scene type
-    virtual SceneResourcePtr RegisterScene(const std::string& uri)
+    virtual SceneResourcePtr RegisterScene_UTF8(const std::string& uri)
     {
-        return RegisterScene(uri,GetDefaultSceneType());
+        return RegisterScene_UTF8(uri,GetDefaultSceneType());
+    }
+
+    /// \see RegisterScene_UTF8
+    ///
+    /// \param uri utf-16 encoded URI
+    virtual SceneResourcePtr RegisterScene_UTF16(const std::wstring& uri, const std::string& scenetype) = 0;
+
+    /// \brief registers scene with default scene type
+    virtual SceneResourcePtr RegisterScene_UTF16(const std::wstring& uri)
+    {
+        return RegisterScene_UTF16(uri,GetDefaultSceneType());
     }
 
     /** \brief import a scene into COLLADA format using from scene identified by a URI
 
-        \param sourceuri URI-encoded original URI to import from. For MUJIN network files use <b>mujin:/mypath/myfile.ext</b>
+        \param sourceuri URL-encoded UTF-8  original URI to import from. For MUJIN network files use <b>mujin:/mypath/myfile.ext</b>
         \param sourcescenetype The format of the source file. Can be:
         - **mujincollada**
         - **wincaps** (DensoWave WINCAPS III)
@@ -366,9 +378,15 @@ public:
         - **vrml**
         - **stl**
         - **cecvirfitxml** (CEC Virfit XML environments)
-        \param newuri Then new URI to save the imported results. Default is to save to MUJIN COLLADA, so end with <b>.mujin.dae</b> . Use <b>mujin:/mypath/myfile.mujin.dae</b>
+        \param newuri UTF-8 encoded new URI to save the imported results. Default is to save to MUJIN COLLADA, so end with <b>.mujin.dae</b> . Use <b>mujin:/mypath/myfile.mujin.dae</b>
      */
-    virtual SceneResourcePtr ImportSceneToCOLLADA(const std::string& sourceuri, const std::string& sourcescenetype, const std::string& newuri) = 0;
+    virtual SceneResourcePtr ImportSceneToCOLLADA_UTF8(const std::string& sourceuri, const std::string& sourcescenetype, const std::string& newuri) = 0;
+
+    /// \see ImportSceneToCOLLADA_UTF8
+    ///
+    /// \param sourceuri utf-16 encoded
+    /// \param newuri utf-16 encoded
+    virtual SceneResourcePtr ImportSceneToCOLLADA_UTF16(const std::wstring& sourceuri, const std::string& sourcescenetype, const std::wstring& newuri) = 0;
 
     /** \brief uploads a particular scene's files into the network filesystem.
 

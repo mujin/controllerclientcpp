@@ -29,7 +29,7 @@ int main(int argc, char ** argv)
         }
         std::cout << "connected to controller v" << controller->GetVersion() << std::endl;
 
-        SceneResourcePtr scene = controller->RegisterScene("mujin:/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ", "wincaps");
+        SceneResourcePtr scene = controller->RegisterScene_UTF8("mujin:/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ", "wincaps");
         TaskResourcePtr task = scene->GetOrCreateTaskFromName_UTF8("task0", "itlplanning");
         ITLPlanningTaskParameters info;
         info.program = "settool(1)\n\

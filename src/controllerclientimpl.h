@@ -38,11 +38,12 @@ public:
     virtual void CancelAllJobs();
     virtual void GetRunTimeStatuses(std::vector<JobStatus>& statuses, int options);
     virtual void GetScenePrimaryKeys(std::vector<std::string>& scenekeys);
-    virtual SceneResourcePtr RegisterScene(const std::string& uri, const std::string& scenetype);
-    virtual SceneResourcePtr ImportSceneToCOLLADA(const std::string& importuri, const std::string& importformat, const std::string& newuri);
+    virtual SceneResourcePtr RegisterScene_UTF8(const std::string& uri, const std::string& scenetype);
+    virtual SceneResourcePtr RegisterScene_UTF16(const std::wstring& uri, const std::string& scenetype);
+    virtual SceneResourcePtr ImportSceneToCOLLADA_UTF8(const std::string& importuri, const std::string& importformat, const std::string& newuri);
+    virtual SceneResourcePtr ImportSceneToCOLLADA_UTF16(const std::wstring& importuri, const std::string& importformat, const std::wstring& newuri);
 
     virtual void SyncUpload_UTF8(const std::string& sourcefilename, const std::string& destinationdir, const std::string& scenetype);
-
     virtual void SyncUpload_UTF16(const std::wstring& sourcefilename_utf16, const std::wstring& destinationdir_utf16, const std::string& scenetype);
 
     /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
@@ -52,7 +53,15 @@ public:
     int CallGet(const std::string& relativeuri, std::string& outputdata, int expectedhttpcode=200);
 
     /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
+    ///
+    /// \param relativeuri URL-encoded UTF-8 encoded
+    /// \param data encoded depending on the character encoding set on the system
     int CallPost(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode=201);
+
+    /// \param data utf-8 encoded
+    int CallPost_UTF8(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode=201);
+    /// \param data utf-16 encoded
+    int CallPost_UTF16(const std::string& relativeuri, const std::wstring& data, boost::property_tree::ptree& pt, int expectedhttpcode=201);
 
     int CallPut(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode=202);
 

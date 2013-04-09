@@ -387,21 +387,41 @@ void ControllerClientImpl::GetScenePrimaryKeys(std::vector<std::string>& sceneke
     }
 }
 
-SceneResourcePtr ControllerClientImpl::RegisterScene(const std::string& uri, const std::string& scenetype)
+SceneResourcePtr ControllerClientImpl::RegisterScene_UTF8(const std::string& uri, const std::string& scenetype)
 {
     BOOST_ASSERT(scenetype.size()>0);
     boost::property_tree::ptree pt;
-    CallPost("scene/?format=json&fields=pk", str(boost::format("{\"uri\":\"%s\", \"scenetype\":\"%s\"}")%uri%scenetype), pt);
+    CallPost_UTF8("scene/?format=json&fields=pk", str(boost::format("{\"uri\":\"%s\", \"scenetype\":\"%s\"}")%uri%scenetype), pt);
     std::string pk = pt.get<std::string>("pk");
     SceneResourcePtr scene(new SceneResource(shared_from_this(), pk));
     return scene;
 }
 
-SceneResourcePtr ControllerClientImpl::ImportSceneToCOLLADA(const std::string& importuri, const std::string& importformat, const std::string& newuri)
+SceneResourcePtr ControllerClientImpl::RegisterScene_UTF16(const std::wstring& uri, const std::string& scenetype)
+{
+    BOOST_ASSERT(scenetype.size()>0);
+    boost::property_tree::ptree pt;
+    CallPost_UTF16("scene/?format=json&fields=pk", str(boost::wformat(L"{\"uri\":\"%s\", \"scenetype\":\"%s\"}")%uri%scenetype.c_str()), pt);
+    std::string pk = pt.get<std::string>("pk");
+    SceneResourcePtr scene(new SceneResource(shared_from_this(), pk));
+    return scene;
+}
+
+SceneResourcePtr ControllerClientImpl::ImportSceneToCOLLADA_UTF8(const std::string& importuri, const std::string& importformat, const std::string& newuri)
 {
     BOOST_ASSERT(importformat.size()>0);
     boost::property_tree::ptree pt;
-    CallPost("scene/?format=json&fields=pk", str(boost::format("{\"reference_uri\":\"%s\", \"reference_format\":\"%s\", \"uri\":\"%s\"}")%importuri%importformat%newuri), pt);
+    CallPost_UTF8("scene/?format=json&fields=pk", str(boost::format("{\"reference_uri\":\"%s\", \"reference_format\":\"%s\", \"uri\":\"%s\"}")%importuri%importformat%newuri), pt);
+    std::string pk = pt.get<std::string>("pk");
+    SceneResourcePtr scene(new SceneResource(shared_from_this(), pk));
+    return scene;
+}
+
+SceneResourcePtr ControllerClientImpl::ImportSceneToCOLLADA_UTF16(const std::wstring& importuri, const std::string& importformat, const std::wstring& newuri)
+{
+    BOOST_ASSERT(importformat.size()>0);
+    boost::property_tree::ptree pt;
+    CallPost_UTF16("scene/?format=json&fields=pk", str(boost::wformat(L"{\"reference_uri\":\"%s\", \"reference_format\":\"%s\", \"uri\":\"%s\"}")%importuri%importformat.c_str()%newuri), pt);
     std::string pk = pt.get<std::string>("pk");
     SceneResourcePtr scene(new SceneResource(shared_from_this(), pk));
     return scene;
@@ -615,6 +635,16 @@ int ControllerClientImpl::CallPost(const std::string& relativeuri, const std::st
         throw MUJIN_EXCEPTION_FORMAT("HTTP POST to '%s' returned HTTP status %s: %s", relativeuri%http_code%error_message, MEC_HTTPServer);
     }
     return http_code;
+}
+
+int ControllerClientImpl::CallPost_UTF8(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode)
+{
+    return CallPost(relativeuri, encoding::ConvertUTF8ToFileSystemEncoding(data), pt, expectedhttpcode);
+}
+
+int ControllerClientImpl::CallPost_UTF16(const std::string& relativeuri, const std::wstring& data, boost::property_tree::ptree& pt, int expectedhttpcode)
+{
+    return CallPost(relativeuri, encoding::ConvertUTF16ToFileSystemEncoding(data), pt, expectedhttpcode);
 }
 
 int ControllerClientImpl::CallPut(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode)

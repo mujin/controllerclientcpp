@@ -226,7 +226,7 @@ inline std::string ConvertFileSystemEncodingToUTF8(const std::string& fs)
 
 } // end namespace encoding
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
 const char s_filesep = '\\';
 const char s_wfilesep = L'\\';
 #else

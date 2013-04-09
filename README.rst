@@ -5,19 +5,19 @@ This is an open-source client library communicating with the MUJIN Controller We
 
 `C++ API Documentation <http://mujin.github.com/controllerclientcpp/>`_
 
-Releases and Versions
----------------------
+Releases and Versioning
+-----------------------
 
 - The latest stable build is managed by the **latest_stable** branch, please use it.  It is tested on Linux GCC and Microsoft Visual C++.
   
   - **Do not use master branch** if you are not a developer. 
   
-- Versions are three numbers: MAJOR.MINOR.PATCH
+- Versions have three numbers: MAJOR.MINOR.PATCH
   
   - Official releases always have the MINOR and PATCH version as an even number. For example 0.2.4, 0.2.6, 0.4.0, 0.4.2.
   - All versions with the same MAJOR.MINOR number have the same API ande are ABI compatible.
   
-- Git tags for official release like v0.2.4.
+- There are `git tags <https://github.com/mujin/controllerclientcpp/tags>`_ for official release like v0.2.4.
 
 Running on Windows
 ------------------
@@ -61,12 +61,14 @@ In the following documentation %MUJINCLIENTGIT% means the root directory where t
   
   .. image:: https://raw.github.com/mujin/controllerclientcpp/master/docs/build_visualstudio.png
 
-5. To build the project using the Visual Studio Command Prompt::
+5. To build the project using the Visual Studio Command Prompt
+  ::
    
      cd %MUJINCLIENTGIT%\build
      msbuild mujincontrollerclient.sln /p:Configuration=Release
 
-6. In order to Install into ``c:\Program Files``, compile the **INSTALL** project. For Visual Studio 9 2008 and above use::
+6. In order to Install into ``c:\Program Files``, compile the **INSTALL** project. For Visual Studio 9 2008 and above use
+  ::
   
     msbuild INSTALL.vcxproj /p:Configuration=Release
   

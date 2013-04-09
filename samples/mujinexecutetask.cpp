@@ -40,7 +40,7 @@ int main(int argc, char ** argv)
         }
         catch(const MujinException& ex) {
             // failed to get name, so need to improt scene first
-            scene = controller->ImportSceneToCOLLADA("mujin:/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ", "wincaps", "mujin:/densowave_wincaps_data/threegoaltouch.mujin.dae");
+            scene = controller->ImportSceneToCOLLADA_UTF8("mujin:/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ", "wincaps", "mujin:/densowave_wincaps_data/threegoaltouch.mujin.dae");
         }
 
         TaskResourcePtr task = scene->GetOrCreateTaskFromName_UTF8("task0", "itlplanning");
