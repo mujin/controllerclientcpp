@@ -113,7 +113,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"></div>
 <div class="line">        <span class="comment">// try to import the scene, if it already exists delete it and import again</span></div>
 <div class="line">        <span class="keywordflow">try</span> {</div>
-<div class="line">            controller-&gt;ImportSceneToCOLLADA(<span class="stringliteral">&quot;mujin:/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ&quot;</span>, <span class="stringliteral">&quot;wincaps&quot;</span>, <span class="stringliteral">&quot;mujin:/test.mujin.dae&quot;</span>);</div>
+<div class="line">            controller-&gt;ImportSceneToCOLLADA_UTF8(<span class="stringliteral">&quot;mujin:/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ&quot;</span>, <span class="stringliteral">&quot;wincaps&quot;</span>, <span class="stringliteral">&quot;mujin:/test.mujin.dae&quot;</span>);</div>
 <div class="line">        }</div>
 <div class="line">        <span class="keywordflow">catch</span>(<span class="keyword">const</span> <a name="_a2"></a><a class="code" href="classmujinclient_1_1MujinException.html" title="Exception that all Mujin internal methods throw; the error codes are held in MujinErrorCode.">MujinException</a>&amp; ex) {</div>
 <div class="line">            <span class="keywordflow">if</span>( ex.<a name="a3"></a><a class="code" href="classmujinclient_1_1MujinException.html#ad8072416a4bb914157a845b34cde62ff">message</a>().find(<span class="stringliteral">&quot;need to remove it first&quot;</span>) != std::string::npos ) {</div>
@@ -124,7 +124,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line">                    std::cout &lt;&lt; <span class="stringliteral">&quot;try removing the file and importing again&quot;</span> &lt;&lt; std::endl;</div>
 <div class="line">                    <a name="_a4"></a><a class="code" href="classmujinclient_1_1SceneResource.html">SceneResource</a> oldscene(controller,<span class="stringliteral">&quot;test&quot;</span>);</div>
 <div class="line">                    oldscene.<a name="a5"></a><a class="code" href="classmujinclient_1_1WebResource.html#afb3d48a44adf5d9ae21e8e8028214e98" title="delete the resource and all its child resources">Delete</a>();</div>
-<div class="line">                    controller-&gt;ImportSceneToCOLLADA(<span class="stringliteral">&quot;mujin:/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ&quot;</span>, <span class="stringliteral">&quot;wincaps&quot;</span>, <span class="stringliteral">&quot;mujin:/test.mujin.dae&quot;</span>);</div>
+<div class="line">                    controller-&gt;ImportSceneToCOLLADA_UTF8(<span class="stringliteral">&quot;mujin:/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ&quot;</span>, <span class="stringliteral">&quot;wincaps&quot;</span>, <span class="stringliteral">&quot;mujin:/test.mujin.dae&quot;</span>);</div>
 <div class="line">                }</div>
 <div class="line">            }</div>
 <div class="line">            <span class="keywordflow">else</span> {</div>
@@ -151,7 +151,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!-- fragment --> </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Apr 8 2013 13:25:25 for controllerclientcpp by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Apr 10 2013 01:27:55 for controllerclientcpp by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.3
 </small></address>

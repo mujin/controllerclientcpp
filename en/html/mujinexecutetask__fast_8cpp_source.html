@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.3"/>
-<title>controllerclientcpp: /home/rdiankov/mujin/controllerclientcpp/samples/mujinexecutetask_fast.cpp (2013-04-08 11:57:35 +0900, commit:800f0d9) Source File</title>
+<title>controllerclientcpp: /home/rdiankov/mujin/controllerclientcpp/samples/mujinexecutetask_fast.cpp (2013-04-09 21:28:25 +0900, commit:a65557d) Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -123,7 +123,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;        std::cout &lt;&lt; <span class="stringliteral">&quot;connected to controller v&quot;</span> &lt;&lt; controller-&gt;GetVersion() &lt;&lt; std::endl;</div>
 <div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;</div>
 <div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;        controller-&gt;SyncUpload_UTF8(<span class="stringliteral">&quot;../share/mujincontrollerclient/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ&quot;</span>, <span class="stringliteral">&quot;mujin:/densowave_wincaps_data/threegoaltouch/&quot;</span>, <span class="stringliteral">&quot;wincaps&quot;</span>);</div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;        <a class="code" href="namespacemujinclient.html#a9a7bf2721c91516d69ca08837e26b7b8">SceneResourcePtr</a> scene = controller-&gt;RegisterScene(<span class="stringliteral">&quot;mujin:/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ&quot;</span>, <span class="stringliteral">&quot;wincaps&quot;</span>);</div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;        <a class="code" href="namespacemujinclient.html#a9a7bf2721c91516d69ca08837e26b7b8">SceneResourcePtr</a> scene = controller-&gt;RegisterScene_UTF8(<span class="stringliteral">&quot;mujin:/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ&quot;</span>, <span class="stringliteral">&quot;wincaps&quot;</span>);</div>
 <div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;</div>
 <div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;        <a class="code" href="namespacemujinclient.html#a414681608c6d6a6dd069e274641a809e">TaskResourcePtr</a> task = scene-&gt;GetOrCreateTaskFromName_UTF8(<span class="stringliteral">&quot;task0&quot;</span>, <span class="stringliteral">&quot;itlplanning&quot;</span>);</div>
 <div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;        <a class="code" href="classmujinclient_1_1ITLPlanningTaskParameters.html" title="holds information about the itlplanning task parameters">ITLPlanningTaskParameters</a> info;</div>
@@ -183,7 +183,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Apr 8 2013 13:25:25 for controllerclientcpp by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Apr 10 2013 01:27:55 for controllerclientcpp by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.3
 </small></address>
