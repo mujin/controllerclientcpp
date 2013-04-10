@@ -710,7 +710,7 @@ const std::string& ControllerClientImpl::GetDefaultSceneType()
 
 void ControllerClientImpl::SetDefaultTaskType(const std::string& tasktype)
 {
-    _defaultscenetype = tasktype;
+    _defaulttasktype = tasktype;
 }
 
 const std::string& ControllerClientImpl::GetDefaultTaskType()
