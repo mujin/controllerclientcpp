@@ -754,8 +754,8 @@ std::string ControllerClientImpl::GetPrimaryKeyFromName_UTF16(const std::wstring
 std::string ControllerClientImpl::GetNameFromPrimaryKey_UTF8(const std::string& pk)
 {
     int outlength = 0;
-	char* punescaped = curl_easy_unescape(_curl, pk.c_str(), pk.size(), &outlength);
-	std::string utf8(punescaped, outlength); 
+    char* punescaped = curl_easy_unescape(_curl, pk.c_str(), pk.size(), &outlength);
+    std::string utf8(punescaped, outlength);
     curl_free(punescaped); // have to release the result
     return utf8;
 }

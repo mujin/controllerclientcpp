@@ -48,7 +48,7 @@ movel(translation(0,0,20)*p[Work0/3])\n\
 ";
         task->SetTaskParameters(info);
 
-        // cancel all current jobs
+        // if necessary, can cancel all current jobs. this is not required
         controller->CancelAllJobs();
 
         task->Execute();
