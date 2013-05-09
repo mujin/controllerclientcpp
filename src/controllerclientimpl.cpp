@@ -1035,14 +1035,27 @@ void ControllerClientImpl::_UploadDirectoryToWebDAV_UTF16(const std::wstring& co
         throw MUJIN_EXCEPTION_FORMAT("system error 0x%x when recursing through %s", err%encoding::ConvertUTF16ToFileSystemEncoding(copydir), MEC_HTTPServer);
     }
 
+#elif defined(BOOST_FILESYSTEM_VERSION) && BOOST_FILESYSTEM_VERSION >= 3
+    boost::filesystem::path bfpcopydir(copydir);
+    for(boost::filesystem::directory_iterator itdir(bfpcopydir); itdir != boost::filesystem::directory_iterator(); ++itdir) {
+        std::wstring dirfilename_utf16 = itdir->path().filename().wstring();
+        std::string dirfilename;
+        utf8::utf16to8(dirfilename_utf16.begin(), dirfilename_utf16.end(), std::back_inserter(dirfilename));
+        char* pescapeddir = curl_easy_escape(_curl, dirfilename.c_str(), dirfilename.size());
+        std::string newuri = str(boost::format("%s/%s")%uri%pescapeddir);
+        curl_free(pescapeddir);
+        if( boost::filesystem::is_directory(itdir->status()) ) {
+            _UploadDirectoryToWebDAV_UTF16(itdir->path().wstring(), newuri);
+        }
+        else if( boost::filesystem::is_regular_file(itdir->status()) ) {
+            _UploadFileToWebDAV_UTF16(itdir->path().wstring(), newuri);
+        }
+    }
 #else
+    // boost filesystem v2
     boost::filesystem::wpath bfpcopydir(copydir);
     for(boost::filesystem::wdirectory_iterator itdir(bfpcopydir); itdir != boost::filesystem::wdirectory_iterator(); ++itdir) {
-#if defined(BOOST_FILESYSTEM_VERSION) && BOOST_FILESYSTEM_VERSION >= 3
-        std::wstring dirfilename_utf16 = itdir->path().filename().string();
-#else
         std::wstring dirfilename_utf16 = itdir->path().filename();
-#endif
         std::string dirfilename;
         utf8::utf16to8(dirfilename_utf16.begin(), dirfilename_utf16.end(), std::back_inserter(dirfilename));
         char* pescapeddir = curl_easy_escape(_curl, dirfilename.c_str(), dirfilename.size());
