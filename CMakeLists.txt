@@ -115,7 +115,6 @@ if( MSVC )
   set(Boost_CFLAGS "-DBOOST_ALL_DYN_LINK -DBOOST_ALL_NO_LIB")
 else()
   set(MUJINCLIENT_LIBRARY_SUFFIX "${MUJINCLIENT_SOVERSION}" CACHE STRING "Suffix to append to library names")
-  set(EXTRA_LIBRARIES ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY})
 endif()
 
 # only look for installed boost if not an old version of msvc
@@ -128,6 +127,10 @@ if(NOT MSVC71 AND NOT MSVC80)
   endif()
   set(Boost_ADDITIONAL_VERSIONS "1.49" "1.48" "1.47" "1.46.1" "1.45" "1.44" "1.43" "1.42" "1.41" "1.40" "1.39" "1.38" "1.37.0" "1.37" "1.35.0" "1.34.1" "1.34.0" "1.34" "1.33.1" "1.33.0" "1.33" ${Boost_ADDITIONAL_VERSIONS})
   find_package(Boost COMPONENTS filesystem system thread date_time)
+endif()
+
+if( NOT MSVC )
+  set(EXTRA_LIBRARIES ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY})
 endif()
 
 set(MUJINCLIENT_LINK_DIRS)
