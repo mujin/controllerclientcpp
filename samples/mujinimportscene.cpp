@@ -42,7 +42,7 @@ int main(int argc, char ** argv)
                 std::cin >> answer;
                 if( answer == std::string("yes") ) {
                     std::cout << "try removing the file and importing again" << std::endl;
-                    SceneResource oldscene(controller,"test");
+                    SceneResource oldscene(controller,"robodia_demo1.mujin.dae");
                     oldscene.Delete();
                     controller->ImportSceneToCOLLADA_UTF8("mujin:/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ", "wincaps", "mujin:/test.mujin.dae");
                 }

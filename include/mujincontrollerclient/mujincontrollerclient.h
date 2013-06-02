@@ -66,6 +66,7 @@ enum MujinErrorCode {
     MEC_HTTPClient=12, ///< HTTP client error
     MEC_HTTPServer=13, ///< HTTP server error
     MEC_UserAuthentication=14, ///< authentication failed
+    MEC_AlreadyExists=15, ///< the resource already exists and overwriting terminated
 };
 
 inline const char* GetErrorCodeString(MujinErrorCode error)
@@ -81,6 +82,7 @@ inline const char* GetErrorCodeString(MujinErrorCode error)
     case MEC_HTTPClient: return "HTTPClient";
     case MEC_HTTPServer: return "HTTPServer";
     case MEC_UserAuthentication: return "UserAuthentication";
+    case MEC_AlreadyExists: return "AlreadyExists";
     }
     // should throw an exception?
     return "";

@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<BETSY version="0.3">
+
+  <BT_mass>
+    <matrix1 row="1,0,0,0"/>
+    <matrix2 row="0,1,0,0"/>
+    <matrix3 row="0,0,1,0"/>
+    <matrix4 row="0,0,0,1"/>
+    <material rgba="0.5607843137254902,0.62352941176470589,0.68627450980392157,1"/>
+    <BT_vertex>
+      <BG_point coord="150,-150,100"/>
+    </BT_vertex>
+    <BT_vertex>
+      <BG_point coord="-150,-150,100"/>
+    </BT_vertex>
+    <BT_vertex>
+      <BG_point coord="-150,-150,0"/>
+    </BT_vertex>
+    <BT_vertex>
+      <BG_point coord="150,-150,0"/>
+    </BT_vertex>
+    <BT_vertex>
+      <BG_point coord="-150,150,100"/>
+    </BT_vertex>
+    <BT_vertex>
+      <BG_point coord="-150,150,0"/>
+    </BT_vertex>
+    <BT_vertex>
+      <BG_point coord="150,150,100"/>
+    </BT_vertex>
+    <BT_vertex>
+      <BG_point coord="150,150,0"/>
+    </BT_vertex>
+    <BT_edge>
+      <relation compnum="2" components="0,1"/>
+      <BG_line len="300" par_e="-0" par_s="-0.29999999999999999" root="-150,-150,100" vector="-1,-0,-0"/>
+      <BD_polyline>
+        <point coord="150,-150,100"/>
+        <point coord="-150,-150,100"/>
+      </BD_polyline>
+    </BT_edge>
+    <BT_edge>
+      <relation compnum="2" components="2,1"/>
+      <BG_line len="100" par_e="0.10000000000000001" par_s="0" root="-150,-150,0" vector="0,0,1"/>
+      <BD_polyline>
+        <point coord="-150,-150,0"/>
+        <point coord="-150,-150,100"/>
+      </BD_polyline>
+    </BT_edge>
+    <BT_edge>
+      <relation compnum="2" components="2,3"/>
+      <BG_line len="300" par_e="0.29999999999999999" par_s="0" root="-150,-150,0" vector="1,0,0"/>
+      <BD_polyline>
+        <point coord="-150,-150,0"/>
+        <point coord="150,-150,0"/>
+      </BD_polyline>
+    </BT_edge>
+    <BT_edge>
+      <relation compnum="2" components="3,0"/>
+      <BG_line len="100" par_e="0.10000000000000001" par_s="0" root="150,-150,0" vector="0,0,1"/>
+      <BD_polyline>
+        <point coord="150,-150,0"/>
+        <point coord="150,-150,100"/>
+      </BD_polyline>
+    </BT_edge>
+    <BT_edge>
+      <relation compnum="2" components="1,4"/>
+      <BG_line len="300" par_e="0" par_s="-0.29999999999999999" root="-150,150,100" vector="0,1,0"/>
+      <BD_polyline>
+        <point coord="-150,-150,100"/>
+        <point coord="-150,150,100"/>
+      </BD_polyline>
+    </BT_edge>
+    <BT_edge>
+      <relation compnum="2" components="5,4"/>
+      <BG_line len="100" par_e="0.10000000000000001" par_s="0" root="-150,150,0" vector="0,0,1"/>
+      <BD_polyline>
+        <point coord="-150,150,0"/>
+        <point coord="-150,150,100"/>
+      </BD_polyline>
+    </BT_edge>
+    <BT_edge>
+      <relation compnum="2" components="5,2"/>
+      <BG_line len="300" par_e="0.29999999999999999" par_s="0" root="-150,150,0" vector="0,-1,0"/>
+      <BD_polyline>
+        <point coord="-150,150,0"/>
+        <point coord="-150,-150,0"/>
+      </BD_polyline>
+    </BT_edge>
+    <BT_edge>
+      <relation compnum="2" components="4,6"/>
+      <BG_line len="300" par_e="0" par_s="-0.29999999999999999" root="150,150,100" vector="1,0,0"/>
+      <BD_polyline>
+        <point coord="-150,150,100"/>
+        <point coord="150,150,100"/>
+      </BD_polyline>
+    </BT_edge>
+    <BT_edge>
+      <relation compnum="2" components="7,6"/>
+      <BG_line len="100" par_e="0.10000000000000001" par_s="0" root="150,150,0" vector="0,0,1"/>
+      <BD_polyline>
+        <point coord="150,150,0"/>
+        <point coord="150,150,100"/>
+      </BD_polyline>
+    </BT_edge>
+    <BT_edge>
+      <relation compnum="2" components="7,5"/>
+      <BG_line len="300" par_e="0.29999999999999999" par_s="0" root="150,150,0" vector="-1,0,0"/>
+      <BD_polyline>
+        <point coord="150,150,0"/>
+        <point coord="-150,150,0"/>
+      </BD_polyline>
+    </BT_edge>
+    <BT_edge>
+      <relation compnum="2" components="6,0"/>
+      <BG_line len="300" par_e="-0" par_s="-0.29999999999999999" root="150,-150,100" vector="-0,-1,-0"/>
+      <BD_polyline>
+        <point coord="150,150,100"/>
+        <point coord="150,-150,100"/>
+      </BD_polyline>
+    </BT_edge>
+    <BT_edge>
+      <relation compnum="2" components="3,7"/>
+      <BG_line len="300" par_e="0.29999999999999999" par_s="0" root="150,-150,0" vector="0,1,0"/>
+      <BD_polyline>
+        <point coord="150,-150,0"/>
+        <point coord="150,150,0"/>
+      </BD_polyline>
+    </BT_edge>
+    <BT_face>
+      <relation compnum="4" components="8,9,10,11"/>
+      <BG_plane normal="0,-1,0" root="0,-150,0"/>
+      <BD_shell>
+        <polyvertces>
+          <vertex coord="150,-150,100" normal="0,-1,0"/>
+          <vertex coord="-150,-150,100" normal="0,-1,0"/>
+          <vertex coord="-150,-150,0" normal="0,-1,0"/>
+          <vertex coord="150,-150,0" normal="0,-1,0"/>
+        </polyvertces>
+        <triindex>
+          <triangle index="0,1,3"/>
+          <triangle index="3,1,2"/>
+        </triindex>
+      </BD_shell>
+    </BT_face>
+    <BT_face>
+      <relation compnum="4" components="12,13,14,9"/>
+      <BG_plane normal="-1,0,0" root="-150,0,0"/>
+      <BD_shell>
+        <polyvertces>
+          <vertex coord="-150,-150,100" normal="-1,0,0"/>
+          <vertex coord="-150,150,100" normal="-1,0,0"/>
+          <vertex coord="-150,150,0" normal="-1,0,0"/>
+          <vertex coord="-150,-150,0" normal="-1,0,0"/>
+        </polyvertces>
+        <triindex>
+          <triangle index="0,1,3"/>
+          <triangle index="3,1,2"/>
+        </triindex>
+      </BD_shell>
+    </BT_face>
+    <BT_face>
+      <relation compnum="4" components="15,16,17,13"/>
+      <BG_plane normal="0,1,0" root="0,150,0"/>
+      <BD_shell>
+        <polyvertces>
+          <vertex coord="-150,150,100" normal="0,1,0"/>
+          <vertex coord="150,150,100" normal="0,1,0"/>
+          <vertex coord="150,150,0" normal="0,1,0"/>
+          <vertex coord="-150,150,0" normal="0,1,0"/>
+        </polyvertces>
+        <triindex>
+          <triangle index="0,1,3"/>
+          <triangle index="3,1,2"/>
+        </triindex>
+      </BD_shell>
+    </BT_face>
+    <BT_face>
+      <relation compnum="4" components="18,11,19,16"/>
+      <BG_plane normal="1,0,0" root="150,0,0"/>
+      <BD_shell>
+        <polyvertces>
+          <vertex coord="150,150,100" normal="1,0,0"/>
+          <vertex coord="150,-150,100" normal="1,0,0"/>
+          <vertex coord="150,-150,0" normal="1,0,0"/>
+          <vertex coord="150,150,0" normal="1,0,0"/>
+        </polyvertces>
+        <triindex>
+          <triangle index="0,1,3"/>
+          <triangle index="3,1,2"/>
+        </triindex>
+      </BD_shell>
+    </BT_face>
+    <BT_face>
+      <material rgba="0,0.50196078431372548,1,1"/>
+      <relation compnum="4" components="8,18,15,12"/>
+      <BG_plane normal="0,0,1" root="-150,-150,100"/>
+      <BD_shell>
+        <polyvertces>
+          <vertex coord="-150,-150,100" normal="0,0,1"/>
+          <vertex coord="150,-150,100" normal="0,0,1"/>
+          <vertex coord="150,150,100" normal="0,0,1"/>
+          <vertex coord="-150,150,100" normal="0,0,1"/>
+        </polyvertces>
+        <triindex>
+          <triangle index="0,1,3"/>
+          <triangle index="3,1,2"/>
+        </triindex>
+      </BD_shell>
+    </BT_face>
+    <BT_face>
+      <relation compnum="4" components="19,10,14,17"/>
+      <BG_plane normal="-0,-0,-1" root="-150,-150,0"/>
+      <BD_shell>
+        <polyvertces>
+          <vertex coord="150,150,0" normal="-0,-0,-1"/>
+          <vertex coord="150,-150,0" normal="-0,-0,-1"/>
+          <vertex coord="-150,-150,0" normal="-0,-0,-1"/>
+          <vertex coord="-150,150,0" normal="-0,-0,-1"/>
+        </polyvertces>
+        <triindex>
+          <triangle index="1,2,0"/>
+          <triangle index="0,2,3"/>
+        </triindex>
+      </BD_shell>
+    </BT_face>
+  </BT_mass>
+
+</BETSY>

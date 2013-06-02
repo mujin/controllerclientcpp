@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<BRGD_SYSTEM>
+
+  <STRUCTURE Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="HAND_ASM2" RotX="0" RotY="0" RotZ="0" Visible="1">
+    <LINKPARAMETER RobotType="0"/>
+    <TCPPARAMETER/>
+    <XDATA FilePath=".\_BASE.btx" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="_BASE" RGBA="-1,-1,-1,0" RotX="0" RotY="0" RotZ="0" Visible="1"/>
+    <JOINT CurrentValue="0.000" Lock="0" MaxValue="40.000" MinValue="-20.000" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="Joint00" OriginX="0.000" OriginY="0.000" OriginZ="0.000" RotX="0" RotY="0" RotZ="0" Type="1" VectorX="0" VectorY="1" VectorZ="0" Visible="1">
+      <XDATA FilePath=".\_CHUCK1.btx" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="_CHUCK1" RGBA="-1,-1,-1,0" RotX="0" RotY="0" RotZ="0" Visible="1"/>
+    </JOINT>
+    <JOINT CurrentValue="0.000" Lock="0" MaxValue="40.000" MinValue="-20.000" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="Joint01" OriginX="0.000" OriginY="0.000" OriginZ="0.000" RotX="0" RotY="0" RotZ="0" Type="1" VectorX="0" VectorY="1" VectorZ="0" Visible="1">
+      <XDATA FilePath=".\_CHUCK2.btx" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="_CHUCK2" RGBA="-1,-1,-1,0" RotX="0" RotY="0" RotZ="0" Visible="1"/>
+    </JOINT>
+  </STRUCTURE>
+
+</BRGD_SYSTEM>

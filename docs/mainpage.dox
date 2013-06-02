@@ -10,6 +10,10 @@ namespace mujinclient
 
 \page ChangeLog
 
+\section v0_2_6 Version 0.2.6
+
+- Add support for CEC RoboDiA file uploading
+
 \section v0_2_5 Version 0.2.5
 
 - Add utf-8 and utf-16 versions for \ref ControllerClient::RegisterScene_UTF8 and \ref ControllerClient::ImportSceneToCOLLADA_UTF8

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<BRGD_SYSTEM>
+
+  <STRUCTURE Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="RV-12SD" RotX="0" RotY="0" RotZ="0" Visible="1">
+    <LINKPARAMETER RobotType="1">
+      <LINK Datum="0.000" MaxValue="170.000" MinValue="-170.000" Name="Joint1" Offset="328.000" OffsetX="0.000" Regular="0.000"/>
+      <LINK Datum="0.000" MaxValue="130.000" MinValue="-100.000" Name="Joint2" Offset="122.000" OffsetX="150.000" Regular="0.000"/>
+      <LINK Datum="0.000" MaxValue="160.000" MinValue="-130.000" Name="Joint3" Offset="400.000" OffsetX="0.000" Regular="0.000"/>
+      <LINK Datum="0.000" MaxValue="160.000" MinValue="-160.000" Name="Joint4" Offset="263.000" OffsetX="-80.000" Regular="0.000"/>
+      <LINK Datum="0.000" MaxValue="120.000" MinValue="-120.000" Name="Joint5" Offset="267.000" OffsetX="0.000" Regular="0.000"/>
+      <LINK Datum="0.000" MaxValue="360.000" MinValue="-360.000" Name="Joint6" Offset="97.000" OffsetX="0.000" Regular="0.000"/>
+    </LINKPARAMETER>
+    <TCPPARAMETER>
+      <TCP Activate="1" Incline="0.000,0.000,66.000,0,0,0" Name="TCP"/>
+    </TCPPARAMETER>
+    <ASSEMBLY Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="RV-12S_BASE_ASSY_ASM" RotX="1.5707963267948966" RotY="0" RotZ="1.5707963267948966" Visible="1">
+      <XDATA FilePath=".\RV-12S_BASE.btx" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="RV-12S_BASE" RGBA="-1,-1,-1,0" RotX="0" RotY="-0" RotZ="0" Visible="1"/>
+    </ASSEMBLY>
+    <JOINT CurrentValue="0.000" Lock="1" MaxValue="170.000" MinValue="-170.000" MoveX="0.000" MoveY="0.000" MoveZ="328.000" Name="Joint1" OriginX="0.000" OriginY="0.000" OriginZ="0.000" RotX="0" RotY="0" RotZ="0" Type="0" VectorX="0" VectorY="0" VectorZ="1" Visible="1">
+      <ASSEMBLY Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="RV-12S_SHOULDER_ASSY_ASM" RotX="1.5707963267948966" RotY="0" RotZ="1.5707963267948966" Visible="1">
+        <XDATA FilePath=".\RV-12S_SHOULDER.btx" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="RV-12S_SHOULDER" RGBA="-1,-1,-1,0" RotX="0" RotY="-0" RotZ="0" Visible="1"/>
+        <XDATA FilePath=".\RV-12S_SHOULDER_COVER.btx" Lock="0" MoveX="-126.000" MoveY="122.000" MoveZ="150.000" Name="RV-12S_SHOULDER_COVER" RGBA="-1,-1,-1,0" RotX="1.5707963267948966" RotY="-1.2217304648874494" RotZ="-1.5707963267948966" Visible="1"/>
+      </ASSEMBLY>
+      <JOINT CurrentValue="0.000" Lock="1" MaxValue="130.000" MinValue="-100.000" MoveX="150.000" MoveY="0.000" MoveZ="122.000" Name="Joint2" OriginX="0.000" OriginY="0.000" OriginZ="0.000" RotX="0" RotY="0" RotZ="0" Type="0" VectorX="0" VectorY="1" VectorZ="0" Visible="1">
+        <ASSEMBLY Lock="0" MoveX="0.000" MoveY="109.500" MoveZ="0.000" Name="RV-12S_NO1ARM_ASSY_ASM" RotX="1.5707963267948966" RotY="0" RotZ="1.5707963267948966" Visible="1">
+          <XDATA FilePath=".\RV-12S_NO1ARM.btx" Lock="0" MoveX="-18.000" MoveY="0.000" MoveZ="0.000" Name="RV-12S_NO1ARM" RGBA="-1,-1,-1,0" RotX="0" RotY="-0" RotZ="0" Visible="1"/>
+        </ASSEMBLY>
+        <JOINT CurrentValue="0.000" Lock="1" MaxValue="160.000" MinValue="-130.000" MoveX="0.000" MoveY="0.000" MoveZ="400.000" Name="Joint3" OriginX="0.000" OriginY="0.000" OriginZ="0.000" RotX="0" RotY="0" RotZ="0" Type="0" VectorX="0" VectorY="1" VectorZ="0" Visible="1">
+          <ASSEMBLY Lock="0" MoveX="0.000" MoveY="105.500" MoveZ="0.000" Name="RV-12S_ELBO_ASSY_ASM" RotX="0" RotY="0" RotZ="1.5707963267948966" Visible="1">
+            <XDATA FilePath=".\RV-12S_ELBO.btx" Lock="0" MoveX="-33.000" MoveY="0.000" MoveZ="0.000" Name="RV-12S_ELBO" RGBA="-1,-1,-1,0" RotX="0" RotY="-0" RotZ="0" Visible="1"/>
+            <XDATA FilePath=".\RV-12S_SHOULDER_COVER.btx" Lock="0" MoveX="-177.500" MoveY="0.000" MoveZ="0.000" Name="RV-12S_SHOULDER_COVER" RGBA="-1,-1,-1,0" RotX="1.5707963267948968" RotY="1.1344640188370794" RotZ="-1.5707963267948966" Visible="1"/>
+            <XDATA FilePath=".\RV-12S_ELBO_COVER_A.btx" Lock="0" MoveX="-105.500" MoveY="121.000" MoveZ="0.000" Name="RV-12S_ELBO_COVER_A" RGBA="-1,-1,-1,0" RotX="0" RotY="-0" RotZ="0" Visible="1"/>
+          </ASSEMBLY>
+          <JOINT CurrentValue="0.000" Lock="1" MaxValue="160.000" MinValue="-160.000" MoveX="-80.000" MoveY="0.000" MoveZ="263.000" Name="Joint4" OriginX="0.000" OriginY="0.000" OriginZ="0.000" RotX="0" RotY="0" RotZ="0" Type="0" VectorX="0" VectorY="0" VectorZ="1" Visible="1">
+            <ASSEMBLY Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="17.000" Name="RV-12S_NO2ARM_ASSY_ASM" RotX="1.5707963267948966" RotY="0" RotZ="1.5707963267948966" Visible="1">
+              <XDATA FilePath=".\RV-12S_NO2ARM.btx" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="RV-12S_NO2ARM" RGBA="-1,-1,-1,0" RotX="-1.5707963267948966" RotY="-0" RotZ="0" Visible="1"/>
+              <XDATA FilePath=".\RV-12S_NO2ARM_COVER_A.btx" Lock="0" MoveX="55.000" MoveY="0.000" MoveZ="0.000" Name="RV-12S_NO2ARM_COVER_A" RGBA="-1,-1,-1,0" RotX="-1.5707963267948966" RotY="-0" RotZ="-1.5707963267948966" Visible="1"/>
+              <XDATA FilePath=".\RV-12S_NO2ARM_COVER_B.btx" Lock="0" MoveX="-55.000" MoveY="0.000" MoveZ="0.000" Name="RV-12S_NO2ARM_COVER_B" RGBA="-1,-1,-1,0" RotX="1.5707963267948966" RotY="-0" RotZ="-1.5707963267948966" Visible="1"/>
+            </ASSEMBLY>
+            <JOINT CurrentValue="0.000" Lock="1" MaxValue="120.000" MinValue="-120.000" MoveX="0.000" MoveY="0.000" MoveZ="267.000" Name="Joint5" OriginX="0.000" OriginY="0.000" OriginZ="0.000" RotX="0" RotY="0" RotZ="0" Type="0" VectorX="0" VectorY="1" VectorZ="0" Visible="1">
+              <ASSEMBLY Lock="0" MoveX="0.000" MoveY="47.000" MoveZ="0.000" Name="RV-12S_WRIST_ASSY_ASM" RotX="1.5707963267948966" RotY="0" RotZ="1.5707963267948966" Visible="1">
+                <ASSEMBLY Lock="0" MoveX="-47.000" MoveY="68.000" MoveZ="0.000" Name="RV-12S_J6_DRIVE_UNIT_ASM" RotX="1.5707963267948966" RotY="-0" RotZ="3.1415926535897931" Visible="1">
+                  <XDATA FilePath=".\RV-12S_J6_CRBRG_SPACER.btx" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="-6.000" Name="RV-12S_J6_CRBRG_SPACER" RGBA="-1,-1,-1,0" RotX="0" RotY="-0" RotZ="0" Visible="1"/>
+                </ASSEMBLY>
+                <XDATA FilePath=".\RV-12S_J6_FLANGE.btx" Lock="0" MoveX="-47.000" MoveY="88.000" MoveZ="0.000" Name="RV-12S_J6_FLANGE" RGBA="-1,-1,-1,0" RotX="-1.5707963267948966" RotY="-0" RotZ="0" Visible="1"/>
+                <XDATA FilePath=".\RV-12S_WRIST.btx" Lock="0" MoveX="-47.000" MoveY="62.000" MoveZ="0.000" Name="RV-12S_WRIST" RGBA="-1,-1,-1,0" RotX="-1.5707963267948966" RotY="-0" RotZ="0" Visible="1"/>
+              </ASSEMBLY>
+              <JOINT CurrentValue="0.000" Lock="1" MaxValue="360.000" MinValue="-360.000" MoveX="0.000" MoveY="0.000" MoveZ="97.000" Name="Joint6" OriginX="0.000" OriginY="0.000" OriginZ="0.000" RotX="0" RotY="0" RotZ="0" Type="0" VectorX="0" VectorY="0" VectorZ="1" Visible="1">
+                <TCPPGROUP/>
+              </JOINT>
+            </JOINT>
+          </JOINT>
+        </JOINT>
+      </JOINT>
+    </JOINT>
+  </STRUCTURE>
+
+</BRGD_SYSTEM>

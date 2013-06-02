@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Data generated with InterOp R19 E-Bom XML Generator -->
+<E-BOM xmlns="http://www.dassault-systemes.com/V5/Schema/E-Bom"  Version="0.2" xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance" 
+ xsi:schemaLocation="http://www.dassault-systemes.com/V5/Schema/E-BOM.xsd" >
+<Document Name="HAND_ASM2" Identifier="D:\share\Virfit\DMS2011\demo\HAND_ASM2\HAND_ASM2.stp" FilePath="D:\share\Virfit\DMS2011\demo\HAND_ASM2\HAND_ASM2.stp" SourceUuid="HAND_ASM2.stp" Type="Assembly">
+<Exposition Version="0.2">
+<Structure>
+<Root Name="HAND_ASM2" Identifier="HAND_ASM2" Unit="MILLIMETER">
+
+<Child Name="_BASE" Identifier="HAND_ASM2-4">
+<Position>
+<V1>           1.000000000000000</V1>
+<V2>           0.000000000000000</V2>
+<V3>           0.000000000000000</V3>
+<V4>           0.000000000000000</V4>
+<V5>           1.000000000000000</V5>
+<V6>           0.000000000000000</V6>
+<V7>           0.000000000000000</V7>
+<V8>           0.000000000000000</V8>
+<V9>           1.000000000000000</V9>
+<T1>           0.000000000000000</T1>
+<T2>           0.000000000000000</T2>
+<T3>           0.000000000000000</T3></Position>
+<RefLink Id="_BASE"/>
+</Child>
+
+<Child Name="_CHUCK1" Identifier="HAND_ASM2-5">
+<Position>
+<V1>           1.000000000000000</V1>
+<V2>           0.000000000000000</V2>
+<V3>           0.000000000000000</V3>
+<V4>           0.000000000000000</V4>
+<V5>           1.000000000000000</V5>
+<V6>           0.000000000000000</V6>
+<V7>           0.000000000000000</V7>
+<V8>           0.000000000000000</V8>
+<V9>           1.000000000000000</V9>
+<T1>           0.000000000000000</T1>
+<T2>           0.000000000000000</T2>
+<T3>           0.000000000000000</T3></Position>
+<RefLink Id="_CHUCK1"/>
+</Child>
+
+<Child Name="_CHUCK2" Identifier="HAND_ASM2-6">
+<Position>
+<V1>           1.000000000000000</V1>
+<V2>           0.000000000000000</V2>
+<V3>           0.000000000000000</V3>
+<V4>           0.000000000000000</V4>
+<V5>           1.000000000000000</V5>
+<V6>           0.000000000000000</V6>
+<V7>           0.000000000000000</V7>
+<V8>           0.000000000000000</V8>
+<V9>           1.000000000000000</V9>
+<T1>           0.000000000000000</T1>
+<T2>           0.000000000000000</T2>
+<T3>           0.000000000000000</T3></Position>
+<RefLink Id="_CHUCK2"/>
+</Child>
+
+</Root>
+
+<Reference Name="_BASE" Identifier="_BASE">
+<Rep Name="DETAILED" Identifier="D:\share\Virfit\DMS2011\demo\HAND_ASM2\_BASE.sab">
+<Shape Id="D:\share\Virfit\DMS2011\demo\HAND_ASM2\_BASE.sab" Type="sab"/>
+</Rep>
+</Reference>
+<Reference Name="_CHUCK1" Identifier="_CHUCK1">
+<Rep Name="DETAILED" Identifier="D:\share\Virfit\DMS2011\demo\HAND_ASM2\_CHUCK1.sab">
+<Shape Id="D:\share\Virfit\DMS2011\demo\HAND_ASM2\_CHUCK1.sab" Type="sab"/>
+</Rep>
+</Reference>
+<Reference Name="_CHUCK2" Identifier="_CHUCK2">
+<Rep Name="DETAILED" Identifier="D:\share\Virfit\DMS2011\demo\HAND_ASM2\_CHUCK2.sab">
+<Shape Id="D:\share\Virfit\DMS2011\demo\HAND_ASM2\_CHUCK2.sab" Type="sab"/>
+</Rep>
+</Reference>
+</Structure>
+</Exposition>
+</Document>
+
+<Document Name="_BASE" Type="sab" Identifier="D:\share\Virfit\DMS2011\demo\HAND_ASM2\_BASE.sab" FilePath="D:\share\Virfit\DMS2011\demo\HAND_ASM2\_BASE.sab" SourceUuid="_BASE.sab"/>
+
+<Document Name="_CHUCK1" Type="sab" Identifier="D:\share\Virfit\DMS2011\demo\HAND_ASM2\_CHUCK1.sab" FilePath="D:\share\Virfit\DMS2011\demo\HAND_ASM2\_CHUCK1.sab" SourceUuid="_CHUCK1.sab"/>
+
+<Document Name="_CHUCK2" Type="sab" Identifier="D:\share\Virfit\DMS2011\demo\HAND_ASM2\_CHUCK2.sab" FilePath="D:\share\Virfit\DMS2011\demo\HAND_ASM2\_CHUCK2.sab" SourceUuid="_CHUCK2.sab"/>
+</E-BOM>

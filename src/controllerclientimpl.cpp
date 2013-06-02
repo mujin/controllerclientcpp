@@ -411,7 +411,7 @@ SceneResourcePtr ControllerClientImpl::ImportSceneToCOLLADA_UTF8(const std::stri
 {
     BOOST_ASSERT(importformat.size()>0);
     boost::property_tree::ptree pt;
-    CallPost_UTF8("scene/?format=json&fields=pk", str(boost::format("{\"reference_uri\":\"%s\", \"reference_format\":\"%s\", \"uri\":\"%s\"}")%importuri%importformat%newuri), pt);
+    CallPost_UTF8("scene/?format=json&fields=pk", str(boost::format("{\"reference_uri\":\"%s\", \"reference_scenetype\":\"%s\", \"uri\":\"%s\"}")%importuri%importformat%newuri), pt);
     std::string pk = pt.get<std::string>("pk");
     SceneResourcePtr scene(new SceneResource(shared_from_this(), pk));
     return scene;
@@ -421,7 +421,7 @@ SceneResourcePtr ControllerClientImpl::ImportSceneToCOLLADA_UTF16(const std::wst
 {
     BOOST_ASSERT(importformat.size()>0);
     boost::property_tree::ptree pt;
-    CallPost_UTF16("scene/?format=json&fields=pk", str(boost::wformat(L"{\"reference_uri\":\"%s\", \"reference_format\":\"%s\", \"uri\":\"%s\"}")%importuri%importformat.c_str()%newuri), pt);
+    CallPost_UTF16("scene/?format=json&fields=pk", str(boost::wformat(L"{\"reference_uri\":\"%s\", \"reference_scenetype\":\"%s\", \"uri\":\"%s\"}")%importuri%importformat.c_str()%newuri), pt);
     std::string pk = pt.get<std::string>("pk");
     SceneResourcePtr scene(new SceneResource(shared_from_this(), pk));
     return scene;
@@ -472,6 +472,10 @@ void ControllerClientImpl::SyncUpload_UTF8(const std::string& sourcefilename, co
             std::string sCopyDir = sourcefilename.substr(0,nBaseFilenameStartIndex) + strWCNPath.substr(0,lastindex);
             _UploadDirectoryToWebDAV_UTF8(sCopyDir, baseuploaduri+_EncodeWithoutSeparator(strWCNURI.substr(0,lastindex)));
         }
+    }
+    else if( scenetype == "rttoolbox" || scenetype == "cecrobodiaxml" ) {
+        _UploadDirectoryToWebDAV_UTF8(sourcefilename.substr(0,nBaseFilenameStartIndex), baseuploaduri);
+        return;
     }
 
     // sourcefilenamebase is utf-8
@@ -543,6 +547,10 @@ void ControllerClientImpl::SyncUpload_UTF16(const std::wstring& sourcefilename_u
             std::wstring sCopyDir_utf16 = sourcefilename_utf16.substr(0,nBaseFilenameStartIndex) + strWCNPath_utf16.substr(0,lastindex_utf16);
             _UploadDirectoryToWebDAV_UTF16(sCopyDir_utf16, baseuploaduri+_EncodeWithoutSeparator(strWCNURI.substr(0,lastindex_utf8)));
         }
+    }
+    else if( scenetype == "rttoolbox" || scenetype == "cecrobodiaxml" ) {
+        _UploadDirectoryToWebDAV_UTF16(sourcefilename_utf16.substr(0,nBaseFilenameStartIndex), baseuploaduri);
+        return;
     }
 
     // sourcefilenamebase is utf-8
@@ -913,8 +921,18 @@ void ControllerClientImpl::_EnsureWebDAVDirectories(const std::string& uriDestin
     }
 }
 
-void ControllerClientImpl::_UploadDirectoryToWebDAV_UTF8(const std::string& copydir, const std::string& uri)
+void ControllerClientImpl::_UploadDirectoryToWebDAV_UTF8(const std::string& copydir, const std::string& rawuri)
 {
+    BOOST_ASSERT(rawuri.size()>0);
+    // if there's a trailing slash, have ot get rid of it
+    std::string uri;
+    if( rawuri.at(rawuri.size()-1) == '/' ) {
+        uri = rawuri.substr(0,rawuri.size()-1);
+    }
+    else {
+        uri = rawuri;
+    }
+
     {
         // make sure the directory is created
         CurlCustomRequestSetter setter(_curl, "MKCOL");

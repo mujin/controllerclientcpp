@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<BRGD_SYSTEM Version="1.7.0.0000">
+
+  <WORLD Lock="0" MoveX="175.320" MoveY="-429.524" MoveZ="-285.832" Name="ROOT" Reverse="0" RotX="0.31489953398704529" RotY="0.32387161254882813" RotZ="-0.76994657516479492" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1">
+    <MOTIONPLAN Lock="0" Name="MotionPlan1" Reverse="0" Visible="1">
+      <PLAN Lock="0" Name="Plan1" Reverse="0" Visible="1">
+        <PLANCOMMAND Code="settool(Tcp_HAND2)" index="0"/>
+        <PLANCOMMAND Code="move(p[3_home])" index="1"/>
+        <PLANCOMMAND Code="move(p[3_home_R])" index="2"/>
+        <PLANCOMMAND Code="move(p[3_s1_R])" index="3"/>
+        <PLANCOMMAND Code="movel(p[3_s2_R])" index="4"/>
+        <PLANCOMMAND Code="grab(t[Work1])" index="5"/>
+        <PLANCOMMAND Code="movel(p[3_s1_R])" index="6"/>
+        <PLANCOMMAND Code="move(p[3_home_R])" index="7"/>
+        <PLANCOMMAND Code="move(p[3_home_L])" index="8"/>
+        <PLANCOMMAND Code="move(p[3_e1_L])" index="9"/>
+        <PLANCOMMAND Code="movel(p[3_e2_L])" index="10"/>
+        <PLANCOMMAND Code="release(t[Work1])" index="11"/>
+        <PLANCOMMAND Code="movel(p[3_e1_L])" index="12"/>
+        <PLANCOMMAND Code="move(p[3_home_L])" index="13"/>
+        <PLANCOMMAND Code="move(p[3_home])" index="14"/>
+      </PLAN>
+      <MOTION FilePath=".\Motion1.csv"/>
+      <ROBOTPROGRAM FilePath=".\RobotProgram1.prg"/>
+    </MOTIONPLAN>
+    <CAMERA Aspect="0.000" Far="10000000.000" FovY="0.663" From="0.000,0.000,0.000" Height="688.655" Lock="0" MoveX="-600.000" MoveY="600.000" MoveZ="600.000" Name="Table2Cam" Near="-10000000.000" Perspective="1" Reverse="0" RotX="0" RotY="1.0471975511965976" RotZ="-0.78539816339744828" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" To="1000.000,0.000,0.000" Up="0.000,0.000,1.000" Visible="1"/>
+    <CAMERA Aspect="0.000" Far="10000000.000" FovY="0.663" From="0.000,0.000,0.000" Height="688.655" Lock="0" MoveX="-600.000" MoveY="-600.000" MoveZ="600.000" Name="Table1Cam" Near="-10000000.000" Perspective="1" Reverse="0" RotX="0" RotY="1.0471975511965976" RotZ="0.78539816339744828" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" To="1000.000,0.000,0.000" Up="0.000,0.000,1.000" Visible="1"/>
+    <CONTROLLER Lock="0" Name="Controller1" Reverse="0" RobotParamFile=".\Virfit\RT_TOOLBox2\RV-12SD_DEMO\RC1\RoboSim" Visible="1">
+      <CONTROLLERTYPEDATA Controller="cr3d-701m" Language="melfa-basic 5" Maker="melfa"/>
+      <CONTROLGROUP Index="0" NodePath="ROOT/Controller1/Slider/Joint07/RV-12SD">
+        <CONTROLAXIS Index="0" NodePath="ROOT/Controller1/Slider/Joint07/RV-12SD/RV-12SD/Joint1"/>
+        <CONTROLAXIS Index="1" NodePath="ROOT/Controller1/Slider/Joint07/RV-12SD/RV-12SD/Joint1/Join2"/>
+        <CONTROLAXIS Index="2" NodePath="ROOT/Controller1/Slider/Joint07/RV-12SD/RV-12SD/Joint1/Joint2/Joint3"/>
+        <CONTROLAXIS Index="3" NodePath="ROOT/Controller1/Slider/Joint07/RV-12SD/RV-12SD/Joint1/Joint2/Joint3/Joint4"/>
+        <CONTROLAXIS Index="4" NodePath="ROOT/Controller1/Slider/Joint07/RV-12SD/RV-12SD/Joint1/Joint2/Joint3/Joint4/Joint5"/>
+        <CONTROLAXIS Index="5" NodePath="ROOT/Controller1/Slider/Joint07/RV-12SD/RV-12SD/Joint1/Joint2/Joint3/Joint4/Joint5/Joint6"/>
+      </CONTROLGROUP>
+      <CONTROLGROUP Index="1" NodePath="ROOT/Controller1/Slider">
+        <CONTROLAXIS Index="6" NodePath="ROOT/Controller1/Slider/Joint07"/>
+      </CONTROLGROUP>
+      <STRUCTURE Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="Slider" Reverse="0" RotX="0" RotY="0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="2" TRotateA="2" TTangentA="0" Visible="1">
+        <LINKPARAMETER RobotType="4"/>
+        <TCPPARAMETER/>
+        <XDATA FilePath=".\Conveyor2.btx" Lock="0" MoveX="-800.000" MoveY="-600.000" MoveZ="-660.000" Name="Base" RGBA="-1,-1,-1,0" Reverse="0" RotX="0" RotY="-0" RotZ="1.570796370506284" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="2" TRotateA="2" TTangentA="0" Visible="1"/>
+        <JOINT CurrentValue="0.000" Lock="0" MaxValue="400.000" MinValue="-400.000" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="Joint07" Offset="0.000" OriginX="-600.000" OriginY="-91.523" OriginZ="-49.100" Reverse="0" RotX="0" RotY="-0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="2" TRotateA="2" TTangentA="0" Type="1" VectorX="-0" VectorY="1" VectorZ="-0" Visible="1">
+          <ASSEMBLY Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="RV-12SD" Reverse="0" RotX="0" RotY="0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="2" TRotateA="2" TTangentA="0" Visible="1">
+            <STRUCTURE Lock="0" MoveX="-800.000" MoveY="0.000" MoveZ="0.000" Name="RV-12SD" Reverse="0" RotX="0" RotY="-0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1">
+              <ROBOTTYPEDATA Typename="rv-12sd"/>
+              <LINKPARAMETER RobotType="1">
+                <LINK Datum="0.000" MaxValue="170.000" MinValue="-170.000" Name="Joint1" Offset="328.000" OffsetX="0.000" Regular="0.000"/>
+                <LINK Datum="0.000" MaxValue="130.000" MinValue="-100.000" Name="Joint2" Offset="122.000" OffsetX="150.000" Regular="0.000"/>
+                <LINK Datum="0.000" MaxValue="160.000" MinValue="-130.000" Name="Joint3" Offset="400.000" OffsetX="0.000" Regular="0.000"/>
+                <LINK Datum="0.000" MaxValue="160.000" MinValue="-160.000" Name="Joint4" Offset="263.000" OffsetX="-80.000" Regular="0.000"/>
+                <LINK Datum="0.000" MaxValue="120.000" MinValue="-120.000" Name="Joint5" Offset="267.000" OffsetX="0.000" Regular="0.000"/>
+                <LINK Datum="0.000" MaxValue="360.000" MinValue="-360.000" Name="Joint6" Offset="97.000" OffsetX="0.000" Regular="0.000"/>
+              </LINKPARAMETER>
+              <TCPPARAMETER>
+                <TCP Activate="1" Incline="0.000,0.000,172.325,0,0,0" Name="Tcp_HAND2"/>
+              </TCPPARAMETER>
+              <TEACHOBJECT Lock="0" Name="Teach03" CtrlNodePath="ROOT/Controller1" NodePath="ROOT/Controller1/Slider/Joint07/RV-12SD/RV-12SD" Reverse="0" Tcp="0" Visible="0">
+                <PROGRAM Code="0" Lock="0" Name="Prg3" Reverse="0" Trac="1" Velo="500.000" VeloR="1.5707963267948966" VeloSL="750.000" VeloSW="0.78539816339744828" Visible="1">
+                  <CONTROL Code="1" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="Line" NodePath="ROOT/Controller1/Slider/Joint07/RV-12SD/RV-12SD/Teach03/3_home" Param="" PlacementPath="" ProgramNodePath="" Reverse="0" RotX="0" RotY="0" RotZ="0" Visible="1" WorkNodePath=""/>
+                  <CONTROL Code="1" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="Line" NodePath="ROOT/Controller1/Slider/Joint07/RV-12SD/RV-12SD/Teach03/3_home_R" Param="" PlacementPath="" ProgramNodePath="" Reverse="0" RotX="0" RotY="0" RotZ="0" Visible="1" WorkNodePath=""/>
+                  <CONTROL Code="1" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="Line" NodePath="ROOT/Controller1/Slider/Joint07/RV-12SD/RV-12SD/Teach03/3_s1_R" Param="" PlacementPath="" ProgramNodePath="" Reverse="0" RotX="0" RotY="0" RotZ="0" Visible="1" WorkNodePath=""/>
+                  <CONTROL Code="1" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="Line" NodePath="ROOT/Controller1/Slider/Joint07/RV-12SD/RV-12SD/Teach03/3_s2_R" Param="" PlacementPath="" ProgramNodePath="" Reverse="0" RotX="0" RotY="0" RotZ="0" Visible="1" WorkNodePath=""/>
+                  <CONTROL Code="5" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="Wait" NodePath="" Param="T=1" PlacementPath="" ProgramNodePath="" Reverse="0" RotX="0" RotY="0" RotZ="0" Visible="1" WorkNodePath=""/>
+                  <CONTROL Code="20" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="Grab" NodePath="" Param="" PlacementPath="ROOT/Place2" ProgramNodePath="" Reverse="0" RotX="0" RotY="0" RotZ="0" Visible="1" WorkNodePath="ROOT/Work1"/>
+                  <CONTROL Code="1" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="Line" NodePath="ROOT/Controller1/Slider/Joint07/RV-12SD/RV-12SD/Teach03/3_s1_R" Param="" PlacementPath="" ProgramNodePath="" Reverse="0" RotX="0" RotY="0" RotZ="0" Visible="1" WorkNodePath=""/>
+                  <CONTROL Code="1" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="Line" NodePath="ROOT/Controller1/Slider/Joint07/RV-12SD/RV-12SD/Teach03/3_home_R" Param="" PlacementPath="" ProgramNodePath="" Reverse="0" RotX="0" RotY="0" RotZ="0" Visible="1" WorkNodePath=""/>
+                  <CONTROL Code="1" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="Line" NodePath="ROOT/Controller1/Slider/Joint07/RV-12SD/RV-12SD/Teach03/3_home_L" Param="" PlacementPath="" ProgramNodePath="" Reverse="0" RotX="0" RotY="0" RotZ="0" Visible="1" WorkNodePath=""/>
+                  <CONTROL Code="1" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="Line" NodePath="ROOT/Controller1/Slider/Joint07/RV-12SD/RV-12SD/Teach03/3_e1_L" Param="" PlacementPath="" ProgramNodePath="" Reverse="0" RotX="0" RotY="0" RotZ="0" Visible="1" WorkNodePath=""/>
+                  <CONTROL Code="1" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="Line" NodePath="ROOT/Controller1/Slider/Joint07/RV-12SD/RV-12SD/Teach03/3_e2_L" Param="" PlacementPath="" ProgramNodePath="" Reverse="0" RotX="0" RotY="0" RotZ="0" Visible="1" WorkNodePath=""/>
+                  <CONTROL Code="5" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="Wait" NodePath="" Param="T=1" PlacementPath="" ProgramNodePath="" Reverse="0" RotX="0" RotY="0" RotZ="0" Visible="1" WorkNodePath=""/>
+                  <CONTROL Code="21" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="Release" NodePath="" Param="" PlacementPath="ROOT/Place3" ProgramNodePath="" Reverse="0" RotX="0" RotY="0" RotZ="0" Visible="1" WorkNodePath="ROOT/Work1"/>
+                  <CONTROL Code="1" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="Line" NodePath="ROOT/Controller1/Slider/Joint07/RV-12SD/RV-12SD/Teach03/3_e1_L" Param="" PlacementPath="" ProgramNodePath="" Reverse="0" RotX="0" RotY="0" RotZ="0" Visible="1" WorkNodePath=""/>
+                  <CONTROL Code="1" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="Line" NodePath="ROOT/Controller1/Slider/Joint07/RV-12SD/RV-12SD/Teach03/3_home_L" Param="" PlacementPath="" ProgramNodePath="" Reverse="0" RotX="0" RotY="0" RotZ="0" Visible="1" WorkNodePath=""/>
+                  <CONTROL Code="1" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="Line" NodePath="ROOT/Controller1/Slider/Joint07/RV-12SD/RV-12SD/Teach03/3_home" Param="" PlacementPath="" ProgramNodePath="" Reverse="0" RotX="0" RotY="0" RotZ="0" Visible="1" WorkNodePath=""/>
+                </PROGRAM>
+                <TEACHINGPOINT JointValue="-0.000,-40.000,130.000,0.000,90.000,-0.000" JointValueUse="0" Lock="0" MoveX="422.885" MoveY="-0.001" MoveZ="567.093" Name="3_home" Optimum="1" Reverse="0" RotX="3.1415925661670188" RotY="-0" RotZ="-3.1415925661670188" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" AddAxisValue="0" AddAxisUse="1" UnmovalAxs="" Visible="1"/>
+                <TEACHINGPOINT JointValue="45.000,-0.888,137.557,0.000,43.331,-45.000" JointValueUse="0" Lock="0" MoveX="400.000" MoveY="400.000" MoveZ="250.000" Name="3_s1_R" Optimum="1" Reverse="0" RotX="3.1415925661670188" RotY="-0" RotZ="-1.570796370506284" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" AddAxisValue="400" AddAxisUse="1" UnmovalAxs="" Visible="1"/>
+                <TEACHINGPOINT JointValue="45.000,15.199,137.943,0.000,26.858,-45.000" JointValueUse="0" Lock="0" MoveX="400.000" MoveY="400.000" MoveZ="130.000" Name="3_s2_R" Optimum="1" Reverse="0" RotX="3.1415925661670188" RotY="-0" RotZ="-1.570796370506284" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" AddAxisValue="400" AddAxisUse="1" UnmovalAxs="" Visible="1"/>
+                <TEACHINGPOINT JointValue="-45.000,-0.888,137.557,-0.000,43.331,-135.000" JointValueUse="0" Lock="0" MoveX="400.000" MoveY="-400.000" MoveZ="250.000" Name="3_e1_L" Optimum="1" Reverse="0" RotX="3.1415925661670188" RotY="-0" RotZ="-1.570796370506284" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" AddAxisValue="-400" AddAxisUse="1" UnmovalAxs="" Visible="1"/>
+                <TEACHINGPOINT JointValue="-45.000,15.199,137.943,0.000,26.858,-135.000" JointValueUse="0" Lock="0" MoveX="400.000" MoveY="-400.000" MoveZ="130.000" Name="3_e2_L" Optimum="1" Reverse="0" RotX="-3.1415925661670188" RotY="-0" RotZ="-1.570796370506284" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" AddAxisValue="-400" AddAxisUse="0" UnmovalAxs="" Visible="1"/>
+                <TEACHINGPOINT JointValue="0.000,0.000,0.000,0.000,0.000,0.000" JointValueUse="0" Lock="0" MoveX="422.885" MoveY="-0.001" MoveZ="567.093" Name="3_home_R" Optimum="1" Reverse="0" RotX="3.1415924151710972" RotY="-0" RotZ="-3.141592459874663" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="2" TRotateA="2" TTangentA="0" AddAxisValue="400" AddAxisUse="1" UnmovalAxs="" Visible="1"/>
+                <TEACHINGPOINT JointValue="0.000,0.000,0.000,0.000,0.000,0.000" JointValueUse="0" Lock="0" MoveX="422.885" MoveY="-0.001" MoveZ="567.093" Name="3_home_L" Optimum="1" Reverse="0" RotX="3.1415923555664587" RotY="-2.0861628158286175e-007" RotZ="-3.1415925492816523" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="2" TRotateA="2" AddAxisValue="-400" AddAxisUse="0" UnmovalAxs="" TTangentA="0" Visible="1"/>
+              </TEACHOBJECT>
+              <ASSEMBLY Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="RV-12S_BASE_ASSY_ASM" Reverse="0" RotX="1.5707963267948966" RotY="0" RotZ="1.5707963267948966" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1">
+                <XDATA FilePath=".\rv-12sd\RV-12S_BASE.btx" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="RV-12S_BASE" RGBA="-1,-1,-1,0" Reverse="0" RotX="0" RotY="-0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1"/>
+              </ASSEMBLY>
+              <JOINT CurrentValue="-0.000" Lock="1" MaxValue="170.000" MinValue="-170.000" MoveX="0.000" MoveY="0.000" MoveZ="328.000" Name="Joint1" Offset="0.000" OriginX="0.000" OriginY="0.000" OriginZ="0.000" Reverse="0" RotX="0" RotY="0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Type="0" VectorX="0" VectorY="0" VectorZ="1" Visible="1">
+                <ASSEMBLY Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="RV-12S_SHOULDER_ASSY_ASM" Reverse="0" RotX="1.5707963267948966" RotY="0" RotZ="1.5707963267948966" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1">
+                  <XDATA FilePath=".\rv-12sd\RV-12S_SHOULDER.btx" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="RV-12S_SHOULDER" RGBA="-1,-1,-1,0" Reverse="0" RotX="0" RotY="-0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1"/>
+                  <XDATA FilePath=".\rv-12sd\RV-12S_SHOULDER_COVER.btx" Lock="0" MoveX="-126.000" MoveY="122.000" MoveZ="150.000" Name="RV-12S_SHOULDER_COVER" RGBA="-1,-1,-1,0" Reverse="0" RotX="1.5707963267948966" RotY="-1.2217304648874494" RotZ="-1.5707963267948966" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1"/>
+                </ASSEMBLY>
+                <JOINT CurrentValue="-40.000" Lock="1" MaxValue="130.000" MinValue="-100.000" MoveX="150.000" MoveY="0.000" MoveZ="122.000" Name="Joint2" Offset="0.000" OriginX="0.000" OriginY="0.000" OriginZ="0.000" Reverse="0" RotX="0" RotY="0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Type="0" VectorX="0" VectorY="1" VectorZ="0" Visible="1">
+                  <ASSEMBLY Lock="0" MoveX="0.000" MoveY="109.500" MoveZ="0.000" Name="RV-12S_NO1ARM_ASSY_ASM" Reverse="0" RotX="1.5707963267948966" RotY="0" RotZ="1.5707963267948966" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1">
+                    <XDATA FilePath=".\rv-12sd\RV-12S_NO1ARM.btx" Lock="0" MoveX="-18.000" MoveY="0.000" MoveZ="0.000" Name="RV-12S_NO1ARM" RGBA="-1,-1,-1,0" Reverse="0" RotX="0" RotY="-0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1"/>
+                  </ASSEMBLY>
+                  <JOINT CurrentValue="130.000" Lock="1" MaxValue="160.000" MinValue="-130.000" MoveX="0.000" MoveY="0.000" MoveZ="400.000" Name="Joint3" Offset="0.000" OriginX="0.000" OriginY="0.000" OriginZ="0.000" Reverse="0" RotX="0" RotY="0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Type="0" VectorX="0" VectorY="1" VectorZ="0" Visible="1">
+                    <ASSEMBLY Lock="0" MoveX="0.000" MoveY="105.500" MoveZ="0.000" Name="RV-12S_ELBO_ASSY_ASM" Reverse="0" RotX="0" RotY="0" RotZ="1.5707963267948966" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1">
+                      <XDATA FilePath=".\rv-12sd\RV-12S_ELBO.btx" Lock="0" MoveX="-33.000" MoveY="0.000" MoveZ="0.000" Name="RV-12S_ELBO" RGBA="-1,-1,-1,0" Reverse="0" RotX="0" RotY="-0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1"/>
+                      <XDATA FilePath=".\rv-12sd\RV-12S_SHOULDER_COVER.btx" Lock="0" MoveX="-177.500" MoveY="0.000" MoveZ="0.000" Name="RV-12S_SHOULDER_COVER" RGBA="-1,-1,-1,0" Reverse="0" RotX="1.5707963267948968" RotY="1.1344640188370794" RotZ="-1.5707963267948966" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1"/>
+                      <XDATA FilePath=".\rv-12sd\RV-12S_ELBO_COVER_A.btx" Lock="0" MoveX="-105.500" MoveY="121.000" MoveZ="0.000" Name="RV-12S_ELBO_COVER_A" RGBA="-1,-1,-1,0" Reverse="0" RotX="0" RotY="-0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1"/>
+                    </ASSEMBLY>
+                    <JOINT CurrentValue="0.000" Lock="1" MaxValue="160.000" MinValue="-160.000" MoveX="-80.000" MoveY="0.000" MoveZ="263.000" Name="Joint4" Offset="0.000" OriginX="0.000" OriginY="0.000" OriginZ="0.000" Reverse="0" RotX="0" RotY="0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Type="0" VectorX="0" VectorY="0" VectorZ="1" Visible="1">
+                      <ASSEMBLY Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="17.000" Name="RV-12S_NO2ARM_ASSY_ASM" Reverse="0" RotX="1.5707963267948966" RotY="0" RotZ="1.5707963267948966" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1">
+                        <XDATA FilePath=".\rv-12sd\RV-12S_NO2ARM.btx" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="RV-12S_NO2ARM" RGBA="-1,-1,-1,0" Reverse="0" RotX="-1.5707963267948966" RotY="-0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1"/>
+                        <XDATA FilePath=".\rv-12sd\RV-12S_NO2ARM_COVER_A.btx" Lock="0" MoveX="55.000" MoveY="0.000" MoveZ="0.000" Name="RV-12S_NO2ARM_COVER_A" RGBA="-1,-1,-1,0" Reverse="0" RotX="-1.5707963267948966" RotY="-0" RotZ="-1.5707963267948966" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1"/>
+                        <XDATA FilePath=".\rv-12sd\RV-12S_NO2ARM_COVER_B.btx" Lock="0" MoveX="-55.000" MoveY="0.000" MoveZ="0.000" Name="RV-12S_NO2ARM_COVER_B" RGBA="-1,-1,-1,0" Reverse="0" RotX="1.5707963267948966" RotY="-0" RotZ="-1.5707963267948966" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1"/>
+                      </ASSEMBLY>
+                      <JOINT CurrentValue="90.000" Lock="1" MaxValue="120.000" MinValue="-120.000" MoveX="0.000" MoveY="0.000" MoveZ="267.000" Name="Joint5" Offset="0.000" OriginX="0.000" OriginY="0.000" OriginZ="0.000" Reverse="0" RotX="0" RotY="0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Type="0" VectorX="0" VectorY="1" VectorZ="0" Visible="1">
+                        <ASSEMBLY Lock="0" MoveX="0.000" MoveY="47.000" MoveZ="0.000" Name="RV-12S_WRIST_ASSY_ASM" Reverse="0" RotX="1.5707963267948966" RotY="0" RotZ="1.5707963267948966" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1">
+                          <ASSEMBLY Lock="0" MoveX="-47.000" MoveY="68.000" MoveZ="0.000" Name="RV-12S_J6_DRIVE_UNIT_ASM" Reverse="0" RotX="1.5707963267948966" RotY="-0" RotZ="3.1415926535897931" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1">
+                            <XDATA FilePath=".\rv-12sd\RV-12S_J6_CRBRG_SPACER.btx" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="-6.000" Name="RV-12S_J6_CRBRG_SPACER" RGBA="-1,-1,-1,0" Reverse="0" RotX="0" RotY="-0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1"/>
+                          </ASSEMBLY>
+                          <XDATA FilePath=".\rv-12sd\RV-12S_J6_FLANGE.btx" Lock="0" MoveX="-47.000" MoveY="88.000" MoveZ="0.000" Name="RV-12S_J6_FLANGE" RGBA="-1,-1,-1,0" Reverse="0" RotX="-1.5707963267948966" RotY="-0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1"/>
+                          <XDATA FilePath=".\rv-12sd\RV-12S_WRIST.btx" Lock="0" MoveX="-47.000" MoveY="62.000" MoveZ="0.000" Name="RV-12S_WRIST" RGBA="-1,-1,-1,0" Reverse="0" RotX="-1.5707963267948966" RotY="-0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1"/>
+                        </ASSEMBLY>
+                        <JOINT CurrentValue="-0.000" Lock="1" MaxValue="360.000" MinValue="-360.000" MoveX="0.000" MoveY="0.000" MoveZ="97.000" Name="Joint6" Offset="0.000" OriginX="0.000" OriginY="0.000" OriginZ="0.000" Reverse="0" RotX="0" RotY="0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Type="0" VectorX="0" VectorY="0" VectorZ="1" Visible="1">
+                          <TCPPGROUP/>
+                          <ASSEMBLY Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="HAND2" Reverse="0" RotX="0" RotY="0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1">
+                            <STRUCTURE Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="HAND_ASM2" Reverse="0" RotX="0" RotY="0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1">
+                              <LINKPARAMETER RobotType="3"/>
+                              <TCPPARAMETER/>
+                              <MASSPROPERTY CenterX="0" CenterY="0" CenterZ="50" DimensionX="100" DimensionY="100" DimensionZ="100" Moment="0.000,0.000,0.000,0.000,0.000,0.000" Weight="3"/>
+                              <XDATA FilePath=".\HAND_ASM2\_BASE.btx" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="_BASE" RGBA="-1,-1,-1,0" Reverse="0" RotX="0" RotY="0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1"/>
+                              <JOINT CurrentValue="0.000" Lock="0" MaxValue="40.000" MinValue="-20.000" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="Joint00" Offset="0.000" OriginX="0.000" OriginY="0.000" OriginZ="0.000" Reverse="0" RotX="0" RotY="0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Type="1" VectorX="0" VectorY="1" VectorZ="0" Visible="1">
+                                <XDATA FilePath=".\HAND_ASM2\_CHUCK1.btx" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="_CHUCK1" RGBA="-1,-1,-1,0" Reverse="0" RotX="0" RotY="0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1"/>
+                              </JOINT>
+                              <JOINT CurrentValue="0.000" Lock="0" MaxValue="40.000" MinValue="-20.000" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="Joint01" Offset="0.000" OriginX="0.000" OriginY="0.000" OriginZ="0.000" Reverse="0" RotX="0" RotY="0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Type="1" VectorX="0" VectorY="-1" VectorZ="0" Visible="1">
+                                <XDATA FilePath=".\HAND_ASM2\_CHUCK2.btx" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="_CHUCK2" RGBA="-1,-1,-1,0" Reverse="0" RotX="0" RotY="0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1"/>
+                              </JOINT>
+                            </STRUCTURE>
+                          </ASSEMBLY>
+                        </JOINT>
+                      </JOINT>
+                    </JOINT>
+                  </JOINT>
+                </JOINT>
+              </JOINT>
+            </STRUCTURE>
+          </ASSEMBLY>
+          <XDATA FilePath=".\Table.btx" Lock="0" MoveX="-800.000" MoveY="0.000" MoveZ="-100.000" Name="Slide" RGBA="-1,-1,-1,0" Reverse="0" RotX="0" RotY="-0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1"/>
+        </JOINT>
+      </STRUCTURE>
+    </CONTROLLER>
+    <ASSEMBLY Lock="0" MoveX="-400.000" MoveY="800.000" MoveZ="100.000" Name="Box" Reverse="0" RotX="0" RotY="-0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1">
+      <XDATA FilePath=".\箱.btx" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="箱" RGBA="-1,-1,-1,0" Reverse="0" RotX="0" RotY="0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1"/>
+    </ASSEMBLY>
+    <ASSEMBLY Lock="0" MoveX="-400.000" MoveY="-800.000" MoveZ="100.000" Name="Box_" Reverse="0" RotX="0" RotY="-0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1">
+      <XDATA FilePath=".\箱.btx" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="箱" RGBA="-1,-1,-1,0" Reverse="0" RotX="0" RotY="0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1"/>
+    </ASSEMBLY>
+    <ASSEMBLY Lock="0" MoveX="400.000" MoveY="400.000" MoveZ="0.000" Name="Place1" Reverse="0" RotX="0" RotY="0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1">
+      <XDATA FilePath=".\Table.btx" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="Table1" RGBA="-1,-1,-1,0" Reverse="0" RotX="0" RotY="-0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1"/>
+    </ASSEMBLY>
+    <ASSEMBLY Lock="0" MoveX="-400.000" MoveY="800.000" MoveZ="0.000" Name="Place2" Reverse="0" RotX="0" RotY="-0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1">
+      <XDATA FilePath=".\Table.btx" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="Table2" RGBA="-1,-1,-1,0" Reverse="0" RotX="0" RotY="0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1"/>
+    </ASSEMBLY>
+    <ASSEMBLY Lock="0" MoveX="-400.000" MoveY="-800.000" MoveZ="0.000" Name="Place3" Reverse="0" RotX="0" RotY="-0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1">
+      <XDATA FilePath=".\Table.btx" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="Table3" RGBA="-1,-1,-1,0" Reverse="0" RotX="0" RotY="0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1"/>
+    </ASSEMBLY>
+    <WORK Lock="0" MoveX="382.500" MoveY="427.500" MoveZ="100.000" Name="Work1" OriginalWork="0" Reverse="0" RotX="0" RotY="0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="2" TRotateA="2" TTangentA="0" Visible="1">
+      <MASSPROPERTY CenterX="0" CenterY="0" CenterZ="5" DimensionX="50" DimensionY="30" DimensionZ="10" Moment="0.000,0.000,0.000,0.000,0.000,0.000" Weight="0.10000000000000001"/>
+      <XDATA FilePath=".\ワーク.btx" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="ワーク1" RGBA="-1,-1,-1,0" Reverse="0" RotX="0" RotY="-0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1"/>
+    </WORK>
+    <WORK Lock="0" MoveX="417.500" MoveY="427.500" MoveZ="100.000" Name="Work2" OriginalWork="0" Reverse="0" RotX="0" RotY="0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="2" TRotateA="2" TTangentA="0" Visible="1">
+      <MASSPROPERTY CenterX="0" CenterY="0" CenterZ="5" DimensionX="50" DimensionY="30" DimensionZ="10" Moment="0.000,0.000,0.000,0.000,0.000,0.000" Weight="0.10000000000000001"/>
+      <XDATA FilePath=".\ワーク.btx" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="ワーク2" RGBA="-1,-1,-1,0" Reverse="0" RotX="0" RotY="0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1"/>
+    </WORK>
+  </WORLD>
+
+</BRGD_SYSTEM>
