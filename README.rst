@@ -37,8 +37,8 @@ There are two ways ot link with the libraries:
 
 **Note:** Several examples require the files inside ``C:\Program Files\mujincontrollerclient\share`` folder.
 
-Building on Windows (Optional)
-------------------------------
+Building on Windows
+-------------------
 
 In the following documentation %MUJINCLIENTGIT% means the root directory where the sources are checked out.
 
@@ -82,8 +82,8 @@ In the following documentation %MUJINCLIENTGIT% means the root directory where t
     msbuild INSTALL.vcproj /p:Configuration=Release
 
 
-Building OpenSSL
-================
+Building OpenSSL (Optional)
+===========================
 
 If OpenSSL libraries do not exist for the specific Visual Studio version
 
@@ -104,8 +104,8 @@ If OpenSSL libraries do not exist for the specific Visual Studio version
 
 5. The final binaries should be in the ``msvc_binaries\vcXX\lib`` folder.
 
-Building libcurl
-================
+Building libcurl (Optional)
+===========================
 
 If libcurl libraries do not exist for the specific Visual Studio version
 
