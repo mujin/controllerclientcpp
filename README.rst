@@ -24,16 +24,21 @@ Running on Windows
 
 By default, library is installed in ``C:\Program Files\mujincontrollerclient``.
 
-The ``bin`` directory holds all the DLLs and several sample exe programs. 
+The installed ``bin`` directory holds all the DLLs and several sample exe programs. 
 
-In order to use the library, link with ``lib\mujincontrollerclient-vcXX-mt.lib`` and add ``include`` in the MSVC include directories.
+The installed ``include`` directory holds the include files necessary to compile with the library. Furthermore, if the ``boost`` library isn't installed in the system, need to use the boost headers from the sources ``msvc_boost`` folder. Make sure all include directories are specified in MSVC project include directories field.
 
-Need to put ``C:\Program Files\mujincontrollerclient\bin`` in the PATH environment variable, or register all the DLLs with windows system.
+There are two ways ot link with the libraries:
+
+1. To dynamically load all the DLLs at run time, link with ``lib\mujincontrollerclient-vcXX-mt.lib``. Then need to add ``C:\Program Files\mujincontrollerclient\bin`` to the PATH, or register all the DLLs with windows system.
+
+2. To statically link with everything use ``lib/libmujincontroller-vcXX-mt.lib``. The resulting exe will be independent of runtime DLLs, but will be really big.
+
 
 **Note:** Several examples require the files inside **C:\Program Files\mujincontrollerclient\share** folder.
 
-Building on Windows
--------------------
+Building on Windows (Optional)
+------------------------------
 
 In the following documentation %MUJINCLIENTGIT% means the root directory where the sources are checked out.
 
