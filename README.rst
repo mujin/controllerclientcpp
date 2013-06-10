@@ -35,7 +35,7 @@ There are two ways ot link with the libraries:
 2. To statically link with everything use ``lib/libmujincontroller-vcXX-mt.lib``. The resulting exe will be independent of runtime DLLs, but will be really big.
 
 
-**Note:** Several examples require the files inside **C:\Program Files\mujincontrollerclient\share** folder.
+**Note:** Several examples require the files inside ``C:\Program Files\mujincontrollerclient\share`` folder.
 
 Building on Windows (Optional)
 ------------------------------
