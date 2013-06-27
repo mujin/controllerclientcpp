@@ -392,8 +392,8 @@ public:
 
     /** \brief uploads a particular scene's files into the network filesystem.
 
-        \param sourcefilename UTF-8 encoded local filesystem location of the top-level file. If the scenetype requires many files, will upload all of them.
-        \param destinationdir UTF-8 encoded destination folder in the network file system. Should always have trailing slash. By default use: "mujin:/"
+        \param sourcefilename UTF-8 encoded local filesystem location of the top-level file. If the scenetype requires many files, will upload all of them. For Windows systems, the \ path separator has to be used. For Unix systems, the / path separator has to be used.
+        \param destinationdir UTF-8 encoded destination folder in the network file system. Should always have trailing slash. By default use: "mujin:/". Use the / separator for different paths.
         \param scenetype UTF-8 encoded type of scene uploading.
         \throw mujin_exception if the upload fails, will throw an exception
      */
@@ -407,7 +407,7 @@ public:
 
     /// \see SyncUpload
     ///
-    /// \param sourcefilename UTF-16 encoded
+    /// \param sourcefilename UTF-16 encoded. For Windows systems, the \ path separator has to be used. For Unix systems, the / path separator has to be used.
     /// \param destinationdir UTF-16 encoded
     /// \param scenetype UTF-16 encoded
     virtual void SyncUpload_UTF16(const std::wstring& sourcefilename, const std::wstring& destinationdir, const std::string& scenetype) = 0;

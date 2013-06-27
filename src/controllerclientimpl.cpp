@@ -14,6 +14,8 @@
 #include "common.h"
 #include "controllerclientimpl.h"
 
+#include <boost/algorithm/string.hpp>
+
 #define SKIP_PEER_VERIFICATION // temporary
 //#define SKIP_HOSTNAME_VERIFICATION
 
@@ -446,6 +448,14 @@ void ControllerClientImpl::SyncUpload_UTF8(const std::string& sourcefilename, co
         baseuploaduri.push_back('/');
     }
 
+#if defined(_WIN32) || defined(_WIN64)
+    // check if / is used anywhere and send a warning if it is
+    if( sourcefilename.find_first_of('/') != std::string::npos ) {
+        std::cout << "scene filename '" << sourcefilename << "' is using /, so replacing this with \\" << std::endl;
+        boost::replace_all(sourcefilename, '/', '\\');
+    }
+#endif
+
     size_t nBaseFilenameStartIndex = sourcefilename.find_last_of(s_filesep);
     if( nBaseFilenameStartIndex == std::string::npos ) {
         // there's no path?
@@ -515,6 +525,14 @@ void ControllerClientImpl::SyncUpload_UTF16(const std::wstring& sourcefilename_u
     if( baseuploaduri[baseuploaduri.size()-1] != '/' ) {
         baseuploaduri.push_back('/');
     }
+
+#if defined(_WIN32) || defined(_WIN64)
+    // check if / is used anywhere and send a warning if it is
+    if( sourcefilename_utf16.find_first_of(L'/') != std::wstring::npos ) {
+        std::cout << "scene filename '" << encoding::ConvertUTF16ToFileSystemEncoding(sourcefilename_utf16) << "' is using /, so replacing this with \\" << std::endl;
+        boost::replace_all(sourcefilename_utf16, L'/', L'\\');
+    }
+#endif
 
     size_t nBaseFilenameStartIndex = sourcefilename_utf16.find_last_of(s_wfilesep);
     if( nBaseFilenameStartIndex == std::string::npos ) {
