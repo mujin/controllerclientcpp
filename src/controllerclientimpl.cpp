@@ -429,7 +429,7 @@ SceneResourcePtr ControllerClientImpl::ImportSceneToCOLLADA_UTF16(const std::wst
     return scene;
 }
 
-void ControllerClientImpl::SyncUpload_UTF8(const std::string& sourcefilename, const std::string& destinationdir, const std::string& scenetype)
+void ControllerClientImpl::SyncUpload_UTF8(const std::string& _sourcefilename, const std::string& destinationdir, const std::string& scenetype)
 {
     // TODO use curl_multi_perform to allow uploading of multiple files simultaneously
     // TODO should LOCK with WebDAV repository?
@@ -448,11 +448,16 @@ void ControllerClientImpl::SyncUpload_UTF8(const std::string& sourcefilename, co
         baseuploaduri.push_back('/');
     }
 
+    std::string sourcefilename = _sourcefilename;
 #if defined(_WIN32) || defined(_WIN64)
     // check if / is used anywhere and send a warning if it is
     if( sourcefilename.find_first_of('/') != std::string::npos ) {
         std::cout << "scene filename '" << sourcefilename << "' is using /, so replacing this with \\" << std::endl;
-        boost::replace_all(sourcefilename, '/', '\\');
+        for(size_t i = 0; i < sourcefilename.size(); ++i) {
+            if( sourcefilename[i] == '/' ) {
+                sourcefilename[i] = '\\';
+            }
+        }
     }
 #endif
 
@@ -503,7 +508,7 @@ void ControllerClientImpl::SyncUpload_UTF8(const std::string& sourcefilename, co
      */
 }
 
-void ControllerClientImpl::SyncUpload_UTF16(const std::wstring& sourcefilename_utf16, const std::wstring& destinationdir_utf16, const std::string& scenetype)
+void ControllerClientImpl::SyncUpload_UTF16(const std::wstring& _sourcefilename_utf16, const std::wstring& destinationdir_utf16, const std::string& scenetype)
 {
     // TODO use curl_multi_perform to allow uploading of multiple files simultaneously
     // TODO should LOCK with WebDAV repository?
@@ -526,11 +531,18 @@ void ControllerClientImpl::SyncUpload_UTF16(const std::wstring& sourcefilename_u
         baseuploaduri.push_back('/');
     }
 
+    std::wstring sourcefilename_utf16 = _sourcefilename_utf16;
 #if defined(_WIN32) || defined(_WIN64)
     // check if / is used anywhere and send a warning if it is
     if( sourcefilename_utf16.find_first_of(L'/') != std::wstring::npos ) {
         std::cout << "scene filename '" << encoding::ConvertUTF16ToFileSystemEncoding(sourcefilename_utf16) << "' is using /, so replacing this with \\" << std::endl;
-        boost::replace_all(sourcefilename_utf16, L'/', L'\\');
+        for(size_t i = 0; i < sourcefilename_utf16.size(); ++i) {
+            if( sourcefilename_utf16[i] == L'/' ) {
+                sourcefilename_utf16[i] = L'\\';
+            }
+        }
+
+        boost::replace_all(sourcefilename_utf16, L"/", L"\\");
     }
 #endif
 
