@@ -41,7 +41,9 @@ int main(int argc, char ** argv)
 
         TaskResourcePtr task = scene->GetOrCreateTaskFromName_UTF8("task0", "itlplanning");
         ITLPlanningTaskParameters info;
+        info.optimizationvalue = 0.2; // set the optimization value [0,1]
         info.program = "settool(1)\n\
+set(clearance,20)\n\
 move(translation(0,0,20)*p[Work0/2])\n\
 movel(p[Work0/2])\n\
 movel(translation(0,0,20)*p[Work0/2])\n\
