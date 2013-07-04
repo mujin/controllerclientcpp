@@ -31,9 +31,12 @@ int main(int argc, char ** argv)
         }
         std::cout << "connected to controller v" << controller->GetVersion() << std::endl;
 
+        std::string sceneuri = "mujin:/test.mujin.dae";
+        std::string scenepk = controller->GetScenePrimaryKeyFromURI_UTF8(sceneuri);
+        
         // try to import the scene, if it already exists delete it and import again
         try {
-            controller->ImportSceneToCOLLADA_UTF8("mujin:/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ", "wincaps", "mujin:/test.mujin.dae");
+            controller->ImportSceneToCOLLADA_UTF8("mujin:/densowave_wincaps_data/vs060a3_test0/test0.WPJ", "wincaps", sceneuri);
         }
         catch(const MujinException& ex) {
             if( ex.message().find("need to remove it first") != std::string::npos ) {
@@ -44,7 +47,7 @@ int main(int argc, char ** argv)
                     std::cout << "try removing the file and importing again" << std::endl;
                     SceneResource oldscene(controller,"test.mujin.dae");
                     oldscene.Delete();
-                    controller->ImportSceneToCOLLADA_UTF8("mujin:/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ", "wincaps", "mujin:/test.mujin.dae");
+                    controller->ImportSceneToCOLLADA_UTF8("mujin:/densowave_wincaps_data/vs060a3_test0/test0.WPJ", "wincaps", sceneuri);
                 }
             }
             else {
@@ -53,7 +56,7 @@ int main(int argc, char ** argv)
         }
 
         // create the resource and query info
-        SceneResource scene(controller,"test");
+        SceneResource scene(controller,scenepk);
         std::vector<SceneResource::InstObjectPtr> instobjects;
         scene.GetInstObjects(instobjects);
         std::cout << "scene instance objects: ";

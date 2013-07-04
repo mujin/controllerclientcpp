@@ -33,8 +33,11 @@ int main(int argc, char ** argv)
         }
         std::cout << "connected to controller v" << controller->GetVersion() << std::endl;
 
-        controller->SyncUpload_UTF8("../share/mujincontrollerclient/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ", "mujin:/densowave_wincaps_data/threegoaltouch/", "wincaps");
-        SceneResourcePtr scene = controller->RegisterScene_UTF8("mujin:/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ", "wincaps");
+        std::string sceneuri = "mujin:/densowave_wincaps_data/vs060a3_test0/test0.WPJ";
+        std::string scenepk = controller->GetScenePrimaryKeyFromURI_UTF8(sceneuri);
+
+        controller->SyncUpload_UTF8("../share/mujincontrollerclient/densowave_wincaps_data/vs060a3_test0/test0.WPJ", "mujin:/densowave_wincaps_data/vs060a3_test0/", "wincaps");
+        SceneResourcePtr scene = controller->RegisterScene_UTF8(sceneuri, "wincaps");
 
         TaskResourcePtr task = scene->GetOrCreateTaskFromName_UTF8("task0", "itlplanning");
         ITLPlanningTaskParameters info;

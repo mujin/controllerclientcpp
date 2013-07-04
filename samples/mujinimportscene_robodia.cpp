@@ -34,8 +34,9 @@ int main(int argc, char ** argv)
         controller->SyncUpload_UTF8("../share/mujincontrollerclient/robodia_demo1/robodia_demo1.xml", "mujin:/robodia_demo1/", "cecrobodiaxml");
 
         // try to import the scene, if it already exists delete it and import again
+        std::string sceneuri = "mujin:/robodia_demo1.mujin.dae";
         try {
-            controller->ImportSceneToCOLLADA_UTF8("mujin:/robodia_demo1/robodia_demo1.xml", "cecrobodiaxml", "mujin:/robodia_demo1.mujin.dae");
+            controller->ImportSceneToCOLLADA_UTF8("mujin:/robodia_demo1/robodia_demo1.xml", "cecrobodiaxml", sceneuri);
         }
         catch(const MujinException& ex) {
             if( ex.message().find("need to remove it first") != std::string::npos ) {
@@ -46,7 +47,7 @@ int main(int argc, char ** argv)
                     std::cout << "try removing the file and importing again" << std::endl;
                     SceneResource oldscene(controller,"robodia_demo1.mujin.dae");
                     oldscene.Delete();
-                    controller->ImportSceneToCOLLADA_UTF8("mujin:/robodia_demo1/robodia_demo1.xml", "cecrobodiaxml", "mujin:/robodia_demo1.mujin.dae");
+                    controller->ImportSceneToCOLLADA_UTF8("mujin:/robodia_demo1/robodia_demo1.xml", "cecrobodiaxml", sceneuri);
                 }
             }
             else {
@@ -55,7 +56,9 @@ int main(int argc, char ** argv)
         }
 
         // create the resource and query info
-        SceneResource scene(controller,"test");
+        // have to convert the URI into a primary-key for creating the resources
+        std::string scenepk = controller->GetScenePrimaryKeyFromURI_UTF8(sceneuri);
+        SceneResource scene(controller,scenepk);
         std::vector<SceneResource::InstObjectPtr> instobjects;
         scene.GetInstObjects(instobjects);
         std::cout << "scene instance objects: ";

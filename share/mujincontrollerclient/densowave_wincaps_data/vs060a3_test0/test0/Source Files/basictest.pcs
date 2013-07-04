@@ -1,0 +1,17 @@
+Sub Main
+	Takearm Keep = 0
+	ChangeTool 1
+	Move P, @0 P1+(0,0,100)
+	Move L, @E P1
+	Move L, @0 P1+(0,0,100)
+
+	Move P, @P P2+(0,0,100)
+	Move L, @E P2
+	Move L, @0 P2+(0,0,100)
+
+	Move P, @P P3+(0,0,100)
+	Move L, @E P3
+	Move L, @0 P3+(0,0,100)
+
+	Move P, @0 P1+(0,0,100)
+End Sub

@@ -33,14 +33,16 @@ int main(int argc, char ** argv)
         }
         std::cout << "connected to controller v" << controller->GetVersion() << std::endl;
 
+        std::string sceneuri = "mujin:/densowave_wincaps_data/vs060a3_test0.mujin.dae";
+        std::string scenepk = controller->GetScenePrimaryKeyFromURI_UTF8(sceneuri);
         SceneResourcePtr scene;
         try {
-            scene.reset(new SceneResource(controller,"densowave_wincaps_data/threegoaltouch"));
+            scene.reset(new SceneResource(controller,scenepk));
             scene->Get("name");
         }
         catch(const MujinException& ex) {
             // failed to get name, so need to improt scene first
-            scene = controller->ImportSceneToCOLLADA_UTF8("mujin:/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ", "wincaps", "mujin:/densowave_wincaps_data/threegoaltouch.mujin.dae");
+            scene = controller->ImportSceneToCOLLADA_UTF8("mujin:/densowave_wincaps_data/vs060a3_test0/test0.WPJ", "wincaps", sceneuri);
         }
 
         TaskResourcePtr task = scene->GetOrCreateTaskFromName_UTF8("task0", "itlplanning");
