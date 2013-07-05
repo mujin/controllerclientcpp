@@ -49,6 +49,7 @@ int main(int argc, char ** argv)
         ITLPlanningTaskParameters info;
         info.optimizationvalue = 0.2; // set the optimization value [0,1]
         info.program = "settool(1)\n\
+set(clearance,40)\n\
 move(translation(0,0,20)*p[Work0/2])\n\
 movel(p[Work0/2])\n\
 movel(translation(0,0,20)*p[Work0/2])\n\
