@@ -78,7 +78,7 @@ int main(int argc, char ** argv)
         cout << "found optimization " << optimization->Get("name") << endl;
 
         std::vector<PlanningResultResourcePtr> results;
-        optimization->GetResults(10,results);
+        optimization->GetResults(results,0,10);
         if( results.size() > 0 ) {
             cout << "the top results have times: ";
             for(size_t i = 0; i < results.size(); ++i) {

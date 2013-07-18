@@ -16,6 +16,7 @@ link_directories(${MUJINCLIENT_LINK_DIRS})
 
 build_sample(mujinexecutetask)
 build_sample(mujinexecutetask_fast)
+build_sample(mujinideal_densowave)
 build_sample(mujinimportscene)
 build_sample(mujinshowresults)
 build_sample(mujinimportscene_robodia)

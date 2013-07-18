@@ -1,0 +1,20 @@
+'!TITLE "grab test"
+Sub Main
+	Takearm Keep = 0
+	
+	ChangeTool 1
+    Payload 0.5
+	Move P, @0 P2+(0,0,100),SPEED=100,NEXT
+	Move L, @E P2
+    Sim.Chuck "case2"
+    Payload 2
+	Move L, @0 P2+(0,0,100),ACCEL=100,SPEED=50,NEXT
+
+	Move P, @P P3+(0,0,100),SPEED=50,NEXT
+	Move L, @E P3
+    Sim.Unchuck "case2"
+	Move L, @0 P3+(0,0,100),NEXT
+
+	Move P, @0 P2+(0,0,100)
+    Givearm	
+End Sub

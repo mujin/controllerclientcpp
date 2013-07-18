@@ -236,21 +236,21 @@ struct RobotPlacementOptimizationParameters
     }
     inline void SetDefaults() {
         topstorecandidates = 20;
-        targetpk.clear();
-        framepk = "0 robot";
+        targetname.clear();
+        framename = "0 robot";
         unit = "mm";
         minrange[0] = -400; minrange[1] = -400; minrange[2] = 0; minrange[3] = -180;
         maxrange[0] = 400; maxrange[1] = 400; maxrange[2] = 400; maxrange[3] = 90;
         stepsize[0] = 100; stepsize[1] = 100; stepsize[2] = 100; stepsize[3] = 90;
-        ignorebasecollision = 1;
+        ignorebasecollision = 0;
     }
-    std::string targetpk; ///< the primary key of the target object to optimize for. If blank, will use robot.
-    std::string framepk; ///< The primary key of the frame to define the optimization parameters in. If blank, will use the target's coordinate system.
+    std::string targetname; ///< the primary key of the target object to optimize for. If blank, will use robot.
+    std::string framename; ///< The primary key of the frame to define the optimization parameters in. If blank, will use the target's coordinate system.
     std::string unit; ///< the unit that information is used in. m, mm, nm, inch, etc
     Real maxrange[4]; ///< X, Y, Z, Angle (deg)
     Real minrange[4]; ///< X, Y, Z, Angle (deg)
     Real stepsize[4]; ///< X, Y, Z, Angle (deg)
-    int ignorebasecollision; ///< When moving the robot, allow collisions of the base with the environment, this allows users to search for a base placement and while ignoring small obstacles.
+    int ignorebasecollision; ///< If 1, when moving the robot, allow collisions of the base with the environment, this allows users to search for a base placement and while ignoring small obstacles. By default this is 0.
     int topstorecandidates; ///< In order to speed things up, store at least the top (fastest) N candidates. Candidates beyond the top N will not be computed.
 };
 
@@ -626,10 +626,11 @@ public:
     /// \brief get the run-time status of the executed optimization.
     virtual void GetRunTimeStatus(JobStatus& status);
 
-    /// \brief gets the fastest results of the optimization execution.
+    /// \brief Gets the results of the optimization execution ordered by task_time.
     ///
-    /// \param fastestnum The number of results to get starting with the fastest task_time. If 0, will return ALL results.
-    virtual void GetResults(int fastestnum, std::vector<PlanningResultResourcePtr>& results);
+    /// \param startoffset The offset to retrieve the results from. Ordered
+    /// \param num The number of results to get starting at startoffset. If 0, will return ALL results.
+    virtual void GetResults(std::vector<PlanningResultResourcePtr>& results, int startoffset=0, int num=0);
 };
 
 class MUJINCLIENT_API PlanningResultResource : public WebResource
