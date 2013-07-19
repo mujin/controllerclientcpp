@@ -122,7 +122,7 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
     }
     _baseapiuri = _baseuri + std::string("api/v1/");
     // hack for now since webdav server and api server could be running on different ports
-    if( boost::algorithm::ends_with(_baseuri, ":8000/") ) {
+    if( boost::algorithm::ends_with(_baseuri, ":7999/") ) {
         // testing on localhost, however the webdav server is running on port 80...
         _basewebdavuri = str(boost::format("%s/u/%s/")%_baseuri.substr(0,_baseuri.size()-6)%username);
     }
@@ -831,6 +831,8 @@ void ControllerClientImpl::_SetHTTPHeaders()
     _httpheaders = curl_slist_append(NULL, s.c_str());
     s = str(boost::format("Accept-Language: %s,en-us")%_language);
     _httpheaders = curl_slist_append(_httpheaders, s.c_str()); //,en;q=0.7,ja;q=0.3',")
+    s = str(boost::format("Accept-Charset: %s")%_charset);
+    _httpheaders = curl_slist_append(_httpheaders, s.c_str());
     //_httpheaders = curl_slist_append(_httpheaders, "Accept:"); // necessary?
     s = std::string("X-CSRFToken: ")+_csrfmiddlewaretoken;
     _httpheaders = curl_slist_append(_httpheaders, s.c_str());
