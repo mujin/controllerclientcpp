@@ -145,10 +145,10 @@
       </STRUCTURE>
     </CONTROLLER>
     <ASSEMBLY Lock="0" MoveX="-400.000" MoveY="800.000" MoveZ="100.000" Name="Box" Reverse="0" RotX="0" RotY="-0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1">
-      <XDATA FilePath=".\箱.btx" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="箱" RGBA="-1,-1,-1,0" Reverse="0" RotX="0" RotY="0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1"/>
+      <XDATA FilePath=".\Box.btx" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="箱" RGBA="-1,-1,-1,0" Reverse="0" RotX="0" RotY="0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1"/>
     </ASSEMBLY>
     <ASSEMBLY Lock="0" MoveX="-400.000" MoveY="-800.000" MoveZ="100.000" Name="Box_" Reverse="0" RotX="0" RotY="-0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1">
-      <XDATA FilePath=".\箱.btx" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="箱" RGBA="-1,-1,-1,0" Reverse="0" RotX="0" RotY="0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1"/>
+      <XDATA FilePath=".\Box.btx" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="箱" RGBA="-1,-1,-1,0" Reverse="0" RotX="0" RotY="0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1"/>
     </ASSEMBLY>
     <ASSEMBLY Lock="0" MoveX="400.000" MoveY="400.000" MoveZ="0.000" Name="Place1" Reverse="0" RotX="0" RotY="0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1">
       <XDATA FilePath=".\Table.btx" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="Table1" RGBA="-1,-1,-1,0" Reverse="0" RotX="0" RotY="-0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1"/>
@@ -161,11 +161,11 @@
     </ASSEMBLY>
     <WORK Lock="0" MoveX="382.500" MoveY="427.500" MoveZ="100.000" Name="Work1" OriginalWork="0" Reverse="0" RotX="0" RotY="0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="2" TRotateA="2" TTangentA="0" Visible="1">
       <MASSPROPERTY CenterX="0" CenterY="0" CenterZ="5" DimensionX="50" DimensionY="30" DimensionZ="10" Moment="0.000,0.000,0.000,0.000,0.000,0.000" Weight="0.10000000000000001"/>
-      <XDATA FilePath=".\ワーク.btx" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="ワーク1" RGBA="-1,-1,-1,0" Reverse="0" RotX="0" RotY="-0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1"/>
+      <XDATA FilePath=".\Work.btx" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="ワーク1" RGBA="-1,-1,-1,0" Reverse="0" RotX="0" RotY="-0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1"/>
     </WORK>
     <WORK Lock="0" MoveX="417.500" MoveY="427.500" MoveZ="100.000" Name="Work2" OriginalWork="0" Reverse="0" RotX="0" RotY="0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="2" TRotateA="2" TTangentA="0" Visible="1">
       <MASSPROPERTY CenterX="0" CenterY="0" CenterZ="5" DimensionX="50" DimensionY="30" DimensionZ="10" Moment="0.000,0.000,0.000,0.000,0.000,0.000" Weight="0.10000000000000001"/>
-      <XDATA FilePath=".\ワーク.btx" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="ワーク2" RGBA="-1,-1,-1,0" Reverse="0" RotX="0" RotY="0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1"/>
+      <XDATA FilePath=".\Work.btx" Lock="0" MoveX="0.000" MoveY="0.000" MoveZ="0.000" Name="ワーク2" RGBA="-1,-1,-1,0" Reverse="0" RotX="0" RotY="0" RotZ="0" TMode="0" TMove="0" TMoveX="0.000" TMoveY="0.000" TMoveZ="0.000" TRotX="0" TRotY="0" TRotZ="0" TRotate="0" TRotateA="0" TTangentA="0" Visible="1"/>
     </WORK>
   </WORLD>
 
