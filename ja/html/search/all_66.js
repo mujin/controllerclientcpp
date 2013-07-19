@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['framepk',['framepk',['../structmujinclient_1_1RobotPlacementOptimizationParameters.html#a4683ecbe9632f969cf633babda57beb0',1,'mujinclient::RobotPlacementOptimizationParameters']]]
+  ['framename',['framename',['../structmujinclient_1_1RobotPlacementOptimizationParameters.html#a3167cf93f9b027c839eeef9a5c2f2008',1,'mujinclient::RobotPlacementOptimizationParameters']]]
 ];

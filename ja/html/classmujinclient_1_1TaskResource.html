@@ -169,6 +169,7 @@ Public メソッド</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
 Protected 変数</h2></td></tr>
 <tr class="memitem:a0b490b6dc6f25f1e51d46e26cd6914a7"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1TaskResource.html#a0b490b6dc6f25f1e51d46e26cd6914a7">_jobpk</a></td></tr>
+<tr class="memdesc:a0b490b6dc6f25f1e51d46e26cd6914a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">the job primary key used to track the status of the running task after <a class="el" href="classmujinclient_1_1TaskResource.html#af4a6378d19af39fc7533407c46dedb76">Execute</a> is called  <a href="#a0b490b6dc6f25f1e51d46e26cd6914a7"></a><br/></td></tr>
 <tr class="separator:a0b490b6dc6f25f1e51d46e26cd6914a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">説明</h2>
@@ -416,6 +417,12 @@ Protected 変数</h2></td></tr>
 
 <p>get the run-time status of the executed task. </p>
 <p>This will only work if the task has been previously Executed with execute If the task is not currently running, will set status.code to JSC_Unknown </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">options</td><td>if options is 1, also get the message </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -490,7 +497,9 @@ Protected 変数</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00610">610</a> 行で定義されています。</p>
+<p>the job primary key used to track the status of the running task after <a class="el" href="classmujinclient_1_1TaskResource.html#af4a6378d19af39fc7533407c46dedb76">Execute</a> is called </p>
+
+<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00611">611</a> 行で定義されています。</p>
 
 </div>
 </div>
@@ -500,7 +509,7 @@ Protected 変数</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-controllerclientcppに対してSun Jun 2 2013 15:23:17に生成されました。 &#160;<a href="http://www.doxygen.org/index.html">
+controllerclientcppに対してFri Jul 19 2013 11:06:17に生成されました。 &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.3
 </small></address>

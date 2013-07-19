@@ -1036,7 +1036,7 @@ Public Member Functions</h2></td></tr>
 <dl class="section see"><dt>See Also</dt><dd>SyncUpload</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">sourcefilename</td><td>UTF-16 encoded </td></tr>
+    <tr><td class="paramname">sourcefilename</td><td>UTF-16 encoded. For Windows systems, the \ path separator has to be used. For Unix systems, the / path separator has to be used. </td></tr>
     <tr><td class="paramname">destinationdir</td><td>UTF-16 encoded </td></tr>
     <tr><td class="paramname">scenetype</td><td>UTF-16 encoded </td></tr>
   </table>
@@ -1123,8 +1123,8 @@ Public Member Functions</h2></td></tr>
 <p>uploads a particular scene's files into the network filesystem. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">sourcefilename</td><td>UTF-8 encoded local filesystem location of the top-level file. If the scenetype requires many files, will upload all of them. </td></tr>
-    <tr><td class="paramname">destinationdir</td><td>UTF-8 encoded destination folder in the network file system. Should always have trailing slash. By default use: "mujin:/" </td></tr>
+    <tr><td class="paramname">sourcefilename</td><td>UTF-8 encoded local filesystem location of the top-level file. If the scenetype requires many files, will upload all of them. For Windows systems, the \ path separator has to be used. For Unix systems, the / path separator has to be used. </td></tr>
+    <tr><td class="paramname">destinationdir</td><td>UTF-8 encoded destination folder in the network file system. Should always have trailing slash. By default use: "mujin:/". Use the / separator for different paths. </td></tr>
     <tr><td class="paramname">scenetype</td><td>UTF-8 encoded type of scene uploading. </td></tr>
   </table>
   </dd>
@@ -1207,7 +1207,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Jun 2 2013 15:23:16 for controllerclientcpp by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jul 19 2013 11:06:16 for controllerclientcpp by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.3
 </small></address>
