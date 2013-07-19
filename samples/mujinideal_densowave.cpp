@@ -113,8 +113,8 @@ int main(int argc, char ** argv)
         for(std::map<std::string, RobotProgramData>::iterator it = programs.programs.begin(); it != programs.programs.end(); ++it ) {
             std::cout << "[" << it->first << "]" << std::endl << it->second.programdata << std::endl << std::endl;
         }
-        double fOriginalTaskTime = result->Get("task_time");
-        std::cout << "final task_time is " << fOriginalTaskTime << std::endl;
+        std::string sOriginalTaskTime = result->Get("task_time");
+        std::cout << "final task_time is " << sOriginalTaskTime << std::endl;
 
         OptimizationResourcePtr optimization = task->GetOrCreateOptimizationFromName_UTF8("myopt0","robotplacement");
 
@@ -171,7 +171,7 @@ int main(int argc, char ** argv)
 
             optimization->GetResults(results, 0, 1);
             if( results.size() > 0 ) {
-                std::cout << "top result task_time=" << results.at(0)->Get("task_time") << " seconds, original task = " << fOriginalTaskTime << " seconds" << std::endl;
+                std::cout << "top result task_time=" << results.at(0)->Get("task_time") << " seconds, original task = " << sOriginalTaskTime << " seconds" << std::endl;
             }
             boost::this_thread::sleep(boost::posix_time::milliseconds(5000)); // 5s
 
