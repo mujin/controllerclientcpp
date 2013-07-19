@@ -123,7 +123,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'検索');
 <div class="line">        std::string scenepk = controller-&gt;GetScenePrimaryKeyFromURI_UTF8(sceneuri);</div>
 <div class="line"></div>
 <div class="line">        <span class="comment">// upload a Wincaps file</span></div>
-<div class="line">        <span class="comment">//controller-&gt;SyncUpload_UTF8(&quot;../share/mujincontrollerclient/densowave_wincaps_data/vs060a3_test0/test0.WPJ&quot;, &quot;mujin:/vs060a3_test0/&quot;, &quot;wincaps&quot;);</span></div>
+<div class="line">        controller-&gt;SyncUpload_UTF8(<span class="stringliteral">&quot;../share/mujincontrollerclient/densowave_wincaps_data/vs060a3_test0/test0.WPJ&quot;</span>, <span class="stringliteral">&quot;mujin:/vs060a3_test0/&quot;</span>, <span class="stringliteral">&quot;wincaps&quot;</span>);</div>
 <div class="line"></div>
 <div class="line">        <span class="comment">// Register the scene, this also imports all PAC Script programs into &quot;itlplanning&quot; tasks</span></div>
 <div class="line">        <a class="code" href="namespacemujinclient.html#a9a7bf2721c91516d69ca08837e26b7b8">SceneResourcePtr</a> scene = controller-&gt;RegisterScene_UTF8(sceneuri, <span class="stringliteral">&quot;wincaps&quot;</span>);</div>
@@ -138,7 +138,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'検索');
 <div class="line">        taskparameters.<a name="a3"></a><a class="code" href="classmujinclient_1_1ITLPlanningTaskParameters.html#a5956fe320ffb03737884a4d677c59d7c" title="value in [0,1]. 0 is no optimization (fast), 1 is full optimization (slow)">optimizationvalue</a> = 0.5;</div>
 <div class="line">        task-&gt;SetTaskParameters(taskparameters);</div>
 <div class="line"></div>
-<div class="line">        <span class="comment">//task-&gt;Execute();</span></div>
+<div class="line">        <span class="comment">// start task execution</span></div>
+<div class="line">        task-&gt;Execute();</div>
 <div class="line"></div>
 <div class="line">        std::cout &lt;&lt; <span class="stringliteral">&quot;waiting for task result&quot;</span> &lt;&lt; std::endl;</div>
 <div class="line">        <span class="comment">// query the results until they are complete, should take several seconds</span></div>
@@ -192,8 +193,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'検索');
 <div class="line">        <span class="keywordflow">for</span>(std::map&lt;std::string, RobotProgramData&gt;::iterator it = programs.<a class="code" href="classmujinclient_1_1RobotControllerPrograms.html#a2b1ab51e0a550773982c52448027bb42" title="the keys are the robot instance primary keys of the scene">programs</a>.begin(); it != programs.<a class="code" href="classmujinclient_1_1RobotControllerPrograms.html#a2b1ab51e0a550773982c52448027bb42" title="the keys are the robot instance primary keys of the scene">programs</a>.end(); ++it ) {</div>
 <div class="line">            std::cout &lt;&lt; <span class="stringliteral">&quot;[&quot;</span> &lt;&lt; it-&gt;first &lt;&lt; <span class="stringliteral">&quot;]&quot;</span> &lt;&lt; std::endl &lt;&lt; it-&gt;second.programdata &lt;&lt; std::endl &lt;&lt; std::endl;</div>
 <div class="line">        }</div>
-<div class="line">        <span class="keywordtype">double</span> fOriginalTaskTime = result-&gt;Get(<span class="stringliteral">&quot;task_time&quot;</span>);</div>
-<div class="line">        std::cout &lt;&lt; <span class="stringliteral">&quot;final task_time is &quot;</span> &lt;&lt; fOriginalTaskTime &lt;&lt; std::endl;</div>
+<div class="line">        std::string sOriginalTaskTime = result-&gt;Get(<span class="stringliteral">&quot;task_time&quot;</span>);</div>
+<div class="line">        std::cout &lt;&lt; <span class="stringliteral">&quot;final task_time is &quot;</span> &lt;&lt; sOriginalTaskTime &lt;&lt; std::endl;</div>
 <div class="line"></div>
 <div class="line">        <a class="code" href="namespacemujinclient.html#a792d4a5c8226ed22db9f59b11908229d">OptimizationResourcePtr</a> optimization = task-&gt;GetOrCreateOptimizationFromName_UTF8(<span class="stringliteral">&quot;myopt0&quot;</span>,<span class="stringliteral">&quot;robotplacement&quot;</span>);</div>
 <div class="line"></div>
@@ -250,7 +251,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'検索');
 <div class="line"></div>
 <div class="line">            optimization-&gt;GetResults(results, 0, 1);</div>
 <div class="line">            <span class="keywordflow">if</span>( results.size() &gt; 0 ) {</div>
-<div class="line">                std::cout &lt;&lt; <span class="stringliteral">&quot;top result task_time=&quot;</span> &lt;&lt; results.at(0)-&gt;Get(<span class="stringliteral">&quot;task_time&quot;</span>) &lt;&lt; <span class="stringliteral">&quot; seconds, original task = &quot;</span> &lt;&lt; fOriginalTaskTime &lt;&lt; <span class="stringliteral">&quot; seconds&quot;</span> &lt;&lt; std::endl;</div>
+<div class="line">                std::cout &lt;&lt; <span class="stringliteral">&quot;top result task_time=&quot;</span> &lt;&lt; results.at(0)-&gt;Get(<span class="stringliteral">&quot;task_time&quot;</span>) &lt;&lt; <span class="stringliteral">&quot; seconds, original task = &quot;</span> &lt;&lt; sOriginalTaskTime &lt;&lt; <span class="stringliteral">&quot; seconds&quot;</span> &lt;&lt; std::endl;</div>
 <div class="line">            }</div>
 <div class="line">            boost::this_thread::sleep(boost::posix_time::milliseconds(5000)); <span class="comment">// 5s</span></div>
 <div class="line"></div>
@@ -271,7 +272,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'検索');
 </div><!-- fragment --> </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-controllerclientcppに対してFri Jul 19 2013 11:06:17に生成されました。 &#160;<a href="http://www.doxygen.org/index.html">
+controllerclientcppに対してFri Jul 19 2013 11:17:06に生成されました。 &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.3
 </small></address>
