@@ -43,7 +43,7 @@ int main(int argc, char ** argv)
         std::string scenepk = controller->GetScenePrimaryKeyFromURI_UTF8(sceneuri);
 
         // upload a Wincaps file
-        //controller->SyncUpload_UTF8("../share/mujincontrollerclient/densowave_wincaps_data/vs060a3_test0/test0.WPJ", "mujin:/vs060a3_test0/", "wincaps");
+        controller->SyncUpload_UTF8("../share/mujincontrollerclient/densowave_wincaps_data/vs060a3_test0/test0.WPJ", "mujin:/vs060a3_test0/", "wincaps");
 
         // Register the scene, this also imports all PAC Script programs into "itlplanning" tasks
         SceneResourcePtr scene = controller->RegisterScene_UTF8(sceneuri, "wincaps");
@@ -58,7 +58,8 @@ int main(int argc, char ** argv)
         taskparameters.optimizationvalue = 0.5;
         task->SetTaskParameters(taskparameters);
 
-        //task->Execute();
+        // start task execution
+        task->Execute();
 
         std::cout << "waiting for task result" << std::endl;
         // query the results until they are complete, should take several seconds
