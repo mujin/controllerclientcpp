@@ -175,6 +175,7 @@ bool TaskResource::Execute()
 
 void TaskResource::GetRunTimeStatus(JobStatus& status, int options)
 {
+    status.code = JSC_Unknown;
     if( _jobpk.size() > 0 ) {
         GETCONTROLLERIMPL();
         boost::property_tree::ptree pt;
@@ -192,8 +193,6 @@ void TaskResource::GetRunTimeStatus(JobStatus& status, int options)
             status.message = pt.get<std::string>("status_text");
         }
     }
-
-    status.code = JSC_Unknown;
 }
 
 OptimizationResourcePtr TaskResource::GetOrCreateOptimizationFromName_UTF8(const std::string& optimizationname, const std::string& optimizationtype)
@@ -314,15 +313,34 @@ OptimizationResource::OptimizationResource(ControllerClientPtr controller, const
 {
 }
 
-void OptimizationResource::Execute()
+void OptimizationResource::Execute(bool bClearOldResults)
 {
     GETCONTROLLERIMPL();
     boost::property_tree::ptree pt;
-    controller->CallPost(str(boost::format("optimization/%s/")%GetPrimaryKey()), std::string(), pt, 200);
+    controller->CallPost(str(boost::format("optimization/%s/")%GetPrimaryKey()), str(boost::format("{\"clear\":%d}")%bClearOldResults), pt, 200);
+    _jobpk = pt.get<std::string>("jobpk");
 }
 
-void OptimizationResource::GetRunTimeStatus(JobStatus& status) {
-    throw MujinException("not implemented yet");
+void OptimizationResource::GetRunTimeStatus(JobStatus& status, int options)
+{
+    status.code = JSC_Unknown;
+    if( _jobpk.size() > 0 ) {
+        GETCONTROLLERIMPL();
+        boost::property_tree::ptree pt;
+        std::string url = str(boost::format("job/%s/?format=json&fields=pk,status,fnname,elapsedtime")%_jobpk);
+        if( options & 1 ) {
+            url += std::string(",status_text");
+        }
+        controller->CallGet(url, pt);
+        //pt.get("error_message")
+        status.pk = pt.get<std::string>("pk");
+        status.code = static_cast<JobStatusCode>(boost::lexical_cast<int>(pt.get<std::string>("status")));
+        status.type = pt.get<std::string>("fnname");
+        status.elapsedtime = pt.get<double>("elapsedtime");
+        if( options & 1 ) {
+            status.message = pt.get<std::string>("status_text");
+        }
+    }
 }
 
 void OptimizationResource::SetOptimizationParameters(const RobotPlacementOptimizationParameters& optparams)

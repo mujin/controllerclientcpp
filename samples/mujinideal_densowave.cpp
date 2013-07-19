@@ -44,6 +44,8 @@ int main(int argc, char ** argv)
 
         // upload a Wincaps file
         //controller->SyncUpload_UTF8("../share/mujincontrollerclient/densowave_wincaps_data/vs060a3_test0/test0.WPJ", "mujin:/vs060a3_test0/", "wincaps");
+
+        // Register the scene, this also imports all PAC Script programs into "itlplanning" tasks
         SceneResourcePtr scene = controller->RegisterScene_UTF8(sceneuri, "wincaps");
 
         // test0.WPJ should have a grabtest.pcs PAC script registered
@@ -56,7 +58,7 @@ int main(int argc, char ** argv)
         taskparameters.optimizationvalue = 0.5;
         task->SetTaskParameters(taskparameters);
 
-        task->Execute();
+        //task->Execute();
 
         std::cout << "waiting for task result" << std::endl;
         // query the results until they are complete, should take several seconds
@@ -69,7 +71,7 @@ int main(int argc, char ** argv)
                 break;
             }
             task->GetRunTimeStatus(status);
-            std::cout << "current job status is: " << status.code << std::endl;
+            std::cout << "current job status=" << status.code << ": " << status.message << std::endl;
             if( status.code == JSC_Succeeded ) {
                 break;
             }
@@ -81,13 +83,11 @@ int main(int argc, char ** argv)
                 }
             }
             else if( status.code == JSC_Aborted || status.code == JSC_Preempted ) {
-                std::string errormessage = result->Get("errormessage");
-                std::cout << "task failed execution: " << errormessage << std::endl;
+                std::cout << "task failed execution " << std::endl;
                 return 1;
             }
-            else if( status.code != JSC_Active || status.code != JSC_Pending || status.code != JSC_Succeeded ) {
-                std::string errormessage = result->Get("errormessage");
-                std::cout << "unexpected job status so quitting: " << errormessage << std::endl;
+            else if( status.code != JSC_Active && status.code != JSC_Pending && status.code != JSC_Succeeded ) {
+                std::cout << "unexpected job status so quitting " << std::endl;
                 return 1;
             }
 
@@ -99,6 +99,12 @@ int main(int argc, char ** argv)
             }
         }
 
+        std::string errormessage = result->Get("errormessage");
+        if( errormessage.size() > 0 ) {
+            std::cout << "task failed with: " << errormessage << std::endl;
+            return 2;
+        }
+
         // task succeed, so get the results
         RobotControllerPrograms programs;
         result->GetPrograms(programs);
@@ -106,7 +112,8 @@ int main(int argc, char ** argv)
         for(std::map<std::string, RobotProgramData>::iterator it = programs.programs.begin(); it != programs.programs.end(); ++it ) {
             std::cout << "[" << it->first << "]" << std::endl << it->second.programdata << std::endl << std::endl;
         }
-        std::cout << "final task_time is " << result->Get("task_time") << std::endl;
+        double fOriginalTaskTime = result->Get("task_time");
+        std::cout << "final task_time is " << fOriginalTaskTime << std::endl;
 
         OptimizationResourcePtr optimization = task->GetOrCreateOptimizationFromName_UTF8("myopt0","robotplacement");
 
@@ -114,15 +121,18 @@ int main(int argc, char ** argv)
         optparams.targetname = ""; // no name means the robot
         optparams.framename = "0 robot"; // use the robot frame
         optparams.unit = "mm";
-        optparams.minrange[0] = -200; // -X
-        optparams.maxrange[0] = 200; // +X
+        optparams.minrange[0] = -100; // -X
+        optparams.maxrange[0] = 100; // +X
         optparams.stepsize[0] = 50; // dX
-        optparams.minrange[0] = 0; // -Y
-        optparams.maxrange[0] = 0; // +Y
-        optparams.stepsize[0] = 0; // dY
-        optparams.minrange[0] = 0; // -Z
-        optparams.maxrange[0] = 0; // +Z
-        optparams.stepsize[0] = 0; // dZ
+        // don't move in y
+        optparams.minrange[1] = 0; // -Y
+        optparams.maxrange[1] = 0; // +Y
+        optparams.stepsize[1] = 0; // dY
+        // don't move in z
+        optparams.minrange[2] = 0; // -Z
+        optparams.maxrange[2] = 0; // +Z
+        optparams.stepsize[2] = 0; // dZ
+        // 4 angles, each 90 degrees apart
         optparams.minrange[3] = -180; // -angle
         optparams.maxrange[3] = 90; // +angle
         optparams.stepsize[3] = 90; // dangle
@@ -138,7 +148,7 @@ int main(int argc, char ** argv)
         while(1) {
             optimization->GetRunTimeStatus (status);
 
-            std::cout << "current job status is: " << status.code << std::endl;
+            std::cout << "current job status=" << status.code << ": " << status.message << std::endl;
             if( status.code == JSC_Succeeded ) {
                 break;
             }
@@ -150,19 +160,17 @@ int main(int argc, char ** argv)
                 }
             }
             else if( status.code == JSC_Aborted || status.code == JSC_Preempted ) {
-                std::string errormessage = result->Get("errormessage");
-                std::cout << "task failed execution: " << errormessage << std::endl;
+                std::cout << "task failed execution " << std::endl;
                 return 1;
             }
-            else if( status.code != JSC_Active || status.code != JSC_Pending || status.code != JSC_Succeeded ) {
-                std::string errormessage = result->Get("errormessage");
-                std::cout << "unexpected job status so quitting: " << errormessage << std::endl;
+            else if( status.code != JSC_Active && status.code != JSC_Pending && status.code != JSC_Succeeded ) {
+                std::cout << "unexpected job status so quitting " << std::endl;
                 return 1;
             }
 
             optimization->GetResults(results, 0, 1);
             if( results.size() > 0 ) {
-                std::cout << "top result task_time=" << results.at(0)->Get("task_time") << " seconds" << std::endl;
+                std::cout << "top result task_time=" << results.at(0)->Get("task_time") << " seconds, original task = " << fOriginalTaskTime << " seconds" << std::endl;
             }
             boost::this_thread::sleep(boost::posix_time::milliseconds(5000)); // 5s
 

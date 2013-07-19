@@ -585,6 +585,7 @@ public:
     ///
     /// This will only work if the task has been previously Executed with execute
     /// If the task is not currently running, will set status.code to JSC_Unknown
+    /// \param options if options is 1, also get the message
     virtual void GetRunTimeStatus(JobStatus& status, int options = 1);
 
     /// \brief Gets or creates the a optimization part of the scene
@@ -607,7 +608,7 @@ public:
     virtual PlanningResultResourcePtr GetResult();
 
 protected:
-    std::string _jobpk;
+    std::string _jobpk; ///< the job primary key used to track the status of the running task after \ref Execute is called
 };
 
 class MUJINCLIENT_API OptimizationResource : public WebResource
@@ -618,19 +619,28 @@ public:
     }
 
     /// \brief execute the optimization
-    virtual void Execute();
+    ///
+    /// \param bClearOldResults if true, will clear the old optimiation results. If false, will keep the old optimization results and only compute those that need to be computed.
+    virtual void Execute(bool bClearOldResults=true);
 
     /// \brief Set new task info for tasks of type <b>robotplanning</b>
     void SetOptimizationParameters(const RobotPlacementOptimizationParameters& optparams);
 
     /// \brief get the run-time status of the executed optimization.
-    virtual void GetRunTimeStatus(JobStatus& status);
+    ///
+    /// This will only work if the optimization has been previously Executed with execute
+    /// If the task is not currently running, will set status.code to JSC_Unknown
+    /// \param options if options is 1, also get the message
+    virtual void GetRunTimeStatus(JobStatus& status, int options = 1);
 
     /// \brief Gets the results of the optimization execution ordered by task_time.
     ///
     /// \param startoffset The offset to retrieve the results from. Ordered
     /// \param num The number of results to get starting at startoffset. If 0, will return ALL results.
     virtual void GetResults(std::vector<PlanningResultResourcePtr>& results, int startoffset=0, int num=0);
+
+protected:
+    std::string _jobpk; ///< the job primary key used to track the status of the running optimization after \ref Execute is called
 };
 
 class MUJINCLIENT_API PlanningResultResource : public WebResource
