@@ -1,5 +1,5 @@
 // -*- coding: utf-8 -*-
-/** \example mujinimportscene_robodia.cpp
+/** \example mujinexecutetask_robodia.cpp
 
     Shows how to import a scene and query a list of the instance objects inside the scene. Note that querying only works for MUJIN COLLADA scenes.
  */
