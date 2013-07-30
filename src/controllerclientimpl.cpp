@@ -1373,7 +1373,7 @@ void ControllerClientImpl::_UploadDirectoryToController_UTF16(const std::wstring
     std::wstring searchstr = sCopyDir_FS + std::wstring(L"\\*");
     HANDLE hFind = FindFirstFileW(searchstr.c_str(), &ffd);
     if (hFind == INVALID_HANDLE_VALUE)  {
-        throw MUJIN_EXCEPTION_FORMAT("could not retrieve file data for %s", encoding::ConvertUTF16ToFileSystemEncoding(copydir), MEC_Assert);
+        throw MUJIN_EXCEPTION_FORMAT("could not retrieve file data for %s", encoding::ConvertUTF16ToFileSystemEncoding(copydir_utf16), MEC_Assert);
     }
 
     do {
@@ -1381,7 +1381,7 @@ void ControllerClientImpl::_UploadDirectoryToController_UTF16(const std::wstring
         if( filename != L"." && filename != L".." ) {
             std::string filename_utf8;
             utf8::utf16to8(filename.begin(), filename.end(), std::back_inserter(filename_utf8));
-            std::wstring newcopydir = str(boost::wformat(L"%s\\%s")%copydir%filename);
+            std::wstring newcopydir = str(boost::wformat(L"%s\\%s")%copydir_utf16%filename);
             char* pescapeddir = curl_easy_escape(_curl, filename_utf8.c_str(), filename_utf8.size());
             std::string newuri = str(boost::format("%s/%s")%uri%pescapeddir);
             curl_free(pescapeddir);
@@ -1398,7 +1398,7 @@ void ControllerClientImpl::_UploadDirectoryToController_UTF16(const std::wstring
     DWORD err = GetLastError();
     FindClose(hFind);
     if( err !=  ERROR_NO_MORE_FILES ) {
-        throw MUJIN_EXCEPTION_FORMAT("system error 0x%x when recursing through %s", err%encoding::ConvertUTF16ToFileSystemEncoding(copydir), MEC_HTTPServer);
+        throw MUJIN_EXCEPTION_FORMAT("system error 0x%x when recursing through %s", err%encoding::ConvertUTF16ToFileSystemEncoding(copydir_utf16), MEC_HTTPServer);
     }
 
 #elif defined(BOOST_FILESYSTEM_VERSION) && BOOST_FILESYSTEM_VERSION >= 3
