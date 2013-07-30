@@ -63,7 +63,7 @@
 
 #define GETCONTROLLERIMPL() ControllerClientImplPtr controller = boost::dynamic_pointer_cast<ControllerClientImpl>(GetController());
 #define CHECKCURLCODE(code, msg) if (code != CURLE_OK) { \
-        throw MujinException(str(boost::format("[%s:%d] curl function %s with error='%s': %s")%(__PRETTY_FUNCTION__)%(__LINE__)%(msg)%curl_easy_strerror(code)%_errormessage), MEC_HTTPClient); \
+        throw MujinException(str(boost::format("[%s:%d] curl function %s with error '%s': %s")%(__PRETTY_FUNCTION__)%(__LINE__)%(msg)%curl_easy_strerror(code)%_errormessage), MEC_HTTPClient); \
 }
 
 #define MUJIN_EXCEPTION_FORMAT0(s, errorcode) mujinclient::MujinException(boost::str(boost::format("[%s:%d] " s)%(__PRETTY_FUNCTION__)%(__LINE__)),errorcode)

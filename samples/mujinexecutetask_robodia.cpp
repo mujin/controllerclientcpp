@@ -1,7 +1,7 @@
 // -*- coding: utf-8 -*-
-/** \example mujinexecutetask_fast.cpp
+/** \example mujinimportscene_robodia.cpp
 
-    Shows how to quickly register a scene and execute a task and get the results. Because the scene is directly used instead of imported.
+    Shows how to import a scene and query a list of the instance objects inside the scene. Note that querying only works for MUJIN COLLADA scenes.
  */
 #include <mujincontrollerclient/mujincontrollerclient.h>
 
@@ -33,23 +33,38 @@ int main(int argc, char ** argv)
         }
         std::cout << "connected to controller v" << controller->GetVersion() << std::endl;
 
-        std::string sceneuri = "mujin:/densowave_wincaps_data/vs060a3_test0/test0.WPJ";
-        std::string scenepk = controller->GetScenePrimaryKeyFromURI_UTF8(sceneuri);
+        controller->SyncUpload_UTF8("../share/mujincontrollerclient/robodia_demo1/robodia_demo1.xml", "mujin:/robodia_demo1/", "cecrobodiaxml");
 
-        controller->SyncUpload_UTF8("../share/mujincontrollerclient/densowave_wincaps_data/vs060a3_test0/test0.WPJ", "mujin:/densowave_wincaps_data/vs060a3_test0/", "wincaps");
-        SceneResourcePtr scene = controller->RegisterScene_UTF8(sceneuri, "wincaps");
+        std::string sceneuri = "mujin:/robodia_demo1/robodia_demo1.xml";
+        SceneResourcePtr scene = controller->RegisterScene_UTF8(sceneuri, "cecrobodiaxml");
+
+        std::vector<SceneResource::InstObjectPtr> instobjects;
+        scene->GetInstObjects(instobjects);
+        std::cout << "scene instance objects: ";
+        for(size_t i = 0; i < instobjects.size(); ++i) {
+            std::cout << instobjects[i]->name << ", ";
+        }
+        std::cout << std::endl;
+
+        // execute a task
 
         TaskResourcePtr task = scene->GetOrCreateTaskFromName_UTF8("task0", "itlplanning");
         ITLPlanningTaskParameters info;
         info.optimizationvalue = 0.2; // set the optimization value [0,1]
-        info.program = "settool(1)\n\
-set(clearance,40)\n\
-move(translation(0,0,20)*p[Work0/2])\n\
-movel(p[Work0/2])\n\
-movel(translation(0,0,20)*p[Work0/2])\n\
-move(translation(0,0,20)*p[Work0/3])\n\
-movel(p[Work0/3])\n\
-movel(translation(0,0,20)*p[Work0/3])\n\
+        info.vrcruns = 0; // turn off VRC since this environment does not have VRC files
+        info.program = "settool(Tcp_HAND2)\n\
+move(p[3_home])\n\
+move(p[3_home_R])\n\
+move(p[3_s1_R])\n\
+movel(p[3_s2_R])\n\
+movel(p[3_s1_R])\n\
+move(p[3_home_R])\n\
+move(p[3_home_L])\n\
+move(p[3_e1_L])\n\
+movel(p[3_e2_L])\n\
+movel(p[3_e1_L])\n\
+move(p[3_home_L])\n\
+move(p[3_home])\n\
 ";
         task->SetTaskParameters(info);
 
@@ -109,5 +124,6 @@ movel(translation(0,0,20)*p[Work0/3])\n\
     catch(const MujinException& ex) {
         std::cout << "exception thrown: " << ex.message() << std::endl;
     }
+    // destroy all mujin controller resources
     ControllerClientDestroy();
 }

@@ -298,7 +298,7 @@ public:
 
     /// \brief sets the character encoding for all strings that are being input and output from the resources
     ///
-    /// The default character encoding is utf-8, can also set it to Shift_JIS for windows japanese unicode, iso-2022-jp
+    /// The default character encoding is \b utf-8, can also set it to \b Shift_JIS for windows japanese unicode, \b iso-2022-jp
     /// List of possible sets: http://www.iana.org/assignments/character-sets/character-sets.xml
     virtual void SetCharacterEncoding(const std::string& newencoding) = 0;
 
@@ -390,22 +390,23 @@ public:
     /// \param newuri utf-16 encoded
     virtual SceneResourcePtr ImportSceneToCOLLADA_UTF16(const std::wstring& sourceuri, const std::string& sourcescenetype, const std::wstring& newuri) = 0;
 
-    /** \brief uploads a particular scene's files into the network filesystem.
+    /** \brief Recommended way of uploading a scene's files into the network filesystem.
 
+        Depending on the scenetype, can upload entire directory trees.
         \param sourcefilename UTF-8 encoded local filesystem location of the top-level file. If the scenetype requires many files, will upload all of them. For Windows systems, the \ path separator has to be used. For Unix systems, the / path separator has to be used.
-        \param destinationdir UTF-8 encoded destination folder in the network file system. Should always have trailing slash. By default use: "mujin:/". Use the / separator for different paths.
+        \param destinationdir UTF-8 encoded destination folder in the network file system. Should always have trailing slash. By default prefix with "mujin:/". Use the / separator for different paths.
         \param scenetype UTF-8 encoded type of scene uploading.
         \throw mujin_exception if the upload fails, will throw an exception
      */
     virtual void SyncUpload_UTF8(const std::string& sourcefilename, const std::string& destinationdir, const std::string& scenetype) = 0;
 
-    /// \see SyncUpload
+    /// \see SyncUpload_UTF8
     virtual void SyncUpload_UTF8(const std::string& sourcefilename, const std::string& destinationdir)
     {
         SyncUpload_UTF8(sourcefilename, destinationdir, GetDefaultSceneType());
     }
 
-    /// \see SyncUpload
+    /// \see SyncUpload_UTF8
     ///
     /// \param sourcefilename UTF-16 encoded. For Windows systems, the \ path separator has to be used. For Unix systems, the / path separator has to be used.
     /// \param destinationdir UTF-16 encoded
@@ -417,6 +418,66 @@ public:
     {
         SyncUpload_UTF16(sourcefilename, destinationdir, GetDefaultSceneType());
     }
+
+    /// \brief Uploads a single file to the controller network filesystem.
+    ///
+    /// Overwrites the file if it already exists
+    /// \param filename utf-8 encoded path of the file on the system
+    /// \param desturi UTF-8 encoded destination file in the network filesystem. By default prefix with "mujin:/". Use the / separator for different paths.
+    virtual void UploadFileToController_UTF8(const std::string& filename, const std::string& desturi) = 0;
+
+    /// \brief \see UploadFileToController_UTF8
+    ///
+    /// \param filename utf-16 encoded
+    /// \param desturi UTF-16 encoded
+    virtual void UploadFileToController_UTF16(const std::wstring& filename, const std::wstring& desturi) = 0;
+
+    /// \brief Uploads binary data to a single file on the controller network filesystem.
+    ///
+    /// Overwrites the destination uri if it already exists
+    /// \param data binary data to upload to the uri
+    /// \param desturi UTF-8 encoded destination file in the network filesystem. By default prefix with "mujin:/". Use the / separator for different paths.
+    virtual void UploadDataToController_UTF8(const std::vector<unsigned char>& vdata, const std::string& desturi) = 0;
+
+    /** \brief Recursively uploads a directory to the controller network filesystem.
+
+        Creates directories along the way if they don't exist.
+        By default, overwrites all the files
+        \param copydir is utf-8 encoded. Cannot have trailing slashes '/', '\'
+        \param desturi UTF-8 encoded destination file in the network filesystem. If it has a trailing slash, then copydir is inside that URL. If there is no trailing slash, the copydir directory is renamed to the URI. By default prefix with "mujin:/". Use the / separator for different paths.
+     */
+    virtual void UploadDirectoryToController_UTF8(const std::string& copydir, const std::string& desturi) = 0;
+
+    /// \brief \see UploadDirectoryToController_UTF8
+    ///
+    /// \param copydir is utf-16 encoded
+    /// \param desturi UTF-16 encoded
+    virtual void UploadDirectoryToController_UTF16(const std::wstring& copydir, const std::wstring& desturi) = 0;
+
+    /// \param vdata filled with the contents of the file on the controller filesystem
+    virtual void DownloadFileFromController_UTF8(const std::string& desturi, std::vector<unsigned char>& vdata) = 0;
+    /// \param vdata filled with the contents of the file on the controller filesystem
+    virtual void DownloadFileFromController_UTF16(const std::wstring& desturi, std::vector<unsigned char>& vdata) = 0;
+
+    /// \brief Deletes a file on the controller network filesystem.
+    ///
+    /// \param uri UTF-8 encoded file in the network filesystem to delete.
+    virtual void DeleteFileOnController_UTF8(const std::string& uri) = 0;
+
+    /// \brief \see DeleteFileOnController_UTF8
+    ///
+    /// \param uri UTF-16 encoded file in the network filesystem to delete.
+    virtual void DeleteFileOnController_UTF16(const std::wstring& uri) = 0;
+
+    /// \brief Recursively deletes a directory on the controller network filesystem.
+    ///
+    /// \param uri UTF-8 encoded file in the network filesystem to delete.
+    virtual void DeleteDirectoryOnController_UTF8(const std::string& uri) = 0;
+
+    /// \brief \see DeleteDirectoryOnController_UTF8
+    ///
+    /// \param uri UTF-16 encoded
+    virtual void DeleteDirectoryOnController_UTF16(const std::wstring& uri) = 0;
 
     virtual void SetDefaultSceneType(const std::string& scenetype) = 0;
 
@@ -692,7 +753,7 @@ public:
     \param url the URI-encoded URL of controller server, it needs to have a trailing slash. It can also be in the form of https://username@server/ in order to force login of a particular user. If not specified, will use the default mujin controller URL
     \param proxyserverport Specify proxy server to use. To specify port number in this string, append :[port] to the end of the host name. The proxy string may be prefixed with [protocol]:// since any such prefix will be ignored. The proxy's port number may optionally be specified with the separate option. If not specified, will default to using port 1080 for proxies. Setting to empty string will disable the proxy.
     \param proxyuserpw If non-empty, [user name]:[password] to use for the connection to the HTTP proxy.
-    \param options extra options for connecting to the controller. If 1, the client will optimize usage to only allow GET calls
+    \param options extra options for connecting to the controller. If 0x1 is set, the client will optimize usage to only allow GET calls. Set 0x80000000 if using a development server.
 
     \ja \brief MUJINコントローラのクライアントを作成する。<b>この関数はスレッドセーフではない。</b>
 

@@ -25,10 +25,23 @@ class CurlCustomRequestSetter
 {
 public:
     CurlCustomRequestSetter(CURL *curl, const char* method) : _curl(curl) {
-        curl_easy_setopt(_curl, CURLOPT_CUSTOMREQUEST, method);
+        CURLcode res = curl_easy_setopt(_curl, CURLOPT_CUSTOMREQUEST, method);
     }
     ~CurlCustomRequestSetter() {
         curl_easy_setopt(_curl, CURLOPT_CUSTOMREQUEST, NULL);
+    }
+protected:
+    CURL* _curl;
+};
+
+class CurlWriteDataSetter
+{
+public:
+    CurlWriteDataSetter(CURL *curl, const void* pdata) : _curl(curl) {
+        CURLcode res = curl_easy_setopt(_curl, CURLOPT_WRITEDATA, pdata);
+    }
+    ~CurlWriteDataSetter() {
+        curl_easy_setopt(_curl, CURLOPT_WRITEDATA, NULL);
     }
 protected:
     CURL* _curl;
@@ -38,7 +51,7 @@ class CurlUploadSetter
 {
 public:
     CurlUploadSetter(CURL *curl) : _curl(curl) {
-        curl_easy_setopt(_curl, CURLOPT_UPLOAD, 1L);
+        CURLcode res = curl_easy_setopt(_curl, CURLOPT_UPLOAD, 1L);
     }
     ~CurlUploadSetter() {
         curl_easy_setopt(_curl, CURLOPT_UPLOAD, 0L);
@@ -122,7 +135,7 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
     }
     _baseapiuri = _baseuri + std::string("api/v1/");
     // hack for now since webdav server and api server could be running on different ports
-    if( boost::algorithm::ends_with(_baseuri, ":7999/") ) {
+    if( boost::algorithm::ends_with(_baseuri, ":8000/") || (options&0x80000000) ) {
         // testing on localhost, however the webdav server is running on port 80...
         _basewebdavuri = str(boost::format("%s/u/%s/")%_baseuri.substr(0,_baseuri.size()-6)%username);
     }
@@ -183,7 +196,7 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
     curl_easy_setopt(_curl, CURLOPT_COOKIEFILE, ""); // just to start the cookie engine
 
     // save everything to _buffer, neceesary to do it before first POST/GET calls or data will be output to stdout
-    res = curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, _writer);
+    res = curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, _WriteStringStreamCallback);
     CHECKCURLCODE(res, "failed to set writer");
     res = curl_easy_setopt(_curl, CURLOPT_WRITEDATA, &_buffer);
     CHECKCURLCODE(res, "failed to set write data");
@@ -306,7 +319,10 @@ void ControllerClientImpl::RestartServer()
     curl_easy_setopt(_curl, CURLOPT_POST, 1);
     curl_easy_setopt(_curl, CURLOPT_POSTFIELDSIZE, 0);
     curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, NULL);
-    CURLcode res = curl_easy_perform(_curl);
+    CURLcode res = curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, _WriteStringStreamCallback);
+    CHECKCURLCODE(res, "failed to set writer");
+    CurlWriteDataSetter writedata(_curl, &_buffer);
+    res = curl_easy_perform(_curl);
     CHECKCURLCODE(res, "curl_easy_perform failed");
     long http_code = 0;
     res = curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
@@ -332,11 +348,15 @@ void ControllerClientImpl::Upgrade(const std::vector<unsigned char>& vdata)
     headerlist = curl_slist_append(headerlist, s.c_str());
     curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, headerlist);
 
+    CURLcode res = curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, _WriteStringStreamCallback);
+    CHECKCURLCODE(res, "failed to set writer");
+    CurlWriteDataSetter writedata(_curl, &_buffer);
+
     // Fill in the file upload field
     struct curl_httppost *formpost=NULL, *lastptr=NULL;
     curl_formadd(&formpost, &lastptr, CURLFORM_COPYNAME, "file", CURLFORM_BUFFER, "mujinpatch", CURLFORM_BUFFERPTR, &vdata[0], CURLFORM_BUFFERLENGTH, vdata.size(), CURLFORM_END);
     curl_easy_setopt(_curl, CURLOPT_HTTPPOST, formpost);
-    CURLcode res = curl_easy_perform(_curl);
+    res = curl_easy_perform(_curl);
     curl_formfree(formpost);
     // reset the headers before any exceptions are thrown
     _SetHTTPHeaders();
@@ -485,11 +505,14 @@ void ControllerClientImpl::SyncUpload_UTF8(const std::string& _sourcefilename, c
                 }
             }
             std::string sCopyDir = sourcefilename.substr(0,nBaseFilenameStartIndex) + strWCNPath.substr(0,lastindex);
-            _UploadDirectoryToWebDAV_UTF8(sCopyDir, baseuploaduri+_EncodeWithoutSeparator(strWCNURI.substr(0,lastindex)));
+            _UploadDirectoryToController_UTF8(sCopyDir, baseuploaduri+_EncodeWithoutSeparator(strWCNURI.substr(0,lastindex)));
         }
     }
     else if( scenetype == "rttoolbox" || scenetype == "cecrobodiaxml" ) {
-        _UploadDirectoryToWebDAV_UTF8(sourcefilename.substr(0,nBaseFilenameStartIndex), baseuploaduri);
+        if( nBaseFilenameStartIndex > 0 ) {
+            // sourcefilename[nBaseFilenameStartIndex] should be == s_filesep
+            _UploadDirectoryToController_UTF8(sourcefilename.substr(0,nBaseFilenameStartIndex), baseuploaduri);
+        }
         return;
     }
 
@@ -497,7 +520,7 @@ void ControllerClientImpl::SyncUpload_UTF8(const std::string& _sourcefilename, c
     char* pescapeddir = curl_easy_escape(_curl, sourcefilename.substr(nBaseFilenameStartIndex).c_str(), 0);
     std::string uploadfileuri = baseuploaduri + std::string(pescapeddir);
     curl_free(pescapeddir);
-    _UploadFileToWebDAV_UTF8(sourcefilename, uploadfileuri);
+    _UploadFileToController_UTF8(sourcefilename, uploadfileuri);
 
     /* webdav operations
        const char *postdata =
@@ -575,11 +598,14 @@ void ControllerClientImpl::SyncUpload_UTF16(const std::wstring& _sourcefilename_
                 }
             }
             std::wstring sCopyDir_utf16 = sourcefilename_utf16.substr(0,nBaseFilenameStartIndex) + strWCNPath_utf16.substr(0,lastindex_utf16);
-            _UploadDirectoryToWebDAV_UTF16(sCopyDir_utf16, baseuploaduri+_EncodeWithoutSeparator(strWCNURI.substr(0,lastindex_utf8)));
+            _UploadDirectoryToController_UTF16(sCopyDir_utf16, baseuploaduri+_EncodeWithoutSeparator(strWCNURI.substr(0,lastindex_utf8)));
         }
     }
     else if( scenetype == "rttoolbox" || scenetype == "cecrobodiaxml" ) {
-        _UploadDirectoryToWebDAV_UTF16(sourcefilename_utf16.substr(0,nBaseFilenameStartIndex), baseuploaduri);
+        if( nBaseFilenameStartIndex > 0 ) {
+            // sourcefilename_utf16[nBaseFilenameStartIndex] should be == s_filesep
+            _UploadDirectoryToController_UTF16(sourcefilename_utf16.substr(0,nBaseFilenameStartIndex), baseuploaduri);
+        }
         return;
     }
 
@@ -589,7 +615,7 @@ void ControllerClientImpl::SyncUpload_UTF16(const std::wstring& _sourcefilename_
     char* pescapeddir = curl_easy_escape(_curl, sourcefilenamedir_utf8.c_str(), 0);
     std::string uploadfileuri = baseuploaduri + std::string(pescapeddir);
     curl_free(pescapeddir);
-    _UploadFileToWebDAV_UTF16(sourcefilename_utf16, uploadfileuri);
+    _UploadFileToController_UTF16(sourcefilename_utf16, uploadfileuri);
 }
 
 /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
@@ -598,11 +624,19 @@ int ControllerClientImpl::CallGet(const std::string& relativeuri, boost::propert
     boost::mutex::scoped_lock lock(_mutex);
     _uri = _baseapiuri;
     _uri += relativeuri;
-    curl_easy_setopt(_curl, CURLOPT_URL, _uri.c_str());
+    return _CallGet(_uri, pt, expectedhttpcode);
+}
+
+int ControllerClientImpl::_CallGet(const std::string& desturi, boost::property_tree::ptree& pt, int expectedhttpcode)
+{
+    curl_easy_setopt(_curl, CURLOPT_URL, desturi.c_str());
     _buffer.clear();
     _buffer.str("");
+    CURLcode res = curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, _WriteStringStreamCallback);
+    CHECKCURLCODE(res, "failed to set writer");
+    CurlWriteDataSetter writedata(_curl, &_buffer);
     curl_easy_setopt(_curl, CURLOPT_HTTPGET, 1);
-    CURLcode res = curl_easy_perform(_curl);
+    res = curl_easy_perform(_curl);
     CHECKCURLCODE(res, "curl_easy_perform failed");
     long http_code = 0;
     res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
@@ -613,22 +647,29 @@ int ControllerClientImpl::CallGet(const std::string& relativeuri, boost::propert
     if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
         std::string error_message = pt.get<std::string>("error_message", std::string());
         std::string traceback = pt.get<std::string>("traceback", std::string());
-        throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s: %s", relativeuri%http_code%error_message, MEC_HTTPServer);
+        throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s: %s", desturi%http_code%error_message, MEC_HTTPServer);
     }
     return http_code;
 }
 
-/// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
 int ControllerClientImpl::CallGet(const std::string& relativeuri, std::string& outputdata, int expectedhttpcode)
 {
     boost::mutex::scoped_lock lock(_mutex);
     _uri = _baseapiuri;
     _uri += relativeuri;
-    curl_easy_setopt(_curl, CURLOPT_URL, _uri.c_str());
+    return _CallGet(_uri, outputdata, expectedhttpcode);
+}
+
+int ControllerClientImpl::_CallGet(const std::string& desturi, std::string& outputdata, int expectedhttpcode)
+{
+    curl_easy_setopt(_curl, CURLOPT_URL, desturi.c_str());
     _buffer.clear();
     _buffer.str("");
+    CURLcode res = curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, _WriteStringStreamCallback);
+    CHECKCURLCODE(res, "failed to set writer");
+    CurlWriteDataSetter writedata(_curl, &_buffer);
     curl_easy_setopt(_curl, CURLOPT_HTTPGET, 1);
-    CURLcode res = curl_easy_perform(_curl);
+    res = curl_easy_perform(_curl);
     CHECKCURLCODE(res, "curl_easy_perform failed");
     long http_code = 0;
     res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
@@ -640,9 +681,54 @@ int ControllerClientImpl::CallGet(const std::string& relativeuri, std::string& o
             boost::property_tree::read_json(_buffer, pt);
             std::string error_message = pt.get<std::string>("error_message", std::string());
             std::string traceback = pt.get<std::string>("traceback", std::string());
-            throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s: %s", relativeuri%http_code%error_message, MEC_HTTPServer);
+            throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s: %s", desturi%http_code%error_message, MEC_HTTPServer);
         }
-        throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s", relativeuri%http_code, MEC_HTTPServer);
+        throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s", desturi%http_code, MEC_HTTPServer);
+    }
+    return http_code;
+}
+
+int ControllerClientImpl::CallGet(const std::string& relativeuri, std::vector<unsigned char>& outputdata, int expectedhttpcode)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    _uri = _baseapiuri;
+    _uri += relativeuri;
+    return _CallGet(_uri, outputdata, expectedhttpcode);
+}
+
+int ControllerClientImpl::_CallGet(const std::string& desturi, std::vector<unsigned char>& outputdata, int expectedhttpcode)
+{
+    curl_easy_setopt(_curl, CURLOPT_URL, desturi.c_str());
+
+    CURLcode res = curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, _WriteVectorCallback);
+    CHECKCURLCODE(res, "failed to set writer");
+    outputdata.resize(0);
+    CurlWriteDataSetter writedata(_curl, &outputdata);
+
+    curl_easy_setopt(_curl, CURLOPT_HTTPGET, 1);
+    res = curl_easy_perform(_curl);
+    CHECKCURLCODE(res, "curl_easy_perform failed");
+    long http_code = 0;
+    res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
+    CHECKCURLCODE(res, "curl_easy_getinfo");
+    if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
+        if( outputdata.size() > 0 ) {
+            std::stringstream ss;
+            ss.write((const char*)&outputdata[0], outputdata.size());
+            std::string error_message, traceback;
+            try {
+                boost::property_tree::ptree pt;
+                boost::property_tree::read_json(ss, pt);
+                error_message = pt.get<std::string>("error_message", std::string());
+                traceback = pt.get<std::string>("traceback", std::string());
+            }
+            catch(const std::exception& ex) {
+                // probably failed parsing JSON
+                error_message = ss.str();
+            }
+            throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s: %s", desturi%http_code%error_message, MEC_HTTPServer);
+        }
+        throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s", desturi%http_code, MEC_HTTPServer);
     }
     return http_code;
 }
@@ -656,10 +742,13 @@ int ControllerClientImpl::CallPost(const std::string& relativeuri, const std::st
     curl_easy_setopt(_curl, CURLOPT_URL, _uri.c_str());
     _buffer.clear();
     _buffer.str("");
+    CURLcode res = curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, _WriteStringStreamCallback);
+    CHECKCURLCODE(res, "failed to set writer");
+    CurlWriteDataSetter writedata(_curl, &_buffer);
     curl_easy_setopt(_curl, CURLOPT_POST, 1);
     curl_easy_setopt(_curl, CURLOPT_POSTFIELDSIZE, data.size());
     curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, data.size() > 0 ? data.c_str() : NULL);
-    CURLcode res = curl_easy_perform(_curl);
+    res = curl_easy_perform(_curl);
     CHECKCURLCODE(res, "curl_easy_perform failed");
     long http_code = 0;
     res = curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
@@ -693,10 +782,13 @@ int ControllerClientImpl::CallPut(const std::string& relativeuri, const std::str
     curl_easy_setopt(_curl, CURLOPT_URL, _uri.c_str());
     _buffer.clear();
     _buffer.str("");
+    CURLcode res = curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, _WriteStringStreamCallback);
+    CHECKCURLCODE(res, "failed to set writer");
+    CurlWriteDataSetter writedata(_curl, &_buffer);
     curl_easy_setopt(_curl, CURLOPT_CUSTOMREQUEST, "PUT");
     curl_easy_setopt(_curl, CURLOPT_POSTFIELDSIZE, data.size());
     curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, data.size() > 0 ? data.c_str() : NULL);
-    CURLcode res = curl_easy_perform(_curl);
+    res = curl_easy_perform(_curl);
     curl_easy_setopt(_curl, CURLOPT_CUSTOMREQUEST, NULL); // have to restore the default
     CHECKCURLCODE(res, "curl_easy_perform failed");
     long http_code = 0;
@@ -812,12 +904,21 @@ void ControllerClientImpl::GetProfile()
     CallGet("profile/", _profile);
 }
 
-int ControllerClientImpl::_writer(char *data, size_t size, size_t nmemb, std::stringstream *writerData)
+int ControllerClientImpl::_WriteStringStreamCallback(char *data, size_t size, size_t nmemb, std::stringstream *writerData)
 {
     if (writerData == NULL) {
         return 0;
     }
     writerData->write(data, size*nmemb);
+    return size * nmemb;
+}
+
+int ControllerClientImpl::_WriteVectorCallback(char *data, size_t size, size_t nmemb, std::vector<unsigned char> *writerData)
+{
+    if (writerData == NULL) {
+        return 0;
+    }
+    writerData->insert(writerData->end(), data, data+size*nmemb);
     return size * nmemb;
 }
 
@@ -887,23 +988,23 @@ std::string ControllerClientImpl::_EncodeWithoutSeparator(const std::string& raw
     return output;
 }
 
-void ControllerClientImpl::_EnsureWebDAVDirectories(const std::string& uriDestinationDir)
+void ControllerClientImpl::_EnsureWebDAVDirectories(const std::string& relativeuri)
 {
     std::list<std::string> listCreateDirs;
     std::string output;
     size_t startindex = 0;
-    for(size_t i = 0; i < uriDestinationDir.size(); ++i) {
-        if( uriDestinationDir[i] == '/' ) {
+    for(size_t i = 0; i < relativeuri.size(); ++i) {
+        if( relativeuri[i] == '/' ) {
             if( startindex != i ) {
-                char* pescaped = curl_easy_escape(_curl, uriDestinationDir.c_str()+startindex, i-startindex);
+                char* pescaped = curl_easy_escape(_curl, relativeuri.c_str()+startindex, i-startindex);
                 listCreateDirs.push_back(std::string(pescaped));
                 curl_free(pescaped);
                 startindex = i+1;
             }
         }
     }
-    if( startindex != uriDestinationDir.size() ) {
-        char* pescaped = curl_easy_escape(_curl, uriDestinationDir.c_str()+startindex, uriDestinationDir.size()-startindex);
+    if( startindex != relativeuri.size() ) {
+        char* pescaped = curl_easy_escape(_curl, relativeuri.c_str()+startindex, relativeuri.size()-startindex);
         listCreateDirs.push_back(std::string(pescaped));
         curl_free(pescaped);
     }
@@ -916,7 +1017,11 @@ void ControllerClientImpl::_EnsureWebDAVDirectories(const std::string& uriDestin
     // // does not exist
     //}
 
+    CURLcode res = curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, _WriteStringStreamCallback);
+    CHECKCURLCODE(res, "failed to set writer");
+    CurlWriteDataSetter writedata(_curl, &_buffer);
     CurlCustomRequestSetter setter(_curl, "MKCOL");
+
     std::string totaluri = "";
     for(std::list<std::string>::iterator itdir = listCreateDirs.begin(); itdir != listCreateDirs.end(); ++itdir) {
         // first have to create the directory structure up to destinationdir
@@ -926,6 +1031,8 @@ void ControllerClientImpl::_EnsureWebDAVDirectories(const std::string& uriDestin
         totaluri += *itdir;
         _uri = _basewebdavuri + totaluri;
         curl_easy_setopt(_curl, CURLOPT_URL, _uri.c_str());
+        _buffer.clear();
+        _buffer.str("");
         CURLcode res = curl_easy_perform(_curl);
         CHECKCURLCODE(res, "curl_easy_perform failed");
         long http_code = 0;
@@ -953,23 +1060,186 @@ void ControllerClientImpl::_EnsureWebDAVDirectories(const std::string& uriDestin
     }
 }
 
-void ControllerClientImpl::_UploadDirectoryToWebDAV_UTF8(const std::string& copydir, const std::string& rawuri)
+std::string ControllerClientImpl::_PrepareDestinationURI_UTF8(const std::string& rawuri, bool bEnsurePath, bool bEnsureSlash, bool bIsDirectory)
 {
-    BOOST_ASSERT(rawuri.size()>0);
-    // if there's a trailing slash, have ot get rid of it
-    std::string uri;
-    if( rawuri.at(rawuri.size()-1) == '/' ) {
-        uri = rawuri.substr(0,rawuri.size()-1);
+    std::string baseuploaduri;
+    if( rawuri.size() >= 7 && rawuri.substr(0,7) == "mujin:/" ) {
+        baseuploaduri = _basewebdavuri;
+        std::string s = rawuri.substr(7);
+        baseuploaduri += _EncodeWithoutSeparator(s);
+        if( bEnsurePath ) {
+            if( !bIsDirectory ) {
+                size_t nBaseFilenameStartIndex = s.find_last_of(s_filesep);
+                if( nBaseFilenameStartIndex != std::string::npos ) {
+                    s = s.substr(0, nBaseFilenameStartIndex);
+                }
+            }
+            _EnsureWebDAVDirectories(s);
+        }
     }
     else {
+        if( !bEnsureSlash ) {
+            return rawuri;
+        }
+        baseuploaduri = rawuri;
+    }
+    if( bEnsureSlash ) {
+        // ensure trailing slash
+        if( baseuploaduri[baseuploaduri.size()-1] != '/' ) {
+            baseuploaduri.push_back('/');
+        }
+    }
+    return baseuploaduri;
+}
+
+std::string ControllerClientImpl::_PrepareDestinationURI_UTF16(const std::wstring& rawuri_utf16, bool bEnsurePath, bool bEnsureSlash, bool bIsDirectory)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    std::string baseuploaduri;
+    std::string desturi_utf8;
+    utf8::utf16to8(rawuri_utf16.begin(), rawuri_utf16.end(), std::back_inserter(desturi_utf8));
+
+    if( desturi_utf8.size() >= 7 && desturi_utf8.substr(0,7) == "mujin:/" ) {
+        baseuploaduri = _basewebdavuri;
+        std::string s = desturi_utf8.substr(7);
+        baseuploaduri += _EncodeWithoutSeparator(s);
+        if( bEnsurePath ) {
+            if( !bIsDirectory ) {
+                size_t nBaseFilenameStartIndex = s.find_last_of(s_filesep);
+                if( nBaseFilenameStartIndex != std::string::npos ) {
+                    s = s.substr(0, nBaseFilenameStartIndex);
+                }
+            }
+            _EnsureWebDAVDirectories(s);
+        }
+    }
+    else {
+        if( !bEnsureSlash ) {
+            return desturi_utf8;
+        }
+        baseuploaduri = desturi_utf8;
+    }
+    if( bEnsureSlash ) {
+        // ensure trailing slash
+        if( baseuploaduri[baseuploaduri.size()-1] != '/' ) {
+            baseuploaduri.push_back('/');
+        }
+    }
+    return baseuploaduri;
+}
+
+void ControllerClientImpl::UploadFileToController_UTF8(const std::string& filename, const std::string& desturi)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    _UploadFileToController_UTF8(filename, _PrepareDestinationURI_UTF8(desturi));
+}
+
+void ControllerClientImpl::UploadFileToController_UTF16(const std::wstring& filename_utf16, const std::wstring& desturi_utf16)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    _UploadFileToController_UTF16(filename_utf16, _PrepareDestinationURI_UTF16(desturi_utf16));
+}
+
+void ControllerClientImpl::UploadDataToController_UTF8(const std::vector<unsigned char>& vdata, const std::string& desturi)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    _UploadDataToController(vdata, _PrepareDestinationURI_UTF8(desturi));
+}
+
+void ControllerClientImpl::UploadDataToController_UTF16(const std::vector<unsigned char>& vdata, const std::wstring& desturi)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    _UploadDataToController(vdata, _PrepareDestinationURI_UTF16(desturi));
+}
+
+void ControllerClientImpl::UploadDirectoryToController_UTF8(const std::string& copydir, const std::string& desturi)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    _UploadDirectoryToController_UTF8(copydir, _PrepareDestinationURI_UTF8(desturi, true, false, true));
+}
+
+void ControllerClientImpl::UploadDirectoryToController_UTF16(const std::wstring& copydir, const std::wstring& desturi)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    _UploadDirectoryToController_UTF16(copydir, _PrepareDestinationURI_UTF16(desturi, true, false, true));
+}
+
+void ControllerClientImpl::DownloadFileFromController_UTF8(const std::string& desturi, std::vector<unsigned char>& vdata)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    _CallGet(_PrepareDestinationURI_UTF8(desturi, false), vdata);
+}
+
+void ControllerClientImpl::DownloadFileFromController_UTF16(const std::wstring& desturi, std::vector<unsigned char>& vdata)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    _CallGet(_PrepareDestinationURI_UTF16(desturi, false), vdata);
+}
+
+void ControllerClientImpl::DeleteFileOnController_UTF8(const std::string& desturi)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    _DeleteFileOnController(_PrepareDestinationURI_UTF8(desturi, false));
+}
+
+void ControllerClientImpl::DeleteFileOnController_UTF16(const std::wstring& desturi)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    _DeleteFileOnController(_PrepareDestinationURI_UTF16(desturi, false));
+}
+
+void ControllerClientImpl::DeleteDirectoryOnController_UTF8(const std::string& desturi)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    _DeleteDirectoryOnController(_PrepareDestinationURI_UTF8(desturi, false, false, true));
+}
+
+void ControllerClientImpl::DeleteDirectoryOnController_UTF16(const std::wstring& desturi)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    _DeleteDirectoryOnController(_PrepareDestinationURI_UTF16(desturi, false, false, true));
+}
+
+void ControllerClientImpl::_UploadDirectoryToController_UTF8(const std::string& copydir_utf8, const std::string& rawuri)
+{
+    BOOST_ASSERT(rawuri.size()>0 && copydir_utf8.size()>0);
+
+    // if there's a trailing slash, have to get rid of it
+    std::string uri;
+    if( rawuri.at(rawuri.size()-1) == '/' ) {
+        if( copydir_utf8.at(copydir_utf8.size()-1) != s_filesep ) {
+            // append the copydir_utf8 name to rawuri
+            size_t nBaseFilenameStartIndex = copydir_utf8.find_last_of(s_filesep);
+            if( nBaseFilenameStartIndex == std::string::npos ) {
+                // there's no path?
+                nBaseFilenameStartIndex = 0;
+            }
+            else {
+                nBaseFilenameStartIndex++;
+            }
+            char* pescapeddir = curl_easy_escape(_curl, copydir_utf8.substr(nBaseFilenameStartIndex).c_str(), 0);
+            uri = rawuri + std::string(pescapeddir);
+            curl_free(pescapeddir);
+        }
+        else {
+            // copydir also ends in a fileseparator, so remove the file separator from rawuri
+            uri = rawuri.substr(0, rawuri.size()-1);
+        }
+    }
+    else {
+        MUJIN_ASSERT_OP_FORMAT(copydir_utf8.at(copydir_utf8.size()-1),!=,s_filesep,"copydir '%s' cannot end in slash '%s'", copydir_utf8%s_filesep, MEC_InvalidArguments);
         uri = rawuri;
     }
+
+    CURLcode res = curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, _WriteStringStreamCallback);
+    CHECKCURLCODE(res, "failed to set writer");
+    CurlWriteDataSetter writedata(_curl, &_buffer);
 
     {
         // make sure the directory is created
         CurlCustomRequestSetter setter(_curl, "MKCOL");
         curl_easy_setopt(_curl, CURLOPT_URL, uri.c_str());
-        CURLcode res = curl_easy_perform(_curl);
+        res = curl_easy_perform(_curl);
         CHECKCURLCODE(res, "curl_easy_perform failed");
         long http_code = 0;
         res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
@@ -978,7 +1248,11 @@ void ControllerClientImpl::_UploadDirectoryToWebDAV_UTF8(const std::string& copy
         }
     }
 
-    std::string sCopyDir_FS = encoding::ConvertUTF8ToFileSystemEncoding(copydir);
+    std::string sCopyDir_FS = encoding::ConvertUTF8ToFileSystemEncoding(copydir_utf8);
+    // remove the fileseparator if it exists
+    if( sCopyDir_FS.size() > 0 && sCopyDir_FS.at(sCopyDir_FS.size()-1) == s_filesep ) {
+        sCopyDir_FS.resize(sCopyDir_FS.size()-1);
+    }
     std::cout << "uploading " << sCopyDir_FS << " -> " << uri << std::endl;
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -993,16 +1267,16 @@ void ControllerClientImpl::_UploadDirectoryToWebDAV_UTF8(const std::string& copy
         std::string filename = std::string(ffd.cFileName);
         if( filename != "." && filename != ".." ) {
             std::string filename_utf8 = encoding::ConvertMBStoUTF8(filename);
-            std::string newcopydir = str(boost::format("%s\\%s")%copydir%filename_utf8);
+            std::string newcopydir_utf8 = str(boost::format("%s\\%s")%copydir_utf8%filename_utf8);
             char* pescapeddir = curl_easy_escape(_curl, filename_utf8.c_str(), filename_utf8.size());
             std::string newuri = str(boost::format("%s/%s")%uri%pescapeddir);
             curl_free(pescapeddir);
 
             if( ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) {
-                _UploadDirectoryToWebDAV_UTF8(newcopydir, newuri);
+                _UploadDirectoryToController_UTF8(newcopydir_utf8, newuri);
             }
             else if( ffd.dwFileAttributes == 0 || ffd.dwFileAttributes == FILE_ATTRIBUTE_READONLY || ffd.dwFileAttributes == FILE_ATTRIBUTE_NORMAL || ffd.dwFileAttributes == FILE_ATTRIBUTE_ARCHIVE ) {
-                _UploadFileToWebDAV_UTF8(newcopydir, newuri);
+                _UploadFileToController_UTF8(newcopydir_utf8, newuri);
             }
         }
     } while(FindNextFileA(hFind,&ffd) != 0);
@@ -1014,7 +1288,7 @@ void ControllerClientImpl::_UploadDirectoryToWebDAV_UTF8(const std::string& copy
     }
 
 #else
-    boost::filesystem::path bfpcopydir(copydir);
+    boost::filesystem::path bfpcopydir(copydir_utf8);
     for(boost::filesystem::directory_iterator itdir(bfpcopydir); itdir != boost::filesystem::directory_iterator(); ++itdir) {
 #if defined(BOOST_FILESYSTEM_VERSION) && BOOST_FILESYSTEM_VERSION >= 3
         std::string dirfilename = encoding::ConvertFileSystemEncodingToUTF8(itdir->path().filename().string());
@@ -1025,22 +1299,57 @@ void ControllerClientImpl::_UploadDirectoryToWebDAV_UTF8(const std::string& copy
         std::string newuri = str(boost::format("%s/%s")%uri%pescapeddir);
         curl_free(pescapeddir);
         if( boost::filesystem::is_directory(itdir->status()) ) {
-            _UploadDirectoryToWebDAV_UTF8(itdir->path().string(), newuri);
+            _UploadDirectoryToController_UTF8(itdir->path().string(), newuri);
         }
         else if( boost::filesystem::is_regular_file(itdir->status()) ) {
-            _UploadFileToWebDAV_UTF8(itdir->path().string(), newuri);
+            _UploadFileToController_UTF8(itdir->path().string(), newuri);
         }
     }
 #endif // defined(_WIN32) || defined(_WIN64)
 }
 
-void ControllerClientImpl::_UploadDirectoryToWebDAV_UTF16(const std::wstring& copydir, const std::string& uri)
+void ControllerClientImpl::_UploadDirectoryToController_UTF16(const std::wstring& copydir_utf16, const std::string& rawuri)
 {
+    BOOST_ASSERT(rawuri.size()>0 && copydir_utf16.size()>0);
+    MUJIN_ASSERT_OP_FORMAT(copydir_utf16.at(copydir_utf16.size()-1),!=,s_wfilesep,"copydir '%s' cannot end in slash '%s'", encoding::ConvertUTF16ToFileSystemEncoding(copydir_utf16)%s_filesep, MEC_InvalidArguments);
+
+    // if there's a trailing slash, have to get rid of it
+    std::string uri;
+    if( rawuri.at(rawuri.size()-1) == '/' ) {
+        if( copydir_utf16.at(copydir_utf16.size()-1) != s_filesep ) {
+            // append the copydir_utf16 name to rawuri
+            size_t nBaseFilenameStartIndex = copydir_utf16.find_last_of(s_filesep);
+            if( nBaseFilenameStartIndex == std::string::npos ) {
+                // there's no path?
+                nBaseFilenameStartIndex = 0;
+            }
+            else {
+                nBaseFilenameStartIndex++;
+            }
+            std::string name_utf8;
+            utf8::utf16to8(copydir_utf16.begin()+nBaseFilenameStartIndex, copydir_utf16.end(), std::back_inserter(name_utf8));
+            char* pescapeddir = curl_easy_escape(_curl, name_utf8.c_str(), 0);
+            uri = rawuri + std::string(pescapeddir);
+            curl_free(pescapeddir);
+        }
+        else {
+            // copydir also ends in a fileseparator, so remove the file separator from rawuri
+            uri = rawuri.substr(0, rawuri.size()-1);
+        }
+    }
+    else {
+        uri = rawuri;
+    }
+
+    CURLcode res = curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, _WriteStringStreamCallback);
+    CHECKCURLCODE(res, "failed to set writer");
+    CurlWriteDataSetter writedata(_curl, &_buffer);
+
     {
         // make sure the directory is created
         CurlCustomRequestSetter setter(_curl, "MKCOL");
         curl_easy_setopt(_curl, CURLOPT_URL, uri.c_str());
-        CURLcode res = curl_easy_perform(_curl);
+        res = curl_easy_perform(_curl);
         CHECKCURLCODE(res, "curl_easy_perform failed");
         long http_code = 0;
         res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
@@ -1049,8 +1358,15 @@ void ControllerClientImpl::_UploadDirectoryToWebDAV_UTF16(const std::wstring& co
         }
     }
 
-    std::wstring sCopyDir_FS = copydir;
-    std::cout << "uploading " << encoding::ConvertUTF16ToFileSystemEncoding(copydir) << " -> " << uri << std::endl;
+    std::wstring sCopyDir_FS;
+    // remove the fileseparator if it exists
+    if( copydir_utf16.size() > 0 && copydir_utf16.at(copydir_utf16.size()-1) == s_wfilesep ) {
+        sCopyDir_FS = copydir_utf16.substr(0,copydir_utf16.size()-1);
+    }
+    else {
+        sCopyDir_FS = copydir_utf16;
+    }
+    std::cout << "uploading " << encoding::ConvertUTF16ToFileSystemEncoding(copydir_utf16) << " -> " << uri << std::endl;
 
 #if defined(_WIN32) || defined(_WIN64)
     WIN32_FIND_DATAW ffd;
@@ -1071,10 +1387,10 @@ void ControllerClientImpl::_UploadDirectoryToWebDAV_UTF16(const std::wstring& co
             curl_free(pescapeddir);
 
             if( ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) {
-                _UploadDirectoryToWebDAV_UTF16(newcopydir, newuri);
+                _UploadDirectoryToController_UTF16(newcopydir, newuri);
             }
             else if( ffd.dwFileAttributes == 0 || ffd.dwFileAttributes == FILE_ATTRIBUTE_READONLY || ffd.dwFileAttributes == FILE_ATTRIBUTE_NORMAL || ffd.dwFileAttributes == FILE_ATTRIBUTE_ARCHIVE ) {
-                _UploadFileToWebDAV_UTF16(newcopydir, newuri);
+                _UploadFileToController_UTF16(newcopydir, newuri);
             }
         }
     } while(FindNextFileW(hFind,&ffd) != 0);
@@ -1095,15 +1411,15 @@ void ControllerClientImpl::_UploadDirectoryToWebDAV_UTF16(const std::wstring& co
         std::string newuri = str(boost::format("%s/%s")%uri%pescapeddir);
         curl_free(pescapeddir);
         if( boost::filesystem::is_directory(itdir->status()) ) {
-            _UploadDirectoryToWebDAV_UTF16(itdir->path().wstring(), newuri);
+            _UploadDirectoryToController_UTF16(itdir->path().wstring(), newuri);
         }
         else if( boost::filesystem::is_regular_file(itdir->status()) ) {
-            _UploadFileToWebDAV_UTF16(itdir->path().wstring(), newuri);
+            _UploadFileToController_UTF16(itdir->path().wstring(), newuri);
         }
     }
 #else
     // boost filesystem v2
-    boost::filesystem::wpath bfpcopydir(copydir);
+    boost::filesystem::wpath bfpcopydir(copydir_utf16);
     for(boost::filesystem::wdirectory_iterator itdir(bfpcopydir); itdir != boost::filesystem::wdirectory_iterator(); ++itdir) {
         std::wstring dirfilename_utf16 = itdir->path().filename();
         std::string dirfilename;
@@ -1112,26 +1428,26 @@ void ControllerClientImpl::_UploadDirectoryToWebDAV_UTF16(const std::wstring& co
         std::string newuri = str(boost::format("%s/%s")%uri%pescapeddir);
         curl_free(pescapeddir);
         if( boost::filesystem::is_directory(itdir->status()) ) {
-            _UploadDirectoryToWebDAV_UTF16(itdir->path().string(), newuri);
+            _UploadDirectoryToController_UTF16(itdir->path().string(), newuri);
         }
         else if( boost::filesystem::is_regular_file(itdir->status()) ) {
-            _UploadFileToWebDAV_UTF16(itdir->path().string(), newuri);
+            _UploadFileToController_UTF16(itdir->path().string(), newuri);
         }
     }
 #endif // defined(_WIN32) || defined(_WIN64)
 }
 
-void ControllerClientImpl::_UploadFileToWebDAV_UTF8(const std::string& filename, const std::string& uri)
+void ControllerClientImpl::_UploadFileToController_UTF8(const std::string& filename, const std::string& uri)
 {
     std::string sFilename_FS = encoding::ConvertUTF8ToFileSystemEncoding(filename);
     FileHandler handler(sFilename_FS.c_str());
     if(!handler._fd) {
         throw MUJIN_EXCEPTION_FORMAT("failed to open filename %s for uploading", sFilename_FS, MEC_InvalidArguments);
     }
-    _UploadFileToWebDAV(handler._fd, uri);
+    _UploadFileToController(handler._fd, uri);
 }
 
-void ControllerClientImpl::_UploadFileToWebDAV_UTF16(const std::wstring& filename, const std::string& uri)
+void ControllerClientImpl::_UploadFileToController_UTF16(const std::wstring& filename, const std::string& uri)
 {
     std::string filename_fs = encoding::ConvertUTF16ToFileSystemEncoding(filename);
 #if defined(_WIN32) || defined(_WIN64)
@@ -1143,10 +1459,10 @@ void ControllerClientImpl::_UploadFileToWebDAV_UTF16(const std::wstring& filenam
     if(!handler._fd) {
         throw MUJIN_EXCEPTION_FORMAT("failed to open filename %s for uploading", filename_fs, MEC_InvalidArguments);
     }
-    _UploadFileToWebDAV(handler._fd, uri);
+    _UploadFileToController(handler._fd, uri);
 }
 
-void ControllerClientImpl::_UploadFileToWebDAV(FILE* fd, const std::string& uri)
+void ControllerClientImpl::_UploadFileToController(FILE* fd, const std::string& uri)
 {
 #if defined(_WIN32) || defined(_WIN64)
     fseek(fd,0,SEEK_END);
@@ -1170,19 +1486,25 @@ void ControllerClientImpl::_UploadFileToWebDAV(FILE* fd, const std::string& uri)
     //curl_easy_setopt(_curl, CURLOPT_NOBODY, 1L);
 #if defined(_WIN32) || defined(_WIN64)
     curl_easy_setopt(_curl, CURLOPT_READFUNCTION, _ReadUploadCallback);
+#else
+    curl_easy_setopt(_curl, CURLOPT_READFUNCTION, NULL);
 #endif
 
-    CURLcode res = curl_easy_perform(_curl);
+    CURLcode res = curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, _WriteStringStreamCallback);
+    CHECKCURLCODE(res, "failed to set writer");
+    CurlWriteDataSetter writedata(_curl, &_buffer);
+
+    res = curl_easy_perform(_curl);
     CHECKCURLCODE(res, "curl_easy_perform failed");
     long http_code = 0;
     res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
     // 204 is when it overwrites the file?
     if( http_code != 201 && http_code != 204 ) {
         if( http_code == 400 ) {
-            throw MUJIN_EXCEPTION_FORMAT("upload of %s failed with HTTP status %s, perhaps file exists already?", uri%http_code, MEC_HTTPServer);
+            throw MUJIN_EXCEPTION_FORMAT("upload to %s failed with HTTP status %s, perhaps file exists already?", uri%http_code, MEC_HTTPServer);
         }
         else {
-            throw MUJIN_EXCEPTION_FORMAT("upload of %s failed with HTTP status %s", uri%http_code, MEC_HTTPServer);
+            throw MUJIN_EXCEPTION_FORMAT("upload to %s failed with HTTP status %s", uri%http_code, MEC_HTTPServer);
         }
     }
     // now extract transfer info
@@ -1192,15 +1514,97 @@ void ControllerClientImpl::_UploadFileToWebDAV(FILE* fd, const std::string& uri)
     //printf("http code: %d, Speed: %.3f bytes/sec during %.3f seconds\n", http_code, speed_upload, total_time);
 }
 
+void ControllerClientImpl::_UploadDataToController(const std::vector<unsigned char>& vdata, const std::string& desturi)
+{
+    curl_off_t filesize = vdata.size();
+
+    // tell it to "upload" to the URL
+    CurlUploadSetter uploadsetter(_curl);
+    CURLcode res = curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, _WriteStringStreamCallback);
+    CHECKCURLCODE(res, "failed to set writer");
+    CurlWriteDataSetter writedata(_curl, &_buffer);
+    curl_easy_setopt(_curl, CURLOPT_HTTPGET, 0L);
+    curl_easy_setopt(_curl, CURLOPT_URL, desturi.c_str());
+    std::pair<std::vector<unsigned char>::const_iterator, size_t> streamdata;
+    streamdata.first = vdata.begin();
+    streamdata.second = vdata.size();
+    curl_easy_setopt(_curl, CURLOPT_READDATA, &streamdata);
+    curl_easy_setopt(_curl, CURLOPT_INFILESIZE_LARGE, filesize);
+    //curl_easy_setopt(_curl, CURLOPT_NOBODY, 1L);
+    curl_easy_setopt(_curl, CURLOPT_READFUNCTION, _ReadInMemoryUploadCallback);
+
+    res = curl_easy_perform(_curl);
+    CHECKCURLCODE(res, "curl_easy_perform failed");
+    long http_code = 0;
+    res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
+
+    // reset the read state
+    curl_easy_setopt(_curl, CURLOPT_READDATA, NULL);
+    curl_easy_setopt(_curl, CURLOPT_READFUNCTION, NULL);
+
+    // 204 is when it overwrites the file?
+    if( http_code != 201 && http_code != 204 ) {
+        if( http_code == 400 ) {
+            throw MUJIN_EXCEPTION_FORMAT("upload of to failed with HTTP status %s, perhaps file exists already?", desturi%http_code, MEC_HTTPServer);
+        }
+        else {
+            throw MUJIN_EXCEPTION_FORMAT("upload of to failed with HTTP status %s", desturi%http_code, MEC_HTTPServer);
+        }
+    }
+}
+
+void ControllerClientImpl::_DeleteFileOnController(const std::string& desturi)
+{
+    CurlCustomRequestSetter setter(_curl, "DELETE");
+
+    curl_easy_setopt(_curl, CURLOPT_URL, desturi.c_str());
+    CURLcode res = curl_easy_perform(_curl);
+    CHECKCURLCODE(res, "curl_easy_perform failed");
+    long http_code = 0;
+    res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
+    // 204 is when it overwrites the file?
+    if( http_code != 204 ) {
+        if( http_code == 400 ) {
+            throw MUJIN_EXCEPTION_FORMAT("delete failed with HTTP status %s, perhaps file exists already?", desturi%http_code, MEC_HTTPServer);
+        }
+        else {
+            throw MUJIN_EXCEPTION_FORMAT("delete failed with HTTP status %s", desturi%http_code, MEC_HTTPServer);
+        }
+    }
+}
+
+void ControllerClientImpl::_DeleteDirectoryOnController(const std::string& desturi)
+{
+    CurlCustomRequestSetter setter(_curl, "DELETE");
+    curl_easy_setopt(_curl, CURLOPT_URL, _uri.c_str());
+    CURLcode res = curl_easy_perform(_curl);
+    CHECKCURLCODE(res, "curl_easy_perform failed");
+    long http_code = 0;
+    res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
+    std::cout << http_code << std::endl;
+}
+
 size_t ControllerClientImpl::_ReadUploadCallback(void *ptr, size_t size, size_t nmemb, void *stream)
 {
-    curl_off_t nread;
     // in real-world cases, this would probably get this data differently as this fread() stuff is exactly what the library already would do by default internally
-    size_t retcode = fread(ptr, size, nmemb, (FILE*)stream);
-
-    nread = (curl_off_t)retcode;
+    size_t nread = fread(ptr, size, nmemb, (FILE*)stream);
     //fprintf(stderr, "*** We read %" CURL_FORMAT_CURL_OFF_T " bytes from file\n", nread);
-    return retcode;
+    return nread;
+}
+
+size_t ControllerClientImpl::_ReadInMemoryUploadCallback(void *ptr, size_t size, size_t nmemb, void *stream)
+{
+    std::pair<std::vector<unsigned char>::const_iterator, size_t>* pstreamdata = static_cast<std::pair<std::vector<unsigned char>::const_iterator, size_t>*>(stream);
+    size_t nBytesToRead = size*nmemb;
+    if( nBytesToRead > pstreamdata->second ) {
+        nBytesToRead = pstreamdata->second;
+    }
+    if( nBytesToRead > 0 ) {
+        std::copy(pstreamdata->first, pstreamdata->first+nBytesToRead, static_cast<unsigned char*>(ptr));
+        pstreamdata->first += nBytesToRead;
+        pstreamdata->second -= nBytesToRead;
+    }
+    return nBytesToRead;
 }
 
 } // end namespace mujinclient

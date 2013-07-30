@@ -46,11 +46,27 @@ public:
     virtual void SyncUpload_UTF8(const std::string& sourcefilename, const std::string& destinationdir, const std::string& scenetype);
     virtual void SyncUpload_UTF16(const std::wstring& sourcefilename_utf16, const std::wstring& destinationdir_utf16, const std::string& scenetype);
 
+    virtual void UploadFileToController_UTF8(const std::string& filename, const std::string& desturi);
+    virtual void UploadFileToController_UTF16(const std::wstring& filename, const std::wstring& desturi);
+    virtual void UploadDataToController_UTF8(const std::vector<unsigned char>& vdata, const std::string& desturi);
+    virtual void UploadDataToController_UTF16(const std::vector<unsigned char>& vdata, const std::wstring& desturi);
+    virtual void UploadDirectoryToController_UTF8(const std::string& copydir, const std::string& desturi);
+    virtual void UploadDirectoryToController_UTF16(const std::wstring& copydir, const std::wstring& desturi);
+    virtual void DownloadFileFromController_UTF8(const std::string& desturi, std::vector<unsigned char>& vdata);
+    virtual void DownloadFileFromController_UTF16(const std::wstring& desturi, std::vector<unsigned char>& vdata);
+    virtual void DeleteFileOnController_UTF8(const std::string& desturi);
+    virtual void DeleteFileOnController_UTF16(const std::wstring& desturi);
+    virtual void DeleteDirectoryOnController_UTF8(const std::string& desturi);
+    virtual void DeleteDirectoryOnController_UTF16(const std::wstring& desturi);
+
     /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
     int CallGet(const std::string& relativeuri, boost::property_tree::ptree& pt, int expectedhttpcode=200);
 
     /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
     int CallGet(const std::string& relativeuri, std::string& outputdata, int expectedhttpcode=200);
+
+    /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
+    int CallGet(const std::string& relativeuri, std::vector<unsigned char>& outputdata, int expectedhttpcode=200);
 
     /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
     ///
@@ -95,49 +111,67 @@ protected:
 
     void GetProfile();
 
-    static int _writer(char *data, size_t size, size_t nmemb, std::stringstream *writerData);
+    static int _WriteStringStreamCallback(char *data, size_t size, size_t nmemb, std::stringstream *writerData);
+    static int _WriteVectorCallback(char *data, size_t size, size_t nmemb, std::vector<unsigned char> *writerData);
 
     void _SetHTTPHeaders();
 
     std::string _GetCSRFFromCookies();
 
+    /// \brief given a raw uri with "mujin:/", return the real network uri
+    ///
+    /// mutex should be locked
+    /// \param bEnsurePath if true, will make sure the directories on the server side are created
+    /// \param bEnsureSlash if true, will ensure returned uri ends with slash /
+    std::string _PrepareDestinationURI_UTF8(const std::string& rawuri, bool bEnsurePath=true, bool bEnsureSlash=false, bool bIsDirectory=false);
+    std::string _PrepareDestinationURI_UTF16(const std::wstring& rawuri, bool bEnsurePath=true, bool bEnsureSlash=false, bool bIsDirectory=false);
+
     // encode a URL without the / separator
     std::string _EncodeWithoutSeparator(const std::string& raw);
 
-    /// \param destinationdir the directory inside the user webdav folder. has a trailing slash
-    void _EnsureWebDAVDirectories(const std::string& uriDestinationDir);
+    /// \param relativeuri utf-8 encoded directory inside the user webdav folder. has a trailing slash. relative to real uri
+    void _EnsureWebDAVDirectories(const std::string& relativeuri);
 
-    /// \brief recursively uploads a directory and creates directories along the way if they don't exist
-    ///
-    /// overwrites all the files
-    /// \param copydir is utf-8 encoded
-    /// \param uri is URI-encoded
-    void _UploadDirectoryToWebDAV_UTF8(const std::string& copydir, const std::string& uri);
+    /// For all webdav internal functions: mutex is already locked, desturi directories are already created
+    //@{
 
-    /// \brief recursively uploads a directory and creates directories along the way if they don't exist
-    ///
-    /// overwrites all the files
-    /// \param copydir is utf-16 encoded
-    /// \param uri is URI-encoded
-    void _UploadDirectoryToWebDAV_UTF16(const std::wstring& copydir, const std::string& uri);
+    /// \param desturi expects the fully resolved URI to pass to curl
+    int _CallGet(const std::string& desturi, boost::property_tree::ptree& pt, int expectedhttpcode=200);
+    int _CallGet(const std::string& desturi, std::string& outputdata, int expectedhttpcode=200);
+    int _CallGet(const std::string& desturi, std::vector<unsigned char>& outputdata, int expectedhttpcode=200);
 
-    /// \brief uploads a single file, assumes the directory already exists
-    ///
-    /// overwrites the file if it already exists
-    /// \param filename utf-8 encoded
-    void _UploadFileToWebDAV_UTF8(const std::string& filename, const std::string& uri);
-
-    void _UploadFileToWebDAV_UTF16(const std::wstring& filename, const std::string& uri);
+    /// \brief desturi is URL-encoded. Also assume _mutex is locked.
+    virtual void _UploadFileToController_UTF8(const std::string& filename, const std::string& desturi);
+    /// \brief desturi is URL-encoded. Also assume _mutex is locked.
+    virtual void _UploadFileToController_UTF16(const std::wstring& filename, const std::string& desturi);
 
     /// \brief uploads a single file, assumes the directory already exists
     ///
     /// overwrites the file if it already exists.
     /// \param fd FILE pointer of binary reading file. does not close the handle
-    void _UploadFileToWebDAV(FILE* fd, const std::string& uri);
+    virtual void _UploadFileToController(FILE* fd, const std::string& uri);
+
+    /// \brief desturi is URL-encoded. Also assume _mutex is locked.
+    virtual void _UploadDataToController(const std::vector<unsigned char>& vdata, const std::string& desturi);
+
+    /// \brief desturi is URL-encoded. Also assume _mutex is locked.
+    virtual void _UploadDirectoryToController_UTF8(const std::string& copydir, const std::string& desturi);
+    /// \brief desturi is URL-encoded. Also assume _mutex is locked.
+    virtual void _UploadDirectoryToController_UTF16(const std::wstring& wcopydir, const std::string& desturi);
+
+    /// \brief desturi is URL-encoded. Also assume _mutex is locked.
+    virtual void _DeleteFileOnController(const std::string& desturi);
+    /// \brief desturi is URL-encoded. Also assume _mutex is locked.
+    virtual void _DeleteDirectoryOnController(const std::string& desturi);
+
+    //@}
 
     /// \brief read upload function for win32.
     /// MUST also provide this read callback using CURLOPT_READFUNCTION. Failing to do so will give you a crash since a DLL may not use the variable's memory when passed in to it from an app like this. */
     static size_t _ReadUploadCallback(void *ptr, size_t size, size_t nmemb, void *stream);
+
+    /// \param stream is std::pair<std::vector<unsigned char>::const_iterator, size_t>*, which gets incremented everytime this function is called.
+    static size_t _ReadInMemoryUploadCallback(void *ptr, size_t size, size_t nmemb, void *stream);
 
     int _lastmode;
     CURL *_curl;
