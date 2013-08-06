@@ -14,6 +14,13 @@
 include_directories(${MUJINCLIENT_INCLUDE_LOCAL_DIRS})
 link_directories(${MUJINCLIENT_LINK_DIRS})
 
-build_sample(settaskparameters)
-build_sample(showresults)
-build_sample(uploadregister)
+macro(build_test name)
+  add_executable(${name} ${name}.cpp)
+  set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${Boost_CFLAGS}" LINK_FLAGS "")
+  add_dependencies(${name} libmujincontrollerclient)
+  target_link_libraries (${name} libmujincontrollerclient ${Boost_THREAD_LIBRARY} ${Boost_DATE_TIME_LIBRARY} ${EXTRA_LIBRARIES})
+endmacro(build_sample)
+
+build_test(settaskparameters)
+build_test(showresults)
+build_test(uploadregister)

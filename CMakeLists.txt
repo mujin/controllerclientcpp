@@ -240,3 +240,7 @@ if( OPT_BUILD_TESTS )
 endif()
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/share/mujincontrollerclient DESTINATION share)
+
+# add make uninstall capability
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake" IMMEDIATE @ONLY)
+add_custom_target(uninstall "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")

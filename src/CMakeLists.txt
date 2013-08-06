@@ -27,7 +27,11 @@ set_target_properties(libmujincontrollerclient PROPERTIES COMPILE_FLAGS "${EXTRA
   CLEAN_DIRECT_OUTPUT 1
   )
 target_link_libraries(libmujincontrollerclient ${CURL_LIBRARIES} ${EXTRA_LIBRARIES})
-install(TARGETS libmujincontrollerclient RUNTIME DESTINATION bin LIBRARY DESTINATION bin ARCHIVE DESTINATION lib${LIB_SUFFIX})
+if( MSVC )
+  install(TARGETS libmujincontrollerclient RUNTIME DESTINATION bin LIBRARY DESTINATION bin ARCHIVE DESTINATION lib${LIB_SUFFIX})
+else()
+  install(TARGETS libmujincontrollerclient DESTINATION lib${LIB_SUFFIX})
+endif()
 
 if( OPT_BUILD_STATIC )
   # visual studio needs static lib built
