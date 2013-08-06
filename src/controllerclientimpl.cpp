@@ -1402,7 +1402,7 @@ void ControllerClientImpl::_UploadDirectoryToController_UTF16(const std::wstring
     }
 
 #elif defined(BOOST_FILESYSTEM_VERSION) && BOOST_FILESYSTEM_VERSION >= 3
-    boost::filesystem::path bfpcopydir(copydir);
+    boost::filesystem::path bfpcopydir(copydir_utf16);
     for(boost::filesystem::directory_iterator itdir(bfpcopydir); itdir != boost::filesystem::directory_iterator(); ++itdir) {
         std::wstring dirfilename_utf16 = itdir->path().filename().wstring();
         std::string dirfilename;
