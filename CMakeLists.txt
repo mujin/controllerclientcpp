@@ -24,6 +24,8 @@ set (MUJINCLIENT_VERSION ${MUJINCLIENT_VERSION_MAJOR}.${MUJINCLIENT_VERSION_MINO
 set (CLIENT_SOVERSION ${MUJINCLIENT_VERSION_MAJOR}.${MUJINCLIENT_VERSION_MINOR})
 message(STATUS "Compiling MUJIN Controller Client C++ Version ${MUJINCLIENT_VERSION}, soversion=${CLIENT_SOVERSION}")
 
+set(MUJINCLIENT_CMAKE_INSTALL_DIR "mujincontrollerclient-${MUJINCLIENT_VERSION_MAJOR}.${MUJINCLIENT_VERSION_MINOR}" CACHE STRING "Directory to install the cmake config files.")
+
 message(STATUS "Using cmake version ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}" )
 # http://www.cmake.org/cmake/help/cmake-2.6.html#policy:CMP0002
 cmake_policy(SET CMP0002 NEW)
@@ -244,3 +246,9 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/share/mujincontrollerclient DESTIN
 # add make uninstall capability
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake" IMMEDIATE @ONLY)
 add_custom_target(uninstall "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
+
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/mujincontrollerclient-config.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/mujincontrollerclient-config.cmake" IMMEDIATE @ONLY)
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/mujincontrollerclient-config-version.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/mujincontrollerclient-config-version.cmake" IMMEDIATE @ONLY)
+
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/mujincontrollerclient-config.cmake" "${CMAKE_CURRENT_BINARY_DIR}/mujincontrollerclient-config-version.cmake" DESTINATION "lib${LIB_SUFFIX}/cmake/${MUJINCLIENT_CMAKE_INSTALL_DIR}")
+
