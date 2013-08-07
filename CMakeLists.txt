@@ -161,6 +161,8 @@ elseif( MSVC )
   set(Boost_DATE_TIME_FOUND 1)
   set(Boost_SIGNALS_FOUND 1)
   set(Boost_VERSION "104400")
+  set(Boost_MAJOR_VERSION "1")
+  set(Boost_MINOR_VERSION "44")
   # have to add to required flags for applications that will test linking with boost
   set(CMAKE_REQUIRED_FLAGS "-DBOOST_ALL_DYN_LINK -DBOOST_ALL_NO_LIB")
   set(Boost_DATE_TIME_LIBRARY "${Boost_LIBRARY_DIRS}/boost_date_time-${MSVC_PREFIX}-mt-1_44.lib")
