@@ -91,8 +91,8 @@ int main(int argc, char ** argv)
             cout << "robot position of best result is: ";
             for(EnvironmentState::iterator it = envstate.begin(); it != envstate.end(); ++it) {
                 InstanceObjectState objstate = it->second;
-                // for now only output translation
-                cout << it->first << "=(" << objstate.transform.translation[0] << ", " << objstate.transform.translation[1] << ", " << objstate.transform.translation[2] << "), ";
+                // for now only output translate
+                cout << it->first << "=(" << objstate.transform.translate[0] << ", " << objstate.transform.translate[1] << ", " << objstate.transform.translate[2] << "), ";
             }
             cout << endl;
 

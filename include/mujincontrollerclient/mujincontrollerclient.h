@@ -167,11 +167,11 @@ struct JobStatus
 struct Transform
 {
     Transform() {
-        quat[0] = 1; quat[1] = 0; quat[2] = 0; quat[3] = 0;
-        translation[0] = 0; translation[1] = 0; translation[2] = 0;
+        quaternion[0] = 1; quaternion[1] = 0; quaternion[2] = 0; quaternion[3] = 0;
+        translate[0] = 0; translate[1] = 0; translate[2] = 0;
     }
-    Real quat[4]; ///< quaternion [cos(ang/2), axis*sin(ang/2)]
-    Real translation[3]; ///< translation x,y,z
+    Real quaternion[4]; ///< quaternion [cos(ang/2), axis*sin(ang/2)]
+    Real translate[3]; ///< translation x,y,z
 };
 
 struct InstanceObjectState
@@ -577,11 +577,13 @@ public:
         virtual ~InstObject() {
         }
 
+		void SetTransform(const Transform& t);
+
         std::vector<Real> dofvalues;
         std::string name;
         std::string object_pk;
         std::string reference_uri;
-        Real rotate[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
         Real translate[3];
     };
     typedef boost::shared_ptr<InstObject> InstObjectPtr;
@@ -627,6 +629,8 @@ public:
 
     /// \brief gets a list of all the instance objects of the scene
     virtual void GetInstObjects(std::vector<InstObjectPtr>& instobjects);
+
+    virtual SceneResource::InstObjectPtr CreateInstObject(const std::string& name, const std::string& reference_uri, Real quaternion[4], Real translate[3]);
 };
 
 class MUJINCLIENT_API TaskResource : public WebResource

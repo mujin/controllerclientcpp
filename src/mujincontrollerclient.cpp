@@ -50,6 +50,14 @@ SceneResource::InstObject::InstObject(ControllerClientPtr controller, const std:
 {
 }
 
+void SceneResource::InstObject::SetTransform(const Transform& t)
+{
+	GETCONTROLLERIMPL();
+    boost::property_tree::ptree pt;
+	std::string data = str(boost::format("{\"quaternion\":[%.15f, %.15f, %.15f, %.15f]}, \"translate\":[%.15f, %.15f, %.15f]")%t.quaternion[0]%t.quaternion[1]%t.quaternion[2]%t.quaternion[3]%t.translate[0]%t.translate[1]%t.translate[2]);
+	controller->CallPut(str(boost::format("%s/%s/?format=json&fields=")%GetResourceName()%GetPrimaryKey()), data, pt);
+}
+
 SceneResource::SceneResource(ControllerClientPtr controller, const std::string& pk) : WebResource(controller, "scene", pk)
 {
 }
@@ -145,10 +153,10 @@ void SceneResource::GetInstObjects(std::vector<SceneResource::InstObjectPtr>& in
             instobject->dofvalues[idof++] = boost::lexical_cast<Real>(vdof.second.data());
         }
 
-        size_t irotate = 0;
-        BOOST_FOREACH(boost::property_tree::ptree::value_type &vrotate, v.second.get_child("rotate")) {
-            BOOST_ASSERT( irotate < 4 );
-            instobject->rotate[irotate++] = boost::lexical_cast<Real>(vrotate.second.data());
+        size_t iquaternion = 0;
+        BOOST_FOREACH(boost::property_tree::ptree::value_type &vquaternion, v.second.get_child("quaternion")) {
+            BOOST_ASSERT( iquaternion < 4 );
+            instobject->quaternion[iquaternion++] = boost::lexical_cast<Real>(vquaternion.second.data());
         }
         size_t itranslate = 0;
         BOOST_FOREACH(boost::property_tree::ptree::value_type &vtranslate, v.second.get_child("translate")) {
@@ -158,6 +166,17 @@ void SceneResource::GetInstObjects(std::vector<SceneResource::InstObjectPtr>& in
 
         instobjects[i++] = instobject;
     }
+}
+
+SceneResource::InstObjectPtr SceneResource::CreateInstObject(const std::string& name, const std::string& reference_uri, Real quaternion[4], Real translation[3])
+//void SceneResource::CreateInstObject(const std::string& name, const std::string& reference_uri, Real rotate[4], Real translation[3])
+{
+    GETCONTROLLERIMPL();
+    boost::property_tree::ptree pt;
+    controller->CallPost(str(boost::format("scene/%s/instobject/?format=json&fields=pk")%GetPrimaryKey()), str(boost::format("{\"name\":\"%s\", \"reference_uri\":\"%s\",\"quaternion\":[%.15f,%.15f,%.15f,%.15f], \"translate\":[%.15f,%.15f,%.15f] }")%name%reference_uri%quaternion[0]%quaternion[1]%quaternion[2]%quaternion[3]%translation[0]%translation[1]%translation[2]), pt);
+    std::string inst_pk = pt.get<std::string>("pk");
+    SceneResource::InstObjectPtr instobject(new SceneResource::InstObject(GetController(), GetPrimaryKey(),  inst_pk));
+    return instobject;
 }
 
 TaskResource::TaskResource(ControllerClientPtr controller, const std::string& pk) : WebResource(controller,"task",pk)
@@ -387,21 +406,21 @@ void PlanningResultResource::GetEnvironmentState(EnvironmentState& envstate)
             BOOST_ASSERT(iquat<4);
             Real f = boost::lexical_cast<Real>(v.second.data());
             dist2 += f * f;
-            objstate.transform.quat[iquat++] = f;
+            objstate.transform.quaternion[iquat++] = f;
         }
         // normalize the quaternion
         if( dist2 > 0 ) {
             Real fnorm =1/std::sqrt(dist2);
-            objstate.transform.quat[0] *= fnorm;
-            objstate.transform.quat[1] *= fnorm;
-            objstate.transform.quat[2] *= fnorm;
-            objstate.transform.quat[3] *= fnorm;
+            objstate.transform.quaternion[0] *= fnorm;
+            objstate.transform.quaternion[1] *= fnorm;
+            objstate.transform.quaternion[2] *= fnorm;
+            objstate.transform.quaternion[3] *= fnorm;
         }
         boost::property_tree::ptree& translationjson = objstatejson.second.get_child("translation_");
         int itranslation=0;
         BOOST_FOREACH(boost::property_tree::ptree::value_type &v, translationjson) {
             BOOST_ASSERT(iquat<3);
-            objstate.transform.translation[itranslation++] = boost::lexical_cast<Real>(v.second.data());
+            objstate.transform.translate[itranslation++] = boost::lexical_cast<Real>(v.second.data());
         }
         envstate[name] = objstate;
     }
