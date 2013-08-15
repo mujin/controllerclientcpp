@@ -89,19 +89,30 @@ If OpenSSL libraries do not exist for the specific Visual Studio version
 
 1. Download and Install `Starberry Perl <http://strawberryperl.com/>`_
 
-2. Download and Install `NASM <http://sourceforge.net/projects/nasm/files/Win32%20binaries/2.07/nasm-2.07-installer.exe/download>`_
+2. Download and Install `NASM <http://sourceforge.net/projects/nasm/files/Win32%20binaries/2.07/nasm-2.07-installer.exe/download>`_. Even on 64bit systems, can use the 32bit NASM binary.
   
-  - add ``C:\Program Files\NASM`` to the **PATH** variable.
+  - On win32, add ``C:\Program Files\NASM`` to the **PATH** variable.
+  - On win64, add ``C:\Program Files (x86)\NASM`` to the **PATH** variable
 
 3. Uncompress **openssl-1.0.1c.tar.gz**.
 
-4. Open the Visual Studio Command Prompt, cd into ``openssl-1.0.1c``, set the XX depending on the VC++ version, and run::
+4. Open the Visual Studio Command Prompt, cd into ``openssl-1.0.1c``, set the XX depending on the VC++ version.
   
-    perl Configure VC-WIN32 --prefix=%MUJINCLIENTGIT%\msvc_binaries\vcXX
+  For win32 (x86) run::
+  
+    perl Configure VC-WIN32 --prefix=%MUJINCLIENTGIT%\msvc_binaries\x86\vcXX
     ms\do_nasm
+  
+  For win64 (amd64) run::
+  
+    perl Configure VC-WIN64A --prefix=%MUJINCLIENTGIT%\msvc_binaries\amd64\vcXX
+    ms\do_win64a
+  
+  For all builds, run::
+  
     nmake -f ms\ntdll.mak
     nmake -f ms\ntdll.mak install
-
+  
 5. The final binaries should be in the ``msvc_binaries\vcXX\lib`` folder.
 
 Building libcurl (Optional)
@@ -115,9 +126,17 @@ If libcurl libraries do not exist for the specific Visual Studio version
 
     mkdir buildvcXX
     cd buildvcXX
-    cmake -DOPENSSL_ROOT_DIR=%MUJINCLIENTGIT%\msvc_binaries\vcXX -DCMAKE_REQUIRED_INCLUDES=%MUJINCLIENTGIT%\msvc_binaries\vcXX\include -DBUILD_CURL_TESTS=OFF -DCURL_USE_ARES=OFF -DCURL_STATICLIB=OFF -DCMAKE_INSTALL_PREFIX=%MUJINCLIENTGIT%\msvc_binaries\vcXX -G "Visual Studio XX" ..
+	
+  For x86::
+  
+    cmake -DOPENSSL_ROOT_DIR=%MUJINCLIENTGIT%\msvc_binaries\x86\vcXX -DCMAKE_REQUIRED_INCLUDES=%MUJINCLIENTGIT%\msvc_binaries\x86\vcXX\include -DBUILD_CURL_TESTS=OFF -DCURL_USE_ARES=OFF -DCURL_STATICLIB=OFF -DCMAKE_INSTALL_PREFIX=%MUJINCLIENTGIT%\msvc_binaries\x86\vcXX -G "Visual Studio XX" ..
+	msbuild CURL.sln /p:Configuration=Release
+  
+  For amd64::
+  
+    cmake -DOPENSSL_ROOT_DIR=%MUJINCLIENTGIT%\msvc_binaries\amd64\vcXX -DCMAKE_REQUIRED_INCLUDES=%MUJINCLIENTGIT%\msvc_binaries\amd64\vcXX\include -DBUILD_CURL_TESTS=OFF -DCURL_USE_ARES=OFF -DCURL_STATICLIB=OFF -DCMAKE_INSTALL_PREFIX=%MUJINCLIENTGIT%\msvc_binaries\amd64\vcXX -G "Visual Studio XX Win64" ..
     msbuild CURL.sln /p:Configuration=Release
-
+  
 3. To install, for Visual Studio 9 2008 and above use
   ::
   
@@ -128,6 +147,28 @@ If libcurl libraries do not exist for the specific Visual Studio version
     msbuild INSTALL.vcproj /p:Configuration=Release
   
   where "Visual Studio XX" is the cmake generator for visual studio. for example: "Visual Studio 8 2005" or "Visual Studio 10". 
+
+Install libboost (Optional)
+============================
+For amd64, download boost library from `here <http://boost.teeks99.com/bin/boost_1_44_0-vc64-bin.exe>`_,
+unpack it, and copy the following files to %MUJINCLIENTGIT%\msvc_binaries\amd64\lib\
+
+boost_date_time-vc100-mt-1_44.dll
+boost_date_time-vc100-mt-1_44.lib
+boost_filesystem-vc100-mt-1_44.dll
+boost_filesystem-vc100-mt-1_44.lib
+boost_iostreams-vc100-mt-1_44.dll
+boost_iostreams-vc100-mt-1_44.lib
+boost_program_options-vc100-mt-1_44.dll
+boost_program_options-vc100-mt-1_44.lib
+boost_python-vc100-mt-1_44.dll
+boost_python-vc100-mt-1_44.lib
+boost_signals-vc100-mt-1_44.dll
+boost_signals-vc100-mt-1_44.lib
+boost_system-vc100-mt-1_44.dll
+boost_system-vc100-mt-1_44.lib
+boost_thread-vc100-mt-1_44.dll
+boost_thread-vc100-mt-1_44.lib
 
 Updating the Windows Libraries
 ------------------------------
