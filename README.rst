@@ -148,28 +148,6 @@ If libcurl libraries do not exist for the specific Visual Studio version
   
   where "Visual Studio XX" is the cmake generator for visual studio. for example: "Visual Studio 8 2005" or "Visual Studio 10". 
 
-Install libboost (Optional)
-============================
-For amd64, download boost library from `here <http://boost.teeks99.com/bin/boost_1_44_0-vc64-bin.exe>`_,
-unpack it, and copy the following files to %MUJINCLIENTGIT%\msvc_binaries\amd64\lib\
-
-boost_date_time-vc100-mt-1_44.dll
-boost_date_time-vc100-mt-1_44.lib
-boost_filesystem-vc100-mt-1_44.dll
-boost_filesystem-vc100-mt-1_44.lib
-boost_iostreams-vc100-mt-1_44.dll
-boost_iostreams-vc100-mt-1_44.lib
-boost_program_options-vc100-mt-1_44.dll
-boost_program_options-vc100-mt-1_44.lib
-boost_python-vc100-mt-1_44.dll
-boost_python-vc100-mt-1_44.lib
-boost_signals-vc100-mt-1_44.dll
-boost_signals-vc100-mt-1_44.lib
-boost_system-vc100-mt-1_44.dll
-boost_system-vc100-mt-1_44.lib
-boost_thread-vc100-mt-1_44.dll
-boost_thread-vc100-mt-1_44.lib
-
 Updating the Windows Libraries
 ------------------------------
 
