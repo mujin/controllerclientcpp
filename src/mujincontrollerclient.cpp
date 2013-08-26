@@ -54,8 +54,8 @@ void SceneResource::InstObject::SetTransform(const Transform& t)
 {
 	GETCONTROLLERIMPL();
     boost::property_tree::ptree pt;
-	std::string data = str(boost::format("{\"quaternion\":[%.15f, %.15f, %.15f, %.15f]}, \"translate\":[%.15f, %.15f, %.15f]")%t.quaternion[0]%t.quaternion[1]%t.quaternion[2]%t.quaternion[3]%t.translate[0]%t.translate[1]%t.translate[2]);
-	controller->CallPut(str(boost::format("%s/%s/?format=json&fields=")%GetResourceName()%GetPrimaryKey()), data, pt);
+	std::string data = str(boost::format("{\"quaternion\":[%.15f, %.15f, %.15f, %.15f], \"translate\":[%.15f, %.15f, %.15f]}")%t.quaternion[0]%t.quaternion[1]%t.quaternion[2]%t.quaternion[3]%t.translate[0]%t.translate[1]%t.translate[2]);
+	controller->CallPut(str(boost::format("%s/%s/?format=json")%GetResourceName()%GetPrimaryKey()), data, pt);
 }
 
 SceneResource::SceneResource(ControllerClientPtr controller, const std::string& pk) : WebResource(controller, "scene", pk)
