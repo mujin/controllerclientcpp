@@ -19,7 +19,7 @@ macro(build_test name)
   set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${Boost_CFLAGS}" LINK_FLAGS "")
   add_dependencies(${name} libmujincontrollerclient)
   target_link_libraries (${name} libmujincontrollerclient ${Boost_THREAD_LIBRARY} ${Boost_DATE_TIME_LIBRARY} ${EXTRA_LIBRARIES})
-endmacro(build_sample)
+endmacro(build_test)
 
 build_test(settaskparameters)
 build_test(showresults)
