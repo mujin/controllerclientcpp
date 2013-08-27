@@ -581,6 +581,7 @@ public:
 
         std::vector<Real> dofvalues;
         std::string name;
+		std::string pk;
         std::string object_pk;
         std::string reference_uri;
         Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
@@ -591,6 +592,8 @@ public:
     SceneResource(ControllerClientPtr controller, const std::string& pk);
     virtual ~SceneResource() {
     }
+	
+	virtual void SetMultipleInstObjectsTransform(const std::vector<SceneResource::InstObjectPtr>& instobjects, const std::vector<Transform>& transforms);
 
     /** \brief Gets or creates the a task part of the scene
 

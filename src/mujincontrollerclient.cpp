@@ -52,10 +52,10 @@ SceneResource::InstObject::InstObject(ControllerClientPtr controller, const std:
 
 void SceneResource::InstObject::SetTransform(const Transform& t)
 {
-	GETCONTROLLERIMPL();
+	  GETCONTROLLERIMPL();
     boost::property_tree::ptree pt;
-	std::string data = str(boost::format("{\"quaternion\":[%.15f, %.15f, %.15f, %.15f], \"translate\":[%.15f, %.15f, %.15f]}")%t.quaternion[0]%t.quaternion[1]%t.quaternion[2]%t.quaternion[3]%t.translate[0]%t.translate[1]%t.translate[2]);
-	controller->CallPut(str(boost::format("%s/%s/?format=json")%GetResourceName()%GetPrimaryKey()), data, pt);
+	  std::string data = str(boost::format("{\"quaternion\":[%.15f, %.15f, %.15f, %.15f], \"translate\":[%.15f, %.15f, %.15f]}")%t.quaternion[0]%t.quaternion[1]%t.quaternion[2]%t.quaternion[3]%t.translate[0]%t.translate[1]%t.translate[2]);
+	  controller->CallPut(str(boost::format("%s/%s/?format=json")%GetResourceName()%GetPrimaryKey()), data, pt);
 }
 
 SceneResource::SceneResource(ControllerClientPtr controller, const std::string& pk) : WebResource(controller, "scene", pk)
@@ -85,6 +85,26 @@ TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& t
     std::string pk = pt.get<std::string>("pk");
     TaskResourcePtr task(new TaskResource(GetController(), pk));
     return task;
+}
+
+void SceneResource::SetMultipleInstObjectsTransform(const std::vector<SceneResource::InstObjectPtr>& instobjects, const std::vector<Transform>& transforms)
+{
+	GETCONTROLLERIMPL();
+    if (instobjects.size() != transforms.size()) {
+        throw MUJIN_EXCEPTION_FORMAT("the size of instobjects (%d) and the one of transforms (%d) must be the same",instobjects.size()%transforms.size(),MEC_InvalidArguments);
+    }
+    boost::property_tree::ptree pt;
+    boost::format transformtemplate("{\"pk\":\"%s\",\"quaternion\":[%.15f, %.15f, %.15f, %.15f], \"translate\":[%.15f, %.15f, %.15f]}");
+    std::string datastring = "";
+
+    for(size_t i = 0 ; i < instobjects.size(); ++i) {
+        datastring += str(transformtemplate%instobjects[i]->pk%transforms[i].quaternion[0]%transforms[i].quaternion[1]%transforms[i].quaternion[2]%transforms[i].quaternion[3]%transforms[i].translate[0]%transforms[i].translate[1]%transforms[i].translate[2]);
+		if ( i != instobjects.size()-1) {
+		  datastring += ",";
+	   }
+	}
+	std::string data = str(boost::format("{\"objects\": [%s]}")%datastring);
+	controller->CallPut(str(boost::format("%s/%s/instobject/?format=json")%GetResourceName()%GetPrimaryKey()), data, pt);
 }
 
 TaskResourcePtr SceneResource::GetTaskFromName_UTF8(const std::string& taskname)
@@ -143,6 +163,7 @@ void SceneResource::GetInstObjects(std::vector<SceneResource::InstObjectPtr>& in
         InstObjectPtr instobject(new InstObject(controller, GetPrimaryKey(), v.second.get<std::string>("pk")));
         //instobject->dofvalues
         instobject->name = v.second.get<std::string>("name");
+		instobject->pk = v.second.get<std::string>("pk");
         instobject->object_pk = v.second.get<std::string>("object_pk");
         instobject->reference_uri = v.second.get<std::string>("reference_uri");
 
