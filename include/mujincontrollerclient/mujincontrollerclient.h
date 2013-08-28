@@ -177,7 +177,7 @@ struct Transform
 struct InstanceObjectState
 {
     Transform transform; ///< the transform of this instance object
-    std::vector<Real> jointvalues; ///< the joint values
+    std::vector<Real> dofvalues; ///< the joint values
 };
 
 typedef std::map<std::string, InstanceObjectState> EnvironmentState;
@@ -593,7 +593,7 @@ public:
     virtual ~SceneResource() {
     }
 	
-	virtual void SetMultipleInstObjectsTransform(const std::vector<SceneResource::InstObjectPtr>& instobjects, const std::vector<Transform>& transforms);
+	virtual void SetInstObjectsState(const std::vector<SceneResource::InstObjectPtr>& instobjects, const std::vector<InstanceObjectState>& states);
 
     /** \brief Gets or creates the a task part of the scene
 

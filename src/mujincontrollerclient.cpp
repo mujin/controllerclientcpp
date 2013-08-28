@@ -87,18 +87,26 @@ TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& t
     return task;
 }
 
-void SceneResource::SetMultipleInstObjectsTransform(const std::vector<SceneResource::InstObjectPtr>& instobjects, const std::vector<Transform>& transforms)
+void SceneResource::SetInstObjectsState(const std::vector<SceneResource::InstObjectPtr>& instobjects, const std::vector<InstanceObjectState>& states)
 {
 	GETCONTROLLERIMPL();
-    if (instobjects.size() != transforms.size()) {
-        throw MUJIN_EXCEPTION_FORMAT("the size of instobjects (%d) and the one of transforms (%d) must be the same",instobjects.size()%transforms.size(),MEC_InvalidArguments);
-    }
+    MUJIN_ASSERT_OP_FORMAT(instobjects.size(), !=, states.size(), "the size of instobjects (%d) and the one of states (%d) must be the same",instobjects.size()%states.size(),MEC_InvalidArguments);
     boost::property_tree::ptree pt;
-    boost::format transformtemplate("{\"pk\":\"%s\",\"quaternion\":[%.15f, %.15f, %.15f, %.15f], \"translate\":[%.15f, %.15f, %.15f]}");
-    std::string datastring = "";
-
+    boost::format transformtemplate("{\"pk\":\"%s\",\"quaternion\":[%.15f, %.15f, %.15f, %.15f], \"translate\":[%.15f, %.15f, %.15f] %s}");
+    std::string datastring, sdofvalues;
     for(size_t i = 0 ; i < instobjects.size(); ++i) {
-        datastring += str(transformtemplate%instobjects[i]->pk%transforms[i].quaternion[0]%transforms[i].quaternion[1]%transforms[i].quaternion[2]%transforms[i].quaternion[3]%transforms[i].translate[0]%transforms[i].translate[1]%transforms[i].translate[2]);
+        const Transform& transform = states[i].transform;
+        if( states[i].dofvalues.size() > 0 ) {
+            sdofvalues = str(boost::format(", \"dofvalues\":[%.15f")%states[i].dofvalues.at(0));
+            for(size_t j = 1; j < states[i].dofvalues.size(); ++j) {
+                sdofvalues += str(boost::format(", %.15f")%states[i].dofvalues.at(j));
+            }
+            sdofvalues += "]";
+        }
+        else {
+            sdofvalues = "";
+        }
+        datastring += str(transformtemplate%instobjects[i]->pk%transform.quaternion[0]%transform.quaternion[1]%transform.quaternion[2]%transform.quaternion[3]%transform.translate[0]%transform.translate[1]%transform.translate[2]%sdofvalues);
 		if ( i != instobjects.size()-1) {
 		  datastring += ",";
 	   }
