@@ -288,7 +288,7 @@ public:
 //        - mujincollada
 //        - wincaps
 //        - rttoolbox
-//        - cecvirfitxml
+//        - cecrobodiaxml
 //        - stl
 //        - x
 //        - vrml
@@ -348,7 +348,7 @@ public:
         - **x** (DirectX)
         - **vrml**
         - **stl**
-        - **cecvirfitxml** (CEC Virfit XML environments)
+        - **cecrobodiaxml** (CEC RoboDiA XML environments)
      */
     virtual SceneResourcePtr RegisterScene_UTF8(const std::string& uri, const std::string& scenetype) = 0;
 
@@ -379,7 +379,7 @@ public:
         - **x** (DirectX)
         - **vrml**
         - **stl**
-        - **cecvirfitxml** (CEC Virfit XML environments)
+        - **cecrobodiaxml** (CEC RoboDiA XML environments)
         \param newuri UTF-8 encoded new URI to save the imported results. Default is to save to MUJIN COLLADA, so end with <b>.mujin.dae</b> . Use <b>mujin:/mypath/myfile.mujin.dae</b>
      */
     virtual SceneResourcePtr ImportSceneToCOLLADA_UTF8(const std::string& sourceuri, const std::string& sourcescenetype, const std::string& newuri) = 0;
@@ -577,7 +577,7 @@ public:
         virtual ~InstObject() {
         }
 
-		void SetTransform(const Transform& t);
+        void SetTransform(const Transform& t);
 
         std::vector<Real> dofvalues;
         std::string name;
@@ -725,7 +725,7 @@ public:
         - mujinxml - \b xml
         - melfabasicv - \b json with Mitsubishi-specific programs
         - densowaverc8pac - \b json with DensoWave-specific programs
-        - cecvirfitsim - zip file
+        - cecrobodiasim - zip file
 
         If \b auto is set, then the robot-maker specific program is returned if possible. If not possible, then mujin xml is returned. All the programs for all robots planned are returned.
 
