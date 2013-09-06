@@ -1,4 +1,4 @@
-mujinclient_version=0.2.8
+mujinclient_version=0.2.10
 doxycommands="STRIP_FROM_PATH = $(PWD)\\n\
 PROJECT_NUMBER = $(mujinclient_version)\\n\
 ALIASES += mujinclientversion=$(mujinclient_version)\\n\
