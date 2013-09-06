@@ -11,5 +11,6 @@ var searchData=
   ['controllerclientptr',['ControllerClientPtr',['../namespacemujinclient.html#aa0b8a533fc19b5930eca8bf825f2231d',1,'mujinclient']]],
   ['controllerclientweakptr',['ControllerClientWeakPtr',['../namespacemujinclient.html#a182c7c2d839784c764c14b9deb7cee93',1,'mujinclient']]],
   ['copy',['Copy',['../classmujinclient_1_1WebResource.html#aae0aa448ddac268123c7bebdf67ae60c',1,'mujinclient::WebResource']]],
-  ['createcontrollerclient',['CreateControllerClient',['../namespacemujinclient.html#a4154f688f4ec2cd2511ab6830a2777a7',1,'mujinclient']]]
+  ['createcontrollerclient',['CreateControllerClient',['../namespacemujinclient.html#a4154f688f4ec2cd2511ab6830a2777a7',1,'mujinclient']]],
+  ['createinstobject',['CreateInstObject',['../classmujinclient_1_1SceneResource.html#a85a167da2abae5d47c8edaf99bb02840',1,'mujinclient::SceneResource']]]
 ];

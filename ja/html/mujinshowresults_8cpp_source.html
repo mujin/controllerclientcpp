@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.3"/>
-<title>controllerclientcpp: /home/rdiankov/mujin/controllerclientcpp/samples/mujinshowresults.cpp (2013-07-30 11:40:56 +0900, commit:b4b5d01) ソースファイル</title>
+<title>controllerclientcpp: /home/rdiankov/mujin/controllerclientcpp/samples/mujinshowresults.cpp (2013-09-06 11:54:26 +0900, commit:341b49e) ソースファイル</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">controllerclientcpp
-   &#160;<span id="projectnumber">0.2.8</span>
+   &#160;<span id="projectnumber">0.2.10</span>
    </div>
   </td>
  </tr>
@@ -180,8 +180,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'検索');
 <div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;            cout &lt;&lt; <span class="stringliteral">&quot;robot position of best result is: &quot;</span>;</div>
 <div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;            <span class="keywordflow">for</span>(EnvironmentState::iterator it = envstate.begin(); it != envstate.end(); ++it) {</div>
 <div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;                <a class="code" href="structmujinclient_1_1InstanceObjectState.html">InstanceObjectState</a> objstate = it-&gt;second;</div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;                <span class="comment">// for now only output translation</span></div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;                cout &lt;&lt; it-&gt;first &lt;&lt; <span class="stringliteral">&quot;=(&quot;</span> &lt;&lt; objstate.<a class="code" href="structmujinclient_1_1InstanceObjectState.html#a07ae66e5f8d6b2b283fcad4608a26af9" title="the transform of this instance object">transform</a>.<a class="code" href="structmujinclient_1_1Transform.html#a7be9672fd534ae62aa442d1b764c7ee3" title="translation x,y,z">translation</a>[0] &lt;&lt; <span class="stringliteral">&quot;, &quot;</span> &lt;&lt; objstate.<a class="code" href="structmujinclient_1_1InstanceObjectState.html#a07ae66e5f8d6b2b283fcad4608a26af9" title="the transform of this instance object">transform</a>.<a class="code" href="structmujinclient_1_1Transform.html#a7be9672fd534ae62aa442d1b764c7ee3" title="translation x,y,z">translation</a>[1] &lt;&lt; <span class="stringliteral">&quot;, &quot;</span> &lt;&lt; objstate.<a class="code" href="structmujinclient_1_1InstanceObjectState.html#a07ae66e5f8d6b2b283fcad4608a26af9" title="the transform of this instance object">transform</a>.<a class="code" href="structmujinclient_1_1Transform.html#a7be9672fd534ae62aa442d1b764c7ee3" title="translation x,y,z">translation</a>[2] &lt;&lt; <span class="stringliteral">&quot;), &quot;</span>;</div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;                <span class="comment">// for now only output translate</span></div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;                cout &lt;&lt; it-&gt;first &lt;&lt; <span class="stringliteral">&quot;=(&quot;</span> &lt;&lt; objstate.<a class="code" href="structmujinclient_1_1InstanceObjectState.html#a07ae66e5f8d6b2b283fcad4608a26af9" title="the transform of this instance object">transform</a>.<a class="code" href="structmujinclient_1_1Transform.html#afc480a0494f2246d84cbd719d15cbd2a" title="translation x,y,z">translate</a>[0] &lt;&lt; <span class="stringliteral">&quot;, &quot;</span> &lt;&lt; objstate.<a class="code" href="structmujinclient_1_1InstanceObjectState.html#a07ae66e5f8d6b2b283fcad4608a26af9" title="the transform of this instance object">transform</a>.<a class="code" href="structmujinclient_1_1Transform.html#afc480a0494f2246d84cbd719d15cbd2a" title="translation x,y,z">translate</a>[1] &lt;&lt; <span class="stringliteral">&quot;, &quot;</span> &lt;&lt; objstate.<a class="code" href="structmujinclient_1_1InstanceObjectState.html#a07ae66e5f8d6b2b283fcad4608a26af9" title="the transform of this instance object">transform</a>.<a class="code" href="structmujinclient_1_1Transform.html#afc480a0494f2246d84cbd719d15cbd2a" title="translation x,y,z">translate</a>[2] &lt;&lt; <span class="stringliteral">&quot;), &quot;</span>;</div>
 <div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;            }</div>
 <div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;            cout &lt;&lt; endl;</div>
 <div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;</div>
@@ -203,7 +203,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'検索');
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-controllerclientcppに対してTue Jul 30 2013 11:41:32に生成されました。 &#160;<a href="http://www.doxygen.org/index.html">
+controllerclientcppに対してFri Sep 6 2013 11:55:41に生成されました。 &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.3
 </small></address>
