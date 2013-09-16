@@ -90,7 +90,7 @@ TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& t
 void SceneResource::SetInstObjectsState(const std::vector<SceneResource::InstObjectPtr>& instobjects, const std::vector<InstanceObjectState>& states)
 {
 	GETCONTROLLERIMPL();
-    MUJIN_ASSERT_OP_FORMAT(instobjects.size(), !=, states.size(), "the size of instobjects (%d) and the one of states (%d) must be the same",instobjects.size()%states.size(),MEC_InvalidArguments);
+    MUJIN_ASSERT_OP_FORMAT(instobjects.size(), ==, states.size(), "the size of instobjects (%d) and the one of states (%d) must be the same",instobjects.size()%states.size(),MEC_InvalidArguments);
     boost::property_tree::ptree pt;
     boost::format transformtemplate("{\"pk\":\"%s\",\"quaternion\":[%.15f, %.15f, %.15f, %.15f], \"translate\":[%.15f, %.15f, %.15f] %s}");
     std::string datastring, sdofvalues;
