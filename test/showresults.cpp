@@ -28,17 +28,19 @@ int main(int argc, char ** argv)
             controller = CreateControllerClient(argv[1]);
         }
         std::cout << "connected to controller v" << controller->GetVersion() << std::endl;
+        std::vector<std::string> scenekeys;
+        controller->GetScenePrimaryKeys(scenekeys);
 
-        SceneResourcePtr scene = controller->RegisterScene_UTF8("mujin:/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ", "wincaps");
-        TaskResourcePtr task = scene->GetTaskFromName_UTF8("task0");
-        PlanningResultResourcePtr result = task->GetResult();
-        RobotControllerPrograms programs;
-        result->GetPrograms(programs);
-        std::cout << "found " << programs.programs.size() << " programs" << std::endl;
-        for(std::map<std::string, RobotProgramData>::iterator it = programs.programs.begin(); it != programs.programs.end(); ++it ) {
-            std::cout << "[" << it->first << "]" << std::endl << it->second.programdata << std::endl << std::endl;
-        }
-        std::cout << "final task_time is " << result->Get("task_time") << std::endl;
+//        SceneResourcePtr scene = controller->RegisterScene_UTF8("mujin:/densowave_wincaps_data/threegoaltouch/threegoaltouch.WPJ", "wincaps");
+//        TaskResourcePtr task = scene->GetTaskFromName_UTF8("task0");
+//        PlanningResultResourcePtr result = task->GetResult();
+//        RobotControllerPrograms programs;
+//        result->GetPrograms(programs);
+//        std::cout << "found " << programs.programs.size() << " programs" << std::endl;
+//        for(std::map<std::string, RobotProgramData>::iterator it = programs.programs.begin(); it != programs.programs.end(); ++it ) {
+//            std::cout << "[" << it->first << "]" << std::endl << it->second.programdata << std::endl << std::endl;
+//        }
+//        std::cout << "final task_time is " << result->Get("task_time") << std::endl;
 
     }
     catch(const MujinException& ex) {

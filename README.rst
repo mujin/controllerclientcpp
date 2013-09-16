@@ -81,6 +81,21 @@ In the following documentation %MUJINCLIENTGIT% means the root directory where t
   
     msbuild INSTALL.vcproj /p:Configuration=Release
 
+Building x64 Windows with Visual Studio
+=======================================
+
+Make sure to use the Visual Studio Generators that ends with Win64. For example **Visual Studio 2010 Win64**.
+
+Building x86 architecture on x64 Windows
+========================================
+
+It is possible to force the architecture that Windows builds on by setting the **MUJINCLIENT_TARGET_PROCESSOR**
+
+  .. image:: https://raw.github.com/mujin/controllerclientcpp/master/docs/crosscompile_forcex86.png
+
+and a x86 Visual Studio Generator.
+
+  .. image:: https://raw.github.com/mujin/controllerclientcpp/master/docs/crosscompile_generator.png
 
 Building OpenSSL (Optional)
 ===========================
