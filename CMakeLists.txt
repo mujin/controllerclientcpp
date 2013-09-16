@@ -26,6 +26,7 @@ set (CLIENT_SOVERSION ${MUJINCLIENT_VERSION_MAJOR}.${MUJINCLIENT_VERSION_MINOR})
 message(STATUS "Compiling MUJIN Controller Client C++ Version ${MUJINCLIENT_VERSION}, soversion=${CLIENT_SOVERSION}")
 
 set(MUJINCLIENT_CMAKE_INSTALL_DIR "mujincontrollerclient-${MUJINCLIENT_VERSION_MAJOR}.${MUJINCLIENT_VERSION_MINOR}" CACHE STRING "Directory to install the cmake config files.")
+set(MUJINCLIENT_TARGET_PROCESSOR ${CMAKE_SYSTEM_PROCESSOR} CACHE STRING "The target processor architecture to build for, this is combined with the generator toolchain", )
 
 message(STATUS "Using cmake version ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}" )
 # http://www.cmake.org/cmake/help/cmake-2.6.html#policy:CMP0002
@@ -110,7 +111,7 @@ if( MSVC )
   set(MUJINCLIENT_LIBRARY_SUFFIX "${MUJINCLIENT_SOVERSION}-${MSVC_PREFIX}-mt" CACHE STRING "Suffix to append to library names")
   
   # install all DLLs
-  install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/msvc_binaries/${CMAKE_SYSTEM_PROCESSOR}/${MSVC_PREFIX}/bin/" DESTINATION bin FILES_MATCHING PATTERN "*.dll")
+  install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/msvc_binaries/${OPT_TARGET_PROCESSOR}/${MSVC_PREFIX}/bin/" DESTINATION bin FILES_MATCHING PATTERN "*.dll")
 
   # force multi-threaded DLL boost
   set(Boost_USE_MULTITHREAD ON)
@@ -152,7 +153,7 @@ elseif( MSVC )
   set(Boost_FOUND 1)
   set(Boost_INCLUDE_DIRS "${BOOST_ROOT}")
   set(Boost_INCLUDE_DIR "${BOOST_ROOT}")
-  set(Boost_LIBRARY_DIRS "${BOOST_ROOT}/${CMAKE_SYSTEM_PROCESSOR}/lib")
+  set(Boost_LIBRARY_DIRS "${BOOST_ROOT}/${OPT_TARGET_PROCESSOR}/lib")
   set(Boost_REGEX_FOUND 0)
   set(Boost_FILESYSTEM_FOUND 1)
   set(Boost_IOSTREAMS_FOUND 1)
@@ -215,9 +216,9 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 find_package(CURL QUIET)
 if( NOT CURL_FOUND )
   if( MSVC )
-    message(STATUS "setting local curl library from msvc_binaries/${CMAKE_SYSTEM_PROCESSOR}")
-    set(CURL_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/msvc_binaries/${CMAKE_SYSTEM_PROCESSOR}/${MSVC_PREFIX}/include")
-    set(CURL_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/msvc_binaries/${CMAKE_SYSTEM_PROCESSOR}/${MSVC_PREFIX}/lib/libcurl-${MSVC_PREFIX}-mt_imp.lib")
+    message(STATUS "setting local curl library from msvc_binaries/${OPT_TARGET_PROCESSOR}")
+    set(CURL_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/msvc_binaries/${OPT_TARGET_PROCESSOR}/${MSVC_PREFIX}/include")
+    set(CURL_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/msvc_binaries/${OPT_TARGET_PROCESSOR}/${MSVC_PREFIX}/lib/libcurl-${MSVC_PREFIX}-mt_imp.lib")
   else()
     message(FATAL_ERROR "could not find CURL library")
   endif()
