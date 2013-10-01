@@ -116,7 +116,8 @@ std::wstring ParseWincapsWCNPath(const T& sourcefilename, const boost::function<
 
 ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, const std::string& baseuri, const std::string& proxyserverport, const std::string& proxyuserpw, int options)
 {
-    size_t usernameindex = usernamepassword.find_first_of(':');
+    size_t usernameindex = 0;
+    usernameindex = usernamepassword.find_first_of(':');
     BOOST_ASSERT(usernameindex != std::string::npos );
     std::string username = usernamepassword.substr(0,usernameindex);
     std::string password = usernamepassword.substr(usernameindex+1);
