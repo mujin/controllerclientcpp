@@ -113,6 +113,10 @@ move(p[3_home])\n\
             }
         }
 
+        std::string cecrobodiazipdata;
+        result->GetAllRawProgramData(cecrobodiazipdata, "cecrobodiasim");
+        std::cout << "got robodia simulation file, size=" << cecrobodiazipdata.size() << " bytes" << std::endl;
+        // get any other programs
         RobotControllerPrograms programs;
         result->GetPrograms(programs);
         std::cout << "found " << programs.programs.size() << " programs" << std::endl;

@@ -221,6 +221,12 @@ bool TaskResource::Execute()
     return true;
 }
 
+void TaskResource::Cancel()
+{
+    // have to look through all jobs for the task
+    BOOST_ASSERT(0);
+}
+
 void TaskResource::GetRunTimeStatus(JobStatus& status, int options)
 {
     status.code = JSC_Unknown;
@@ -367,6 +373,11 @@ void OptimizationResource::Execute(bool bClearOldResults)
     boost::property_tree::ptree pt;
     controller->CallPost(str(boost::format("optimization/%s/")%GetPrimaryKey()), str(boost::format("{\"clear\":%d}")%bClearOldResults), pt, 200);
     _jobpk = pt.get<std::string>("jobpk");
+}
+
+void OptimizationResource::Cancel()
+{
+    BOOST_ASSERT(0);
 }
 
 void OptimizationResource::GetRunTimeStatus(JobStatus& status, int options)

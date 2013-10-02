@@ -581,7 +581,7 @@ public:
 
         std::vector<Real> dofvalues;
         std::string name;
-		std::string pk;
+        std::string pk;
         std::string object_pk;
         std::string reference_uri;
         Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
@@ -592,8 +592,8 @@ public:
     SceneResource(ControllerClientPtr controller, const std::string& pk);
     virtual ~SceneResource() {
     }
-	
-	virtual void SetInstObjectsState(const std::vector<SceneResource::InstObjectPtr>& instobjects, const std::vector<InstanceObjectState>& states);
+
+    virtual void SetInstObjectsState(const std::vector<SceneResource::InstObjectPtr>& instobjects, const std::vector<InstanceObjectState>& states);
 
     /** \brief Gets or creates the a task part of the scene
 
@@ -649,6 +649,9 @@ public:
     /// \return true if task was executed fine
     virtual bool Execute();
 
+    /// \brief if the task is currently executing, send a cancel request
+    virtual void Cancel();
+
     /// \brief get the run-time status of the executed task.
     ///
     /// This will only work if the task has been previously Executed with execute
@@ -690,6 +693,9 @@ public:
     ///
     /// \param bClearOldResults if true, will clear the old optimiation results. If false, will keep the old optimization results and only compute those that need to be computed.
     virtual void Execute(bool bClearOldResults=true);
+
+    /// \brief if the optimization is currently executing, send a cancel request
+    virtual void Cancel();
 
     /// \brief Set new task info for tasks of type <b>robotplanning</b>
     void SetOptimizationParameters(const RobotPlacementOptimizationParameters& optparams);
