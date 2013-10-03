@@ -246,8 +246,8 @@ struct RobotPlacementOptimizationParameters
         stepsize[0] = 100; stepsize[1] = 100; stepsize[2] = 100; stepsize[3] = 90;
         ignorebasecollision = 0;
     }
-    std::string targetname; ///< the name of the target object to optimize for. If blank, will use robot.
-    std::string framename; ///< The name of the frame to define the optimization parameters in. If blank, will use the targetname's coordinate system. Has to be prefixed with "0 "!
+    std::string targetname; ///< the name of the target object to optimize for. If blank, will use robot. Has to start with "0 instobject " for environment inst object targets.
+    std::string framename; ///< The name of the frame to define the optimization parameters in. If blank, will use the targetname's coordinate system. Has to start iwth "0 instobject " for environment inst object frames.
     Real maxrange[4]; ///< X, Y, Z, Angle (deg)
     Real minrange[4]; ///< X, Y, Z, Angle (deg)
     Real stepsize[4]; ///< X, Y, Z, Angle (deg)
@@ -279,8 +279,8 @@ struct PlacementsOptimizationParameters
     }
 
     // for every target, there's one setting:
-    boost::array<std::string, 2> targetnames; ///< the primary key of the target object to optimize for. If blank, will use robot.
-    boost::array<std::string, 2> framenames; ///< The primary key of the frame to define the optimization parameters in. If blank, will use the target's coordinate system.
+    boost::array<std::string, 2> targetnames; ///< the primary key of the target object to optimize for. If blank, will use robot. Has to start with "0 instobject " for environment inst object targets.
+    boost::array<std::string, 2> framenames; ///< The primary key of the frame to define the optimization parameters in. If blank, will use the target's coordinate system. Has to start iwth "0 instobject " for environment inst object frames.
     boost::array<Real[4],2> maxranges; ///< X, Y, Z, Angle (deg)
     boost::array<Real[4],2> minranges; ///< X, Y, Z, Angle (deg)
     boost::array<Real[4],2> stepsizes; ///< X, Y, Z, Angle (deg)
