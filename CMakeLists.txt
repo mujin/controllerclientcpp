@@ -62,6 +62,11 @@ include(CheckCXXSourceCompiles)
 include(CheckCXXSourceRuns)
 include(CheckCXXCompilerFlag)
 
+# have to include before boost since the boost headers can be located in a previous installed version of this library
+set(MUJINCLIENT_INCLUDE_LOCAL_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
+include_directories(${MUJINCLIENT_INCLUDE_LOCAL_DIRS})
+
 if( MSVC )
   add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_DEPRECATE)
   add_definitions(-D_SCL_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_DEPRECATE)
@@ -188,7 +193,7 @@ else()
   message(FATAL_ERROR "Could not find boost libraries!")
 endif()
 
-message(STATUS "found boost version: ${Boost_VERSION}")
+message(STATUS "found boost version: ${Boost_VERSION} at ${Boost_INCLUDE_DIRS}")
 if( NOT Boost_THREAD_LIBRARY OR NOT Boost_DATE_TIME_LIBRARY )
   message(FATAL_ERROR "boost thread and date_time libraries are necessary")
 endif()
@@ -211,7 +216,6 @@ if( CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX )
 endif( CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX )
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/mujincontrollerclient/config.h IMMEDIATE @ONLY)
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 
 find_package(CURL QUIET)
 if( NOT CURL_FOUND )
@@ -226,8 +230,6 @@ endif()
 
 file(GLOB mujin_header_files ${CMAKE_CURRENT_SOURCE_DIR}/include/mujincontrollerclient/*.h)
 install(FILES ${mujin_header_files} ${CMAKE_CURRENT_BINARY_DIR}/include/mujincontrollerclient/config.h DESTINATION include/mujincontrollerclient)
-
-set(MUJINCLIENT_INCLUDE_LOCAL_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 macro(build_sample name)
   add_executable(${name} ${name}.cpp)
