@@ -282,7 +282,7 @@ struct PlacementsOptimizationParameters
     boost::array<std::string, 2> targetnames; ///< the primary key of the target object to optimize for. If blank, will use robot.
     boost::array<std::string, 2> framenames; ///< The primary key of the frame to define the optimization parameters in. If blank, will use the target's coordinate system.
     boost::array<Real[4],2> maxranges; ///< X, Y, Z, Angle (deg)
-    boost::array<Real[2],2> minranges; ///< X, Y, Z, Angle (deg)
+    boost::array<Real[4],2> minranges; ///< X, Y, Z, Angle (deg)
     boost::array<Real[4],2> stepsizes; ///< X, Y, Z, Angle (deg)
     boost::array<int,2> ignorebasecollisions; ///< If 1, when moving the robot, allow collisions of the base with the environment, this allows users to search for a base placement and while ignoring small obstacles. By default this is 0.
 
