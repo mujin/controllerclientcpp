@@ -148,9 +148,11 @@ set(MUJINCLIENT_LINK_DIRS)
 if( Boost_FOUND )
   include_directories(${Boost_INCLUDE_DIRS})
   set(MUJINCLIENT_LINK_DIRS ${MUJINCLIENT_LINK_DIRS} ${Boost_LIBRARY_DIRS})
+  set(EXTRA_MSVC_DEPEND) # reset extra depend
 elseif(Boost_VERSION AND NOT "${Boost_VERSION}" STREQUAL "0")
   include_directories(${Boost_INCLUDE_DIRS})
   set(MUJINCLIENT_LINK_DIRS ${MUJINCLIENT_LINK_DIRS} ${Boost_LIBRARY_DIRS})
+  set(EXTRA_MSVC_DEPEND msvc_boost) # reset extra depend
 elseif( MSVC )
   # to facilitate compilation, visual studio libraries are included locally
   message(STATUS "using local boost libraries for MSVC")
