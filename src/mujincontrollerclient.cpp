@@ -60,10 +60,7 @@ void SceneResource::InstObject::SetTransform(const Transform& t)
 
 SceneResource::SceneResource(ControllerClientPtr controllerptr, const std::string& pk) : WebResource(controllerptr, "scene", pk)
 {
-    GETCONTROLLERIMPL();
-    boost::property_tree::ptree pt;
-	// check the existance of the scene
-	controller->CallGet(str(boost::format("scene/%s/?format=json&limit=0&fields=uri")%pk), pt);
+	this->Get("");
 }
 
 TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& taskname, const std::string& tasktype)
