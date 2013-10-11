@@ -13,6 +13,7 @@
 // limitations under the License.
 #include "common.h"
 #include "controllerclientimpl.h"
+#include <boost/thread.hpp> // for sleep
 
 namespace mujinclient {
 
@@ -58,9 +59,8 @@ void SceneResource::InstObject::SetTransform(const Transform& t)
     controller->CallPut(str(boost::format("%s/%s/?format=json")%GetResourceName()%GetPrimaryKey()), data, pt);
 }
 
-SceneResource::SceneResource(ControllerClientPtr controllerptr, const std::string& pk) : WebResource(controllerptr, "scene", pk)
+SceneResource::SceneResource(ControllerClientPtr controller, const std::string& pk) : WebResource(controller, "scene", pk)
 {
-	this->Get("");
 }
 
 TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& taskname, const std::string& tasktype)
@@ -193,7 +193,6 @@ void SceneResource::GetInstObjects(std::vector<SceneResource::InstObjectPtr>& in
             BOOST_ASSERT( itranslate < 3 );
             instobject->translate[itranslate++] = boost::lexical_cast<Real>(vtranslate.second.data());
         }
-
         instobjects[i++] = instobject;
     }
 }
@@ -362,6 +361,157 @@ PlanningResultResourcePtr TaskResource::GetResult()
     std::string pk = objects.begin()->second.get<std::string>("pk");
     PlanningResultResourcePtr result(new PlanningResultResource(GetController(), pk));
     return result;
+}
+
+void BinPickingTaskResource::BinPickingResultResource::GetResultGetJointValues(ResultGetJointValues& result)
+{
+	GETCONTROLLERIMPL();
+    boost::property_tree::ptree pt;
+    controller->CallGet(boost::str(boost::format("%s/%s/?format=json&limit=1")%GetResourceName()%GetPrimaryKey()), pt);
+
+	result.robottype = pt.get<std::string>("robottype");
+	
+    boost::property_tree::ptree& jointnames = pt.get_child("jointnames");
+    result.currentjointvalues.resize(jointnames.size());
+    size_t i = 0;
+    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, jointnames) {
+		result.jointnames[i++] = boost::lexical_cast<std::string>(v.second.data());
+    }
+
+    boost::property_tree::ptree& currentjointvalues = pt.get_child("currentjointvalues");
+    result.currentjointvalues.resize(currentjointvalues.size());
+    i = 0;
+    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, currentjointvalues) {
+		result.currentjointvalues[i++] = boost::lexical_cast<Real>(v.second.data());
+    }
+
+    boost::property_tree::ptree& tools = pt.get_child("tools");
+    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, tools) {
+		std::string first = v.first;
+		BOOST_FOREACH(boost::property_tree::ptree::value_type &x, v.second) {
+			result.tools[first].push_back(boost::lexical_cast<Real>(x.second.data()));
+		}
+	}
+}
+
+void BinPickingTaskResource::BinPickingResultResource::GetResultMoveJoints(ResultMoveJoints& result)
+{
+	GETCONTROLLERIMPL();
+    boost::property_tree::ptree pt;
+    controller->CallGet(boost::str(boost::format("%s/%s/?format=json&limit=1")%GetResourceName()%GetPrimaryKey()), pt);
+
+	result.robot = pt.get<std::string>("robot");
+
+    boost::property_tree::ptree& goaljoints = pt.get_child("goaljoints");
+    result.goaljoints.resize(goaljoints.size());
+    size_t i = 0;
+    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, goaljoints) {
+		result.goaljoints[i++] = boost::lexical_cast<Real>(v.second.data());
+    }
+
+	boost::property_tree::ptree& jointindices = pt.get_child("jointindices");
+    result.jointindices.resize(jointindices.size());
+    i = 0;
+    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, jointindices) {
+		result.jointindices[i++] = boost::lexical_cast<int>(v.second.data());
+    }
+
+	result.envclearance = boost::lexical_cast<int>(pt.get<std::string>("envclearance"));
+}
+
+BinPickingTaskResource::BinPickingTaskResource(const std::string& taskname, const std::string& controllerip, const int controllerport, ControllerClientPtr controller, const std::string& pk) : TaskResource(controller,pk)
+{
+	_taskname = taskname;
+	_controllerip = controllerip;
+	_controllerport = controllerport;
+}
+
+void BinPickingTaskResource::GetJointValues(int timeout, BinPickingResultResource::ResultGetJointValues& result)
+{
+	GETCONTROLLERIMPL();
+	BinPickingResultResourcePtr resultresource;
+	BinPickingTaskParameters param;
+
+	param.command = "GetJointValues";
+	param.controllerip = _controllerip;
+	param.controllerport = _controllerport;
+	param.robottype = "densowave";
+	this->SetTaskParameters(param);
+	this->Execute();
+	int iterations = 0;
+    while (1) {
+        if (this->GetResult(resultresource) != 0)
+		{
+			resultresource->GetResultGetJointValues(result);
+			return;
+		}
+        boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
+        ++iterations;
+        if( iterations > timeout ) {
+            controller->CancelAllJobs();
+            throw MujinException("operation timed out, cancelling all jobs and quitting", MEC_Timeout);
+        }
+    }
+}
+
+void BinPickingTaskResource::MoveJoints(const std::vector<double>& jointvalues, const std::vector<int>& jointindices, int timeout, BinPickingResultResource::ResultMoveJoints& result)
+{
+	GETCONTROLLERIMPL();
+	BinPickingResultResourcePtr resultresource;
+	BinPickingTaskParameters param;
+
+	param.command = "MoveJoints";
+	param.controllerip = _controllerip;
+	param.controllerport = _controllerport;
+	param.robottype = "densowave";
+	param.goaljoints = jointvalues;
+	param.jointindices = jointindices;
+	param.envclearance = 30;
+	param.speed = 10;
+	this->SetTaskParameters(param);
+	this->Execute();
+	int iterations = 0;
+    while (1) {
+        if (this->GetResult(resultresource) != 0)
+		{
+			resultresource->GetResultMoveJoints(result);
+			return;
+		}
+        boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
+        ++iterations;
+        if( iterations > timeout ) {
+            controller->CancelAllJobs();
+            throw MujinException("operation timed out, cancelling all jobs and quitting", MEC_Timeout);
+        }
+    }
+}
+
+void BinPickingTaskResource::GetTaskParameters(BinPickingTaskParameters& taskparameters)
+{
+    throw MujinException("not implemented yet");
+}
+
+void BinPickingTaskResource::SetTaskParameters(const BinPickingTaskParameters& taskparameters)
+{
+    GETCONTROLLERIMPL();
+
+	std::string taskgoalput = boost::str(boost::format("{\"tasktype\": \"binpicking\", \"taskparameters\":{\"command\":%s, \"robottype\":\"%s\", \"controllerip\":\"%s\", \"controllerport\":%d, \"goaljoints\":%s, \"jointindices\":%s, \"envclearance\":%f, \"speed\": %f} }")%taskparameters.command%taskparameters.robottype%taskparameters.controllerip%taskparameters.controllerport%taskparameters._GenerateJsonString(taskparameters.goaljoints)%taskparameters._GenerateJsonString(taskparameters.jointindices)%taskparameters.envclearance%taskparameters.speed);
+    boost::property_tree::ptree pt;
+    controller->CallPut(str(boost::format("task/%s/?format=json&fields=")%GetPrimaryKey()), taskgoalput, pt);
+}
+
+int BinPickingTaskResource::GetResult(BinPickingResultResourcePtr& result)
+{
+    GETCONTROLLERIMPL();
+    boost::property_tree::ptree pt;
+    controller->CallGet(str(boost::format("task/%s/result/?format=json&limit=1&optimization=None&fields=pk")%GetPrimaryKey()), pt);
+    boost::property_tree::ptree& objects = pt.get_child("objects");
+    if( objects.size() == 0 ) {
+        return 0;
+    }
+    std::string pk = objects.begin()->second.get<std::string>("pk");
+    result.reset(new BinPickingResultResource(GetController(), pk));
+    return objects.size();
 }
 
 OptimizationResource::OptimizationResource(ControllerClientPtr controller, const std::string& pk) : WebResource(controller,"optimization",pk)
