@@ -1251,8 +1251,10 @@ void ControllerClientImpl::_UploadDirectoryToController_UTF8(const std::string& 
 
     std::string sCopyDir_FS = encoding::ConvertUTF8ToFileSystemEncoding(copydir_utf8);
     // remove the fileseparator if it exists
+    bool bhasseparator = false;
     if( sCopyDir_FS.size() > 0 && sCopyDir_FS.at(sCopyDir_FS.size()-1) == s_filesep ) {
         sCopyDir_FS.resize(sCopyDir_FS.size()-1);
+        bhasseparator = true;
     }
     std::cout << "uploading " << sCopyDir_FS << " -> " << uri << std::endl;
 
@@ -1268,7 +1270,13 @@ void ControllerClientImpl::_UploadDirectoryToController_UTF8(const std::string& 
         std::string filename = std::string(ffd.cFileName);
         if( filename != "." && filename != ".." ) {
             std::string filename_utf8 = encoding::ConvertMBStoUTF8(filename);
-            std::string newcopydir_utf8 = str(boost::format("%s\\%s")%copydir_utf8%filename_utf8);
+            std::string newcopydir_utf8;
+            if( bhasseparator ) {
+                newcopydir_utf8 = copydir_utf8 + filename_utf8;
+            }
+            else {
+                newcopydir_utf8 = str(boost::format("%s%c%s")%copydir_utf8%s_filesep%filename_utf8);
+            }
             char* pescapeddir = curl_easy_escape(_curl, filename_utf8.c_str(), filename_utf8.size());
             std::string newuri = str(boost::format("%s/%s")%uri%pescapeddir);
             curl_free(pescapeddir);

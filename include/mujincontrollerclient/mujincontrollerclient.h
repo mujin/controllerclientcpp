@@ -50,6 +50,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/weak_ptr.hpp>
 #include <boost/format.hpp>
+#include <boost/array.hpp>
 
 namespace mujinclient {
 
@@ -229,28 +230,64 @@ public:
     int preservespeedparameters; ///< if 1, preserves all SPEED/ACCEL commands as best as possible.
 };
 
+/// \brief placement optimization for a robot or another target.
 struct RobotPlacementOptimizationParameters
 {
     RobotPlacementOptimizationParameters() {
         SetDefaults();
     }
     inline void SetDefaults() {
+        unit = "mm";
         topstorecandidates = 20;
         targetname.clear();
-        framename = "0 robot";
-        unit = "mm";
+        framename.clear();
         minrange[0] = -400; minrange[1] = -400; minrange[2] = 0; minrange[3] = -180;
         maxrange[0] = 400; maxrange[1] = 400; maxrange[2] = 400; maxrange[3] = 90;
         stepsize[0] = 100; stepsize[1] = 100; stepsize[2] = 100; stepsize[3] = 90;
         ignorebasecollision = 0;
     }
-    std::string targetname; ///< the primary key of the target object to optimize for. If blank, will use robot.
-    std::string framename; ///< The primary key of the frame to define the optimization parameters in. If blank, will use the target's coordinate system.
-    std::string unit; ///< the unit that information is used in. m, mm, nm, inch, etc
+    std::string targetname; ///< the name of the target object to optimize for. If blank, will use robot. Has to start with "0 instobject " for environment inst object targets.
+    std::string framename; ///< The name of the frame to define the optimization parameters in. If blank, will use the targetname's coordinate system. Has to start iwth "0 instobject " for environment inst object frames.
     Real maxrange[4]; ///< X, Y, Z, Angle (deg)
     Real minrange[4]; ///< X, Y, Z, Angle (deg)
     Real stepsize[4]; ///< X, Y, Z, Angle (deg)
     int ignorebasecollision; ///< If 1, when moving the robot, allow collisions of the base with the environment, this allows users to search for a base placement and while ignoring small obstacles. By default this is 0.
+
+    std::string unit; ///< the unit that information is used in. m, mm, nm, inch, etc
+    int topstorecandidates; ///< In order to speed things up, store at least the top (fastest) N candidates. Candidates beyond the top N will not be computed.
+};
+
+struct PlacementsOptimizationParameters
+{
+    PlacementsOptimizationParameters() {
+        SetDefaults();
+    }
+    inline void SetDefaults() {
+        unit = "mm";
+        topstorecandidates = 20;
+        for(size_t itarget = 0; itarget < targetnames.size(); ++itarget) {
+            targetnames[itarget].clear();
+            framenames[itarget].clear();
+            ignorebasecollisions[itarget] = 0;
+        }
+        minranges[0][0] = -400; minranges[0][1] = -400; minranges[0][2] = 0; minranges[0][3] = -180;
+        maxranges[0][0] = 400; maxranges[0][1] = 400; maxranges[0][2] = 400; maxranges[0][3] = 90;
+        stepsizes[0][0] = 100; stepsizes[0][1] = 100; stepsizes[0][2] = 100; stepsizes[0][3] = 90;
+        minranges[1][0] = -100; minranges[1][1] = -100; minranges[1][2] = 0; minranges[1][3] = 0;
+        maxranges[1][0] = 100; maxranges[1][1] = 100; maxranges[1][2] = 100; maxranges[1][3] = 0;
+        stepsizes[1][0] = 100; stepsizes[1][1] = 100; stepsizes[1][2] = 100; stepsizes[1][3] = 90;
+    }
+
+    // for every target, there's one setting:
+    boost::array<std::string, 2> targetnames; ///< the primary key of the target object to optimize for. If blank, will use robot. Has to start with "0 instobject " for environment inst object targets.
+    boost::array<std::string, 2> framenames; ///< The primary key of the frame to define the optimization parameters in. If blank, will use the target's coordinate system. Has to start iwth "0 instobject " for environment inst object frames.
+    boost::array<Real[4],2> maxranges; ///< X, Y, Z, Angle (deg)
+    boost::array<Real[4],2> minranges; ///< X, Y, Z, Angle (deg)
+    boost::array<Real[4],2> stepsizes; ///< X, Y, Z, Angle (deg)
+    boost::array<int,2> ignorebasecollisions; ///< If 1, when moving the robot, allow collisions of the base with the environment, this allows users to search for a base placement and while ignoring small obstacles. By default this is 0.
+
+    // shared settings
+    std::string unit; ///< the unit that information is used in. m, mm, nm, inch, etc
     int topstorecandidates; ///< In order to speed things up, store at least the top (fastest) N candidates. Candidates beyond the top N will not be computed.
 };
 
@@ -581,7 +618,7 @@ public:
 
         std::vector<Real> dofvalues;
         std::string name;
-		std::string pk;
+        std::string pk;
         std::string object_pk;
         std::string reference_uri;
         Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
@@ -592,8 +629,8 @@ public:
     SceneResource(ControllerClientPtr controller, const std::string& pk);
     virtual ~SceneResource() {
     }
-	
-	virtual void SetInstObjectsState(const std::vector<SceneResource::InstObjectPtr>& instobjects, const std::vector<InstanceObjectState>& states);
+
+    virtual void SetInstObjectsState(const std::vector<SceneResource::InstObjectPtr>& instobjects, const std::vector<InstanceObjectState>& states);
 
     /** \brief Gets or creates the a task part of the scene
 
@@ -649,6 +686,9 @@ public:
     /// \return true if task was executed fine
     virtual bool Execute();
 
+    /// \brief if the task is currently executing, send a cancel request
+    virtual void Cancel();
+
     /// \brief get the run-time status of the executed task.
     ///
     /// This will only work if the task has been previously Executed with execute
@@ -659,8 +699,10 @@ public:
     /// \brief Gets or creates the a optimization part of the scene
     ///
     /// \param optimizationname the name of the optimization to search for or create
+    /// \param optimizaitontype The type of optimization, can be "robotplacement" or "placements"
     virtual OptimizationResourcePtr GetOrCreateOptimizationFromName_UTF8(const std::string& optimizationname, const std::string& optimizationtype=std::string("robotplacement"));
 
+    /// \brief \see GetOrCreateOptimizationFromName_UTF8
     virtual OptimizationResourcePtr GetOrCreateOptimizationFromName_UTF16(const std::wstring& optimizationname, const std::string& optimizationtype=std::string("robotplacement"));
 
     /// \brief gets a list of all the scene primary keys currently available to the user
@@ -691,8 +733,14 @@ public:
     /// \param bClearOldResults if true, will clear the old optimiation results. If false, will keep the old optimization results and only compute those that need to be computed.
     virtual void Execute(bool bClearOldResults=true);
 
+    /// \brief if the optimization is currently executing, send a cancel request
+    virtual void Cancel();
+
     /// \brief Set new task info for tasks of type <b>robotplanning</b>
     void SetOptimizationParameters(const RobotPlacementOptimizationParameters& optparams);
+
+    /// \brief Set new task info for tasks of type <b>placements</b>
+    void SetOptimizationParameters(const PlacementsOptimizationParameters& optparams);
 
     /// \brief get the run-time status of the executed optimization.
     ///

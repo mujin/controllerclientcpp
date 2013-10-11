@@ -18,6 +18,7 @@ set(SOURCE_FILES common.cpp controllerclientimpl.cpp mujincontrollerclient.cpp $
 
 add_library(libmujincontrollerclient SHARED ${SOURCE_FILES})
 if( EXTRA_MSVC_DEPEND )
+  message(STATUS "adding msvc_boost dependency")
   add_dependencies(libmujincontrollerclient ${EXTRA_MSVC_DEPEND})
 endif()
 set_target_properties(libmujincontrollerclient PROPERTIES COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} ${Boost_CFLAGS} -DMUJINCLIENT_DLL_EXPORTS -DMUJINCLIENT_DLL" LINK_FLAGS ""
