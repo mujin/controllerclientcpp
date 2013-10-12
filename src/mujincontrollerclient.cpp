@@ -367,29 +367,35 @@ void BinPickingTaskResource::BinPickingResultResource::GetResultGetJointValues(R
 {
 	GETCONTROLLERIMPL();
     boost::property_tree::ptree pt;
-    controller->CallGet(boost::str(boost::format("%s/%s/?format=json&limit=1")%GetResourceName()%GetPrimaryKey()), pt);
-
-	result.robottype = pt.get<std::string>("robottype");
-	
-    boost::property_tree::ptree& jointnames = pt.get_child("jointnames");
-    result.currentjointvalues.resize(jointnames.size());
-    size_t i = 0;
-    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, jointnames) {
-		result.jointnames[i++] = boost::lexical_cast<std::string>(v.second.data());
-    }
-
-    boost::property_tree::ptree& currentjointvalues = pt.get_child("currentjointvalues");
-    result.currentjointvalues.resize(currentjointvalues.size());
-    i = 0;
-    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, currentjointvalues) {
-		result.currentjointvalues[i++] = boost::lexical_cast<Real>(v.second.data());
-    }
-
-    boost::property_tree::ptree& tools = pt.get_child("tools");
-    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, tools) {
-		std::string first = v.first;
-		BOOST_FOREACH(boost::property_tree::ptree::value_type &x, v.second) {
-			result.tools[first].push_back(boost::lexical_cast<Real>(x.second.data()));
+	controller->CallGet(boost::str(boost::format("task/%s/result/?format=json&limit=1")%GetPrimaryKey()), pt);
+	BOOST_FOREACH(boost::property_tree::ptree::value_type& obj, pt.get_child("objects")) {
+		boost::property_tree::ptree& output = obj.second.get_child("output");
+		BOOST_FOREACH(boost::property_tree::ptree::value_type& value, output) {
+			if( value.first == "robottype") {
+				result.robottype = value.second.data();
+			}
+			else if (value.first == "jointnames") {
+				result.jointnames.resize(value.second.size());
+				size_t i = 0;
+				BOOST_FOREACH(boost::property_tree::ptree::value_type &v, value.second) {
+					result.jointnames[i++] = boost::lexical_cast<std::string>(v.second.data());
+				}
+			}
+			else if (value.first == "currentjointvalues" ) {
+				result.currentjointvalues.resize(value.second.size());
+				size_t i = 0;
+				BOOST_FOREACH(boost::property_tree::ptree::value_type &v, value.second) {
+					result.currentjointvalues[i++] = boost::lexical_cast<Real>(v.second.data());
+				}				
+			}
+			else if (value.first == "tools") {
+				BOOST_FOREACH(boost::property_tree::ptree::value_type &v, value.second) {
+					std::string first = v.first;
+					BOOST_FOREACH(boost::property_tree::ptree::value_type &x, v.second) {
+						result.tools[first].push_back(boost::lexical_cast<Real>(x.second.data()));
+					}
+				}
+			}
 		}
 	}
 }
@@ -398,32 +404,47 @@ void BinPickingTaskResource::BinPickingResultResource::GetResultMoveJoints(Resul
 {
 	GETCONTROLLERIMPL();
     boost::property_tree::ptree pt;
-    controller->CallGet(boost::str(boost::format("%s/%s/?format=json&limit=1")%GetResourceName()%GetPrimaryKey()), pt);
+	controller->CallGet(boost::str(boost::format("task/%s/result/?format=json&limit=1")%GetPrimaryKey()), pt);
+	BOOST_FOREACH(boost::property_tree::ptree::value_type& obj, pt.get_child("objects")) {
+		boost::property_tree::ptree& output = obj.second.get_child("output");
+		BOOST_FOREACH(boost::property_tree::ptree::value_type& value, output) {
+			if (value.first == "robottype" ) {
+				result.robottype = value.second.data();
+			}
+			else if (value.first == "timedjointvalues") {
+				result.timedjointvalues.resize(value.second.size());
+				size_t i = 0;
+				BOOST_FOREACH(boost::property_tree::ptree::value_type &v, value.second) {
+					result.timedjointvalues[i++] = boost::lexical_cast<Real>(v.second.data());
+				}
+			}
+			else if (value.first == "numpoints" ) {
+				result.numpoints = boost::lexical_cast<int>(value.second.data());
+			}
+			/*
+			else if (value.first == "elapsedtime" ) {
+			//TODO lexical_cast doesn't work with such kind of string: "4.99999999999998e-06"
+				result.elapsedtime = boost::lexical_cast<int>(value.second.data());
+			}
+			*/
+		}
+	}
 
-	result.robot = pt.get<std::string>("robot");
-
-    boost::property_tree::ptree& goaljoints = pt.get_child("goaljoints");
-    result.goaljoints.resize(goaljoints.size());
-    size_t i = 0;
-    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, goaljoints) {
-		result.goaljoints[i++] = boost::lexical_cast<Real>(v.second.data());
-    }
-
-	boost::property_tree::ptree& jointindices = pt.get_child("jointindices");
-    result.jointindices.resize(jointindices.size());
-    i = 0;
-    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, jointindices) {
-		result.jointindices[i++] = boost::lexical_cast<int>(v.second.data());
-    }
-
-	result.envclearance = boost::lexical_cast<int>(pt.get<std::string>("envclearance"));
+	
 }
 
-BinPickingTaskResource::BinPickingTaskResource(const std::string& taskname, const std::string& controllerip, const int controllerport, ControllerClientPtr controller, const std::string& pk) : TaskResource(controller,pk)
+BinPickingTaskResource::BinPickingTaskResource(const std::string& taskname, const std::string& controllerip, const int controllerport, ControllerClientPtr controller, SceneResourcePtr scene) : TaskResource(controller,_GetOrCreateTaskAndGetPk(scene, taskname))
 {
 	_taskname = taskname;
 	_controllerip = controllerip;
 	_controllerport = controllerport;
+}
+
+std::string BinPickingTaskResource::_GetOrCreateTaskAndGetPk(SceneResourcePtr scene, const std::string& taskname)
+{
+	TaskResourcePtr task = scene->GetOrCreateTaskFromName_UTF8(taskname,"binpicking");
+	std::string pk = task->Get("pk");
+	return pk;
 }
 
 void BinPickingTaskResource::GetJointValues(int timeout, BinPickingResultResource::ResultGetJointValues& result)
@@ -495,9 +516,9 @@ void BinPickingTaskResource::SetTaskParameters(const BinPickingTaskParameters& t
 {
     GETCONTROLLERIMPL();
 
-	std::string taskgoalput = boost::str(boost::format("{\"tasktype\": \"binpicking\", \"taskparameters\":{\"command\":%s, \"robottype\":\"%s\", \"controllerip\":\"%s\", \"controllerport\":%d, \"goaljoints\":%s, \"jointindices\":%s, \"envclearance\":%f, \"speed\": %f} }")%taskparameters.command%taskparameters.robottype%taskparameters.controllerip%taskparameters.controllerport%taskparameters._GenerateJsonString(taskparameters.goaljoints)%taskparameters._GenerateJsonString(taskparameters.jointindices)%taskparameters.envclearance%taskparameters.speed);
+	std::string taskgoalput = boost::str(boost::format("{\"tasktype\": \"binpicking\", \"taskparameters\":{\"command\":\"%s\", \"robottype\":\"%s\", \"controllerip\":\"%s\", \"controllerport\":%d, \"goaljoints\":%s, \"jointindices\":%s, \"envclearance\":%f, \"speed\": %f} }")%taskparameters.command%taskparameters.robottype%taskparameters.controllerip%taskparameters.controllerport%taskparameters._GenerateJsonString(taskparameters.goaljoints)%taskparameters._GenerateJsonString(taskparameters.jointindices)%taskparameters.envclearance%taskparameters.speed);
     boost::property_tree::ptree pt;
-    controller->CallPut(str(boost::format("task/%s/?format=json&fields=")%GetPrimaryKey()), taskgoalput, pt);
+    controller->CallPut(str(boost::format("task/%s/?format=json")%GetPrimaryKey()), taskgoalput, pt);
 }
 
 int BinPickingTaskResource::GetResult(BinPickingResultResourcePtr& result)
@@ -509,8 +530,8 @@ int BinPickingTaskResource::GetResult(BinPickingResultResourcePtr& result)
     if( objects.size() == 0 ) {
         return 0;
     }
-    std::string pk = objects.begin()->second.get<std::string>("pk");
-    result.reset(new BinPickingResultResource(GetController(), pk));
+    //std::string pk = objects.begin()->second.get<std::string>("pk");
+    result.reset(new BinPickingResultResource(GetController(), GetPrimaryKey()));
     return objects.size();
 }
 

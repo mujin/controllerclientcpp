@@ -314,31 +314,31 @@ public:
 	{
 		std::stringstream ss;
 		ss << std::setprecision(std::numeric_limits<double>::digits10+1);
-		if( vec.size() > 0 ) {
-			ss << "[";
+		ss << "[";
+		if( vec.size() > 0 ) {	
 			for (unsigned int i = 0; i < vec.size(); i++) {
 				ss << vec[i];
 				if( i != vec.size()-1) {
 					ss << ", ";
 				}
 			}
-			ss << "]";
 		}
+		ss << "]";
 		return ss.str();
 	}
 	std::string _GenerateJsonString (const std::vector<int>& vec) const
 	{
 		std::stringstream ss;
+		ss << "[";
 		if( vec.size() > 0 ) {
-			ss << "[";
 			for (unsigned int i = 0; i < vec.size(); i++) {
 				ss << vec[i];
 				if( i != vec.size()-1) {
 					ss << ", ";
 				}
 			}
-			ss << "]";
 		}
+		ss << "]";
 		return ss.str();
 	}
 	std::string command; ///< command to call
@@ -785,14 +785,14 @@ class MUJINCLIENT_API BinPickingTaskResource : public TaskResource
 {
 public:
     BinPickingTaskResource(const std::string& taskname, const std::string& controllerip, const int controllerport, 
-		ControllerClientPtr controller, const std::string& pk);
+		ControllerClientPtr controller, SceneResourcePtr scene);
     virtual ~BinPickingTaskResource() {
     }
 	
 	class MUJINCLIENT_API BinPickingResultResource : public WebResource
 	{
 	public:
-		BinPickingResultResource(ControllerClientPtr controller, const std::string& pk) : WebResource(controller,"task", pk+"/result/")
+		BinPickingResultResource(ControllerClientPtr controller, const std::string& pk) : WebResource(controller,"task", pk)
 		{
 		}
 		virtual ~BinPickingResultResource() {
@@ -809,10 +809,10 @@ public:
 		class ResultMoveJoints
 		{
 		public:
-			std::string			robot;
-			std::vector<double> goaljoints;
-			std::vector<int>	jointindices;
-			int					envclearance;
+			std::string			robottype;
+			int					numpoints;
+			std::vector<double>	timedjointvalues;
+			//double				elapsedtime;
 		};
 	
 		void GetResultGetJointValues(ResultGetJointValues& result);
@@ -830,6 +830,7 @@ public:
 	/// \brief Set the task info for tasks of type <b>binpicking</b>
 	virtual void SetTaskParameters(const BinPickingTaskParameters& taskparameters);
 private:
+	std::string _GetOrCreateTaskAndGetPk(SceneResourcePtr scene, const std::string& taskname);
 	std::string _controllerip;
 	int _controllerport;
 	std::string _taskname;
