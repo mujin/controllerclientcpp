@@ -308,6 +308,7 @@ public:
         controllerport = 5007;
 		envclearance = 0;
         speed = 1;
+		targetname = "";
     }
 	
 	std::string _GenerateJsonString (const std::vector<double>& vec) const
@@ -349,6 +350,8 @@ public:
 	std::vector<int>    jointindices;
     double envclearance;
 	double speed;
+	std::string targetname;
+	Transform transform;
 };
 
 /// \brief program data for an individual robot
@@ -817,12 +820,15 @@ public:
 	
 		void GetResultGetJointValues(ResultGetJointValues& result);
 		void GetResultMoveJoints(ResultMoveJoints& result);
+		void GetResultTransform(Transform& transform);
 	};
 	typedef boost::shared_ptr<BinPickingResultResource> BinPickingResultResourcePtr;
 
 	virtual int GetResult(BinPickingResultResourcePtr& result);
 	virtual void GetJointValues(int timeout /* [sec] */, BinPickingResultResource::ResultGetJointValues& result);
 	virtual void MoveJoints(const std::vector<double>& jointvalues, const std::vector<int>& jointindices, int timeout /* [sec] */, BinPickingResultResource::ResultMoveJoints& result);
+	virtual Transform GetTransform(const std::string& targetname);
+	virtual void SetTransform(const std::string& targetname, const Transform& transform);
 
 	/// \brief Get the task info for tasks of type <b>binpicking</b>
 	virtual void GetTaskParameters(BinPickingTaskParameters& taskparameters);
