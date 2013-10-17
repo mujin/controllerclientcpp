@@ -829,7 +829,7 @@ public:
 	virtual void MoveJoints(const std::vector<double>& jointvalues, const std::vector<int>& jointindices, int timeout /* [sec] */, BinPickingResultResource::ResultMoveJoints& result);
 	virtual Transform GetTransform(const std::string& targetname);
 	virtual void SetTransform(const std::string& targetname, const Transform& transform);
-
+	virtual Transform GetManipTransformToRobot();
 	/// \brief Get the task info for tasks of type <b>binpicking</b>
 	virtual void GetTaskParameters(BinPickingTaskParameters& taskparameters);
 

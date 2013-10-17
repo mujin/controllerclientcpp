@@ -540,6 +540,8 @@ Transform BinPickingTaskResource::GetTransform(const std::string& targetname)
 
 	Transform transform;
 	param.command = "GetTransform";
+	param.controllerip = _controllerip;
+	param.controllerport = _controllerport;
 	param.targetname = targetname;
 	this->SetTaskParameters(param);
 	this->Execute();
@@ -566,6 +568,8 @@ void BinPickingTaskResource::SetTransform(const std::string& targetname, const T
 
 	param.command = "SetTransform";
 	param.targetname = targetname;
+	param.controllerip = _controllerip;
+	param.controllerport = _controllerport;
 	param.transform = transform;
 	this->SetTaskParameters(param);
 	this->Execute();
@@ -584,6 +588,34 @@ void BinPickingTaskResource::SetTransform(const std::string& targetname, const T
     }
 }
 
+Transform BinPickingTaskResource::GetManipTransformToRobot()
+{
+	GETCONTROLLERIMPL();
+	BinPickingResultResourcePtr resultresource;
+	BinPickingTaskParameters param;
+	Transform transform;
+
+	param.command = "GetManipTransformToRobot";
+	param.controllerip = _controllerip;
+	param.controllerport = _controllerport;
+	this->SetTaskParameters(param);
+	this->Execute();
+
+	int iterations = 0;
+    while (1) {
+        if (this->GetResult(resultresource) != 0)
+		{
+			resultresource->GetResultTransform(transform);
+			return transform;
+		}
+        boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
+        ++iterations;
+        if( iterations > 10 ) {
+            controller->CancelAllJobs();
+            throw MujinException("operation timed out, cancelling all jobs and quitting", MEC_Timeout);
+        }
+    }
+}
 void BinPickingTaskResource::GetTaskParameters(BinPickingTaskParameters& taskparameters)
 {
     throw MujinException("not implemented yet");
