@@ -242,7 +242,7 @@ void TaskResource::GetRunTimeStatus(JobStatus& status, int options)
         status.pk = pt.get<std::string>("pk");
         status.code = static_cast<JobStatusCode>(boost::lexical_cast<int>(pt.get<std::string>("status")));
         status.type = pt.get<std::string>("fnname");
-        status.elapsedtime = pt.get<double>("elapsedtime");
+        status.elapsedtime = pt.get<Real>("elapsedtime");
         if( options & 1 ) {
             status.message = pt.get<std::string>("status_text");
         }
@@ -363,6 +363,49 @@ PlanningResultResourcePtr TaskResource::GetResult()
     return result;
 }
 
+void BinPickingTaskParameters::SetDefaults()
+{
+    command = "GetJointValues";
+    robottype = "densowave";
+    controllerip = "";
+    controllerport = 0;
+	envclearance = 20;
+    speed = 0.5;
+	targetname = "";
+}
+
+std::string BinPickingTaskParameters::GenerateJsonString (const std::vector<Real>& vec) const
+{
+	std::stringstream ss; ss << std::setprecision(std::numeric_limits<Real>::digits10+1);
+	ss << "[";
+	if( vec.size() > 0 ) {	
+		for (unsigned int i = 0; i < vec.size(); i++) {
+			ss << vec[i];
+			if( i != vec.size()-1) {
+				ss << ", ";
+			}
+		}
+	}
+	ss << "]";
+	return ss.str();
+}
+
+std::string BinPickingTaskParameters::GenerateJsonString (const std::vector<int>& vec) const
+{
+	std::stringstream ss;
+	ss << "[";
+	if( vec.size() > 0 ) {
+		for (unsigned int i = 0; i < vec.size(); i++) {
+			ss << vec[i];
+			if( i != vec.size()-1) {
+				ss << ", ";
+			}
+		}
+	}
+	ss << "]";
+	return ss.str();
+}
+
 void BinPickingTaskResource::BinPickingResultResource::GetResultGetJointValues(ResultGetJointValues& result)
 {
 	GETCONTROLLERIMPL();
@@ -459,6 +502,7 @@ void BinPickingTaskResource::BinPickingResultResource::GetResultTransform(Transf
 		}
 	}
 }
+
 BinPickingTaskResource::BinPickingTaskResource(const std::string& taskname, const std::string& controllerip, const int controllerport, ControllerClientPtr controller, SceneResourcePtr scene) : TaskResource(controller,_GetOrCreateTaskAndGetPk(scene, taskname))
 {
 	_taskname = taskname;
@@ -501,7 +545,7 @@ void BinPickingTaskResource::GetJointValues(int timeout, BinPickingResultResourc
     }
 }
 
-void BinPickingTaskResource::MoveJoints(const std::vector<double>& jointvalues, const std::vector<int>& jointindices, int timeout, BinPickingResultResource::ResultMoveJoints& result)
+void BinPickingTaskResource::MoveJoints(const std::vector<Real>& jointvalues, const std::vector<int>& jointindices, int timeout, BinPickingResultResource::ResultMoveJoints& result)
 {
 	GETCONTROLLERIMPL();
 	BinPickingResultResourcePtr resultresource;
@@ -513,8 +557,8 @@ void BinPickingTaskResource::MoveJoints(const std::vector<double>& jointvalues, 
 	param.robottype = "densowave";
 	param.goaljoints = jointvalues;
 	param.jointindices = jointindices;
-	param.envclearance = 30;
-	param.speed = 10;
+	param.envclearance = 20;
+	param.speed = 0.5;
 	this->SetTaskParameters(param);
 	this->Execute();
 	int iterations = 0;
@@ -532,6 +576,7 @@ void BinPickingTaskResource::MoveJoints(const std::vector<double>& jointvalues, 
         }
     }
 }
+
 Transform BinPickingTaskResource::GetTransform(const std::string& targetname)
 {
 	GETCONTROLLERIMPL();
@@ -560,6 +605,7 @@ Transform BinPickingTaskResource::GetTransform(const std::string& targetname)
         }
     }
 }
+
 void BinPickingTaskResource::SetTransform(const std::string& targetname, const Transform& transform)
 {
 	GETCONTROLLERIMPL();
@@ -616,6 +662,41 @@ Transform BinPickingTaskResource::GetManipTransformToRobot()
         }
     }
 }
+
+void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<Real>& vpoints, Real pointsize, const std::string& name)
+{
+    GETCONTROLLERIMPL();
+	BinPickingResultResourcePtr resultresource;
+
+    std::stringstream ss; ss << std::setprecision(std::numeric_limits<Real>::digits10+1);
+
+    ss << boost::str(boost::format("{\"tasktype\": \"binpicking\", \"taskparameters\":{\"command\":\"AddPointCloudObstacle\", \"pointsize\":%f, \"name\": \"%s\"")%pointsize%name);
+    if( vpoints.size() > 0 ) {
+        ss << ", \"points\":[" << vpoints.at(0);
+        for(size_t i = 1; i < vpoints.size(); ++i) {
+            ss << "," << vpoints[i];
+        }
+        ss << "]";
+    }
+    ss << "}}";
+    boost::property_tree::ptree pt;
+    controller->CallPut(str(boost::format("task/%s/?format=json")%GetPrimaryKey()), ss.str(), pt);
+    
+	this->Execute();
+	int iterations = 0;
+    while (1) {
+        if (this->GetResult(resultresource) != 0) {
+			return;
+		}
+        boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
+        ++iterations;
+        if( iterations > 10 ) {
+            controller->CancelAllJobs();
+            throw MujinException("operation timed out, cancelling all jobs and quitting", MEC_Timeout);
+        }
+    }
+}
+
 void BinPickingTaskResource::GetTaskParameters(BinPickingTaskParameters& taskparameters)
 {
     throw MujinException("not implemented yet");
@@ -625,7 +706,7 @@ void BinPickingTaskResource::SetTaskParameters(const BinPickingTaskParameters& t
 {
     GETCONTROLLERIMPL();
 
-	std::string taskgoalput = boost::str(boost::format("{\"tasktype\": \"binpicking\", \"taskparameters\":{\"command\":\"%s\", \"robottype\":\"%s\", \"controllerip\":\"%s\", \"controllerport\":%d, \"goaljoints\":%s, \"jointindices\":%s, \"envclearance\":%f, \"speed\": %f, \"targetname\": \"%s\", \"translation\":[%.15f, %.15f, %.15f], \"quaternion\":[%.15f, %.15f, %.15f, %.15f]} }")%taskparameters.command%taskparameters.robottype%taskparameters.controllerip%taskparameters.controllerport%taskparameters._GenerateJsonString(taskparameters.goaljoints)%taskparameters._GenerateJsonString(taskparameters.jointindices)%taskparameters.envclearance%taskparameters.speed%taskparameters.targetname%taskparameters.transform.translate[0]%taskparameters.transform.translate[1]%taskparameters.transform.translate[2]%taskparameters.transform.quaternion[0]%taskparameters.transform.quaternion[1]%taskparameters.transform.quaternion[2]%taskparameters.transform.quaternion[3]);
+	std::string taskgoalput = boost::str(boost::format("{\"tasktype\": \"binpicking\", \"taskparameters\":{\"command\":\"%s\", \"robottype\":\"%s\", \"controllerip\":\"%s\", \"controllerport\":%d, \"goaljoints\":%s, \"jointindices\":%s, \"envclearance\":%f, \"speed\": %f, \"targetname\": \"%s\", \"translation\":[%.15f, %.15f, %.15f], \"quaternion\":[%.15f, %.15f, %.15f, %.15f]} }")%taskparameters.command%taskparameters.robottype%taskparameters.controllerip%taskparameters.controllerport%taskparameters.GenerateJsonString(taskparameters.goaljoints)%taskparameters.GenerateJsonString(taskparameters.jointindices)%taskparameters.envclearance%taskparameters.speed%taskparameters.targetname%taskparameters.transform.translate[0]%taskparameters.transform.translate[1]%taskparameters.transform.translate[2]%taskparameters.transform.quaternion[0]%taskparameters.transform.quaternion[1]%taskparameters.transform.quaternion[2]%taskparameters.transform.quaternion[3]);
     boost::property_tree::ptree pt;
     controller->CallPut(str(boost::format("task/%s/?format=json")%GetPrimaryKey()), taskgoalput, pt);
 }
@@ -676,7 +757,7 @@ void OptimizationResource::GetRunTimeStatus(JobStatus& status, int options)
         status.pk = pt.get<std::string>("pk");
         status.code = static_cast<JobStatusCode>(boost::lexical_cast<int>(pt.get<std::string>("status")));
         status.type = pt.get<std::string>("fnname");
-        status.elapsedtime = pt.get<double>("elapsedtime");
+        status.elapsedtime = pt.get<Real>("elapsedtime");
         if( options & 1 ) {
             status.message = pt.get<std::string>("status_text");
         }

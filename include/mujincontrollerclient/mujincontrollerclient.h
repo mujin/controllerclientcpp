@@ -301,55 +301,20 @@ public:
     BinPickingTaskParameters() {
         SetDefaults();
     }
-    virtual void SetDefaults() {
-        command = "GetJointValues";
-        robottype = "densowave";
-        controllerip = "controller.mujin.co.jp";
-        controllerport = 5007;
-		envclearance = 0;
-        speed = 1;
-		targetname = "";
-    }
+
+    virtual void SetDefaults();
 	
-	std::string _GenerateJsonString (const std::vector<double>& vec) const
-	{
-		std::stringstream ss;
-		ss << std::setprecision(std::numeric_limits<double>::digits10+1);
-		ss << "[";
-		if( vec.size() > 0 ) {	
-			for (unsigned int i = 0; i < vec.size(); i++) {
-				ss << vec[i];
-				if( i != vec.size()-1) {
-					ss << ", ";
-				}
-			}
-		}
-		ss << "]";
-		return ss.str();
-	}
-	std::string _GenerateJsonString (const std::vector<int>& vec) const
-	{
-		std::stringstream ss;
-		ss << "[";
-		if( vec.size() > 0 ) {
-			for (unsigned int i = 0; i < vec.size(); i++) {
-				ss << vec[i];
-				if( i != vec.size()-1) {
-					ss << ", ";
-				}
-			}
-		}
-		ss << "]";
-		return ss.str();
-	}
+	std::string GenerateJsonString (const std::vector<Real>& vec) const;
+	std::string GenerateJsonString (const std::vector<int>& vec) const;
+	
 	std::string command; ///< command to call
     std::string robottype; ///< the type of robot
     std::string controllerip; ///< the ip of the computer on which the robot controller runs
     int controllerport; ///< the port of the computer on which the robot controller runs
-	std::vector<double> goaljoints; ///< the joint values of goal point
+	std::vector<Real> goaljoints; ///< the joint values of goal point
 	std::vector<int>    jointindices;
-    double envclearance;
-	double speed;
+    Real envclearance;
+	Real speed;
 	std::string targetname;
 	Transform transform;
 };
@@ -787,8 +752,8 @@ protected:
 class MUJINCLIENT_API BinPickingTaskResource : public TaskResource
 {
 public:
-    BinPickingTaskResource(const std::string& taskname, const std::string& controllerip, const int controllerport, 
-		ControllerClientPtr controller, SceneResourcePtr scene);
+    BinPickingTaskResource(const std::string& taskname, const std::string& controllerip, const int controllerport, ControllerClientPtr controller, SceneResourcePtr scene);
+    
     virtual ~BinPickingTaskResource() {
     }
 	
@@ -805,17 +770,17 @@ public:
 		public:
 			std::string robottype;
 			std::vector<std::string> jointnames;
-			std::vector<double> currentjointvalues;
+			std::vector<Real> currentjointvalues;
 			std::map<std::string, std::vector<Real> > tools;
 		};
 
 		class ResultMoveJoints
 		{
 		public:
-			std::string			robottype;
-			int					numpoints;
-			std::vector<double>	timedjointvalues;
-			//double				elapsedtime;
+			std::string robottype;
+			int	numpoints;
+			std::vector<Real>	timedjointvalues;
+			//Real elapsedtime;
 		};
 	
 		void GetResultGetJointValues(ResultGetJointValues& result);
@@ -826,10 +791,14 @@ public:
 
 	virtual int GetResult(BinPickingResultResourcePtr& result);
 	virtual void GetJointValues(int timeout /* [sec] */, BinPickingResultResource::ResultGetJointValues& result);
-	virtual void MoveJoints(const std::vector<double>& jointvalues, const std::vector<int>& jointindices, int timeout /* [sec] */, BinPickingResultResource::ResultMoveJoints& result);
+	virtual void MoveJoints(const std::vector<Real>& jointvalues, const std::vector<int>& jointindices, int timeout /* [sec] */, BinPickingResultResource::ResultMoveJoints& result);
 	virtual Transform GetTransform(const std::string& targetname);
 	virtual void SetTransform(const std::string& targetname, const Transform& transform);
 	virtual Transform GetManipTransformToRobot();
+
+    /// \brief Dynamically add a point cloud collision obstacle with name to the environment.
+    virtual void AddPointCloudObstacle(const std::vector<Real>& vpoints, Real pointsize, const std::string& name);
+
 	/// \brief Get the task info for tasks of type <b>binpicking</b>
 	virtual void GetTaskParameters(BinPickingTaskParameters& taskparameters);
 
