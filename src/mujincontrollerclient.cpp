@@ -60,7 +60,7 @@ void SceneResource::InstObject::SetTransform(const Transform& t)
 
 SceneResource::SceneResource(ControllerClientPtr controllerptr, const std::string& pk) : WebResource(controllerptr, "scene", pk)
 {
-	this->Get("");
+    this->Get("");
 }
 
 TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& taskname, const std::string& tasktype)
@@ -478,7 +478,6 @@ void PlanningResultResource::GetEnvironmentState(EnvironmentState& envstate)
         boost::property_tree::ptree& translationjson = objstatejson.second.get_child("translation_");
         int itranslation=0;
         BOOST_FOREACH(boost::property_tree::ptree::value_type &v, translationjson) {
-            BOOST_ASSERT(iquat<3);
             objstate.transform.translate[itranslation++] = boost::lexical_cast<Real>(v.second.data());
         }
         envstate[name] = objstate;
