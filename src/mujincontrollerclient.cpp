@@ -663,13 +663,14 @@ Transform BinPickingTaskResource::GetManipTransformToRobot()
     }
 }
 
-void BinPickingTaskResource::InitializeZMQ()
+void BinPickingTaskResource::InitializeZMQ(int zmqport)
 {
 	GETCONTROLLERIMPL();
 	BinPickingResultResourcePtr resultresource;
 	BinPickingTaskParameters param;
 
 	param.command = "InitZMQ";
+    param.port = zmqport;
 	this->SetTaskParameters(param);
 	this->Execute();
 
@@ -729,7 +730,7 @@ void BinPickingTaskResource::SetTaskParameters(const BinPickingTaskParameters& t
 {
     GETCONTROLLERIMPL();
 
-	std::string taskgoalput = boost::str(boost::format("{\"tasktype\": \"binpicking\", \"taskparameters\":{\"command\":\"%s\", \"robottype\":\"%s\", \"controllerip\":\"%s\", \"controllerport\":%d, \"goaljoints\":%s, \"jointindices\":%s, \"envclearance\":%f, \"speed\": %f, \"targetname\": \"%s\", \"translation\":[%.15f, %.15f, %.15f], \"quaternion\":[%.15f, %.15f, %.15f, %.15f]} }")%taskparameters.command%taskparameters.robottype%taskparameters.controllerip%taskparameters.controllerport%taskparameters.GenerateJsonString(taskparameters.goaljoints)%taskparameters.GenerateJsonString(taskparameters.jointindices)%taskparameters.envclearance%taskparameters.speed%taskparameters.targetname%taskparameters.transform.translate[0]%taskparameters.transform.translate[1]%taskparameters.transform.translate[2]%taskparameters.transform.quaternion[0]%taskparameters.transform.quaternion[1]%taskparameters.transform.quaternion[2]%taskparameters.transform.quaternion[3]);
+	std::string taskgoalput = boost::str(boost::format("{\"tasktype\": \"binpicking\", \"taskparameters\":{\"command\":\"%s\", \"robottype\":\"%s\", \"controllerip\":\"%s\", \"controllerport\":%d, \"goaljoints\":%s, \"jointindices\":%s, \"envclearance\":%f, \"speed\": %f, \"targetname\": \"%s\", \"translation\":[%.15f, %.15f, %.15f], \"quaternion\":[%.15f, %.15f, %.15f, %.15f],\"port\": %d} }")%taskparameters.command%taskparameters.robottype%taskparameters.controllerip%taskparameters.controllerport%taskparameters.GenerateJsonString(taskparameters.goaljoints)%taskparameters.GenerateJsonString(taskparameters.jointindices)%taskparameters.envclearance%taskparameters.speed%taskparameters.targetname%taskparameters.transform.translate[0]%taskparameters.transform.translate[1]%taskparameters.transform.translate[2]%taskparameters.transform.quaternion[0]%taskparameters.transform.quaternion[1]%taskparameters.transform.quaternion[2]%taskparameters.transform.quaternion[3]%taskparameters.port);
     boost::property_tree::ptree pt;
     controller->CallPut(str(boost::format("task/%s/?format=json")%GetPrimaryKey()), taskgoalput, pt);
 }
