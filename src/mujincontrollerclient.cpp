@@ -663,6 +663,29 @@ Transform BinPickingTaskResource::GetManipTransformToRobot()
     }
 }
 
+void BinPickingTaskResource::InitializeZMQ()
+{
+	GETCONTROLLERIMPL();
+	BinPickingResultResourcePtr resultresource;
+	BinPickingTaskParameters param;
+
+	param.command = "InitZMQ";
+	this->SetTaskParameters(param);
+	this->Execute();
+
+	int iterations = 0;
+    while (1) {
+        if (this->GetResult(resultresource) != 0) {
+			return;
+		}
+        boost::this_thread::sleep(boost::posix_time::milliseconds(500));
+        ++iterations;
+        if( iterations > 20 ) {
+            controller->CancelAllJobs();
+            throw MujinException("operation timed out, cancelling all jobs and quitting", MEC_Timeout);
+        }
+    }
+}
 void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<Real>& vpoints, Real pointsize, const std::string& name)
 {
     GETCONTROLLERIMPL();
