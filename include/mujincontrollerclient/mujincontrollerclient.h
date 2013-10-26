@@ -313,6 +313,7 @@ public:
     int controllerport; ///< the port of the computer on which the robot controller runs
 	std::vector<Real> goaljoints; ///< the joint values of goal point
 	std::vector<int>    jointindices;
+    int port;
     Real envclearance;
 	Real speed;
 	std::string targetname;
@@ -795,7 +796,7 @@ public:
 	virtual Transform GetTransform(const std::string& targetname);
 	virtual void SetTransform(const std::string& targetname, const Transform& transform);
 	virtual Transform GetManipTransformToRobot();
-	virtual void InitializeZMQ();
+	virtual void InitializeZMQ(int zmqport);
 
     /// \brief Dynamically add a point cloud collision obstacle with name to the environment.
     virtual void AddPointCloudObstacle(const std::vector<Real>& vpoints, Real pointsize, const std::string& name);
