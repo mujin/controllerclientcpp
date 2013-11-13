@@ -14,7 +14,7 @@
 include_directories(${MUJINCLIENT_INCLUDE_LOCAL_DIRS} ${CURL_INCLUDE_DIRS})
 link_directories(${MUJINCLIENT_LINK_DIRS})
 
-set(SOURCE_FILES common.cpp controllerclientimpl.cpp mujincontrollerclient.cpp ${mujin_header_files} common.h controllerclientimpl.h utf8.h)
+set(SOURCE_FILES binpickingtask.cpp common.cpp controllerclientimpl.cpp mujincontrollerclient.cpp ${mujin_header_files} common.h controllerclientimpl.h utf8.h)
 
 add_library(libmujincontrollerclient SHARED ${SOURCE_FILES})
 if( EXTRA_MSVC_DEPEND )
