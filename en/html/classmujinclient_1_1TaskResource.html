@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">controllerclientcpp
-   &#160;<span id="projectnumber">0.2.10</span>
+   &#160;<span id="projectnumber">0.3.0</span>
    </div>
   </td>
  </tr>
@@ -103,7 +103,7 @@ Inheritance diagram for mujinclient::TaskResource:</div>
 <div class="dyncontent">
 <div class="center"><img src="classmujinclient_1_1TaskResource__inherit__graph.png" border="0" usemap="#mujinclient_1_1TaskResource_inherit__map" alt="Inheritance graph"/></div>
 <map name="mujinclient_1_1TaskResource_inherit__map" id="mujinclient_1_1TaskResource_inherit__map">
-<area shape="rect" href="classmujinclient_1_1WebResource.html" title="mujinclient::WebResource" alt="" coords="5,5,179,32"/></map>
+<area shape="rect" href="classmujinclient_1_1BinPickingTaskResource.html" title="mujinclient::BinPickingTask\lResource" alt="" coords="5,155,184,197"/><area shape="rect" href="classmujinclient_1_1WebResource.html" title="mujinclient::WebResource" alt="" coords="8,5,181,32"/></map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <div class="dynheader">
 Collaboration diagram for mujinclient::TaskResource:</div>
@@ -122,6 +122,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:af4a6378d19af39fc7533407c46dedb76"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1TaskResource.html#af4a6378d19af39fc7533407c46dedb76">Execute</a> ()</td></tr>
 <tr class="memdesc:af4a6378d19af39fc7533407c46dedb76"><td class="mdescLeft">&#160;</td><td class="mdescRight">execute the task.  <a href="#af4a6378d19af39fc7533407c46dedb76"></a><br/></td></tr>
 <tr class="separator:af4a6378d19af39fc7533407c46dedb76"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac9e9d0bc44d2472e6802a62013de137d"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1TaskResource.html#ac9e9d0bc44d2472e6802a62013de137d">Cancel</a> ()</td></tr>
+<tr class="memdesc:ac9e9d0bc44d2472e6802a62013de137d"><td class="mdescLeft">&#160;</td><td class="mdescRight">if the task is currently executing, send a cancel request  <a href="#ac9e9d0bc44d2472e6802a62013de137d"></a><br/></td></tr>
+<tr class="separator:ac9e9d0bc44d2472e6802a62013de137d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8354ff43c41eedabd1bc95673918e0cd"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1TaskResource.html#a8354ff43c41eedabd1bc95673918e0cd">GetRunTimeStatus</a> (<a class="el" href="structmujinclient_1_1JobStatus.html">JobStatus</a> &amp;status, int options=1)</td></tr>
 <tr class="memdesc:a8354ff43c41eedabd1bc95673918e0cd"><td class="mdescLeft">&#160;</td><td class="mdescRight">get the run-time status of the executed task.  <a href="#a8354ff43c41eedabd1bc95673918e0cd"></a><br/></td></tr>
 <tr class="separator:a8354ff43c41eedabd1bc95673918e0cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -175,7 +178,7 @@ Protected Attributes</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><dl><dt><b>Examples: </b></dt><dd><a class="el" href="mujinshowresults_8cpp-example.html#_a3">mujinshowresults.cpp</a>.</dd>
 </dl>
-<p>Definition at line <a class="el" href="mujincontrollerclient_8h_source.html#l00639">639</a> of file <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a>.</p>
+<p>Definition at line <a class="el" href="mujincontrollerclient_8h_source.html#l00677">677</a> of file <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a class="anchor" id="a1870ca58f24e7b543609db11cd6c47d7"></a>
 <div class="memitem">
@@ -224,11 +227,36 @@ Protected Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="mujincontrollerclient_8h_source.html#l00643">643</a> of file <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a>.</p>
+<p>Definition at line <a class="el" href="mujincontrollerclient_8h_source.html#l00681">681</a> of file <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a class="anchor" id="ac9e9d0bc44d2472e6802a62013de137d"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void mujinclient::TaskResource::Cancel </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>if the task is currently executing, send a cancel request </p>
+
+</div>
+</div>
 <a class="anchor" id="af4a6378d19af39fc7533407c46dedb76"></a>
 <div class="memitem">
 <div class="memproto">
@@ -313,6 +341,7 @@ Protected Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<dl class="section see"><dt>See Also</dt><dd><a class="el" href="classmujinclient_1_1TaskResource.html#acf365bf703fbcac72cba8ab66aaa3b0b" title="Gets or creates the a optimization part of the scene.">GetOrCreateOptimizationFromName_UTF8</a> </dd></dl>
 
 </div>
 </div>
@@ -352,6 +381,7 @@ Protected Attributes</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">optimizationname</td><td>the name of the optimization to search for or create </td></tr>
+    <tr><td class="paramname">optimizaitontype</td><td>The type of optimization, can be "robotplacement" or "placements" </td></tr>
   </table>
   </dd>
 </dl>
@@ -499,17 +529,17 @@ Protected Attributes</h2></td></tr>
 
 <p>the job primary key used to track the status of the running task after <a class="el" href="classmujinclient_1_1TaskResource.html#af4a6378d19af39fc7533407c46dedb76">Execute</a> is called </p>
 
-<p>Definition at line <a class="el" href="mujincontrollerclient_8h_source.html#l00679">679</a> of file <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a>.</p>
+<p>Definition at line <a class="el" href="mujincontrollerclient_8h_source.html#l00722">722</a> of file <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a>.</p>
 
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li>/home/rdiankov/mujin/controllerclientcpp/include/mujincontrollerclient/<a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h (2013-09-06 11:54:26 +0900, commit:341b49e)</a></li>
+<li>/home/rdiankov/mujin/controllerclientcpp/include/mujincontrollerclient/<a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h (2013-11-13 11:52:30 +0900, commit:ff162c3)</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Sep 6 2013 11:55:39 for controllerclientcpp by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Nov 13 2013 11:52:42 for controllerclientcpp by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.3
 </small></address>

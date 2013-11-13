@@ -1,5 +1,6 @@
 var searchData=
 [
+  ['cancel',['Cancel',['../classmujinclient_1_1TaskResource.html#ac9e9d0bc44d2472e6802a62013de137d',1,'mujinclient::TaskResource::Cancel()'],['../classmujinclient_1_1OptimizationResource.html#aabab7268a07e81999883f8a62591b108',1,'mujinclient::OptimizationResource::Cancel()']]],
   ['cancelalljobs',['CancelAllJobs',['../classmujinclient_1_1ControllerClient.html#ac57697fbb9e267d4c5ceae150bb249bc',1,'mujinclient::ControllerClient']]],
   ['computematrixfromtransform',['ComputeMatrixFromTransform',['../namespacemujinclient.html#aa9f3d9271232898dc59387fd812219f9',1,'mujinclient']]],
   ['computezxyfrommatrix',['ComputeZXYFromMatrix',['../namespacemujinclient.html#abce651aa8bbd46444e4b458f4161bf31',1,'mujinclient']]],

@@ -1,5 +1,6 @@
 var searchData=
 [
+  ['generatejsonstring',['GenerateJsonString',['../classmujinclient_1_1BinPickingTaskParameters.html#a40452d63b112687ae746490e15fddf01',1,'mujinclient::BinPickingTaskParameters::GenerateJsonString(const std::vector&lt; Real &gt; &amp;vec) const '],['../classmujinclient_1_1BinPickingTaskParameters.html#a56a181bb950b9f71de213b5fe78e1577',1,'mujinclient::BinPickingTaskParameters::GenerateJsonString(const std::vector&lt; int &gt; &amp;vec) const ']]],
   ['get',['Get',['../classmujinclient_1_1WebResource.html#af9afec94dd796d0d6a3e0293e3c8c278',1,'mujinclient::WebResource']]],
   ['getallrawprogramdata',['GetAllRawProgramData',['../classmujinclient_1_1PlanningResultResource.html#a03ce0d6cfd5719f80a65f1d601389122',1,'mujinclient::PlanningResultResource']]],
   ['getcode',['GetCode',['../classmujinclient_1_1MujinException.html#a16786b4549de30c668b7a12abae3f80b',1,'mujinclient::MujinException']]],
@@ -9,6 +10,8 @@ var searchData=
   ['getenvironmentstate',['GetEnvironmentState',['../classmujinclient_1_1PlanningResultResource.html#a9063350f78b663a2a0118f1aa6a9cce1',1,'mujinclient::PlanningResultResource']]],
   ['geterrorcodestring',['GetErrorCodeString',['../namespacemujinclient.html#ac35e1c3da4cd973aeb6665854af1f383',1,'mujinclient']]],
   ['getinstobjects',['GetInstObjects',['../classmujinclient_1_1SceneResource.html#a30be1947d761b2b86d556e48ab905641',1,'mujinclient::SceneResource']]],
+  ['getjointvalues',['GetJointValues',['../classmujinclient_1_1BinPickingTaskResource.html#a5a3ac8af62e95d789234c542ff9e9bc5',1,'mujinclient::BinPickingTaskResource']]],
+  ['getmaniptransformtorobot',['GetManipTransformToRobot',['../classmujinclient_1_1BinPickingTaskResource.html#a7ba8fc9958027e4248877deaa4409b47',1,'mujinclient::BinPickingTaskResource']]],
   ['getnamefromprimarykey_5futf16',['GetNameFromPrimaryKey_UTF16',['../classmujinclient_1_1ControllerClient.html#af1b8b90fb714fcf67ab5f5a8afef20c3',1,'mujinclient::ControllerClient']]],
   ['getnamefromprimarykey_5futf8',['GetNameFromPrimaryKey_UTF8',['../classmujinclient_1_1ControllerClient.html#ab9fc5e6313f9f0f015534d4d3772cf34',1,'mujinclient::ControllerClient']]],
   ['getoptimizationprimarykeys',['GetOptimizationPrimaryKeys',['../classmujinclient_1_1TaskResource.html#a81325b517d692f89b3c3249acb449d05',1,'mujinclient::TaskResource']]],
@@ -21,8 +24,11 @@ var searchData=
   ['getprimarykeyfromname_5futf8',['GetPrimaryKeyFromName_UTF8',['../classmujinclient_1_1ControllerClient.html#a4eb53a4c0dffea8f01af8449840b041b',1,'mujinclient::ControllerClient']]],
   ['getprograms',['GetPrograms',['../classmujinclient_1_1PlanningResultResource.html#a84d4bffc6c7972c689353a690095fce3',1,'mujinclient::PlanningResultResource']]],
   ['getresourcename',['GetResourceName',['../classmujinclient_1_1WebResource.html#af8584da9a2ed5aab089533f0c489fe19',1,'mujinclient::WebResource']]],
-  ['getresult',['GetResult',['../classmujinclient_1_1TaskResource.html#a9b41762baf730866cbee36d89ef603ab',1,'mujinclient::TaskResource']]],
+  ['getresult',['GetResult',['../classmujinclient_1_1BinPickingTaskResource.html#a121f330ba9b5477fffbc226fb8109f86',1,'mujinclient::BinPickingTaskResource::GetResult()'],['../classmujinclient_1_1TaskResource.html#a9b41762baf730866cbee36d89ef603ab',1,'mujinclient::TaskResource::GetResult()']]],
+  ['getresultgetjointvalues',['GetResultGetJointValues',['../classmujinclient_1_1BinPickingTaskResource_1_1BinPickingResultResource.html#acc41e611e87cb6d60594e3d1948fb43c',1,'mujinclient::BinPickingTaskResource::BinPickingResultResource']]],
+  ['getresultmovejoints',['GetResultMoveJoints',['../classmujinclient_1_1BinPickingTaskResource_1_1BinPickingResultResource.html#a08b88d2eaa77855c8a5f54c5cc53d909',1,'mujinclient::BinPickingTaskResource::BinPickingResultResource']]],
   ['getresults',['GetResults',['../classmujinclient_1_1OptimizationResource.html#a06e7b3539123669fed46ba0544384e64',1,'mujinclient::OptimizationResource']]],
+  ['getresulttransform',['GetResultTransform',['../classmujinclient_1_1BinPickingTaskResource_1_1BinPickingResultResource.html#a188694e951cca68f63cbb03e6a6432e6',1,'mujinclient::BinPickingTaskResource::BinPickingResultResource']]],
   ['getrobotrawprogramdata',['GetRobotRawProgramData',['../classmujinclient_1_1PlanningResultResource.html#ac7e7f0d6148ac68415886f34754ee1a0',1,'mujinclient::PlanningResultResource']]],
   ['getruntimestatus',['GetRunTimeStatus',['../classmujinclient_1_1TaskResource.html#a8354ff43c41eedabd1bc95673918e0cd',1,'mujinclient::TaskResource::GetRunTimeStatus()'],['../classmujinclient_1_1OptimizationResource.html#abc3f52a68124e24feed516cf11c84063',1,'mujinclient::OptimizationResource::GetRunTimeStatus()']]],
   ['getruntimestatuses',['GetRunTimeStatuses',['../classmujinclient_1_1ControllerClient.html#abdc45d80225ae8f7d30012a13a5522b1',1,'mujinclient::ControllerClient']]],
@@ -31,7 +37,9 @@ var searchData=
   ['getsceneprimarykeys',['GetScenePrimaryKeys',['../classmujinclient_1_1ControllerClient.html#ab22536a72eef5c1f71c9d7b7b208211f',1,'mujinclient::ControllerClient']]],
   ['gettaskfromname_5futf16',['GetTaskFromName_UTF16',['../classmujinclient_1_1SceneResource.html#abe5d854f87cf49df289d606642a77eb5',1,'mujinclient::SceneResource']]],
   ['gettaskfromname_5futf8',['GetTaskFromName_UTF8',['../classmujinclient_1_1SceneResource.html#ad2b012810a047e3b43abb9e688ccd2a2',1,'mujinclient::SceneResource']]],
-  ['gettaskparameters',['GetTaskParameters',['../classmujinclient_1_1TaskResource.html#a3d0f15b7ae01bb25039cd02fcb5f429e',1,'mujinclient::TaskResource']]],
+  ['gettaskparameters',['GetTaskParameters',['../classmujinclient_1_1BinPickingTaskResource.html#ab5d4736e38cd556b848e18ffba6ffa1d',1,'mujinclient::BinPickingTaskResource::GetTaskParameters()'],['../classmujinclient_1_1TaskResource.html#a3d0f15b7ae01bb25039cd02fcb5f429e',1,'mujinclient::TaskResource::GetTaskParameters()']]],
   ['gettaskprimarykeys',['GetTaskPrimaryKeys',['../classmujinclient_1_1SceneResource.html#abddb580388abf1e8e5824cac99cdbcb1',1,'mujinclient::SceneResource']]],
-  ['getversion',['GetVersion',['../classmujinclient_1_1ControllerClient.html#aa4adab786d0af9aea3c11042330a9e09',1,'mujinclient::ControllerClient']]]
+  ['gettransform',['GetTransform',['../classmujinclient_1_1BinPickingTaskResource.html#aafbd612a4b33de920a8bfcb74f19950c',1,'mujinclient::BinPickingTaskResource']]],
+  ['getversion',['GetVersion',['../classmujinclient_1_1ControllerClient.html#aa4adab786d0af9aea3c11042330a9e09',1,'mujinclient::ControllerClient']]],
+  ['goaljoints',['goaljoints',['../classmujinclient_1_1BinPickingTaskParameters.html#ab6fd5f713670b4d103e57c2ee2ecb83a',1,'mujinclient::BinPickingTaskParameters']]]
 ];

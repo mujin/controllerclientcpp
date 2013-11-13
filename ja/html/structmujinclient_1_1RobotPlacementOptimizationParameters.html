@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">controllerclientcpp
-   &#160;<span id="projectnumber">0.2.10</span>
+   &#160;<span id="projectnumber">0.3.0</span>
    </div>
   </td>
  </tr>
@@ -97,6 +97,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'検索');
 </div><!--header-->
 <div class="contents">
 
+<p>placement optimization for a robot or another target.  
+ <a href="structmujinclient_1_1RobotPlacementOptimizationParameters.html#details">[詳細]</a></p>
+
 <p><code>#include &lt;<a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a>&gt;</code></p>
 <div class="dynheader">
 mujinclient::RobotPlacementOptimizationParametersのコラボレーション図</div>
@@ -116,14 +119,11 @@ Public メソッド</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public 変数</h2></td></tr>
 <tr class="memitem:a593623e1b38ec2633437766e4e615ad0"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1RobotPlacementOptimizationParameters.html#a593623e1b38ec2633437766e4e615ad0">targetname</a></td></tr>
-<tr class="memdesc:a593623e1b38ec2633437766e4e615ad0"><td class="mdescLeft">&#160;</td><td class="mdescRight">the primary key of the target object to optimize for. If blank, will use robot.  <a href="#a593623e1b38ec2633437766e4e615ad0"></a><br/></td></tr>
+<tr class="memdesc:a593623e1b38ec2633437766e4e615ad0"><td class="mdescLeft">&#160;</td><td class="mdescRight">the name of the target object to optimize for. If blank, will use robot. Has to start with "0 instobject " for environment inst object targets.  <a href="#a593623e1b38ec2633437766e4e615ad0"></a><br/></td></tr>
 <tr class="separator:a593623e1b38ec2633437766e4e615ad0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3167cf93f9b027c839eeef9a5c2f2008"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1RobotPlacementOptimizationParameters.html#a3167cf93f9b027c839eeef9a5c2f2008">framename</a></td></tr>
-<tr class="memdesc:a3167cf93f9b027c839eeef9a5c2f2008"><td class="mdescLeft">&#160;</td><td class="mdescRight">The primary key of the frame to define the optimization parameters in. If blank, will use the target's coordinate system.  <a href="#a3167cf93f9b027c839eeef9a5c2f2008"></a><br/></td></tr>
+<tr class="memdesc:a3167cf93f9b027c839eeef9a5c2f2008"><td class="mdescLeft">&#160;</td><td class="mdescRight">The name of the frame to define the optimization parameters in. If blank, will use the targetname's coordinate system. Has to start iwth "0 instobject " for environment inst object frames.  <a href="#a3167cf93f9b027c839eeef9a5c2f2008"></a><br/></td></tr>
 <tr class="separator:a3167cf93f9b027c839eeef9a5c2f2008"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aea2e8eebbe1ea02b7745f41220bd333d"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1RobotPlacementOptimizationParameters.html#aea2e8eebbe1ea02b7745f41220bd333d">unit</a></td></tr>
-<tr class="memdesc:aea2e8eebbe1ea02b7745f41220bd333d"><td class="mdescLeft">&#160;</td><td class="mdescRight">the unit that information is used in. m, mm, nm, inch, etc  <a href="#aea2e8eebbe1ea02b7745f41220bd333d"></a><br/></td></tr>
-<tr class="separator:aea2e8eebbe1ea02b7745f41220bd333d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a928ce73ad0dcbd614ab0c7dcb0f56451"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacemujinclient.html#a0ee6d9601b044a916d4deda6b180ecbf">Real</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1RobotPlacementOptimizationParameters.html#a928ce73ad0dcbd614ab0c7dcb0f56451">maxrange</a> [4]</td></tr>
 <tr class="memdesc:a928ce73ad0dcbd614ab0c7dcb0f56451"><td class="mdescLeft">&#160;</td><td class="mdescRight">X, Y, Z, Angle (deg)  <a href="#a928ce73ad0dcbd614ab0c7dcb0f56451"></a><br/></td></tr>
 <tr class="separator:a928ce73ad0dcbd614ab0c7dcb0f56451"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -136,14 +136,18 @@ Public 変数</h2></td></tr>
 <tr class="memitem:a575aa32b674de94b9262483b6aab5d16"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1RobotPlacementOptimizationParameters.html#a575aa32b674de94b9262483b6aab5d16">ignorebasecollision</a></td></tr>
 <tr class="memdesc:a575aa32b674de94b9262483b6aab5d16"><td class="mdescLeft">&#160;</td><td class="mdescRight">If 1, when moving the robot, allow collisions of the base with the environment, this allows users to search for a base placement and while ignoring small obstacles. By default this is 0.  <a href="#a575aa32b674de94b9262483b6aab5d16"></a><br/></td></tr>
 <tr class="separator:a575aa32b674de94b9262483b6aab5d16"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aea2e8eebbe1ea02b7745f41220bd333d"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1RobotPlacementOptimizationParameters.html#aea2e8eebbe1ea02b7745f41220bd333d">unit</a></td></tr>
+<tr class="memdesc:aea2e8eebbe1ea02b7745f41220bd333d"><td class="mdescLeft">&#160;</td><td class="mdescRight">the unit that information is used in. m, mm, nm, inch, etc  <a href="#aea2e8eebbe1ea02b7745f41220bd333d"></a><br/></td></tr>
+<tr class="separator:aea2e8eebbe1ea02b7745f41220bd333d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa0f2ea6afee86d2df8d3f55ce29eec4c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1RobotPlacementOptimizationParameters.html#aa0f2ea6afee86d2df8d3f55ce29eec4c">topstorecandidates</a></td></tr>
 <tr class="memdesc:aa0f2ea6afee86d2df8d3f55ce29eec4c"><td class="mdescLeft">&#160;</td><td class="mdescRight">In order to speed things up, store at least the top (fastest) N candidates. Candidates beyond the top N will not be computed.  <a href="#aa0f2ea6afee86d2df8d3f55ce29eec4c"></a><br/></td></tr>
 <tr class="separator:aa0f2ea6afee86d2df8d3f55ce29eec4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">説明</h2>
-<div class="textblock"><dl><dt><b>例: </b></dt><dd><a class="el" href="mujinideal_densowave_8cpp-example.html#_a17">mujinideal_densowave.cpp</a>.</dd>
+<div class="textblock"><p>placement optimization for a robot or another target. </p>
+<dl><dt><b>例: </b></dt><dd><a class="el" href="mujinideal_densowave_8cpp-example.html#_a17">mujinideal_densowave.cpp</a>.</dd>
 </dl>
-<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00232">232</a> 行で定義されています。</p>
+<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00234">234</a> 行で定義されています。</p>
 </div><h2 class="groupheader">コンストラクタとデストラクタ</h2>
 <a class="anchor" id="ae758f7d8e8ad0b7aa43e7918b8700714"></a>
 <div class="memitem">
@@ -166,7 +170,7 @@ Public 変数</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00234">234</a> 行で定義されています。</p>
+<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00236">236</a> 行で定義されています。</p>
 
 </div>
 </div>
@@ -192,7 +196,7 @@ Public 変数</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00237">237</a> 行で定義されています。</p>
+<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00239">239</a> 行で定義されています。</p>
 
 </div>
 </div>
@@ -207,10 +211,10 @@ Public 変数</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>The primary key of the frame to define the optimization parameters in. If blank, will use the target's coordinate system. </p>
+<p>The name of the frame to define the optimization parameters in. If blank, will use the targetname's coordinate system. Has to start iwth "0 instobject " for environment inst object frames. </p>
 <dl><dt><b>例: </b></dt><dd><a class="el" href="mujinideal_densowave_8cpp-example.html#a19">mujinideal_densowave.cpp</a>.</dd>
 </dl>
-<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00248">248</a> 行で定義されています。</p>
+<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00250">250</a> 行で定義されています。</p>
 
 </div>
 </div>
@@ -227,7 +231,7 @@ Public 変数</h2></td></tr>
 <p>If 1, when moving the robot, allow collisions of the base with the environment, this allows users to search for a base placement and while ignoring small obstacles. By default this is 0. </p>
 <dl><dt><b>例: </b></dt><dd><a class="el" href="mujinideal_densowave_8cpp-example.html#a24">mujinideal_densowave.cpp</a>.</dd>
 </dl>
-<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00253">253</a> 行で定義されています。</p>
+<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00254">254</a> 行で定義されています。</p>
 
 </div>
 </div>
@@ -244,7 +248,7 @@ Public 変数</h2></td></tr>
 <p>X, Y, Z, Angle (deg) </p>
 <dl><dt><b>例: </b></dt><dd><a class="el" href="mujinideal_densowave_8cpp-example.html#a22">mujinideal_densowave.cpp</a>.</dd>
 </dl>
-<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00250">250</a> 行で定義されています。</p>
+<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00251">251</a> 行で定義されています。</p>
 
 </div>
 </div>
@@ -261,7 +265,7 @@ Public 変数</h2></td></tr>
 <p>X, Y, Z, Angle (deg) </p>
 <dl><dt><b>例: </b></dt><dd><a class="el" href="mujinideal_densowave_8cpp-example.html#a21">mujinideal_densowave.cpp</a>.</dd>
 </dl>
-<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00251">251</a> 行で定義されています。</p>
+<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00252">252</a> 行で定義されています。</p>
 
 </div>
 </div>
@@ -278,7 +282,7 @@ Public 変数</h2></td></tr>
 <p>X, Y, Z, Angle (deg) </p>
 <dl><dt><b>例: </b></dt><dd><a class="el" href="mujinideal_densowave_8cpp-example.html#a23">mujinideal_densowave.cpp</a>.</dd>
 </dl>
-<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00252">252</a> 行で定義されています。</p>
+<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00253">253</a> 行で定義されています。</p>
 
 </div>
 </div>
@@ -292,10 +296,10 @@ Public 変数</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>the primary key of the target object to optimize for. If blank, will use robot. </p>
+<p>the name of the target object to optimize for. If blank, will use robot. Has to start with "0 instobject " for environment inst object targets. </p>
 <dl><dt><b>例: </b></dt><dd><a class="el" href="mujinideal_densowave_8cpp-example.html#a18">mujinideal_densowave.cpp</a>.</dd>
 </dl>
-<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00247">247</a> 行で定義されています。</p>
+<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00249">249</a> 行で定義されています。</p>
 
 </div>
 </div>
@@ -312,7 +316,7 @@ Public 変数</h2></td></tr>
 <p>In order to speed things up, store at least the top (fastest) N candidates. Candidates beyond the top N will not be computed. </p>
 <dl><dt><b>例: </b></dt><dd><a class="el" href="mujinideal_densowave_8cpp-example.html#a25">mujinideal_densowave.cpp</a>.</dd>
 </dl>
-<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00254">254</a> 行で定義されています。</p>
+<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00257">257</a> 行で定義されています。</p>
 
 </div>
 </div>
@@ -329,17 +333,17 @@ Public 変数</h2></td></tr>
 <p>the unit that information is used in. m, mm, nm, inch, etc </p>
 <dl><dt><b>例: </b></dt><dd><a class="el" href="mujinideal_densowave_8cpp-example.html#a20">mujinideal_densowave.cpp</a>.</dd>
 </dl>
-<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00249">249</a> 行で定義されています。</p>
+<p> <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a> の <a class="el" href="mujincontrollerclient_8h_source.html#l00256">256</a> 行で定義されています。</p>
 
 </div>
 </div>
 <hr/>この構造体の説明は次のファイルから生成されました:<ul>
-<li>/home/rdiankov/mujin/controllerclientcpp/include/mujincontrollerclient/<a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h (2013-09-06 11:54:26 +0900, commit:341b49e)</a></li>
+<li>/home/rdiankov/mujin/controllerclientcpp/include/mujincontrollerclient/<a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h (2013-11-13 11:52:30 +0900, commit:ff162c3)</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-controllerclientcppに対してFri Sep 6 2013 11:55:41に生成されました。 &#160;<a href="http://www.doxygen.org/index.html">
+controllerclientcppに対してWed Nov 13 2013 11:52:44に生成されました。 &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.3
 </small></address>

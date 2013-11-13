@@ -3,6 +3,8 @@ var searchData=
   ['jobstatus',['JobStatus',['../structmujinclient_1_1JobStatus.html',1,'mujinclient']]],
   ['jobstatus',['JobStatus',['../structmujinclient_1_1JobStatus.html#aa604c08dd0531c5905eec520897b597d',1,'mujinclient::JobStatus']]],
   ['jobstatuscode',['JobStatusCode',['../namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829',1,'mujinclient']]],
+  ['jointindices',['jointindices',['../classmujinclient_1_1BinPickingTaskParameters.html#aed9a607cff94fc404b1991fbe83bf280',1,'mujinclient::BinPickingTaskParameters']]],
+  ['jointnames',['jointnames',['../classmujinclient_1_1BinPickingTaskResource_1_1BinPickingResultResource_1_1ResultGetJointValues.html#a95863ce567a8cd51e9c09dc548f8b6aa',1,'mujinclient::BinPickingTaskResource::BinPickingResultResource::ResultGetJointValues']]],
   ['jsc_5faborted',['JSC_Aborted',['../namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829a60383becc8377fd2dbdb3614c8857e85',1,'mujinclient']]],
   ['jsc_5factive',['JSC_Active',['../namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829a550479d7f5cc60cf6e7e0b9ea899001a',1,'mujinclient']]],
   ['jsc_5flost',['JSC_Lost',['../namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829aeadf2965ab3b79b4232980a4c6869901',1,'mujinclient']]],

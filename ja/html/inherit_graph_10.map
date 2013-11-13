@@ -1,8 +1,3 @@
 <map id="クラス階層図" name="クラス階層図">
-<area shape="rect" href="$classmujinclient_1_1WebResource.html" title="mujinclient::WebResource" alt="" coords="5,139,179,165"/>
-<area shape="rect" href="$classmujinclient_1_1OptimizationResource.html" title="mujinclient::Optimization\lResource" alt="" coords="237,5,400,48"/>
-<area shape="rect" href="$classmujinclient_1_1PlanningResultResource.html" title="mujinclient::PlanningResult\lResource" alt="" coords="229,72,408,115"/>
-<area shape="rect" href="$classmujinclient_1_1SceneResource.html" title="mujinclient::SceneResource" alt="" coords="227,139,411,165"/>
-<area shape="rect" href="$classmujinclient_1_1SceneResource_1_1InstObject.html" title="nested resource in the scene describe an object in the scene" alt="" coords="227,189,411,232"/>
-<area shape="rect" href="$classmujinclient_1_1TaskResource.html" title="mujinclient::TaskResource" alt="" coords="232,256,405,283"/>
+<area shape="rect" href="$structmujinclient_1_1RobotPlacementOptimizationParameters.html" title="placement optimization for a robot or another target." alt="" coords="7,5,193,48"/>
 </map>

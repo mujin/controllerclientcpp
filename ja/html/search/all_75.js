@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['unit',['unit',['../classmujinclient_1_1ITLPlanningTaskParameters.html#acd96bb98f09961777bd39c9f23b96dec',1,'mujinclient::ITLPlanningTaskParameters::unit()'],['../structmujinclient_1_1RobotPlacementOptimizationParameters.html#aea2e8eebbe1ea02b7745f41220bd333d',1,'mujinclient::RobotPlacementOptimizationParameters::unit()']]],
+  ['unit',['unit',['../classmujinclient_1_1ITLPlanningTaskParameters.html#acd96bb98f09961777bd39c9f23b96dec',1,'mujinclient::ITLPlanningTaskParameters::unit()'],['../structmujinclient_1_1RobotPlacementOptimizationParameters.html#aea2e8eebbe1ea02b7745f41220bd333d',1,'mujinclient::RobotPlacementOptimizationParameters::unit()'],['../structmujinclient_1_1PlacementsOptimizationParameters.html#ab936ba7eab433a79f89138a19c39185b',1,'mujinclient::PlacementsOptimizationParameters::unit()']]],
   ['upgrade',['Upgrade',['../classmujinclient_1_1ControllerClient.html#a608e4b1f5253d4ad79bc428b6550b369',1,'mujinclient::ControllerClient']]],
   ['uploaddatatocontroller_5futf8',['UploadDataToController_UTF8',['../classmujinclient_1_1ControllerClient.html#a609d858649f384c339bc6da6d541884c',1,'mujinclient::ControllerClient']]],
   ['uploaddirectorytocontroller_5futf16',['UploadDirectoryToController_UTF16',['../classmujinclient_1_1ControllerClient.html#afe437fa856fc99eb164ebde4536823b9',1,'mujinclient::ControllerClient']]],

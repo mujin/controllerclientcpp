@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">controllerclientcpp
-   &#160;<span id="projectnumber">0.2.10</span>
+   &#160;<span id="projectnumber">0.3.0</span>
    </div>
   </td>
  </tr>
@@ -98,7 +98,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'検索');
 <div class="title">mujincontrollerclient.h</div>  </div>
 </div><!--header-->
 <div class="contents">
-<h3 class="version">(2013-09-06 11:54:26 +0900, commit:341b49e)</h3>
+<h3 class="version">(2013-11-13 11:52:30 +0900, commit:ff162c3)</h3>
 <p>Defines the public headers of the MUJIN Controller Client.  
 <a href="#details">[詳細]</a></p>
 <div class="textblock"><code>#include &lt;string&gt;</code><br/>
@@ -114,6 +114,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'検索');
 <code>#include &lt;boost/shared_ptr.hpp&gt;</code><br/>
 <code>#include &lt;boost/weak_ptr.hpp&gt;</code><br/>
 <code>#include &lt;boost/format.hpp&gt;</code><br/>
+<code>#include &lt;boost/array.hpp&gt;</code><br/>
 <code>#include &lt;mujincontrollerclient/config.h&gt;</code><br/>
 </div><div class="textblock"><div class="dynheader">
 mujincontrollerclient.hのインクルード依存関係図</div>
@@ -127,7 +128,7 @@ mujincontrollerclient.hのインクルード依存関係図</div>
 <div class="dyncontent">
 <div class="center"><img src="mujincontrollerclient_8h__dep__incl.png" border="0" usemap="#_2home_2rdiankov_2mujin_2controllerclientcpp_2include_2mujincontrollerclient_2mujincontrollerclient_8hdep" alt=""/></div>
 <map name="_2home_2rdiankov_2mujin_2controllerclientcpp_2include_2mujincontrollerclient_2mujincontrollerclient_8hdep" id="_2home_2rdiankov_2mujin_2controllerclientcpp_2include_2mujincontrollerclient_2mujincontrollerclient_8hdep">
-<area shape="rect" href="cecget_8cpp.html" title="/home/rdiankov/mujin\l/controllerclientcpp\l/samples/cecget.cpp" alt="" coords="5,136,149,195"/><area shape="rect" href="mujincontroller__upgrade_8cpp.html" title="/home/rdiankov/mujin\l/controllerclientcpp\l/samples/mujincontroller\l_upgrade.cpp" alt="" coords="173,128,336,203"/><area shape="rect" href="mujinexecutetask_8cpp.html" title="/home/rdiankov/mujin\l/controllerclientcpp\l/samples/mujinexecutetask.cpp" alt="" coords="360,136,565,195"/><area shape="rect" href="mujinexecutetask__fast_8cpp.html" title="/home/rdiankov/mujin\l/controllerclientcpp\l/samples/mujinexecutetask\l_fast.cpp" alt="" coords="589,128,768,203"/><area shape="rect" href="mujinexecutetask__robodia_8cpp.html" title="/home/rdiankov/mujin\l/controllerclientcpp\l/samples/mujinexecutetask\l_robodia.cpp" alt="" coords="792,128,971,203"/><area shape="rect" href="mujingetresults_8cpp.html" title="/home/rdiankov/mujin\l/controllerclientcpp\l/samples/mujingetresults.cpp" alt="" coords="995,136,1187,195"/><area shape="rect" href="mujinideal__densowave_8cpp.html" title="/home/rdiankov/mujin\l/controllerclientcpp\l/samples/mujinideal_densowave.cpp" alt="" coords="1211,136,1443,195"/><area shape="rect" href="mujinimportscene_8cpp.html" title="/home/rdiankov/mujin\l/controllerclientcpp\l/samples/mujinimportscene.cpp" alt="" coords="1467,136,1672,195"/><area shape="rect" href="mujinimportscene__robodia_8cpp.html" title="/home/rdiankov/mujin\l/controllerclientcpp\l/samples/mujinimportscene\l_robodia.cpp" alt="" coords="1696,128,1875,203"/><area shape="rect" href="mujinshowresults_8cpp.html" title="/home/rdiankov/mujin\l/controllerclientcpp\l/samples/mujinshowresults.cpp" alt="" coords="1899,136,2101,195"/></map>
+<area shape="rect" href="binpickingtask_8h.html" title="/home/rdiankov/mujin\l/controllerclientcpp\l/include/mujincontrollerclient\l/binpickingtask.h" alt="" coords="5,128,189,203"/><area shape="rect" href="cecget_8cpp.html" title="/home/rdiankov/mujin\l/controllerclientcpp\l/samples/cecget.cpp" alt="" coords="213,136,357,195"/><area shape="rect" href="mujincontroller__upgrade_8cpp.html" title="/home/rdiankov/mujin\l/controllerclientcpp\l/samples/mujincontroller\l_upgrade.cpp" alt="" coords="381,128,544,203"/><area shape="rect" href="mujinexecutetask_8cpp.html" title="/home/rdiankov/mujin\l/controllerclientcpp\l/samples/mujinexecutetask.cpp" alt="" coords="568,136,773,195"/><area shape="rect" href="mujinexecutetask__fast_8cpp.html" title="/home/rdiankov/mujin\l/controllerclientcpp\l/samples/mujinexecutetask\l_fast.cpp" alt="" coords="797,128,976,203"/><area shape="rect" href="mujinexecutetask__robodia_8cpp.html" title="/home/rdiankov/mujin\l/controllerclientcpp\l/samples/mujinexecutetask\l_robodia.cpp" alt="" coords="1000,128,1179,203"/><area shape="rect" href="mujingetresults_8cpp.html" title="/home/rdiankov/mujin\l/controllerclientcpp\l/samples/mujingetresults.cpp" alt="" coords="1203,136,1395,195"/><area shape="rect" href="mujinideal__densowave_8cpp.html" title="/home/rdiankov/mujin\l/controllerclientcpp\l/samples/mujinideal_densowave.cpp" alt="" coords="1419,136,1651,195"/><area shape="rect" href="mujinimportscene_8cpp.html" title="/home/rdiankov/mujin\l/controllerclientcpp\l/samples/mujinimportscene.cpp" alt="" coords="1675,136,1880,195"/><area shape="rect" href="mujinimportscene__robodia_8cpp.html" title="/home/rdiankov/mujin\l/controllerclientcpp\l/samples/mujinimportscene\l_robodia.cpp" alt="" coords="1904,128,2083,203"/><area shape="rect" href="mujinshowresults_8cpp.html" title="/home/rdiankov/mujin\l/controllerclientcpp\l/samples/mujinshowresults.cpp" alt="" coords="2107,136,2309,195"/></map>
 </div>
 </div>
 <p><a href="mujincontrollerclient_8h_source.html">ソースコードを見る。</a></p>
@@ -153,6 +154,9 @@ mujincontrollerclient.hのインクルード依存関係図</div>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">program is wincaps rc8 pac script  <a href="classmujinclient_1_1DensoWaveWincapsTaskParameters.html#details">[詳細]</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1RobotPlacementOptimizationParameters.html">mujinclient::RobotPlacementOptimizationParameters</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">placement optimization for a robot or another target.  <a href="structmujinclient_1_1RobotPlacementOptimizationParameters.html#details">[詳細]</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1PlacementsOptimizationParameters.html">mujinclient::PlacementsOptimizationParameters</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1RobotProgramData.html">mujinclient::RobotProgramData</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">program data for an individual robot  <a href="classmujinclient_1_1RobotProgramData.html#details">[詳細]</a><br/></td></tr>
@@ -364,7 +368,7 @@ InstanceObjectState &gt;&#160;</td><td class="memItemRight" valign="bottom"><a c
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-controllerclientcppに対してFri Sep 6 2013 11:55:41に生成されました。 &#160;<a href="http://www.doxygen.org/index.html">
+controllerclientcppに対してWed Nov 13 2013 11:52:44に生成されました。 &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.3
 </small></address>
