@@ -121,7 +121,6 @@ private:
 class ControllerClient;
 class SceneResource;
 class TaskResource;
-class BinPickingTaskResource;
 class OptimizationResource;
 class PlanningResultResource;
 
@@ -131,8 +130,6 @@ typedef boost::shared_ptr<SceneResource> SceneResourcePtr;
 typedef boost::weak_ptr<SceneResource> SceneResourceWeakPtr;
 typedef boost::shared_ptr<TaskResource> TaskResourcePtr;
 typedef boost::weak_ptr<TaskResource> TaskResourceWeakPtr;
-typedef boost::shared_ptr<BinPickingTaskResource> BinPickingTaskResourcePtr;
-typedef boost::weak_ptr<BinPickingTaskResource> BinPickingTaskResourceWeakPtr;
 typedef boost::shared_ptr<OptimizationResource> OptimizationResourcePtr;
 typedef boost::weak_ptr<OptimizationResource> OptimizationResourceWeakPtr;
 typedef boost::shared_ptr<PlanningResultResource> PlanningResultResourcePtr;
@@ -294,32 +291,6 @@ struct PlacementsOptimizationParameters
     int topstorecandidates; ///< In order to speed things up, store at least the top (fastest) N candidates. Candidates beyond the top N will not be computed.
 };
 
-/// \brief holds information about the binpicking task parameters
-class BinPickingTaskParameters
-{
-public:
-    BinPickingTaskParameters() {
-        SetDefaults();
-    }
-
-    virtual void SetDefaults();
-	
-	std::string GenerateJsonString (const std::vector<Real>& vec) const;
-	std::string GenerateJsonString (const std::vector<int>& vec) const;
-	
-	std::string command; ///< command to call
-    std::string robottype; ///< the type of robot
-    std::string controllerip; ///< the ip of the computer on which the robot controller runs
-    int controllerport; ///< the port of the computer on which the robot controller runs
-	std::vector<Real> goaljoints; ///< the joint values of goal point
-	std::vector<int>    jointindices;
-    int port;
-    Real envclearance;
-	Real speed;
-	std::string targetname;
-	Transform transform;
-};
-
 /// \brief program data for an individual robot
 class RobotProgramData
 {
@@ -447,14 +418,15 @@ public:
         - **stl**
         - **cecrobodiaxml** (CEC RoboDiA XML environments)
         \param newuri UTF-8 encoded new URI to save the imported results. Default is to save to MUJIN COLLADA, so end with <b>.mujin.dae</b> . Use <b>mujin:/mypath/myfile.mujin.dae</b>
+        \param overwrite if true, will overwrite any existing scenes at newuri with the new scene.
      */
-    virtual SceneResourcePtr ImportSceneToCOLLADA_UTF8(const std::string& sourceuri, const std::string& sourcescenetype, const std::string& newuri) = 0;
+    virtual SceneResourcePtr ImportSceneToCOLLADA_UTF8(const std::string& sourceuri, const std::string& sourcescenetype, const std::string& newuri, bool overwrite=false) = 0;
 
     /// \see ImportSceneToCOLLADA_UTF8
     ///
     /// \param sourceuri utf-16 encoded
     /// \param newuri utf-16 encoded
-    virtual SceneResourcePtr ImportSceneToCOLLADA_UTF16(const std::wstring& sourceuri, const std::string& sourcescenetype, const std::wstring& newuri) = 0;
+    virtual SceneResourcePtr ImportSceneToCOLLADA_UTF16(const std::wstring& sourceuri, const std::string& sourcescenetype, const std::wstring& newuri, bool overwrite=false) = 0;
 
     /** \brief Recommended way of uploading a scene's files into the network filesystem.
 
@@ -748,69 +720,6 @@ public:
 
 protected:
     std::string _jobpk; ///< the job primary key used to track the status of the running task after \ref Execute is called
-};
-
-class MUJINCLIENT_API BinPickingTaskResource : public TaskResource
-{
-public:
-    BinPickingTaskResource(const std::string& taskname, const std::string& controllerip, const int controllerport, ControllerClientPtr controller, SceneResourcePtr scene);
-    
-    virtual ~BinPickingTaskResource() {
-    }
-	
-	class MUJINCLIENT_API BinPickingResultResource : public WebResource
-	{
-	public:
-		BinPickingResultResource(ControllerClientPtr controller, const std::string& pk) : WebResource(controller,"task", pk)
-		{
-		}
-		virtual ~BinPickingResultResource() {
-		}
- 		class ResultGetJointValues
-		{
-		public:
-			std::string robottype;
-			std::vector<std::string> jointnames;
-			std::vector<Real> currentjointvalues;
-			std::map<std::string, std::vector<Real> > tools;
-		};
-
-		class ResultMoveJoints
-		{
-		public:
-			std::string robottype;
-			int	numpoints;
-			std::vector<Real>	timedjointvalues;
-			//Real elapsedtime;
-		};
-	
-		void GetResultGetJointValues(ResultGetJointValues& result);
-		void GetResultMoveJoints(ResultMoveJoints& result);
-		void GetResultTransform(Transform& transform);
-	};
-	typedef boost::shared_ptr<BinPickingResultResource> BinPickingResultResourcePtr;
-
-	virtual int GetResult(BinPickingResultResourcePtr& result);
-	virtual void GetJointValues(int timeout /* [sec] */, BinPickingResultResource::ResultGetJointValues& result);
-	virtual void MoveJoints(const std::vector<Real>& jointvalues, const std::vector<int>& jointindices, int timeout /* [sec] */, BinPickingResultResource::ResultMoveJoints& result);
-	virtual Transform GetTransform(const std::string& targetname);
-	virtual void SetTransform(const std::string& targetname, const Transform& transform);
-	virtual Transform GetManipTransformToRobot();
-	virtual void InitializeZMQ(int zmqport);
-
-    /// \brief Dynamically add a point cloud collision obstacle with name to the environment.
-    virtual void AddPointCloudObstacle(const std::vector<Real>& vpoints, Real pointsize, const std::string& name);
-
-	/// \brief Get the task info for tasks of type <b>binpicking</b>
-	virtual void GetTaskParameters(BinPickingTaskParameters& taskparameters);
-
-	/// \brief Set the task info for tasks of type <b>binpicking</b>
-	virtual void SetTaskParameters(const BinPickingTaskParameters& taskparameters);
-private:
-	std::string _GetOrCreateTaskAndGetPk(SceneResourcePtr scene, const std::string& taskname);
-	std::string _controllerip;
-	int _controllerport;
-	std::string _taskname;
 };
 
 class MUJINCLIENT_API OptimizationResource : public WebResource

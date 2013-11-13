@@ -430,21 +430,21 @@ SceneResourcePtr ControllerClientImpl::RegisterScene_UTF16(const std::wstring& u
     return scene;
 }
 
-SceneResourcePtr ControllerClientImpl::ImportSceneToCOLLADA_UTF8(const std::string& importuri, const std::string& importformat, const std::string& newuri)
+SceneResourcePtr ControllerClientImpl::ImportSceneToCOLLADA_UTF8(const std::string& importuri, const std::string& importformat, const std::string& newuri, bool overwrite)
 {
     BOOST_ASSERT(importformat.size()>0);
     boost::property_tree::ptree pt;
-    CallPost_UTF8("scene/?format=json&fields=pk", str(boost::format("{\"reference_uri\":\"%s\", \"reference_scenetype\":\"%s\", \"uri\":\"%s\"}")%importuri%importformat%newuri), pt);
+    CallPost_UTF8(str(boost::format("scene/?format=json&fields=pk&overwrite=%d")%overwrite), str(boost::format("{\"reference_uri\":\"%s\", \"reference_scenetype\":\"%s\", \"uri\":\"%s\"}")%importuri%importformat%newuri), pt);
     std::string pk = pt.get<std::string>("pk");
     SceneResourcePtr scene(new SceneResource(shared_from_this(), pk));
     return scene;
 }
 
-SceneResourcePtr ControllerClientImpl::ImportSceneToCOLLADA_UTF16(const std::wstring& importuri, const std::string& importformat, const std::wstring& newuri)
+SceneResourcePtr ControllerClientImpl::ImportSceneToCOLLADA_UTF16(const std::wstring& importuri, const std::string& importformat, const std::wstring& newuri, bool overwrite)
 {
     BOOST_ASSERT(importformat.size()>0);
     boost::property_tree::ptree pt;
-    CallPost_UTF16("scene/?format=json&fields=pk", str(boost::wformat(L"{\"reference_uri\":\"%s\", \"reference_scenetype\":\"%s\", \"uri\":\"%s\"}")%importuri%importformat.c_str()%newuri), pt);
+    CallPost_UTF16(str(boost::format("scene/?format=json&fields=pk&overwrite=%d")%overwrite), str(boost::wformat(L"{\"reference_uri\":\"%s\", \"reference_scenetype\":\"%s\", \"uri\":\"%s\"}")%importuri%importformat.c_str()%newuri), pt);
     std::string pk = pt.get<std::string>("pk");
     SceneResourcePtr scene(new SceneResource(shared_from_this(), pk));
     return scene;
