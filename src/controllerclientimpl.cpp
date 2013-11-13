@@ -1585,7 +1585,7 @@ void ControllerClientImpl::_DeleteFileOnController(const std::string& desturi)
 void ControllerClientImpl::_DeleteDirectoryOnController(const std::string& desturi)
 {
     CurlCustomRequestSetter setter(_curl, "DELETE");
-    curl_easy_setopt(_curl, CURLOPT_URL, _uri.c_str());
+    curl_easy_setopt(_curl, CURLOPT_URL, desturi.c_str());
     CURLcode res = curl_easy_perform(_curl);
     CHECKCURLCODE(res, "curl_easy_perform failed");
     long http_code = 0;
