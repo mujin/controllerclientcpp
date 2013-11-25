@@ -9,11 +9,20 @@ int main(int argc, char ** argv)
         ControllerClientPtr controller = CreateControllerFromCommandLine(argc,argv);
 
         std::string sourcefilename_utf8 = "../share/mujincontrollerclient/robodia_demo1/robodia_demo1.xml";
-        std::string uri_utf8 = "mujin:/testupload/";
+        std::string uridir_utf8 = "mujin:/testupload/";
+        std::string uri_utf8 = "mujin:/testupload/robodia_demo1.xml";
 
-        controller->SyncUpload_UTF8(sourcefilename_utf8, uri_utf8, "cecrobodiaxml");
+        controller->SyncUpload_UTF8(sourcefilename_utf8, uridir_utf8, "cecrobodiaxml");
 
-        controller->DeleteDirectoryOnController_UTF8(uri_utf8);
+        controller->RegisterScene_UTF8(uri_utf8, "cecrobodiaxml");
+
+        // extract some information
+
+        // delete
+        //controller->DeleteDirectoryOnController_UTF8(uridir_utf8);
+
+        // test if the delete works
+
     }
     catch(const MujinException& ex) {
         std::cout << "exception thrown: " << ex.message() << std::endl;
