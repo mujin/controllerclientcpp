@@ -30,7 +30,10 @@ The installed ``include`` directory holds the include files necessary to compile
 
 There are two ways ot link with the libraries:
 
-1. To dynamically load all the DLLs at run time, link with ``lib\mujincontrollerclient-vcXX-mt.lib``. Then need to add ``C:\Program Files\mujincontrollerclient\bin`` to the PATH, or register all the DLLs with windows system.
+1. To dynamically load all the DLLs at run time, link with ``lib\mujincontrollerclient-vcXX-mt.lib``. Then need to add ``C:\Program Files\mujincontrollerclient\bin`` to the PATH, or register all the DLLs with windows system. Need to define the following flags::
+  
+  BOOST_ALL_DYN_LINK
+  BOOST_ALL_NO_LIB
 
 2. To statically link with everything use ``lib/libmujincontroller-vcXX-mt.lib``. The resulting exe will be independent of runtime DLLs, but will be really big.
 
