@@ -93,7 +93,7 @@ public:
 
     virtual int GetResult(BinPickingResultResourcePtr& result);
     virtual void GetJointValues(int timeout /* [sec] */, BinPickingResultResource::ResultGetJointValues& result);
-    virtual void MoveJoints(const std::vector<Real>& jointvalues, const std::vector<int>& jointindices, int timeout /* [sec] */, BinPickingResultResource::ResultMoveJoints& result);
+    virtual void MoveJoints(const std::vector<Real>& jointvalues, const std::vector<int>& jointindices, Real speed /* 0.1-1 */, int timeout /* [sec] */, BinPickingResultResource::ResultMoveJoints& result);
     virtual Transform GetTransform(const std::string& targetname);
     virtual void SetTransform(const std::string& targetname, const Transform& transform);
     virtual Transform GetManipTransformToRobot();
