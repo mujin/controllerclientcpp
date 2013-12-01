@@ -56,14 +56,9 @@ class HandEyeCalibrationTaskResource;
 typedef boost::shared_ptr<HandEyeCalibrationTaskResource> HandEyeCalibrationTaskResourcePtr;
 typedef boost::weak_ptr<HandEyeCalibrationTaskResource> HandEyeCalibrationTaskResourceWeakPtr;
 
-class MUJINCLIENT_API HandEyeCalibrationTaskResource : public TaskResource
+class MUJINCLIENT_API HandEyeCalibrationResultResource : public PlanningResultResource
 {
 public:
-    HandEyeCalibrationTaskResource(const std::string& taskname, ControllerClientPtr controller, SceneResourcePtr scene);
-
-    virtual ~HandEyeCalibrationTaskResource() {
-    }
-
     class CalibrationResult
     {
 public:
@@ -72,21 +67,24 @@ public:
         std::vector<int> jointindices;
     };
 
-    class MUJINCLIENT_API HandEyeCalibrationResultResource : public WebResource
-    {
+    HandEyeCalibrationResultResource(ControllerClientPtr controller, const std::string& pk);
+    virtual ~HandEyeCalibrationResultResource() {
+    }
+
+    void GetCalibrationPoses(HandEyeCalibrationResultResource::CalibrationResult& result);
+};
+typedef boost::shared_ptr<HandEyeCalibrationResultResource> HandEyeCalibrationResultResourcePtr;
+
+class MUJINCLIENT_API HandEyeCalibrationTaskResource : public TaskResource
+{
 public:
-        HandEyeCalibrationResultResource(ControllerClientPtr controller, const std::string& pk) : WebResource(controller,"task", pk)
-        {
-        }
-        virtual ~HandEyeCalibrationResultResource() {
-        }
+    HandEyeCalibrationTaskResource(const std::string& taskname, ControllerClientPtr controller, SceneResourcePtr scene);
 
-        void GetCalibrationPoses(HandEyeCalibrationTaskResource::CalibrationResult& result);
-    };
-    typedef boost::shared_ptr<HandEyeCalibrationResultResource> HandEyeCalibrationResultResourcePtr;
+    virtual ~HandEyeCalibrationTaskResource() {
+    }
 
-    virtual void ComputeCalibrationPoses(int timeout, HandEyeCalibrationTaskParameters& params, CalibrationResult& result);
-    virtual int GetResult(HandEyeCalibrationResultResourcePtr& result);
+    virtual void ComputeCalibrationPoses(int timeout, HandEyeCalibrationTaskParameters& params, HandEyeCalibrationResultResource::CalibrationResult& result);
+    virtual PlanningResultResourcePtr GetResult();
 
     /// \brief Get the task info for tasks of type <b>binpicking</b>
     virtual void GetTaskParameters(HandEyeCalibrationTaskParameters& taskparameters);

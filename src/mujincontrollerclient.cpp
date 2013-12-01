@@ -445,6 +445,10 @@ void OptimizationResource::GetResults(std::vector<PlanningResultResourcePtr>& re
     }
 }
 
+PlanningResultResource::PlanningResultResource(ControllerClientPtr controller, const std::string& resulttype, const std::string& pk) : WebResource(controller,resulttype,pk)
+{
+}
+
 PlanningResultResource::PlanningResultResource(ControllerClientPtr controller, const std::string& pk) : WebResource(controller,"planningresult",pk)
 {
 }

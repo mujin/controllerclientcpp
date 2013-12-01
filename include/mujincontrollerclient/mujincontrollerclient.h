@@ -68,6 +68,8 @@ enum MujinErrorCode {
     MEC_HTTPServer=13, ///< HTTP server error
     MEC_UserAuthentication=14, ///< authentication failed
     MEC_AlreadyExists=15, ///< the resource already exists and overwriting terminated
+    MEC_BinPickingError=16, ///< BinPicking failed
+    MEC_HandEyeCalibrationError=17 ///< HandEye Calibration failed
 };
 
 inline const char* GetErrorCodeString(MujinErrorCode error)
@@ -84,6 +86,8 @@ inline const char* GetErrorCodeString(MujinErrorCode error)
     case MEC_HTTPServer: return "HTTPServer";
     case MEC_UserAuthentication: return "UserAuthentication";
     case MEC_AlreadyExists: return "AlreadyExists";
+    case MEC_BinPickingError: return "BinPickingError";
+    case MEC_HandEyeCalibrationError: return "HandEyeCalibrationError";
     }
     // should throw an exception?
     return "";
@@ -763,6 +767,7 @@ protected:
 class MUJINCLIENT_API PlanningResultResource : public WebResource
 {
 public:
+    PlanningResultResource(ControllerClientPtr controller, const std::string& resulttype, const std::string& pk);
     PlanningResultResource(ControllerClientPtr controller, const std::string& pk);
     virtual ~PlanningResultResource() {
     }

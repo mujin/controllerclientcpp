@@ -51,6 +51,36 @@ class BinPickingTaskResource;
 typedef boost::shared_ptr<BinPickingTaskResource> BinPickingTaskResourcePtr;
 typedef boost::weak_ptr<BinPickingTaskResource> BinPickingTaskResourceWeakPtr;
 
+class MUJINCLIENT_API BinPickingResultResource : public PlanningResultResource
+{
+public:
+    BinPickingResultResource(ControllerClientPtr controller, const std::string& pk);
+    virtual ~BinPickingResultResource() {
+    }
+    class ResultGetJointValues
+    {
+public:
+        std::string robottype;
+        std::vector<std::string> jointnames;
+        std::vector<Real> currentjointvalues;
+        std::map<std::string, std::vector<Real> > tools;
+    };
+
+    class ResultMoveJoints
+    {
+public:
+        std::string robottype;
+        int numpoints;
+        std::vector<Real>   timedjointvalues;
+        //Real elapsedtime;
+    };
+
+    void GetResultGetJointValues(ResultGetJointValues& result);
+    void GetResultMoveJoints(ResultMoveJoints& result);
+    void GetResultTransform(Transform& transform);
+};
+typedef boost::shared_ptr<BinPickingResultResource> BinPickingResultResourcePtr;
+
 class MUJINCLIENT_API BinPickingTaskResource : public TaskResource
 {
 public:
@@ -59,39 +89,7 @@ public:
     virtual ~BinPickingTaskResource() {
     }
 
-    class MUJINCLIENT_API BinPickingResultResource : public WebResource
-    {
-public:
-        BinPickingResultResource(ControllerClientPtr controller, const std::string& pk) : WebResource(controller,"task", pk)
-        {
-        }
-        virtual ~BinPickingResultResource() {
-        }
-        class ResultGetJointValues
-        {
-public:
-            std::string robottype;
-            std::vector<std::string> jointnames;
-            std::vector<Real> currentjointvalues;
-            std::map<std::string, std::vector<Real> > tools;
-        };
-
-        class ResultMoveJoints
-        {
-public:
-            std::string robottype;
-            int numpoints;
-            std::vector<Real>   timedjointvalues;
-            //Real elapsedtime;
-        };
-
-        void GetResultGetJointValues(ResultGetJointValues& result);
-        void GetResultMoveJoints(ResultMoveJoints& result);
-        void GetResultTransform(Transform& transform);
-    };
-    typedef boost::shared_ptr<BinPickingResultResource> BinPickingResultResourcePtr;
-
-    virtual int GetResult(BinPickingResultResourcePtr& result);
+    virtual PlanningResultResourcePtr GetResult();
     virtual void GetJointValues(int timeout /* [sec] */, BinPickingResultResource::ResultGetJointValues& result);
     virtual void MoveJoints(const std::vector<Real>& jointvalues, const std::vector<int>& jointindices, Real speed /* 0.1-1 */, int timeout /* [sec] */, BinPickingResultResource::ResultMoveJoints& result);
     virtual Transform GetTransform(const std::string& targetname);

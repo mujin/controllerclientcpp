@@ -37,41 +37,43 @@ void HandEyeCalibrationTaskParameters::SetDefaults()
     toolname = "Flange";
 }
 
-void HandEyeCalibrationTaskResource::HandEyeCalibrationResultResource::GetCalibrationPoses(HandEyeCalibrationTaskResource::CalibrationResult& result)
+HandEyeCalibrationResultResource::HandEyeCalibrationResultResource(ControllerClientPtr controller, const std::string& pk) : PlanningResultResource(controller,"binpickingresult", pk)
+{
+}
+
+void HandEyeCalibrationResultResource::GetCalibrationPoses(HandEyeCalibrationResultResource::CalibrationResult& result)
 {
     GETCONTROLLERIMPL();
     boost::property_tree::ptree pt;
-    controller->CallGet(boost::str(boost::format("task/%s/result/?format=json&limit=1")%GetPrimaryKey()), pt);
-    BOOST_FOREACH(boost::property_tree::ptree::value_type& obj, pt.get_child("objects")) {
-        boost::property_tree::ptree& output = obj.second.get_child("output");
-        BOOST_FOREACH(boost::property_tree::ptree::value_type& value, output) {
-            if (value.first == "poses") {
-                result.poses.resize(value.second.size());
-                size_t i = 0;
-                BOOST_FOREACH(boost::property_tree::ptree::value_type &v, value.second) {
-                    result.poses[i].resize(7);
-                    size_t j = 0;
-                    BOOST_FOREACH(boost::property_tree::ptree::value_type &x, v.second) {
-                        result.poses[i][j++] = boost::lexical_cast<Real>(x.second.data());
-                    }
-                    i++;
+    controller->CallGet(boost::str(boost::format("%s/%s/?format=json&limit=1")%GetResourceName()%GetPrimaryKey()), pt);
+    boost::property_tree::ptree& output = pt.get_child("output");
+    BOOST_FOREACH(boost::property_tree::ptree::value_type& value, output) {
+        if (value.first == "poses") {
+            result.poses.resize(value.second.size());
+            size_t i = 0;
+            BOOST_FOREACH(boost::property_tree::ptree::value_type &v, value.second) {
+                result.poses[i].resize(7);
+                size_t j = 0;
+                BOOST_FOREACH(boost::property_tree::ptree::value_type &x, v.second) {
+                    result.poses[i][j++] = boost::lexical_cast<Real>(x.second.data());
                 }
+                i++;
             }
-            else if (value.first == "configs") {
-                result.configs.resize(0);
-                BOOST_FOREACH(boost::property_tree::ptree::value_type &v, value.second) {
-                    std::vector<Real> config;
-                    BOOST_FOREACH(boost::property_tree::ptree::value_type &x, v.second) {
-                        config.push_back(boost::lexical_cast<Real>(x.second.data()));
-                    }
-                    result.configs.push_back(config);
+        }
+        else if (value.first == "configs") {
+            result.configs.resize(0);
+            BOOST_FOREACH(boost::property_tree::ptree::value_type &v, value.second) {
+                std::vector<Real> config;
+                BOOST_FOREACH(boost::property_tree::ptree::value_type &x, v.second) {
+                    config.push_back(boost::lexical_cast<Real>(x.second.data()));
                 }
+                result.configs.push_back(config);
             }
-            else if (value.first == "jointindices") {
-                result.jointindices.resize(0);
-                BOOST_FOREACH(boost::property_tree::ptree::value_type &v, value.second) {
-                    result.jointindices.push_back(boost::lexical_cast<Real>(v.second.data()));
-                }
+        }
+        else if (value.first == "jointindices") {
+            result.jointindices.resize(0);
+            BOOST_FOREACH(boost::property_tree::ptree::value_type &v, value.second) {
+                result.jointindices.push_back(boost::lexical_cast<Real>(v.second.data()));
             }
         }
     }
@@ -89,7 +91,7 @@ std::string HandEyeCalibrationTaskResource::_GetOrCreateTaskAndGetPk(SceneResour
     return pk;
 }
 
-void HandEyeCalibrationTaskResource::ComputeCalibrationPoses(int timeout, HandEyeCalibrationTaskParameters& param, CalibrationResult& result)
+void HandEyeCalibrationTaskResource::ComputeCalibrationPoses(int timeout, HandEyeCalibrationTaskParameters& param, HandEyeCalibrationResultResource::CalibrationResult& result)
 {
     GETCONTROLLERIMPL();
     HandEyeCalibrationResultResourcePtr resultresource;
@@ -99,8 +101,8 @@ void HandEyeCalibrationTaskResource::ComputeCalibrationPoses(int timeout, HandEy
     this->Execute();
     int iterations = 0;
     while (1) {
-        if (this->GetResult(resultresource) != 0)
-        {
+        resultresource = boost::dynamic_pointer_cast<HandEyeCalibrationResultResource>(this->GetResult());
+        if( !!resultresource ) {
             resultresource->GetCalibrationPoses(result);
             return;
         }
@@ -134,18 +136,22 @@ void HandEyeCalibrationTaskResource::SetTaskParameters(const HandEyeCalibrationT
     controller->CallPut(str(boost::format("task/%s/?format=json")%GetPrimaryKey()), taskgoalput, pt);
 }
 
-int HandEyeCalibrationTaskResource::GetResult(HandEyeCalibrationResultResourcePtr& result)
+PlanningResultResourcePtr HandEyeCalibrationTaskResource::GetResult()
 {
     GETCONTROLLERIMPL();
     boost::property_tree::ptree pt;
     controller->CallGet(str(boost::format("task/%s/result/?format=json&limit=1&optimization=None&fields=pk")%GetPrimaryKey()), pt);
     boost::property_tree::ptree& objects = pt.get_child("objects");
-    if( objects.size() == 0 ) {
-        return 0;
+    HandEyeCalibrationResultResourcePtr result;
+    if( objects.size() > 0 ) {
+        std::string pk = objects.begin()->second.get<std::string>("pk");
+        result.reset(new HandEyeCalibrationResultResource(GetController(), pk));
+        boost::optional<std::string> erroptional = objects.begin()->second.get_optional<std::string>("errormessage");
+        if (!!erroptional && erroptional.get().size() > 0 ) {
+            throw MujinException(erroptional.get(), MEC_HandEyeCalibrationError);
+        }
     }
-    //std::string pk = objects.begin()->second.get<std::string>("pk");
-    result.reset(new HandEyeCalibrationResultResource(GetController(), GetPrimaryKey()));
-    return objects.size();
+    return result;
 }
 
 } // end namespace mujinclient
