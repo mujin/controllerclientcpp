@@ -316,6 +316,35 @@ Transform BinPickingTaskResource::GetManipTransformToRobot()
     }
 }
 
+Transform BinPickingTaskResource::GetRobotTransform()
+{
+    GETCONTROLLERIMPL();
+    BinPickingResultResourcePtr resultresource;
+    BinPickingTaskParameters param;
+    Transform transform;
+
+    param.command = "GetRobotTransform";
+    param.controllerip = _controllerip;
+    param.controllerport = _controllerport;
+    this->SetTaskParameters(param);
+    this->Execute();
+
+    int iterations = 0;
+    while (1) {
+        resultresource = boost::dynamic_pointer_cast<BinPickingResultResource>(this->GetResult());
+        if( !!resultresource ) {
+            resultresource->GetResultTransform(transform);
+            return transform;
+        }
+        boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
+        ++iterations;
+        if( iterations > 10 ) {
+            controller->CancelAllJobs();
+            throw MujinException("operation timed out, cancelling all jobs and quitting", MEC_Timeout);
+        }
+    }
+}
+
 void BinPickingTaskResource::InitializeZMQ(int zmqport)
 {
     GETCONTROLLERIMPL();
