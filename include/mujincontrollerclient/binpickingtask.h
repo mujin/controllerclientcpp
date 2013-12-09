@@ -95,6 +95,7 @@ public:
     virtual Transform GetTransform(const std::string& targetname);
     virtual void SetTransform(const std::string& targetname, const Transform& transform);
     virtual Transform GetManipTransformToRobot();
+    virtual Transform GetRobotTransform();
     virtual void InitializeZMQ(int zmqport);
 
     /// \brief Dynamically add a point cloud collision obstacle with name to the environment.
