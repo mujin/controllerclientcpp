@@ -676,6 +676,8 @@ public:
     virtual void GetInstObjects(std::vector<InstObjectPtr>& instobjects);
 
     virtual SceneResource::InstObjectPtr CreateInstObject(const std::string& name, const std::string& reference_uri, Real quaternion[4], Real translate[3]);
+
+    virtual SceneResourcePtr Copy(const std::string& name);
 };
 
 class MUJINCLIENT_API TaskResource : public WebResource
