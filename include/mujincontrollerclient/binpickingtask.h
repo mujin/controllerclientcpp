@@ -95,6 +95,7 @@ public:
     virtual Transform GetTransform(const std::string& targetname);
     virtual void SetTransform(const std::string& targetname, const Transform& transform);
     virtual Transform GetManipTransformToRobot();
+    virtual Transform GetManipTransform();
     virtual Transform GetRobotTransform();
     virtual void InitializeZMQ(int zmqport);
 

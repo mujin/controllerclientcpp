@@ -200,7 +200,6 @@ void SceneResource::GetInstObjects(std::vector<SceneResource::InstObjectPtr>& in
 }
 
 SceneResource::InstObjectPtr SceneResource::CreateInstObject(const std::string& name, const std::string& reference_uri, Real quaternion[4], Real translation[3])
-//void SceneResource::CreateInstObject(const std::string& name, const std::string& reference_uri, Real rotate[4], Real translation[3])
 {
     GETCONTROLLERIMPL();
     boost::property_tree::ptree pt;
@@ -208,6 +207,16 @@ SceneResource::InstObjectPtr SceneResource::CreateInstObject(const std::string& 
     std::string inst_pk = pt.get<std::string>("pk");
     SceneResource::InstObjectPtr instobject(new SceneResource::InstObject(GetController(), GetPrimaryKey(),  inst_pk));
     return instobject;
+}
+
+SceneResourcePtr SceneResource::Copy(const std::string& name)
+{
+    GETCONTROLLERIMPL();
+    boost::property_tree::ptree pt;
+    controller->CallPost("scene/?format=json", str(boost::format("{\"name\":\"%s\", \"reference_pk\":\"%s\", \"overwrite\": \"1\"}")%name%GetPrimaryKey()), pt);
+    std::string pk = pt.get<std::string>("pk");
+    SceneResourcePtr scene(new SceneResource(GetController(), pk));
+    return scene;
 }
 
 TaskResource::TaskResource(ControllerClientPtr controller, const std::string& pk) : WebResource(controller,"task",pk)
