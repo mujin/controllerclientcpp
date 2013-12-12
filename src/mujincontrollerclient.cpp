@@ -59,6 +59,25 @@ void SceneResource::InstObject::SetTransform(const Transform& t)
     controller->CallPut(str(boost::format("%s/%s/?format=json")%GetResourceName()%GetPrimaryKey()), data, pt);
 }
 
+void SceneResource::InstObject::SetDOFValues()
+{
+    GETCONTROLLERIMPL();
+    boost::property_tree::ptree pt;
+    std::stringstream ss;
+    ss << "{\"dofvalues\":";
+    ss << "[";
+    if( this->dofvalues.size() > 0 ) {
+        for (unsigned int i = 0; i < this->dofvalues.size(); i++) {
+            ss << this->dofvalues[i];
+            if( i != this->dofvalues.size()-1) {
+                ss << ", ";
+            }
+        }
+    }
+    ss << "]}";
+    controller->CallPut(str(boost::format("%s/%s/?format=json")%GetResourceName()%GetPrimaryKey()), ss.str(), pt);
+}
+
 SceneResource::SceneResource(ControllerClientPtr controller, const std::string& pk) : WebResource(controller, "scene", pk)
 {
     // get something from the scene?

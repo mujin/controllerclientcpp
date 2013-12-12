@@ -63,7 +63,7 @@ public:
         std::string robottype;
         std::vector<std::string> jointnames;
         std::vector<Real> currentjointvalues;
-        std::map<std::string, std::vector<Real> > tools;
+        std::map<std::string, Transform> tools;
     };
 
     class ResultMoveJoints
