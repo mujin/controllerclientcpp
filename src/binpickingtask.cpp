@@ -92,8 +92,25 @@ void BinPickingResultResource::GetResultGetJointValues(ResultGetJointValues& res
         else if (value.first == "tools") {
             BOOST_FOREACH(boost::property_tree::ptree::value_type &v, value.second) {
                 std::string first = v.first;
-                BOOST_FOREACH(boost::property_tree::ptree::value_type &x, v.second) {
-                    result.tools[first].push_back(boost::lexical_cast<Real>(x.second.data()));
+                BOOST_FOREACH(boost::property_tree::ptree::value_type& value2, output) {
+                    if( value2.first == "translate") {
+                        size_t i = 0;
+                        if ( value2.second.size() != 3 ) {
+                            throw MujinException("the length of translation is invalid", MEC_Timeout);
+                        }
+                        BOOST_FOREACH(boost::property_tree::ptree::value_type &v, value2.second) {
+                            result.tools[first].translate[i++] = boost::lexical_cast<Real>(v.second.data());
+                        }
+                    }
+                    else if (value2.first == "quaternion") {
+                        size_t i = 0;
+                        if ( value2.second.size() != 4 ) {
+                            throw MujinException("the length of quaternion is invalid", MEC_Timeout);
+                        }
+                        BOOST_FOREACH(boost::property_tree::ptree::value_type &v, value2.second) {
+                            result.tools[first].quaternion[i++] = boost::lexical_cast<Real>(v.second.data());
+                        }
+                    }
                 }
             }
         }

@@ -620,6 +620,7 @@ public:
         }
 
         void SetTransform(const Transform& t);
+        void SetDOFValues();
 
         std::vector<Real> dofvalues;
         std::string name;
