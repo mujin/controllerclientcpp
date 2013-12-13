@@ -78,6 +78,71 @@ void SceneResource::InstObject::SetDOFValues()
     controller->CallPut(str(boost::format("%s/%s/?format=json")%GetResourceName()%GetPrimaryKey()), ss.str(), pt);
 }
 
+void SceneResource::InstObject::Print()
+{
+    std::cout << "dofvalues: ";
+    for (int i = 0; i < dofvalues.size(); i++) {
+        std::cout << dofvalues[i] << ", ";
+    }
+    std::cout << std::endl;
+    std::cout << "name: " << name << std::endl;
+    std::cout << "pk: " <<  pk << std::endl;
+    std::cout << "object_pk: " << object_pk << std::endl;
+    std::cout << "reference_uri: " << reference_uri << std::endl;
+
+    std::cout << "quaternion: ";
+    for (int i = 0; i < 4; i++) {
+        std::cout << quaternion[i] << ", ";
+    }
+    std::cout << std::endl;
+    std::cout << "translate: ";
+    for (int i = 0; i < 3; i++) {
+        std::cout << translate[i] << ", ";
+    }
+    std::cout << std::endl;
+
+    std::cout << "links: " << std::endl;
+    for (int i = 0; i < links.size(); i++) {
+        std::cout << "\tname: " << links[i].name << std::endl;
+        std::cout << "\tquaternion: ";
+        for (int i = 0; i < 4; i++) {
+            std::cout << links[i].quaternion[i] << ", ";
+        }
+        std::cout << std::endl;
+        std::cout << "\ttranslate: ";
+        for (int i = 0; i < 3; i++) {
+            std::cout << links[i].translate[i] << ", ";
+        }
+        std::cout << std::endl;
+    }
+
+    std::cout << "tools: " << std::endl;
+    for (int i = 0; i < tools.size(); i++) {
+        std::cout << "\tname: " << tools[i].name << std::endl;
+        std::cout << "\tframe_origin: " << tools[i].frame_origin << std::endl;
+        std::cout << "\tframe_tip: " << tools[i].frame_tip << std::endl;
+        std::cout << "\tpk: " << tools[i].pk << std::endl;
+
+        std::cout << "\tquaternion: ";
+        for (int i = 0; i < 4; i++) {
+            std::cout << tools[i].quaternion[i] << ", ";
+        }
+        std::cout << std::endl;
+
+        std::cout << "\ttranslate: ";
+        for (int i = 0; i < 3; i++) {
+            std::cout << tools[i].translate[i] << ", ";
+        }
+        std::cout << std::endl;
+
+        std::cout << "\tdirection: ";
+        for (int i = 0; i < 3; i++) {
+            std::cout << tools[i].direction[i] << ", ";
+        }
+        std::cout << std::endl;
+    }
+}
+
 SceneResource::SceneResource(ControllerClientPtr controller, const std::string& pk) : WebResource(controller, "scene", pk)
 {
     // get something from the scene?
@@ -191,7 +256,7 @@ void SceneResource::GetInstObjects(std::vector<SceneResource::InstObjectPtr>& in
     size_t i = 0;
     BOOST_FOREACH(boost::property_tree::ptree::value_type &v, objects) {
         InstObjectPtr instobject(new InstObject(controller, GetPrimaryKey(), v.second.get<std::string>("pk")));
-        //instobject->dofvalues
+
         instobject->name = v.second.get<std::string>("name");
         instobject->pk = v.second.get<std::string>("pk");
         instobject->object_pk = v.second.get<std::string>("object_pk");
@@ -214,6 +279,61 @@ void SceneResource::GetInstObjects(std::vector<SceneResource::InstObjectPtr>& in
             BOOST_ASSERT( itranslate < 3 );
             instobject->translate[itranslate++] = boost::lexical_cast<Real>(vtranslate.second.data());
         }
+
+        boost::property_tree::ptree& jsonlinks = v.second.get_child("links");
+        instobject->links.resize(jsonlinks.size());
+        size_t ilink = 0;
+        BOOST_FOREACH(boost::property_tree::ptree::value_type &vlink, jsonlinks) {
+            instobject->links[ilink].name = vlink.second.get<std::string>("name");
+
+            boost::property_tree::ptree& quatjson = vlink.second.get_child("quaternion");
+            int iquat=0;
+            BOOST_FOREACH(boost::property_tree::ptree::value_type &v, quatjson) {
+                BOOST_ASSERT(iquat<4);
+                instobject->links[ilink].quaternion[iquat] = boost::lexical_cast<Real>(v.second.data());
+            }
+
+            boost::property_tree::ptree& transjson = vlink.second.get_child("translate");
+            int itrans=0;
+            BOOST_FOREACH(boost::property_tree::ptree::value_type &v, transjson) {
+                BOOST_ASSERT(itrans<3);
+                instobject->links[ilink].translate[itrans] = boost::lexical_cast<Real>(v.second.data());
+            }
+            ilink++;
+        }
+
+        boost::property_tree::ptree& jsontools = v.second.get_child("tools");
+        instobject->tools.resize(jsontools.size());
+        size_t itool = 0;
+        BOOST_FOREACH(boost::property_tree::ptree::value_type &vtool, jsontools) {
+            instobject->tools[itool].name = vtool.second.get<std::string>("name");
+            instobject->tools[itool].frame_origin = vtool.second.get<std::string>("frame_origin");
+            instobject->tools[itool].frame_tip = vtool.second.get<std::string>("frame_tip");
+            instobject->tools[itool].pk = vtool.second.get<std::string>("pk");
+
+            boost::property_tree::ptree& quatjson = vtool.second.get_child("quaternion");
+            int iquat=0;
+            BOOST_FOREACH(boost::property_tree::ptree::value_type &v, quatjson) {
+                BOOST_ASSERT(iquat<4);
+                instobject->tools[itool].quaternion[iquat] = boost::lexical_cast<Real>(v.second.data());
+            }
+
+            boost::property_tree::ptree& transjson = vtool.second.get_child("translate");
+            int itrans=0;
+            BOOST_FOREACH(boost::property_tree::ptree::value_type &v, transjson) {
+                BOOST_ASSERT(itrans<3);
+                instobject->tools[itool].translate[itrans] = boost::lexical_cast<Real>(v.second.data());
+            }
+
+            boost::property_tree::ptree& directionjson = vtool.second.get_child("direction");
+            int idir=0;
+            BOOST_FOREACH(boost::property_tree::ptree::value_type &v, directionjson) {
+                BOOST_ASSERT(idir<3);
+                instobject->tools[itool].direction[idir] = boost::lexical_cast<Real>(v.second.data());
+            }
+            itool++;
+        }
+
         instobjects[i++] = instobject;
     }
 }
