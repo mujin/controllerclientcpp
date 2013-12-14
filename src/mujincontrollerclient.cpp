@@ -119,9 +119,6 @@ void SceneResource::InstObject::Print()
     std::cout << "tools: " << std::endl;
     for (int i = 0; i < tools.size(); i++) {
         std::cout << "\tname: " << tools[i].name << std::endl;
-        std::cout << "\tframe_origin: " << tools[i].frame_origin << std::endl;
-        std::cout << "\tframe_tip: " << tools[i].frame_tip << std::endl;
-        std::cout << "\tpk: " << tools[i].pk << std::endl;
 
         std::cout << "\tquaternion: ";
         for (int i = 0; i < 4; i++) {
@@ -307,9 +304,6 @@ void SceneResource::GetInstObjects(std::vector<SceneResource::InstObjectPtr>& in
         size_t itool = 0;
         BOOST_FOREACH(boost::property_tree::ptree::value_type &vtool, jsontools) {
             instobject->tools[itool].name = vtool.second.get<std::string>("name");
-            instobject->tools[itool].frame_origin = vtool.second.get<std::string>("frame_origin");
-            instobject->tools[itool].frame_tip = vtool.second.get<std::string>("frame_tip");
-            instobject->tools[itool].pk = vtool.second.get<std::string>("pk");
 
             boost::property_tree::ptree& quatjson = vtool.second.get_child("quaternion");
             int iquat=0;
