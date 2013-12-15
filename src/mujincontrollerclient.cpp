@@ -163,6 +163,64 @@ void SceneResource::InstObject::SetDOFValues()
     controller->CallPut(str(boost::format("%s/%s/?format=json")%GetResourceName()%GetPrimaryKey()), ss.str(), pt);
 }
 
+
+void SceneResource::InstObject::GrabObject(InstObjectPtr grabbedobject, std::string& grabbedobjectlinkpk, std::string& grabbinglinkpk)
+{
+    SceneResource::InstObject::Grab grab;
+    grab.instobjectpk = grabbedobject->pk;
+    grab.grabbed_linkpk = grabbedobjectlinkpk;
+    grab.grabbing_linkpk = grabbinglinkpk;
+    for (size_t igrab = 0; igrab < this->grabs.size(); igrab++) {
+        if (this->grabs[igrab] == grab) {
+            std::cerr << grabbedobject->name << "is already grabbed" << std::endl;
+            return;
+        }
+    }
+    std::stringstream ss;
+    ss << "{\"grabs\":";
+    ss << "[";
+    if( this->grabs.size() > 0 ) {
+        for (unsigned int i = 0; i < this->grabs.size(); i++) {
+            ss << this->grabs[i].Serialize() << ", ";
+        }
+    }
+    ss << grab.Serialize();
+    ss << "]}";
+    GETCONTROLLERIMPL();
+    boost::property_tree::ptree pt;
+    controller->CallPut(str(boost::format("%s/%s/?format=json")%GetResourceName()%GetPrimaryKey()), ss.str(), pt);
+}
+
+void SceneResource::InstObject::ReleaseObject(InstObjectPtr grabbedobject, std::string& grabbedobjectlinkpk, std::string& grabbinglinkpk)
+{
+    SceneResource::InstObject::Grab grab;
+    grab.instobjectpk = grabbedobject->pk;
+    grab.grabbed_linkpk = grabbedobjectlinkpk;
+    grab.grabbing_linkpk = grabbinglinkpk;
+    for (size_t igrab = 0; igrab < this->grabs.size(); igrab++) {
+        if (this->grabs[igrab] == grab) {
+            this->grabs.erase(std::remove(this->grabs.begin(), this->grabs.end(), this->grabs[igrab]), this->grabs.end());
+            std::stringstream ss;
+            ss << "{\"grabs\":";
+            ss << "[";
+            if( this->grabs.size() > 0 ) {
+                for (unsigned int i = 0; i < this->grabs.size(); i++) {
+                    ss << this->grabs[i].Serialize() << ", ";
+                }
+                if( igrab != this->grabs.size()-1) {
+                    ss << ", ";
+                }
+            }
+            ss << "]}";
+            GETCONTROLLERIMPL();
+            boost::property_tree::ptree pt;
+            controller->CallPut(str(boost::format("%s/%s/?format=json")%GetResourceName()%GetPrimaryKey()), ss.str(), pt);
+        }
+    }
+    std::cerr << grabbedobject->name << "is not grabbed" << std::endl;
+
+}
+
 void SceneResource::InstObject::Print()
 {
     std::cout << "dofvalues: ";
@@ -413,6 +471,16 @@ void SceneResource::GetInstObjects(std::vector<SceneResource::InstObjectPtr>& in
             itool++;
         }
 
+        boost::property_tree::ptree& jsongrabs = v.second.get_child("grabs");
+        instobject->grabs.resize(jsongrabs.size());
+        size_t igrab = 0;
+        BOOST_FOREACH(boost::property_tree::ptree::value_type &vgrab, jsongrabs) {
+            instobject->grabs[igrab].instobjectpk = vgrab.second.get<std::string>("instobjectpk");
+            instobject->grabs[igrab].grabbed_linkpk = vgrab.second.get<std::string>("grabbed_linkpk");
+            instobject->grabs[igrab].grabbing_linkpk = vgrab.second.get<std::string>("grabbing_linkpk");
+            igrab++;
+        }
+
         instobjects[i++] = instobject;
     }
 }
@@ -435,10 +503,6 @@ SceneResourcePtr SceneResource::Copy(const std::string& name)
     std::string pk = pt.get<std::string>("pk");
     SceneResourcePtr scene(new SceneResource(GetController(), pk));
     return scene;
-}
-
-void SceneResource::Grab(const std::string grabbingname, const std::string& grabbedname)
-{
 }
 
 TaskResource::TaskResource(ControllerClientPtr controller, const std::string& pk) : WebResource(controller,"task",pk)

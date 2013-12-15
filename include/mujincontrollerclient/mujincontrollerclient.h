@@ -123,6 +123,7 @@ private:
 };
 
 class ControllerClient;
+class ObjectResource;
 class RobotResource;
 class SceneResource;
 class TaskResource;
@@ -131,6 +132,8 @@ class PlanningResultResource;
 
 typedef boost::shared_ptr<ControllerClient> ControllerClientPtr;
 typedef boost::weak_ptr<ControllerClient> ControllerClientWeakPtr;
+typedef boost::shared_ptr<ObjectResource> ObjectResourcePtr;
+typedef boost::weak_ptr<ObjectResource> ObjectResourceWeakPtr;
 typedef boost::shared_ptr<RobotResource> RobotResourcePtr;
 typedef boost::weak_ptr<RobotResource> RobotResourceWeakPtr;
 typedef boost::shared_ptr<SceneResource> SceneResourcePtr;
@@ -684,6 +687,8 @@ public:
 class MUJINCLIENT_API SceneResource : public WebResource
 {
 public:
+    class InstObject;
+    typedef boost::shared_ptr<InstObject> InstObjectPtr;
     /// \brief nested resource in the scene describe an object in the scene
     class MUJINCLIENT_API InstObject : public WebResource
     {
@@ -710,12 +715,28 @@ public:
         class MUJINCLIENT_API Grab {
 public:
             std::string instobjectpk; ///< grabed_instobject_pk
-            std::string grabbed_link_pk;
-            std::string grabbing_link_pk;
+            std::string grabbed_linkpk;
+            std::string grabbing_linkpk;
+
+            std::string Serialize() {
+                return boost::str(boost::format("{\"instobjectpk\": \"%s\", \"grabbed_linkpk\": \"%s\",  \"grabbing_linkpk\": \"%s\"}")%instobjectpk%grabbed_linkpk%grabbing_linkpk);
+            }
+
+            bool operator==(const Grab grab) {
+                if (this->instobjectpk == grab.instobjectpk
+                        && this->grabbed_linkpk == grab.grabbed_linkpk
+                        && this->grabbing_linkpk == grab.grabbing_linkpk) {
+                    return true;
+                }
+                return false;
+            }
         };
 
         void SetTransform(const Transform& t);
         void SetDOFValues();
+        virtual void GrabObject(InstObjectPtr grabbedobject, std::string& grabbedobjectlinkpk, std::string& grabbinglinkpk);
+        virtual void ReleaseObject(InstObjectPtr grabbedobject, std::string& grabbedobjectlinkpk, std::string& grabbinglinkpk);
+
 
         std::vector<Real> dofvalues;
         std::string name;
@@ -729,7 +750,6 @@ public:
         std::vector<Tool> tools;
         void Print();
     };
-    typedef boost::shared_ptr<InstObject> InstObjectPtr;
 
     SceneResource(ControllerClientPtr controller, const std::string& pk);
     virtual ~SceneResource() {
@@ -744,6 +764,7 @@ public:
         \param tasktype The type of task to create. Supported types are:
         - itlplanning
      */
+
     virtual TaskResourcePtr GetOrCreateTaskFromName_UTF8(const std::string& taskname, const std::string& tasktype);
 
     virtual TaskResourcePtr GetOrCreateTaskFromName_UTF8(const std::string& taskname)
@@ -778,7 +799,6 @@ public:
     virtual SceneResource::InstObjectPtr CreateInstObject(const std::string& name, const std::string& reference_uri, Real quaternion[4], Real translate[3]);
 
     virtual SceneResourcePtr Copy(const std::string& name);
-    virtual void Grab(const std::string grabbingname, const std::string& grabbedname);
 };
 
 class MUJINCLIENT_API TaskResource : public WebResource
