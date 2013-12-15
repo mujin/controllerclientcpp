@@ -123,6 +123,7 @@ private:
 };
 
 class ControllerClient;
+class RobotResource;
 class SceneResource;
 class TaskResource;
 class OptimizationResource;
@@ -130,6 +131,8 @@ class PlanningResultResource;
 
 typedef boost::shared_ptr<ControllerClient> ControllerClientPtr;
 typedef boost::weak_ptr<ControllerClient> ControllerClientWeakPtr;
+typedef boost::shared_ptr<RobotResource> RobotResourcePtr;
+typedef boost::weak_ptr<RobotResource> RobotResourceWeakPtr;
 typedef boost::shared_ptr<SceneResource> SceneResourcePtr;
 typedef boost::weak_ptr<SceneResource> SceneResourceWeakPtr;
 typedef boost::shared_ptr<TaskResource> TaskResourcePtr;
@@ -608,6 +611,76 @@ private:
     std::string __resourcename, __pk;
 };
 
+class MUJINCLIENT_API ObjectResource : public WebResource
+{
+public:
+    class MUJINCLIENT_API LinkResource : public WebResource {
+public:
+        LinkResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk);
+        virtual ~LinkResource() {
+        }
+
+        std::vector<std::string> attachmentpks;
+        std::string name;
+        std::string pk;
+        //TODO transforms
+    };
+    typedef boost::shared_ptr<LinkResource> LinkResourcePtr;
+
+    ObjectResource(ControllerClientPtr controller, const std::string& pk);
+    virtual ~ObjectResource() {
+    }
+
+    virtual void GetLinks(std::vector<LinkResourcePtr>& links);
+
+    std::string name;
+    int nundof;
+    std::string datemodified;
+    std::string geometry;
+    bool isrobot;
+    std::string pk;
+    std::string resource_uri;
+    std::string scenepk;
+    std::string unit;
+    std::string uri;
+
+protected:
+    ObjectResource(ControllerClientPtr controller, const std::string& resource, const std::string& pk);
+
+};
+
+class MUJINCLIENT_API RobotResource : public ObjectResource
+{
+public:
+    class MUJINCLIENT_API ToolResource : public WebResource {
+public:
+        ToolResource(ControllerClientPtr controller, const std::string& robotobjectpk, const std::string& pk);
+        virtual ~ToolResource() {
+        }
+
+        std::string name;
+        std::string frame_origin;
+        std::string frame_tip;
+        std::string pk;
+        Real direction[3];
+        Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        Real translate[3];
+    };
+    typedef boost::shared_ptr<ToolResource> ToolResourcePtr;
+
+    RobotResource(ControllerClientPtr controller, const std::string& pk);
+    virtual ~RobotResource() {
+    }
+
+    virtual void GetTools(std::vector<ToolResourcePtr>& tools);
+
+    // attachments
+    // ikparams
+    // images
+    int numdof;
+    std::string simulation_file;
+};
+
 class MUJINCLIENT_API SceneResource : public WebResource
 {
 public:
@@ -635,6 +708,10 @@ public:
         };
 
         class MUJINCLIENT_API Grab {
+public:
+            std::string instobjectpk; ///< grabed_instobject_pk
+            std::string grabbed_link_pk;
+            std::string grabbing_link_pk;
         };
 
         void SetTransform(const Transform& t);
@@ -647,7 +724,7 @@ public:
         std::string reference_uri;
         Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
         Real translate[3];
-        //std::vector<Grab> grabs;
+        std::vector<Grab> grabs;
         std::vector<Link> links;
         std::vector<Tool> tools;
         void Print();
@@ -701,6 +778,7 @@ public:
     virtual SceneResource::InstObjectPtr CreateInstObject(const std::string& name, const std::string& reference_uri, Real quaternion[4], Real translate[3]);
 
     virtual SceneResourcePtr Copy(const std::string& name);
+    virtual void Grab(const std::string grabbingname, const std::string& grabbedname);
 };
 
 class MUJINCLIENT_API TaskResource : public WebResource

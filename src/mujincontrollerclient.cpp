@@ -47,6 +47,91 @@ void WebResource::Copy(const std::string& newname, int options)
     throw MujinException("not implemented yet");
 }
 
+ObjectResource::ObjectResource(ControllerClientPtr controller, const std::string& pk) : WebResource(controller, "object", pk)
+{
+}
+
+ObjectResource::ObjectResource(ControllerClientPtr controller, const std::string& resource, const std::string& pk) : WebResource(controller, resource, pk)
+{
+}
+
+ObjectResource::LinkResource::LinkResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk) : WebResource(controller, str(boost::format("object/%s/link")%objectpk), pk)
+{
+}
+
+void ObjectResource::GetLinks(std::vector<ObjectResource::LinkResourcePtr>& links)
+{
+    GETCONTROLLERIMPL();
+    boost::property_tree::ptree pt;
+    controller->CallGet(str(boost::format("object/%s/link/?format=json&limit=0&fields=links")%GetPrimaryKey()), pt);
+    boost::property_tree::ptree& objects = pt.get_child("links");
+    links.resize(objects.size());
+    size_t i = 0;
+    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, objects) {
+        LinkResourcePtr link(new LinkResource(controller, GetPrimaryKey(), v.second.get<std::string>("pk")));
+
+
+        link->name = v.second.get<std::string>("name");
+        link->pk = v.second.get<std::string>("pk");
+
+        boost::property_tree::ptree& jsonattachments = v.second.get_child("attachmentpks");
+        link->attachmentpks.resize(jsonattachments.size());
+        size_t iattch = 0;
+        BOOST_FOREACH(boost::property_tree::ptree::value_type &att, jsonattachments) {
+            link->attachmentpks[iattch++] = att.second.data();
+        }
+
+        //TODO transforms
+        links[i++] = link;
+    }
+}
+
+RobotResource::RobotResource(ControllerClientPtr controller, const std::string& pk) : ObjectResource(controller, "robot", pk)
+{
+}
+
+RobotResource::ToolResource::ToolResource(ControllerClientPtr controller, const std::string& robotobjectpk, const std::string& pk) : WebResource(controller, str(boost::format("robot/%s/tool")%robotobjectpk), pk)
+{
+}
+
+void RobotResource::GetTools(std::vector<RobotResource::ToolResourcePtr>& tools)
+{
+    GETCONTROLLERIMPL();
+    boost::property_tree::ptree pt;
+    controller->CallGet(str(boost::format("robot/%s/tool/?format=json&limit=0&fields=tools")%GetPrimaryKey()), pt);
+    boost::property_tree::ptree& objects = pt.get_child("tools");
+    tools.resize(objects.size());
+    size_t i = 0;
+    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, objects) {
+        ToolResourcePtr tool(new ToolResource(controller, GetPrimaryKey(), v.second.get<std::string>("pk")));
+
+
+        tool->name = v.second.get<std::string>("name");
+        tool->pk = v.second.get<std::string>("pk");
+        tool->frame_origin = v.second.get<std::string>("frame_origin");
+        tool->frame_tip = v.second.get<std::string>("frame_tip");
+
+        boost::property_tree::ptree& jsondirection = v.second.get_child("direction");
+        size_t idir = 0;
+        BOOST_FOREACH(boost::property_tree::ptree::value_type &vdir, jsondirection) {
+            tool->direction[idir++] = boost::lexical_cast<Real>(vdir.second.data());
+        }
+
+        size_t iquaternion = 0;
+        BOOST_FOREACH(boost::property_tree::ptree::value_type &vquaternion, v.second.get_child("quaternion")) {
+            BOOST_ASSERT( iquaternion < 4 );
+            tool->quaternion[iquaternion++] = boost::lexical_cast<Real>(vquaternion.second.data());
+        }
+        size_t itranslate = 0;
+        BOOST_FOREACH(boost::property_tree::ptree::value_type &vtranslate, v.second.get_child("translate")) {
+            BOOST_ASSERT( itranslate < 3 );
+            tool->translate[itranslate++] = boost::lexical_cast<Real>(vtranslate.second.data());
+        }
+
+        tools[i++] = tool;
+    }
+}
+
 SceneResource::InstObject::InstObject(ControllerClientPtr controller, const std::string& scenepk, const std::string& pk) : WebResource(controller, str(boost::format("scene/%s/instobject")%scenepk), pk)
 {
 }
@@ -350,6 +435,10 @@ SceneResourcePtr SceneResource::Copy(const std::string& name)
     std::string pk = pt.get<std::string>("pk");
     SceneResourcePtr scene(new SceneResource(GetController(), pk));
     return scene;
+}
+
+void SceneResource::Grab(const std::string grabbingname, const std::string& grabbedname)
+{
 }
 
 TaskResource::TaskResource(ControllerClientPtr controller, const std::string& pk) : WebResource(controller,"task",pk)
