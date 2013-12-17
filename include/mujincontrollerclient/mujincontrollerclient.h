@@ -724,8 +724,8 @@ public:
 
             bool operator==(const Grab grab) {
                 if (this->instobjectpk == grab.instobjectpk
-                        && this->grabbed_linkpk == grab.grabbed_linkpk
-                        && this->grabbing_linkpk == grab.grabbing_linkpk) {
+                    && this->grabbed_linkpk == grab.grabbed_linkpk
+                    && this->grabbing_linkpk == grab.grabbing_linkpk) {
                     return true;
                 }
                 return false;
@@ -748,7 +748,6 @@ public:
         std::vector<Grab> grabs;
         std::vector<Link> links;
         std::vector<Tool> tools;
-        void Print();
     };
 
     SceneResource(ControllerClientPtr controller, const std::string& pk);
@@ -795,6 +794,7 @@ public:
 
     /// \brief gets a list of all the instance objects of the scene
     virtual void GetInstObjects(std::vector<InstObjectPtr>& instobjects);
+    virtual bool FindInstObject(std::string& name, InstObjectPtr& instobject);
 
     virtual SceneResource::InstObjectPtr CreateInstObject(const std::string& name, const std::string& reference_uri, Real quaternion[4], Real translate[3]);
 
