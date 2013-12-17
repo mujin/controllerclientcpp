@@ -170,6 +170,7 @@ void SceneResource::InstObject::GrabObject(InstObjectPtr grabbedobject, std::str
     grab.instobjectpk = grabbedobject->pk;
     grab.grabbed_linkpk = grabbedobjectlinkpk;
     grab.grabbing_linkpk = grabbinglinkpk;
+    //TODO do not use this->grabs. this is the cached information
     for (size_t igrab = 0; igrab < this->grabs.size(); igrab++) {
         if (this->grabs[igrab] == grab) {
             std::cerr << grabbedobject->name << "is already grabbed" << std::endl;
@@ -219,68 +220,6 @@ void SceneResource::InstObject::ReleaseObject(InstObjectPtr grabbedobject, std::
     }
     std::cerr << grabbedobject->name << "is not grabbed" << std::endl;
 
-}
-
-void SceneResource::InstObject::Print()
-{
-    std::cout << "dofvalues: ";
-    for (int i = 0; i < dofvalues.size(); i++) {
-        std::cout << dofvalues[i] << ", ";
-    }
-    std::cout << std::endl;
-    std::cout << "name: " << name << std::endl;
-    std::cout << "pk: " <<  pk << std::endl;
-    std::cout << "object_pk: " << object_pk << std::endl;
-    std::cout << "reference_uri: " << reference_uri << std::endl;
-
-    std::cout << "quaternion: ";
-    for (int i = 0; i < 4; i++) {
-        std::cout << quaternion[i] << ", ";
-    }
-    std::cout << std::endl;
-    std::cout << "translate: ";
-    for (int i = 0; i < 3; i++) {
-        std::cout << translate[i] << ", ";
-    }
-    std::cout << std::endl;
-
-    std::cout << "links: " << std::endl;
-    for (int i = 0; i < links.size(); i++) {
-        std::cout << "\tname: " << links[i].name << std::endl;
-        std::cout << "\tquaternion: ";
-        for (int i = 0; i < 4; i++) {
-            std::cout << links[i].quaternion[i] << ", ";
-        }
-        std::cout << std::endl;
-        std::cout << "\ttranslate: ";
-        for (int i = 0; i < 3; i++) {
-            std::cout << links[i].translate[i] << ", ";
-        }
-        std::cout << std::endl;
-    }
-
-    std::cout << "tools: " << std::endl;
-    for (int i = 0; i < tools.size(); i++) {
-        std::cout << "\tname: " << tools[i].name << std::endl;
-
-        std::cout << "\tquaternion: ";
-        for (int i = 0; i < 4; i++) {
-            std::cout << tools[i].quaternion[i] << ", ";
-        }
-        std::cout << std::endl;
-
-        std::cout << "\ttranslate: ";
-        for (int i = 0; i < 3; i++) {
-            std::cout << tools[i].translate[i] << ", ";
-        }
-        std::cout << std::endl;
-
-        std::cout << "\tdirection: ";
-        for (int i = 0; i < 3; i++) {
-            std::cout << tools[i].direction[i] << ", ";
-        }
-        std::cout << std::endl;
-    }
 }
 
 SceneResource::SceneResource(ControllerClientPtr controller, const std::string& pk) : WebResource(controller, "scene", pk)
@@ -428,16 +367,16 @@ void SceneResource::GetInstObjects(std::vector<SceneResource::InstObjectPtr>& in
 
             boost::property_tree::ptree& quatjson = vlink.second.get_child("quaternion");
             int iquat=0;
-            BOOST_FOREACH(boost::property_tree::ptree::value_type &v, quatjson) {
+            BOOST_FOREACH(boost::property_tree::ptree::value_type &q, quatjson) {
                 BOOST_ASSERT(iquat<4);
-                instobject->links[ilink].quaternion[iquat] = boost::lexical_cast<Real>(v.second.data());
+                instobject->links[ilink].quaternion[iquat++] = boost::lexical_cast<Real>(q.second.data());
             }
 
             boost::property_tree::ptree& transjson = vlink.second.get_child("translate");
             int itrans=0;
-            BOOST_FOREACH(boost::property_tree::ptree::value_type &v, transjson) {
+            BOOST_FOREACH(boost::property_tree::ptree::value_type &t, transjson) {
                 BOOST_ASSERT(itrans<3);
-                instobject->links[ilink].translate[itrans] = boost::lexical_cast<Real>(v.second.data());
+                instobject->links[ilink].translate[itrans++] = boost::lexical_cast<Real>(t.second.data());
             }
             ilink++;
         }
@@ -450,23 +389,23 @@ void SceneResource::GetInstObjects(std::vector<SceneResource::InstObjectPtr>& in
 
             boost::property_tree::ptree& quatjson = vtool.second.get_child("quaternion");
             int iquat=0;
-            BOOST_FOREACH(boost::property_tree::ptree::value_type &v, quatjson) {
+            BOOST_FOREACH(boost::property_tree::ptree::value_type &q, quatjson) {
                 BOOST_ASSERT(iquat<4);
-                instobject->tools[itool].quaternion[iquat] = boost::lexical_cast<Real>(v.second.data());
+                instobject->tools[itool].quaternion[iquat++] = boost::lexical_cast<Real>(q.second.data());
             }
 
             boost::property_tree::ptree& transjson = vtool.second.get_child("translate");
             int itrans=0;
-            BOOST_FOREACH(boost::property_tree::ptree::value_type &v, transjson) {
+            BOOST_FOREACH(boost::property_tree::ptree::value_type &t, transjson) {
                 BOOST_ASSERT(itrans<3);
-                instobject->tools[itool].translate[itrans] = boost::lexical_cast<Real>(v.second.data());
+                instobject->tools[itool].translate[itrans++] = boost::lexical_cast<Real>(t.second.data());
             }
 
             boost::property_tree::ptree& directionjson = vtool.second.get_child("direction");
             int idir=0;
-            BOOST_FOREACH(boost::property_tree::ptree::value_type &v, directionjson) {
+            BOOST_FOREACH(boost::property_tree::ptree::value_type &d, directionjson) {
                 BOOST_ASSERT(idir<3);
-                instobject->tools[itool].direction[idir] = boost::lexical_cast<Real>(v.second.data());
+                instobject->tools[itool].direction[idir++] = boost::lexical_cast<Real>(d.second.data());
             }
             itool++;
         }
@@ -483,6 +422,21 @@ void SceneResource::GetInstObjects(std::vector<SceneResource::InstObjectPtr>& in
 
         instobjects[i++] = instobject;
     }
+}
+
+bool SceneResource::FindInstObject(std::string& name, SceneResource::InstObjectPtr& instobject)
+{
+
+    std::vector<SceneResource::InstObjectPtr> instobjects;
+    this->GetInstObjects(instobjects);
+    for(size_t i = 0; i < instobjects.size(); ++i) {
+        std::size_t found_at = instobjects[i]->name.find(name);
+        if (found_at != std::string::npos) {
+            instobject = instobjects[i];
+            return true;
+        }
+    }
+    return false;
 }
 
 SceneResource::InstObjectPtr SceneResource::CreateInstObject(const std::string& name, const std::string& reference_uri, Real quaternion[4], Real translation[3])
