@@ -41,6 +41,8 @@ public:
 
     std::string toolname;
     Transform transform;
+    std::string targetarea;
+    std::string samplingmethod;
 
     /*
     goals["command"] = "ComputeCalibrationPoses"
