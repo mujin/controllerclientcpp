@@ -132,6 +132,65 @@ void RobotResource::GetTools(std::vector<RobotResource::ToolResourcePtr>& tools)
     }
 }
 
+RobotResource::AttachedSensorResource::AttachedSensorResource(ControllerClientPtr controller, const std::string& robotobjectpk, const std::string& pk) : WebResource(controller, str(boost::format("robot/%s/attachedsensor")%robotobjectpk), pk)
+{
+}
+
+void RobotResource::GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& attachedsensors)
+{
+    GETCONTROLLERIMPL();
+    boost::property_tree::ptree pt;
+    controller->CallGet(str(boost::format("robot/%s/attachedsensor/?format=json&limit=0&fields=attachedsensors")%GetPrimaryKey()), pt);
+    boost::property_tree::ptree& objects = pt.get_child("attachedsensors");
+    attachedsensors.resize(objects.size());
+    size_t i = 0;
+    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, objects) {
+        AttachedSensorResourcePtr attachedsensor(new AttachedSensorResource(controller, GetPrimaryKey(), v.second.get<std::string>("pk")));
+
+
+        attachedsensor->name = v.second.get<std::string>("name");
+        attachedsensor->pk = v.second.get<std::string>("pk");
+        attachedsensor->frame_origin = v.second.get<std::string>("frame_origin");
+        attachedsensor->sensortype = v.second.get<std::string>("sensortype");
+
+        size_t iquaternion = 0;
+        BOOST_FOREACH(boost::property_tree::ptree::value_type &vquaternion, v.second.get_child("quaternion")) {
+            BOOST_ASSERT( iquaternion < 4 );
+            attachedsensor->quaternion[iquaternion++] = boost::lexical_cast<Real>(vquaternion.second.data());
+        }
+        size_t itranslate = 0;
+        BOOST_FOREACH(boost::property_tree::ptree::value_type &vtranslate, v.second.get_child("translate")) {
+            BOOST_ASSERT( itranslate < 3 );
+            attachedsensor->translate[itranslate++] = boost::lexical_cast<Real>(vtranslate.second.data());
+        }
+
+        size_t icoeff = 0;
+        BOOST_FOREACH(boost::property_tree::ptree::value_type &coeff, v.second.get_child("sensordata.distortion_coeffs")) {
+            BOOST_ASSERT( icoeff < 5 );
+            attachedsensor->sensordata.distortion_coeffs[icoeff++] = boost::lexical_cast<Real>(coeff.second.data());
+        }
+
+        attachedsensor->sensordata.distortion_model = v.second.get<std::string>("sensordata.distortion_model");
+        attachedsensor->sensordata.focal_length = (Real)v.second.get<double>("sensordata.focal_length");
+        attachedsensor->sensordata.measurement_time = (Real)v.second.get<double>("sensordata.measurement_time");
+
+        size_t iintrinsic = 0;
+        BOOST_FOREACH(boost::property_tree::ptree::value_type &intrinsic, v.second.get_child("sensordata.intrinsic")) {
+            BOOST_ASSERT( iintrinsic < 6 );
+            attachedsensor->sensordata.intrinsic[iintrinsic++] = boost::lexical_cast<Real>(intrinsic.second.data());
+        }
+
+
+        size_t idim = 0;
+        BOOST_FOREACH(boost::property_tree::ptree::value_type &imgdim, v.second.get_child("sensordata.image_dimensions")) {
+            BOOST_ASSERT( idim < 3 );
+            attachedsensor->sensordata.image_dimensions[idim++] = boost::lexical_cast<int>(imgdim.second.data());
+        }
+
+        attachedsensors[i++] = attachedsensor;
+    }
+}
+
 SceneResource::InstObject::InstObject(ControllerClientPtr controller, const std::string& scenepk, const std::string& pk) : WebResource(controller, str(boost::format("scene/%s/instobject")%scenepk), pk)
 {
 }

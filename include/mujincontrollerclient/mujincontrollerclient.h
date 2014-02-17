@@ -671,11 +671,40 @@ public:
     };
     typedef boost::shared_ptr<ToolResource> ToolResourcePtr;
 
+    class MUJINCLIENT_API AttachedSensorResource : public WebResource {
+public:
+        AttachedSensorResource(ControllerClientPtr controller, const std::string& robotobjectpk, const std::string& pk);
+        virtual ~AttachedSensorResource() {
+        }
+
+        std::string name;
+        std::string frame_origin;
+        std::string pk;
+        Real direction[3];
+        Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        Real translate[3];
+        std::string sensortype;
+
+        class SensorData {
+public:
+            Real distortion_coeffs[5];
+            std::string distortion_model;
+            Real focal_length;
+            int image_dimensions[3];
+            Real intrinsic[6];
+            Real measurement_time;
+        };
+        SensorData sensordata;
+    };
+
+    typedef boost::shared_ptr<AttachedSensorResource> AttachedSensorResourcePtr;
+
     RobotResource(ControllerClientPtr controller, const std::string& pk);
     virtual ~RobotResource() {
     }
 
     virtual void GetTools(std::vector<ToolResourcePtr>& tools);
+    virtual void GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& attachedsensors);
 
     // attachments
     // ikparams
