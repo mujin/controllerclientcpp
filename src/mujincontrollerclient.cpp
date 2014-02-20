@@ -14,6 +14,7 @@
 #include "common.h"
 #include "controllerclientimpl.h"
 #include <boost/thread.hpp> // for sleep
+#include <boost/algorithm/string.hpp>
 
 namespace mujinclient {
 
@@ -180,11 +181,30 @@ void RobotResource::GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& a
             attachedsensor->sensordata.intrinsic[iintrinsic++] = boost::lexical_cast<Real>(intrinsic.second.data());
         }
 
-
         size_t idim = 0;
         BOOST_FOREACH(boost::property_tree::ptree::value_type &imgdim, v.second.get_child("sensordata.image_dimensions")) {
             BOOST_ASSERT( idim < 3 );
             attachedsensor->sensordata.image_dimensions[idim++] = boost::lexical_cast<int>(imgdim.second.data());
+        }
+
+        if (boost::optional<boost::property_tree::ptree &> asus_depth_parameters_ptree = v.second.get_child_optional("sensordata.asus_depth_parameters")) {
+            std::string parameters_string = asus_depth_parameters_ptree.get().data();
+            //std::cout << "asus param " << parameters_string << std::endl;
+            std::list<std::string> results;
+            boost::split(results, parameters_string, boost::is_any_of(" "));
+            results.remove("");
+            attachedsensor->sensordata.asus_depth_parameters.resize(results.size());
+            size_t iparam = 0;
+            BOOST_FOREACH(std::string p, results) {
+                //std::cout << "'"<< p << "'"<< std::endl;
+                try {
+                    attachedsensor->sensordata.asus_depth_parameters[iparam++] = boost::lexical_cast<Real>(p);
+                } catch (...){
+                    //lexical_cast fails...
+                }
+            }
+        } else {
+            //std::cout << "no asus param" << std::endl;
         }
 
         attachedsensors[i++] = attachedsensor;
