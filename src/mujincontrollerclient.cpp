@@ -503,7 +503,7 @@ void SceneResource::GetInstObjects(std::vector<SceneResource::InstObjectPtr>& in
     }
 }
 
-bool SceneResource::FindInstObject(std::string& name, SceneResource::InstObjectPtr& instobject)
+bool SceneResource::FindInstObject(const std::string& name, SceneResource::InstObjectPtr& instobject)
 {
 
     std::vector<SceneResource::InstObjectPtr> instobjects;

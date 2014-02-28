@@ -824,7 +824,7 @@ public:
 
     /// \brief gets a list of all the instance objects of the scene
     virtual void GetInstObjects(std::vector<InstObjectPtr>& instobjects);
-    virtual bool FindInstObject(std::string& name, InstObjectPtr& instobject);
+    virtual bool FindInstObject(const std::string& name, InstObjectPtr& instobject);
 
     virtual SceneResource::InstObjectPtr CreateInstObject(const std::string& name, const std::string& reference_uri, Real quaternion[4], Real translate[3]);
 
