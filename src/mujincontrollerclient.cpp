@@ -848,7 +848,7 @@ ControllerClientPtr CreateControllerClient(const std::string& usernamepassword, 
     return ControllerClientPtr(new ControllerClientImpl(usernamepassword, baseurl, proxyserverport, proxyuserpw, options));
 }
 
-void ControllerClientDestroy()
+void DestroyControllerClient()
 {
 }
 

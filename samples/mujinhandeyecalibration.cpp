@@ -83,5 +83,5 @@ int main(int argc, char ** argv)
     catch(const MujinException& ex) {
         std::cout << "exception thrown: " << ex.message() << std::endl;
     }
-    ControllerClientDestroy();
+    DestroyControllerClient();
 }
