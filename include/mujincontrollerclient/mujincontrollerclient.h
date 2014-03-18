@@ -34,6 +34,12 @@
 #else
 #endif
 
+#if defined(__GNUC__)
+#define MUJINCLIENT_DEPRECATED __attribute__((deprecated))
+#else
+#define MUJINCLIENT_DEPRECATED
+#endif
+
 #include <string>
 #include <vector>
 #include <list>
@@ -982,6 +988,12 @@ MUJINCLIENT_API ControllerClientPtr CreateControllerClient(const std::string& us
 
 /// \brief called at the very end of an application to safely destroy all controller client resources
 MUJINCLIENT_API void DestroyControllerClient();
+
+/// \deprecated 14/03/14
+inline void ControllerClientDestroy() MUJINCLIENT_DEPRECATED
+{
+    DestroyControllerClient();
+}
 
 /// \brief Compute a 3x4 matrix from a Transform
 MUJINCLIENT_API void ComputeMatrixFromTransform(Real matrix[12], const Transform &transform);
