@@ -1,6 +1,6 @@
 // -*- coding: utf-8 -*-
 #include <mujincontrollerclient/mujincontrollerclient.h>
-#include <mujincontrollerclient/binpickingtask.h>
+#include <mujincontrollerclient/binpickingtaskhttp.h>
 #include <mujincontrollerclient/handeyecalibrationtask.h>
 
 #include <boost/thread/thread.hpp> // for sleep
@@ -39,9 +39,9 @@ int main(int argc, char ** argv)
         HandEyeCalibrationTaskResourcePtr calib;
         BinPickingTaskResourcePtr binpicking;
         calib.reset(new HandEyeCalibrationTaskResource(std::string("calibtask1"), controller,scene));
-        binpicking.reset(new BinPickingTaskResource(std::string("binpickingtask1"), "controller9", 7123, controller,scene));
-        BinPickingResultResource::ResultGetJointValues jointvaluesresult;
-        binpicking->GetJointValues(10, jointvaluesresult);
+        binpicking.reset(new BinPickingTaskHttpResource(std::string("binpickingtask1"), "controller9", 7123, controller,scene));
+        BinPickingResultHttpResource::ResultGetJointValues jointvaluesresult;
+        binpicking->GetJointValues(10,jointvaluesresult);
 
         HandEyeCalibrationTaskParameters calibparam;
         calibparam.SetDefaults();

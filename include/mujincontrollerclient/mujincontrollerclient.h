@@ -58,6 +58,12 @@
 #include <boost/format.hpp>
 #include <boost/array.hpp>
 
+#define FOREACH(it, v) for(BOOST_TYPEOF(v) ::iterator it = (v).begin(); it != (v).end(); (it)++)
+#define FOREACH_NOINC(it, v) for(BOOST_TYPEOF(v) ::iterator it = (v).begin(); it != (v).end(); )
+
+#define FOREACHC(it, v) for(BOOST_TYPEOF(v) ::const_iterator it = (v).begin(); it != (v).end(); (it)++)
+#define FOREACHC_NOINC(it, v) for(BOOST_TYPEOF(v) ::const_iterator it = (v).begin(); it != (v).end(); )
+
 namespace mujinclient {
 
 #include <mujincontrollerclient/config.h>
@@ -990,10 +996,7 @@ MUJINCLIENT_API ControllerClientPtr CreateControllerClient(const std::string& us
 MUJINCLIENT_API void DestroyControllerClient();
 
 /// \deprecated 14/03/14
-inline void ControllerClientDestroy() MUJINCLIENT_DEPRECATED
-{
-    DestroyControllerClient();
-}
+MUJINCLIENT_API void ControllerClientDestroy() MUJINCLIENT_DEPRECATED;
 
 /// \brief Compute a 3x4 matrix from a Transform
 MUJINCLIENT_API void ComputeMatrixFromTransform(Real matrix[12], const Transform &transform);

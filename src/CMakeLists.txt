@@ -11,10 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-include_directories(${MUJINCLIENT_INCLUDE_LOCAL_DIRS} ${CURL_INCLUDE_DIRS})
-link_directories(${MUJINCLIENT_LINK_DIRS})
+include_directories(${MUJINCLIENT_INCLUDE_LOCAL_DIRS} ${CURL_INCLUDE_DIRS} ${libzmq_INCLUDE_DIRS})
+link_directories(${MUJINCLIENT_LINK_DIRS} ${libzmq_LIBRARY_DIRS})
 
-set(SOURCE_FILES handeyecalibrationtask.cpp binpickingtask.cpp common.cpp controllerclientimpl.cpp mujincontrollerclient.cpp ${mujin_header_files} common.h controllerclientimpl.h utf8.h)
+set(SOURCE_FILES handeyecalibrationtask.cpp binpickingtask.cpp common.cpp controllerclientimpl.cpp mujincontrollerclient.cpp ${mujin_header_files} common.h utf8.h binpickingtaskhttp.cpp binpickingtaskzmq.cpp)
 
 add_library(libmujincontrollerclient SHARED ${SOURCE_FILES})
 if( EXTRA_MSVC_DEPEND )
@@ -27,7 +27,7 @@ set_target_properties(libmujincontrollerclient PROPERTIES COMPILE_FLAGS "${EXTRA
   VERSION ${MUJINCLIENT_VERSION}
   CLEAN_DIRECT_OUTPUT 1
   )
-target_link_libraries(libmujincontrollerclient ${CURL_LIBRARIES} ${Boost_THREAD_LIBRARY} ${Boost_DATE_TIME_LIBRARY}  ${EXTRA_LIBRARIES})
+target_link_libraries(libmujincontrollerclient ${CURL_LIBRARIES} ${Boost_THREAD_LIBRARY} ${Boost_DATE_TIME_LIBRARY}  ${EXTRA_LIBRARIES} ${libzmq_LIBRARIES})
 if( MSVC )
   install(TARGETS libmujincontrollerclient RUNTIME DESTINATION bin LIBRARY DESTINATION bin ARCHIVE DESTINATION lib${LIB_SUFFIX})
 else()
@@ -51,6 +51,6 @@ if( OPT_BUILD_STATIC )
                                            COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} ${Boost_CFLAGS} -DMUJINCLIENT_DLL_EXPORTS -DMUJINCLIENT_DLL"
                                            LINK_FLAGS "")
   
-  target_link_libraries(libmujincontrollerclient_static ${CURL_LIBRARIES} ${EXTRA_LIBRARIES})
+  target_link_libraries(libmujincontrollerclient_static ${CURL_LIBRARIES} ${EXTRA_LIBRARIES} ${libzmq_LIBRARIES})
   install(TARGETS libmujincontrollerclient_static DESTINATION lib${LIB_SUFFIX})
 endif()
