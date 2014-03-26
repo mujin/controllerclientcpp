@@ -14,74 +14,57 @@
 #include "common.h"
 #include "controllerclientimpl.h"
 #include <boost/thread.hpp> // for sleep
-#include <mujincontrollerclient/binpickingtaskhttp.h>
+#include "binpickingtaskhttp.h"
 
 namespace mujinclient {
 
-BinPickingResultHttpResource::BinPickingResultHttpResource(ControllerClientPtr controller, const std::string& pk) : PlanningResultResource(controller,"binpickingresult", pk)
+BinPickingResultResource::BinPickingResultResource(ControllerClientPtr controller, const std::string& pk) : PlanningResultResource(controller,"binpickingresult", pk)
 {
 }
 
-BinPickingResultHttpResource::~BinPickingResultHttpResource()
+BinPickingResultResource::~BinPickingResultResource()
 {
 }
 
-void BinPickingResultHttpResource::GetResultPtree(boost::property_tree::ptree& output) const
+boost::property_tree::ptree BinPickingResultResource::GetResultPtree() const
 {
     GETCONTROLLERIMPL();
     boost::property_tree::ptree pt;
     controller->CallGet(boost::str(boost::format("%s/%s/?format=json&limit=1")%GetResourceName()%GetPrimaryKey()), pt);
-    output = pt.get_child("output");
+    return pt.get_child("output");
 }
 
-BinPickingTaskHttpResource::BinPickingTaskHttpResource(const std::string& taskname, const std::string& robotcontrollerip, const int robotcontrollerport, ControllerClientPtr controller, SceneResourcePtr scene) : TaskResource(controller,_GetOrCreateTaskAndGetPk(scene, taskname))
+BinPickingTaskResource::BinPickingTaskResource(const std::string& taskname, const std::string& robotcontrollerip, const int robotcontrollerport, ControllerClientPtr controller, SceneResourcePtr scene) : TaskResource(controller,_GetOrCreateTaskAndGetPk(scene, taskname))
 {
+    tasktype = MUJIN_BINPICKING_TASKTYPE_HTTP;
     _taskname = taskname;
     _robotcontrollerip = robotcontrollerip;
     _robotcontrollerport = robotcontrollerport;
     _controller = controller;
     _scene = scene;
-    _sscmd << std::setprecision(7);
 }
 
-BinPickingTaskHttpResource::~BinPickingTaskHttpResource()
+BinPickingTaskResource::~BinPickingTaskResource()
 {
 }
 
-std::string BinPickingTaskHttpResource::_GetOrCreateTaskAndGetPk(SceneResourcePtr scene, const std::string& taskname)
+std::string BinPickingTaskResource::_GetOrCreateTaskAndGetPk(SceneResourcePtr scene, const std::string& taskname)
 {
     TaskResourcePtr task = scene->GetOrCreateTaskFromName_UTF8(taskname,"binpicking");
     std::string pk = task->Get("pk");
     return pk;
 }
 
-
-void BinPickingTaskHttpResource::GetTaskParameters(BinPickingTaskParameters& params) const
-{
-    throw MujinException("not implemented yet");
-}
-
-void BinPickingTaskHttpResource::SetTaskParameters(const BinPickingTaskParameters& taskparameters)
-{
-    GETCONTROLLERIMPL();
-
-    std::string taskparametersstr;
-    taskparameters.GetJsonString(taskparametersstr);
-    std::string taskgoalput = boost::str(boost::format("{\"tasktype\": \"binpicking\", \"taskparameters\": %s }")% taskparametersstr);
-    boost::property_tree::ptree pt;
-    controller->CallPut(str(boost::format("task/%s/?format=json")%GetPrimaryKey()), taskgoalput, pt);
-}
-
-PlanningResultResourcePtr BinPickingTaskHttpResource::GetResult()
+PlanningResultResourcePtr BinPickingTaskResource::GetResult()
 {
     GETCONTROLLERIMPL();
     boost::property_tree::ptree pt;
     controller->CallGet(str(boost::format("task/%s/result/?format=json&limit=1&optimization=None&fields=pk,errormessage")%GetPrimaryKey()), pt);
     boost::property_tree::ptree& objects = pt.get_child("objects");
-    BinPickingResultHttpResourcePtr result;
+    BinPickingResultResourcePtr result;
     if( objects.size() > 0 ) {
         std::string pk = objects.begin()->second.get<std::string>("pk");
-        result.reset(new BinPickingResultHttpResource(_controller, pk));
+        result.reset(new BinPickingResultResource(_controller, pk));
         boost::optional<std::string> erroptional = objects.begin()->second.get_optional<std::string>("errormessage");
         if (!!erroptional && erroptional.get().size() > 0 ) {
             throw MujinException(erroptional.get(), MEC_BinPickingError);
@@ -90,24 +73,24 @@ PlanningResultResourcePtr BinPickingTaskHttpResource::GetResult()
     return result;
 }
 
-void BinPickingTaskHttpResource::GetJointValues(const int timeout, BinPickingResultResource::ResultGetJointValues& result)
+boost::property_tree::ptree BinPickingTaskResource::ExecuteCommand(const std::string& taskparameters, const int timeout, const bool getresult)
 {
     GETCONTROLLERIMPL();
-    BinPickingResultHttpResourcePtr resultresource;
-    BinPickingTaskParameters param;
 
-    param.command = "GetJointValues";
-    param.robotcontrollerip = _robotcontrollerip;
-    param.robotcontrollerport = _robotcontrollerport;
-    param.robottype = "densowave";
-    this->SetTaskParameters(param);
-    this->Execute();
+    std::string taskgoalput = boost::str(boost::format("{\"tasktype\": \"binpicking\", \"taskparameters\": %s }")% taskparameters);
+    boost::property_tree::ptree pt;
+    controller->CallPut(str(boost::format("task/%s/?format=json")%GetPrimaryKey()), taskgoalput, pt);
+    Execute();
+ 
     int iterations = 0;
     while (1) {
-        resultresource = boost::dynamic_pointer_cast<BinPickingResultHttpResource>(this->GetResult());
+        BinPickingResultResourcePtr resultresource;
+        resultresource = boost::dynamic_pointer_cast<BinPickingResultResource>(GetResult());
         if( !!resultresource ) {
-            resultresource->GetResultGetJointValues(result);
-            return;
+            if (getresult) {
+                return resultresource->GetResultPtree();
+            }
+            return boost::property_tree::ptree();
         }
         boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
         ++iterations;
@@ -118,169 +101,7 @@ void BinPickingTaskHttpResource::GetJointValues(const int timeout, BinPickingRes
     }
 }
 
-void BinPickingTaskHttpResource::MoveJoints(const std::vector<Real>& jointvalues, const std::vector<int>& jointindices, const Real speed, const int timeout, BinPickingResultResource::ResultMoveJoints& result)
-{
-    GETCONTROLLERIMPL();
-    BinPickingResultHttpResourcePtr resultresource;
-    BinPickingTaskParameters param;
-
-    param.command = "MoveJoints";
-    param.robotcontrollerip = _robotcontrollerip;
-    param.robotcontrollerport = _robotcontrollerport;
-    param.robottype = "densowave";
-    param.goaljoints = jointvalues;
-    param.jointindices = jointindices;
-    param.envclearance = 20;
-    param.speed = speed;
-    this->SetTaskParameters(param);
-    this->Execute();
-    int iterations = 0;
-    while (1) {
-        resultresource = boost::dynamic_pointer_cast<BinPickingResultHttpResource>(this->GetResult());
-        if( !!resultresource ) {
-            resultresource->GetResultMoveJoints(result);
-            return;
-        }
-        boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
-        ++iterations;
-        if( iterations > timeout ) {
-            controller->CancelAllJobs();
-            throw MujinException("operation timed out, cancelling all jobs and quitting", MEC_Timeout);
-        }
-    }
-}
-
-void BinPickingTaskHttpResource::GetTransform(const std::string& targetname, Transform& transform)
-{
-    GETCONTROLLERIMPL();
-    BinPickingResultHttpResourcePtr resultresource;
-    BinPickingTaskParameters param;
-
-    param.command = "GetTransform";
-    param.targetname = targetname;
-    this->SetTaskParameters(param);
-    this->Execute();
-    int iterations = 0;
-    while (1) {
-        resultresource = boost::dynamic_pointer_cast<BinPickingResultHttpResource>(this->GetResult());
-        if( !!resultresource ) {
-            resultresource->GetResultTransform(transform);
-            return;
-        }
-        boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
-        ++iterations;
-        if( iterations > 10 ) {
-            controller->CancelAllJobs();
-            throw MujinException("operation timed out, cancelling all jobs and quitting", MEC_Timeout);
-        }
-    }
-}
-
-void BinPickingTaskHttpResource::SetTransform(const std::string& targetname, const Transform& transform)
-{
-    GETCONTROLLERIMPL();
-    BinPickingResultHttpResourcePtr resultresource;
-    BinPickingTaskParameters param;
-
-    param.command = "SetTransform";
-    param.targetname = targetname;
-    param.transform = transform;
-    this->SetTaskParameters(param);
-    this->Execute();
-    int iterations = 0;
-    while (1) {
-        resultresource = boost::dynamic_pointer_cast<BinPickingResultHttpResource>(this->GetResult());
-        if( !!resultresource ) {
-            return;
-        }
-        boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
-        ++iterations;
-        if( iterations > 10 ) {
-            controller->CancelAllJobs();
-            throw MujinException("operation timed out, cancelling all jobs and quitting", MEC_Timeout);
-        }
-    }
-}
-
-void BinPickingTaskHttpResource::GetManipTransformToRobot(Transform& transform)
-{
-    GETCONTROLLERIMPL();
-    BinPickingResultHttpResourcePtr resultresource;
-    BinPickingTaskParameters param;
-
-    param.command = "GetManipTransformToRobot";
-    this->SetTaskParameters(param);
-    this->Execute();
-
-    int iterations = 0;
-    while (1) {
-        resultresource = boost::dynamic_pointer_cast<BinPickingResultHttpResource>(this->GetResult());
-        if( !!resultresource ) {
-            resultresource->GetResultTransform(transform);
-            return;
-        }
-        boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
-        ++iterations;
-        if( iterations > 10 ) {
-            controller->CancelAllJobs();
-            throw MujinException("operation timed out, cancelling all jobs and quitting", MEC_Timeout);
-        }
-    }
-}
-
-void BinPickingTaskHttpResource::GetManipTransform(Transform& transform)
-{
-    GETCONTROLLERIMPL();
-    BinPickingResultHttpResourcePtr resultresource;
-    BinPickingTaskParameters param;
-
-    param.command = "GetManipTransform";
-    this->SetTaskParameters(param);
-    this->Execute();
-
-    int iterations = 0;
-    while (1) {
-        resultresource = boost::dynamic_pointer_cast<BinPickingResultHttpResource>(this->GetResult());
-        if( !!resultresource ) {
-            resultresource->GetResultTransform(transform);
-            return;
-        }
-        boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
-        ++iterations;
-        if( iterations > 10 ) {
-            controller->CancelAllJobs();
-            throw MujinException("operation timed out, cancelling all jobs and quitting", MEC_Timeout);
-        }
-    }
-}
-
-void BinPickingTaskHttpResource::GetRobotTransform(Transform& transform)
-{
-    GETCONTROLLERIMPL();
-    BinPickingResultHttpResourcePtr resultresource;
-    BinPickingTaskParameters param;
-
-    param.command = "GetRobotTransform";
-    this->SetTaskParameters(param);
-    this->Execute();
-
-    int iterations = 0;
-    while (1) {
-        resultresource = boost::dynamic_pointer_cast<BinPickingResultHttpResource>(this->GetResult());
-        if( !!resultresource ) {
-            resultresource->GetResultTransform(transform);
-            return;
-        }
-        boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
-        ++iterations;
-        if( iterations > 10 ) {
-            controller->CancelAllJobs();
-            throw MujinException("operation timed out, cancelling all jobs and quitting", MEC_Timeout);
-        }
-    }
-}
-
-void BinPickingTaskHttpResource::GetSensorData(const std::string& sensorname, RobotResource::AttachedSensorResource::SensorData& result)
+void BinPickingTaskResource::GetSensorData(const std::string& sensorname, RobotResource::AttachedSensorResource::SensorData& result)
 {
     SceneResource::InstObjectPtr sensorinstobject;
     if (!_scene->FindInstObject(sensorname, sensorinstobject)) {
@@ -297,7 +118,7 @@ void BinPickingTaskHttpResource::GetSensorData(const std::string& sensorname, Ro
     result = attachedsensors[0]->sensordata;
 }
 
-void BinPickingTaskHttpResource::DeleteObject(const std::string& name)
+void BinPickingTaskResource::DeleteObject(const std::string& name)
 {
     //TODO needs to robot.Release(name)
     std::vector<SceneResource::InstObjectPtr> instobjects;
@@ -312,7 +133,7 @@ void BinPickingTaskHttpResource::DeleteObject(const std::string& name)
     }
 }
 
-void BinPickingTaskHttpResource::UpdateObjects(const std::string& basename, const std::vector<BinPickingTaskParameters::DetectedObject>& detectedobjects)
+void BinPickingTaskResource::UpdateObjects(const std::string& basename, const std::vector<DetectedObject>& detectedobjects)
 {
     std::vector<SceneResource::InstObjectPtr> oldinstobjects;
     std::vector<SceneResource::InstObjectPtr> oldtargets;
@@ -381,79 +202,6 @@ void BinPickingTaskHttpResource::UpdateObjects(const std::string& basename, cons
     for(unsigned int i = 0; i < name_create_pool.size(); i++) {
         _scene->CreateInstObject(name_create_pool[i], ("mujin:/"+basename+".mujin.dae"), transform_create_pool[i].quaternion, transform_create_pool[i].translate);
     }
-}
-
-void BinPickingTaskHttpResource::InitializeZMQ(const int zmqport)
-{
-    GETCONTROLLERIMPL();
-    BinPickingResultHttpResourcePtr resultresource;
-    BinPickingTaskParameters param;
-
-    param.command = "InitZMQ";
-    param.zmqport = zmqport;
-    this->SetTaskParameters(param);
-    this->Execute();
-
-    int iterations = 0;
-    while (1) {
-        resultresource = boost::dynamic_pointer_cast<BinPickingResultHttpResource>(this->GetResult());
-        if( !!resultresource ) {
-            // success
-            return;
-        }
-        boost::this_thread::sleep(boost::posix_time::milliseconds(500));
-        ++iterations;
-        if( iterations > 20 ) {
-            controller->CancelAllJobs();
-            throw MujinException("operation timed out, cancelling all jobs and quitting", MEC_Timeout);
-        }
-    }
-}
-
-void BinPickingTaskHttpResource::AddPointCloudObstacle(const std::vector<Real>& vpoints, const Real pointsize, const std::string& name)
-{
-    GETCONTROLLERIMPL();
-    BinPickingResultHttpResourcePtr resultresource;
-
-    _sscmd.str(""); _sscmd.clear();
-    _sscmd << std::setprecision(std::numeric_limits<Real>::digits10+1);
-
-    _sscmd << boost::str(boost::format("{\"tasktype\": \"binpicking\", \"taskparameters\":{\"command\":\"AddPointCloudObstacle\", \"pointsize\":%f, \"name\": \"%s\"")%pointsize%name);
-    if( vpoints.size() > 0 ) {
-        _sscmd << ", \"points\":[" << vpoints.at(0);
-        for(unsigned int i = 1; i < vpoints.size(); ++i) {
-            _sscmd << "," << vpoints[i];
-        }
-        _sscmd << "]";
-    }
-    _sscmd << "}}";
-    boost::property_tree::ptree pt;
-    controller->CallPut(str(boost::format("task/%s/?format=json")%GetPrimaryKey()), _sscmd.str(), pt);
-
-    this->Execute();
-    int iterations = 0;
-    while (1) {
-        resultresource = boost::dynamic_pointer_cast<BinPickingResultHttpResource>(this->GetResult());
-        if( !!resultresource ) {
-            return;
-        }
-        boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
-        ++iterations;
-        if( iterations > 10 ) {
-            controller->CancelAllJobs();
-            throw MujinException("operation timed out, cancelling all jobs and quitting", MEC_Timeout);
-        }
-    }
-}
-
-void BinPickingTaskHttpResource::IsRobotOccludingBody(const std::string& bodyname, const std::string& sensorname, const unsigned long long starttime, const unsigned long long endtime, bool result)
-{
-    throw MujinException("not implemented yet");
-}
-
-void BinPickingTaskHttpResource::GetPickedPositions(BinPickingResultResource::ResultPickedPositions& result)
-{
-    throw MujinException("not implemented yet");
 }
 
 } // end namespace mujinclient

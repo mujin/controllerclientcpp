@@ -22,16 +22,16 @@
 
 namespace mujinclient {
 
-/// \brief holds information about the binpicking task parameters
-class MUJINCLIENT_API BinPickingTaskParameters
+enum MUJINCLIENT_API BinPickingTaskType
 {
+    MUJIN_BINPICKING_TASKTYPE_HTTP,
+    MUJIN_BINPICKING_TASKTYPE_ZMQ
+};
 
+class MUJINCLIENT_API BinPickingTask
+{
 public:
-    BinPickingTaskParameters();
-
-    virtual ~BinPickingTaskParameters();
-
-    void SetDefaults();
+    virtual ~BinPickingTask();
 
     struct DetectedObject
     {
@@ -56,134 +56,110 @@ public:
         unsigned long long endtime; ///< milisecond
     };
 
-    void GetJsonString(std::string& str) const;
-
-    std::string command; ///< command to call
-    std::string robottype; ///< the type of robot
-    std::string robotcontrollerip; ///< the ip of the computer on which the robot controller runs
-    int robotcontrollerport; ///< the port of the computer on which the robot controller runs
-    std::vector<Real> goaljoints; ///< the joint values of goal point
-    std::vector<int> jointindices; ///< the joint indices correspond to joint values
-    int zmqport; ///< zmq port
-    Real envclearance;
-    Real speed;
-    std::string targetname;
-    Transform transform;
-    std::vector<DetectedObject> detectedobjects;
-    PointCloudObstacle pointcloudobstacle;
-    SensorOcclusionCheck sensorocclusioncheck;
-
-private:
-    void GetJsonString(const std::vector<Real>& vec, std::string& str) const;
-    void GetJsonString(const std::vector<int>& vec, std::string& str) const;
-    void GetJsonString(const Transform& transform, std::string& str) const;
-    void GetJsonString(const DetectedObject& obj, std::string& str) const;
-    void GetJsonString(const PointCloudObstacle& obj, std::string& str) const;
-    void GetJsonString(const SensorOcclusionCheck& check, std::string& str) const;
-
-};
-
-typedef boost::shared_ptr<BinPickingTaskParameters> BinPickingTaskParametersPtr;
-typedef boost::weak_ptr<BinPickingTaskParameters> BinPickingTaskParametersWeakPtr;
-
-class MUJINCLIENT_API BinPickingResultResource
-{
-public:
-
-    BinPickingResultResource();
-
-    virtual ~BinPickingResultResource();
-
-    struct ResultGetJointValues
+    struct ResultBase
     {
+        virtual ~ResultBase();
+
+        boost::property_tree::ptree _pt; ///< property tree of result, if user ever wants it for logging purposes
+
+        virtual void Parse(const boost::property_tree::ptree& pt) = 0;
+    };
+    typedef boost::shared_ptr<ResultBase> ResultBasePtr;
+
+    struct ResultGetJointValues : public ResultBase
+    {
+        virtual ~ResultGetJointValues();
+        void Parse(const boost::property_tree::ptree& pt);
         std::string robottype;
         std::vector<std::string> jointnames;
         std::vector<Real> currentjointvalues;
         std::map<std::string, Transform> tools;
     };
 
-    struct ResultMoveJoints
+    struct ResultMoveJoints : public ResultBase
     {
+        virtual ~ResultMoveJoints();
+        void Parse(const boost::property_tree::ptree& pt);
         std::string robottype;
         int numpoints;
         std::vector<Real>   timedjointvalues;
         //Real elapsedtime;
     };
 
-    struct ResultPickedPositions
+    struct ResultTransform : public ResultBase
     {
+        virtual ~ResultTransform();
+        void Parse(const boost::property_tree::ptree& pt);
+        Transform transform;
+    };
+
+    struct ResultIsRobotOccludingBody: public ResultBase
+    {
+        virtual ~ResultIsRobotOccludingBody();
+        void Parse(const boost::property_tree::ptree& pt);
+        bool result;
+    };
+
+    struct ResultGetPickedPositions : public ResultBase
+    {
+        virtual ~ResultGetPickedPositions();
+        void Parse(const boost::property_tree::ptree& pt);
         std::vector<Transform> transforms; // in meter
         std::vector<unsigned long long> timestamps; // in milisecond
     };
 
-    void GetResultGetJointValues(ResultGetJointValues& result) const;
-    void GetResultMoveJoints(ResultMoveJoints& result ) const;
-    void GetResultTransform(Transform& result) const;
-    void GetResultIsRobotOccludingBody(bool result) const;
-    void GetResultGetPickedPositions(ResultPickedPositions& result) const;
+    virtual boost::property_tree::ptree ExecuteCommand(const std::string& command, const int timeout /* [sec] */=10, const bool getresult=true) = 0;
 
-protected:
-    virtual void GetResultPtree(boost::property_tree::ptree& pt) const = 0;
+    void GetJointValues(ResultGetJointValues& result);
+    void MoveJoints(const std::vector<Real>& jointvalues, const std::vector<int>& jointindices, const Real envclearance, const Real speed /* 0.1-1 */, ResultMoveJoints& result);
+    void GetTransform(const std::string& targetname, Transform& result);
+    void SetTransform(const std::string& targetname, const Transform& transform);
+    void GetManipTransformToRobot(Transform& result);
+    void GetManipTransform(Transform& result);
+    virtual void GetSensorData(const std::string& sensorname, RobotResource::AttachedSensorResource::SensorData& result);
+    virtual void DeleteObject(const std::string& name);
 
-    void GetResultGetJointValues(const boost::property_tree::ptree& output, ResultGetJointValues& result) const;
-    void GetResultMoveJoints(const boost::property_tree::ptree& output, ResultMoveJoints& result) const;
-    void GetResultTransform(const boost::property_tree::ptree& output, Transform& result) const;
-    void GetResultIsRobotOccludingBody(const boost::property_tree::ptree& output, bool result) const;
-    void GetResultGetPickedPositions(const boost::property_tree::ptree& output, ResultPickedPositions& result) const;
-};
-
-typedef boost::shared_ptr<BinPickingResultResource> BinPickingResultResourcePtr;
-typedef boost::weak_ptr<BinPickingResultResource> BinPickingResultResourceWeakPtr;
-
-class MUJINCLIENT_API BinPickingTaskResource
-{
-public:
-    //BinPickingTaskResource(const std::string& taskname, const std::string& robotcontrollerip, const int robotcontrollerport, ControllerClientPtr controller, SceneResourcePtr scene);
-    BinPickingTaskResource();
-
-    virtual ~BinPickingTaskResource();
-
-    /// \brief Get the task info for tasks of type <b>binpicking</b>
-    virtual void GetTaskParameters(BinPickingTaskParameters& taskparameters) const = 0; // TODO: do we need this?
-    /// \brief Set the task info for tasks of type <b>binpicking</b>
-    virtual void SetTaskParameters(const BinPickingTaskParameters& taskparameters) = 0;
-
-    virtual PlanningResultResourcePtr GetResult() = 0;
-    virtual void GetJointValues(const int timeout /* [sec] */, BinPickingResultResource::ResultGetJointValues& result) = 0;
-    virtual void MoveJoints(const std::vector<Real>& jointvalues, const std::vector<int>& jointindices, const Real speed /* 0.1-1 */, const int timeout /* [sec] */, BinPickingResultResource::ResultMoveJoints& result) = 0;
-    virtual void GetTransform(const std::string& targetname, Transform& result) = 0;
-    virtual void SetTransform(const std::string& targetname, const Transform& transform) = 0;
-    virtual void GetManipTransformToRobot(Transform& result) = 0;
-    virtual void GetManipTransform(Transform& result) = 0;
-    virtual void GetRobotTransform(Transform& result) = 0;
-    virtual void GetSensorData(const std::string& sensorname, RobotResource::AttachedSensorResource::SensorData& result) = 0;
-    virtual void DeleteObject(const std::string& name) = 0;
     /** \brief Update objects in the scene
         \param basename base name of the object. e.g. objects will have name basename_0, basename_1, etc
         \param detectedobjects list of detected object info including transform and confidence
      */
-    virtual void UpdateObjects(const std::string& basename, const std::vector<BinPickingTaskParameters::DetectedObject>& detectedobjects) = 0;
+    virtual void UpdateObjects(const std::string& basename, const std::vector<DetectedObject>& detectedobjects);
 
     /// \brief Establish ZMQ connection to the task
-    virtual void InitializeZMQ(const int zmqport) = 0;
+    void InitZMQ(const int zmqport);
 
     /** \brief Dynamically add a point cloud collision obstacle with name to the environment.
         \param vpoints list of x,y,z coordinates in meter
         \param pointsize size of each point in meter
         \param name name of the obstacle
      */
-    virtual void AddPointCloudObstacle(const std::vector<Real>& vpoints, const Real pointsize, const std::string& name) = 0;
+    void AddPointCloudObstacle(const std::vector<Real>& vpoints, const Real pointsize, const std::string& name);
 
     /// \brief Check if robot is occluding the object in the view of sensor between starttime and endtime
-    virtual void IsRobotOccludingBody(const std::string& bodyname, const std::string& sensorname, const unsigned long long starttime, const unsigned long long endtime, bool result) = 0;
+    void IsRobotOccludingBody(const std::string& bodyname, const std::string& sensorname, const unsigned long long starttime, const unsigned long long endtime, bool result);
 
     /// \brief Get the picked positions with corresponding timestamps
-    virtual void GetPickedPositions(BinPickingResultResource::ResultPickedPositions& result) = 0;
+    void GetPickedPositions(ResultGetPickedPositions& result);
 
+    BinPickingTaskType tasktype;
+    std::string _robotcontrollerip; ///< robot controller ip
+    int _robotcontrollerport; ///< robot controller port
+
+private:
+    std::stringstream _ss;
+    std::string GetJsonString(const std::vector<Real>& vec);
+    std::string GetJsonString(const std::vector<int>& vec);
+    std::string GetJsonString(const Transform& transform);
+    std::string GetJsonString(const DetectedObject& obj);
+    std::string GetJsonString(const PointCloudObstacle& obj);
+    std::string GetJsonString(const SensorOcclusionCheck& check);
 };
 
-typedef boost::shared_ptr<BinPickingTaskResource> BinPickingTaskResourcePtr;
-typedef boost::weak_ptr<BinPickingTaskResource> BinPickingTaskResourceWeakPtr;
+typedef boost::shared_ptr<BinPickingTask> BinPickingTaskPtr;
+typedef boost::weak_ptr<BinPickingTask> BinPickingTaskWeakPtr;
+
+MUJINCLIENT_API BinPickingTaskPtr CreateBinPickingTask(const BinPickingTaskType& tasktype, const std::string& taskname, const std::string& robotcontrollerip, const int robotcontrollerport, ControllerClientPtr controller, SceneResourcePtr scene, const std::string& controllerip, const int zmqport);
+MUJINCLIENT_API void DestroyBinPickingTask();
 
 }
 
