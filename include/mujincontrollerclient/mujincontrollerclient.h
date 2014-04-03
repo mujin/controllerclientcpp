@@ -692,7 +692,7 @@ public:
         std::string name;
         std::string frame_origin;
         std::string pk;
-        Real direction[3];
+        //Real direction[3];
         Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
         Real translate[3];
         std::string sensortype;
