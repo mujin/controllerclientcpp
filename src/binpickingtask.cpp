@@ -307,7 +307,7 @@ void BinPickingTask::GetJointValues(ResultGetJointValues& result)
     _ss << "\"command\": " << "\"" << command << "\", ";
     _ss << "\"robottype\": " << "\"" << robottype << "\", ";
     _ss << "\"controllerip\": " << "\"" << _robotcontrollerip << "\", ";
-    _ss << "\"controllerport\": " << "\"" << _robotcontrollerport << "\", ";
+    _ss << "\"controllerport\": " << "\"" << _robotcontrollerport << "\"";//"\", ";
     _ss << "}";
 
     result.Parse(ExecuteCommand(_ss.str()));
@@ -327,7 +327,7 @@ void BinPickingTask::MoveJoints(const std::vector<Real>& goaljoints, const std::
     _ss << "\"goaljoints\": " << GetJsonString(goaljoints) << ", ";
     _ss << "\"jointindices\": " << GetJsonString(jointindices) << ", ";
     _ss << "\"envclearance\": " << envclearance << ", ";
-    _ss << "\"speed\": " << speed << ", ";
+    _ss << "\"speed\": " << speed;// << ", ";
     _ss << "}";
     result.Parse(ExecuteCommand(_ss.str()));
 }
@@ -338,7 +338,7 @@ void BinPickingTask::GetTransform(const std::string& targetname, Transform& tran
     _ss.str(""); _ss.clear();
     _ss << "{";
     _ss << "\"command\": " << "\"" << command << "\", ";
-    _ss << "\"targetname\": " << "\"" << targetname << "\", ";
+    _ss << "\"targetname\": " << "\"" << targetname << "\"";//, ";
     _ss << "}";
     ResultTransform result;
     result.Parse(ExecuteCommand(_ss.str(),10));
@@ -362,7 +362,7 @@ void BinPickingTask::GetManipTransformToRobot(Transform& transform)
     std::string command = "GetManipTransformToRobot";
     _ss.str(""); _ss.clear();
     _ss << "{";
-    _ss << "\"command\": " << "\"" << command << "\", ";
+    _ss << "\"command\": " << "\"" << command << "\"";//, ";
     _ss << "}";
     ResultTransform result;
     result.Parse(ExecuteCommand(_ss.str(), 10));
@@ -374,7 +374,7 @@ void BinPickingTask::GetManipTransform(Transform& transform)
     std::string command = "GetManipTransform";
     _ss.str(""); _ss.clear();
     _ss << "{";
-    _ss << "\"command\": " << "\"" << command << "\", ";
+    _ss << "\"command\": " << "\"" << command << "\"";//, ";
     _ss << "}";
     ResultTransform result;
     result.Parse(ExecuteCommand(_ss.str(), 10));
