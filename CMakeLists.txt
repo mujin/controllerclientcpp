@@ -251,7 +251,7 @@ macro(build_sample name)
   add_executable(${name} ${name}.cpp)
   set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${Boost_CFLAGS} -std=c++11" LINK_FLAGS "")
   add_dependencies(${name} libmujincontrollerclient)
-  target_link_libraries (${name} libmujincontrollerclient)
+  target_link_libraries (${name} libmujincontrollerclient boost_program_options)
   install(TARGETS ${name} DESTINATION bin)
 endmacro(build_sample)
 

@@ -72,7 +72,9 @@ boost::property_tree::ptree BinPickingTaskZmq::ExecuteCommand(const std::string&
 {
     boost::property_tree::ptree pt;
     if (getresult) {
-        boost::property_tree::read_json(_zmqmujincontrollerclient->Call(command), pt);
+        std::stringstream result_ss;
+        result_ss << _zmqmujincontrollerclient->Call(command);
+        boost::property_tree::read_json(result_ss, pt);
     } else {
         _zmqmujincontrollerclient->Call(command);
     }
