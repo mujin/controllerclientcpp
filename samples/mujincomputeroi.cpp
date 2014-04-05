@@ -2,10 +2,9 @@
 #include <mujincontrollerclient/mujincontrollerclient.h>
 #include <mujincontrollerclient/binpickingtask.h>
 #include <mujincontrollerclient/handeyecalibrationtask.h>
+#include <geometry.h>
 
 #include <boost/thread/thread.hpp> // for sleep
-#include <Eigen/Dense>
-#include <Eigen/Geometry>
 
 #include <iostream>
 
@@ -87,44 +86,41 @@ int main(int argc, char ** argv)
         }
         *//*}}}*/
 
-        Eigen::Matrix4d Tcamtoworld, Tcontainertoworld, Tworldtocam;
-        Eigen::Matrix4d Tcontainerpointstoworld[4];
-        Eigen::Matrix4d Tcontainerpointstocam[4];
+        geometry::TransformMatrix<double> Tcamtoworld, Tcontainertoworld, Tworldtocam;
+        geometry::TransformMatrix<double> Tcontainerpointstoworld[4];
+        geometry::TransformMatrix<double> Tcontainerpointstocam[4];
         double global3droi[6]= { 0.0, 0.33, 0.0, 0.69, 0.0, 0.21};
         for (auto& var : global3droi) {
             var *= 1000.0;
         }
 
-        Tcamtoworld       = Eigen::Matrix4d::Identity();
-        Tcontainertoworld = Eigen::Matrix4d::Identity();
-        
-        Tcamtoworld.block(0,0,3,3) = Eigen::Quaternion<double>(camera->quaternion[0], camera->quaternion[1], camera->quaternion[2], camera->quaternion[3]).toRotationMatrix();
-        Tcamtoworld(0,3) = camera->translate[0];
-        Tcamtoworld(1,3) = camera->translate[1];
-        Tcamtoworld(2,3) = camera->translate[2];
-
+        Tcamtoworld = geometry::matrixFromQuat(geometry::Vector<double>(camera->quaternion[0], camera->quaternion[1], camera->quaternion[2], camera->quaternion[3]));
+        Tcamtoworld.trans[0] = camera->translate[0];
+        Tcamtoworld.trans[1] = camera->translate[1];
+        Tcamtoworld.trans[2] = camera->translate[2];
         Tworldtocam = Tcamtoworld.inverse();
-        Tcontainertoworld.block(0,0,3,3) = Eigen::Quaternion<double>(container->quaternion[0], container->quaternion[1], container->quaternion[2], container->quaternion[3]).toRotationMatrix();
-        Tcontainertoworld(0,3) = container->translate[0];
-        Tcontainertoworld(1,3) = container->translate[1];
-        Tcontainertoworld(2,3) = container->translate[2];
+
+        Tcontainertoworld = geometry::matrixFromQuat(geometry::Vector<double>(container->quaternion[0], container->quaternion[1], container->quaternion[2], container->quaternion[3]));
+        Tcontainertoworld.trans[0] = container->translate[0];
+        Tcontainertoworld.trans[1] = container->translate[1];
+        Tcontainertoworld.trans[2] = container->translate[2];
 
         for (auto& Tcontainerpointtoworld : Tcontainerpointstoworld) {
             Tcontainerpointtoworld = Tcontainertoworld;
         }
-        Tcontainerpointstoworld[0](0,3) += global3droi[0];
-        Tcontainerpointstoworld[0](1,3) += global3droi[2];
+        Tcontainerpointstoworld[0].trans[0] += global3droi[0];
+        Tcontainerpointstoworld[0].trans[1] += global3droi[2];
 
-        Tcontainerpointstoworld[1](0,3) += global3droi[1];
-        Tcontainerpointstoworld[1](1,3) += global3droi[2];
+        Tcontainerpointstoworld[1].trans[0] += global3droi[1];
+        Tcontainerpointstoworld[1].trans[1] += global3droi[2];
 
-        Tcontainerpointstoworld[2](0,3) += global3droi[0];
-        Tcontainerpointstoworld[2](1,3) += global3droi[3];
+        Tcontainerpointstoworld[2].trans[0] += global3droi[0];
+        Tcontainerpointstoworld[2].trans[1] += global3droi[3];
 
-        Tcontainerpointstoworld[3](0,3) += global3droi[1];
-        Tcontainerpointstoworld[3](1,3) += global3droi[3];
+        Tcontainerpointstoworld[3].trans[0] += global3droi[1];
+        Tcontainerpointstoworld[3].trans[1] += global3droi[3];
         for (auto& Tcontainerpointtoworld : Tcontainerpointstoworld) {
-            Tcontainerpointtoworld(2,3) += global3droi[5];
+            Tcontainerpointtoworld.trans[2] += global3droi[5];
             //std::cout << "=====" << std::endl;
             //std::cout << Tcontainerpointtoworld<< std::endl;
         }
@@ -138,13 +134,13 @@ int main(int argc, char ** argv)
         Real* intrinsic =  attachedsensors[0]->sensordata.intrinsic;
         std::vector<double> pxlist, pylist;
         for (auto& Tpointtocam : Tcontainerpointstocam) {
-            auto x = Tpointtocam(0,3) / Tpointtocam(2,3);
-            auto y = Tpointtocam(1,3) / Tpointtocam(2,3);
+            auto x = Tpointtocam.trans[0] / Tpointtocam.trans[2];
+            auto y = Tpointtocam.trans[1] / Tpointtocam.trans[2];
             auto px = intrinsic[0] * x  + intrinsic[1] * y + intrinsic[2];
             auto py = intrinsic[3] * x  + intrinsic[4] * y + intrinsic[5];
-            //std::cout << "=============" << std::endl;
-            //std::cout << "px: " << px << std::endl;
-            //std::cout << "py: " << py << std::endl;
+            std::cout << "=============" << std::endl;
+            std::cout << "px: " << px << std::endl;
+            std::cout << "py: " << py << std::endl;
             pxlist.push_back(px);
             pylist.push_back(py);
         }
