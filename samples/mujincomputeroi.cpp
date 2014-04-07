@@ -12,23 +12,24 @@ using namespace mujinclient;
 
 int main(int argc, char ** argv)
 {
-    if( argc < 2 ) {
-        std::cout << "need username:password. Example: mujinclienttest myuser:mypass [url]\n\nurl - [optional] For example https://controller.mujin.co.jp/" << std::endl;
+    if( argc < 3 ) {
+        std::cout << "need cameraname username:password. Example: mujinclienttest camera3 myuser:mypass [url]\n\nurl - [optional] For example https://controller.mujin.co.jp/" << std::endl;
         return 1;
     }
     try {
         ControllerClientPtr controller;
-        if( argc >= 5 ) {
-            controller = CreateControllerClient(argv[1], argv[2], argv[3], argv[4]);
+        const std::string cameraname(argv[1]);
+        if( argc >= 6 ) {
+            controller = CreateControllerClient(argv[2], argv[3], argv[4], argv[5]);
         }
-        if( argc == 4 ) {
-            controller = CreateControllerClient(argv[1], argv[2], argv[3]);
+        if( argc == 5 ) {
+            controller = CreateControllerClient(argv[2], argv[3], argv[4]);
         }
-        else if( argc == 3 ) {
-            controller = CreateControllerClient(argv[1], argv[2]);
+        else if( argc == 4 ) {
+            controller = CreateControllerClient(argv[2], argv[3]);
         }
         else {
-            controller = CreateControllerClient(argv[1]);
+            controller = CreateControllerClient(argv[2]);
         }
         std::cout << "connected to controller v" << controller->GetVersion() << std::endl;
 
@@ -39,7 +40,7 @@ int main(int argc, char ** argv)
         scene->Get("name");
         SceneResource::InstObjectPtr camera, container;
         RobotResourcePtr camerarobot;
-        if (!(scene->FindInstObject("camera5",camera))) {
+        if (!(scene->FindInstObject(cameraname,camera))) {
             std::cerr << "camera is not in the scene" << std::endl;
             exit(1);
         }
@@ -144,11 +145,15 @@ int main(int argc, char ** argv)
             pxlist.push_back(px);
             pylist.push_back(py);
         }
+
+        // need to make sure roi is within image boundary
+        const int image_width  = attachedsensors[0]->sensordata.image_dimensions[0];
+        const int image_height  = attachedsensors[0]->sensordata.image_dimensions[1];
         double image_roi[4];
-        image_roi[0] = *std::min_element(pxlist.begin(),pxlist.end());
-        image_roi[1] = *std::max_element(pxlist.begin(),pxlist.end());
-        image_roi[2] = *std::min_element(pylist.begin(),pylist.end());
-        image_roi[3] = *std::max_element(pylist.begin(),pylist.end());
+        image_roi[0] = std::max(int(*std::min_element(pxlist.begin(),pxlist.end())), 0);
+        image_roi[1] = std::min(int(*std::max_element(pxlist.begin(),pxlist.end())), image_width);
+        image_roi[2] = std::max(int(*std::min_element(pylist.begin(),pylist.end())), 0);
+        image_roi[3] = std::min(int(*std::max_element(pylist.begin(),pylist.end())), image_height);
         std::cout << "image_roi:" << std::endl;
         for (auto& roielem : image_roi) {
             std::cout << roielem << ", ";
