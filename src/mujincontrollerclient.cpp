@@ -546,7 +546,8 @@ bool TaskResource::Execute()
 {
     GETCONTROLLERIMPL();
     boost::property_tree::ptree pt;
-    controller->CallPost(str(boost::format("task/%s/")%GetPrimaryKey()), std::string(), pt, 200);
+    controller->CallPost("job/", str(boost::format("{\"resource_type\":\"task\", \"target_pk\":%s}")%GetPrimaryKey()), pt, 200);
+    
     _jobpk = pt.get<std::string>("jobpk");
     return true;
 }
