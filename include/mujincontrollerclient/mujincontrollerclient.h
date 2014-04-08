@@ -990,7 +990,7 @@ MUJINCLIENT_API ControllerClientPtr CreateControllerClient(const std::string& us
 MUJINCLIENT_API void DestroyControllerClient();
 
 /// \deprecated 14/03/14
-inline void ControllerClientDestroy() MUJINCLIENT_DEPRECATED
+MUJINCLIENT_DEPRECATED inline void ControllerClientDestroy() 
 {
     DestroyControllerClient();
 }
