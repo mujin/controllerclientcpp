@@ -10,7 +10,7 @@ int main(int argc, char ** argv)
     // parse command line arguments
     namespace bpo = boost::program_options;
     bpo::options_description desc("Options");
-    
+
     desc.add_options()
         ("help,h", "produce help message")
         ("controller_ip", bpo::value<std::string>()->default_value("controller3"), "ip of the mujin controller, e.g. controller3")
@@ -21,7 +21,7 @@ int main(int argc, char ** argv)
         ("binpicking_task_zmq_port", bpo::value<unsigned int>()->default_value(7100), "port of the binpicking task on the mujin controller, e.g. 7100")
         ("binpicking_task_scenepk", bpo::value<std::string>()->default_value("irex2013.mujin.dae"), "scene pk of the binpicking task on the mujin controller, e.g. irex2013.mujin.dae")
         ("robotname", bpo::value<std::string>()->default_value("VP-5243I"), "robot name, e.g. VP-5243I")
-        ;
+    ;
 
     bpo::variables_map opts;
     bpo::store(bpo::parse_command_line(argc, argv, desc), opts);
@@ -29,7 +29,7 @@ int main(int argc, char ** argv)
     try {
         bpo::notify(opts);
     }
-    catch(...) { 
+    catch(...) {
         badargs = true;
     }
     if(opts.count("help") || badargs) {
@@ -54,14 +54,12 @@ int main(int argc, char ** argv)
     ControllerClientPtr controller = CreateControllerClient(controllerUsernamePass, url_ss.str());
     std::cout << "connected to mujin controller at " << url_ss.str() << std::endl;
     SceneResourcePtr scene(new SceneResource(controller,binpickingTaskScenePk));
-    BinPickingTaskPtr binpickingzmq = CreateBinPickingTask(MUJIN_BINPICKING_TASKTYPE_ZMQ,"binpickingtask1",robotControllerIp,robotControllerPort,controller,scene,controllerIp,binpickingTaskZmqPort);
-    BinPickingTaskPtr binpickinghttp = CreateBinPickingTask(MUJIN_BINPICKING_TASKTYPE_HTTP,"binpickingtask1",robotControllerIp,robotControllerPort,controller,scene,controllerIp,binpickingTaskZmqPort);
+    BinPickingTaskResourcePtr binpickingzmq = scene->GetOrCreateBinPickingTaskFromName_UTF8("binpickingtask1", TRO_EnableZMQ);
+    binpickingzmq->Initialize(robotControllerIp, robotControllerPort, binpickingTaskZmqPort);
 
     Transform t;
     std::cout << "testing binpickinghttp->GetTransform()" << std::endl;
-    binpickinghttp->GetTransform("camera3",t);
-    std::cout << "testing binpickinghttp->InitZMQ()" << std::endl;
-    binpickinghttp->InitZMQ(binpickingTaskZmqPort);
+    // TODO
     std::cout << "testing binpickingzmq->GetTransform()" << std::endl;
     binpickingzmq->GetTransform("camera3",t);
 }

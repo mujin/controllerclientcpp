@@ -107,6 +107,11 @@ public:
         return boost::shared_ptr<char>(curl_easy_escape(_curl, name.c_str(), name.size()), curl_free);
     }
 
+    inline std::string GetBaseUri() const
+    {
+        return _baseuri;
+    }
+
 protected:
 
     void GetProfile();

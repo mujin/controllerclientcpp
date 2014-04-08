@@ -17,8 +17,8 @@
 #ifndef MUJIN_CONTROLLERCLIENT_BINPICKINGTASK_ZMQ_H
 #define MUJIN_CONTROLLERCLIENT_BINPICKINGTASK_ZMQ_H
 
-#include "binpickingtaskhttp.h"
-
+#include <mujincontrollerclient/binpickingtask.h>
+#include "mujinzmq.h"
 namespace mujinclient {
 
 /** \brief client to mujin controller via zmq socket connection
@@ -27,22 +27,21 @@ class ZmqMujinControllerClient;
 typedef boost::shared_ptr<ZmqMujinControllerClient> ZmqMujinControllerClientPtr;
 typedef boost::weak_ptr<ZmqMujinControllerClient> ZmqMujinControllerClientWeakPtr;
 
-class MUJINCLIENT_API BinPickingTaskZmq : public BinPickingTaskResource
+class MUJINCLIENT_API BinPickingTaskZmqResource : public BinPickingTaskResource
 {
 public:
-    BinPickingTaskZmq(const std::string& taskname, const std::string& robotcontrollerip, const int robotcontrollerport, ControllerClientPtr controller, SceneResourcePtr scene, const std::string& host, const int port);
+    BinPickingTaskZmqResource(ControllerClientPtr controller, const std::string& pk);
 
-    ~BinPickingTaskZmq();
+    ~BinPickingTaskZmqResource();
 
-    boost::property_tree::ptree ExecuteCommand(const std::string& command, const int timeout /* [sec] */, const bool getresult=true);
+    boost::property_tree::ptree ExecuteCommand(const std::string& command, const double timeout /* [sec] */=0.0, const bool getresult=true);
+
+    void Initialize(const std::string& robotcontrollerip, const int robotcontrollerport, const int zmqport);
 
 private:
     ZmqMujinControllerClientPtr _zmqmujincontrollerclient;
 
 };
-
-typedef boost::shared_ptr<BinPickingTaskZmq> BinPickingTaskZmqPtr;
-typedef boost::weak_ptr<BinPickingTaskZmq> BinPickingTaskZmqWeakPtr;
 
 } // namespace mujinclient
 #endif

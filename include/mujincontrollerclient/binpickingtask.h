@@ -22,16 +22,21 @@
 
 namespace mujinclient {
 
-enum MUJINCLIENT_API BinPickingTaskType
-{
-    MUJIN_BINPICKING_TASKTYPE_HTTP,
-    MUJIN_BINPICKING_TASKTYPE_ZMQ
-};
-
-class MUJINCLIENT_API BinPickingTask
+class MUJINCLIENT_API BinPickingResultResource : public PlanningResultResource
 {
 public:
-    virtual ~BinPickingTask();
+    BinPickingResultResource(ControllerClientPtr controller, const std::string& pk);
+
+    ~BinPickingResultResource();
+
+    boost::property_tree::ptree GetResultPtree() const;
+};
+
+class MUJINCLIENT_API BinPickingTaskResource : public TaskResource
+{
+public:
+    BinPickingTaskResource(ControllerClientPtr controller, const std::string& pk);
+    virtual ~BinPickingTaskResource();
 
     struct DetectedObject
     {
@@ -93,7 +98,7 @@ public:
         Transform transform;
     };
 
-    struct ResultIsRobotOccludingBody: public ResultBase
+    struct ResultIsRobotOccludingBody : public ResultBase
     {
         virtual ~ResultIsRobotOccludingBody();
         void Parse(const boost::property_tree::ptree& pt);
@@ -108,44 +113,49 @@ public:
         std::vector<unsigned long long> timestamps; // in milisecond
     };
 
-    virtual boost::property_tree::ptree ExecuteCommand(const std::string& command, const int timeout /* [sec] */=10, const bool getresult=true) = 0;
+    virtual void Initialize(const std::string& robotcontrollerip, const int robotcontrollerport, const int zmqport);
 
-    void GetJointValues(ResultGetJointValues& result);
-    void MoveJoints(const std::vector<Real>& jointvalues, const std::vector<int>& jointindices, const Real envclearance, const Real speed /* 0.1-1 */, ResultMoveJoints& result);
-    void GetTransform(const std::string& targetname, Transform& result);
-    void SetTransform(const std::string& targetname, const Transform& transform);
-    void GetManipTransformToRobot(Transform& result);
-    void GetManipTransform(Transform& result);
-    virtual void GetSensorData(const std::string& sensorname, RobotResource::AttachedSensorResource::SensorData& result);
-    virtual void DeleteObject(const std::string& name);
+    virtual boost::property_tree::ptree ExecuteCommand(const std::string& command, const double timeout /* second */=0.0, const bool getresult=true);
+
+    virtual void GetJointValues(ResultGetJointValues& result, const double timeout /* second */=0);
+    virtual void MoveJoints(const std::vector<Real>& jointvalues, const std::vector<int>& jointindices, const Real envclearance, const Real speed /* 0.1-1 */, ResultMoveJoints& result, const double timeout /* second */=0);
+    virtual void GetTransform(const std::string& targetname, Transform& result, const double timeout /* second */=0);
+    virtual void SetTransform(const std::string& targetname, const Transform& transform, const double timeout /* second */=0);
+    virtual void GetManipTransformToRobot(Transform& result, const double timeout /* second */=0);
+    virtual void GetManipTransform(Transform& result, const double timeout /* second */=0);
 
     /** \brief Update objects in the scene
         \param basename base name of the object. e.g. objects will have name basename_0, basename_1, etc
         \param detectedobjects list of detected object info including transform and confidence
      */
-    virtual void UpdateObjects(const std::string& basename, const std::vector<DetectedObject>& detectedobjects);
+    virtual void UpdateObjects(const std::string& basename, const std::vector<DetectedObject>& detectedobjects, const double timeout /* second */=0);
 
     /// \brief Establish ZMQ connection to the task
-    void InitZMQ(const int zmqport);
+    virtual void InitZMQ(const double timeout /* second */=0);
 
     /** \brief Dynamically add a point cloud collision obstacle with name to the environment.
         \param vpoints list of x,y,z coordinates in meter
         \param pointsize size of each point in meter
         \param name name of the obstacle
      */
-    void AddPointCloudObstacle(const std::vector<Real>& vpoints, const Real pointsize, const std::string& name);
+    virtual void AddPointCloudObstacle(const std::vector<Real>& vpoints, const Real pointsize, const std::string& name, const double timeout /* second */=0);
 
     /// \brief Check if robot is occluding the object in the view of sensor between starttime and endtime
-    void IsRobotOccludingBody(const std::string& bodyname, const std::string& sensorname, const unsigned long long starttime, const unsigned long long endtime, bool result);
+    virtual void IsRobotOccludingBody(const std::string& bodyname, const std::string& sensorname, const unsigned long long starttime, const unsigned long long endtime, bool result, const double timeout /* second */=0);
 
     /// \brief Get the picked positions with corresponding timestamps
-    void GetPickedPositions(ResultGetPickedPositions& result);
+    virtual void GetPickedPositions(ResultGetPickedPositions& result, const double timeout /* second */=0);
 
-    BinPickingTaskType tasktype;
-    std::string _robotcontrollerip; ///< robot controller ip
-    int _robotcontrollerport; ///< robot controller port
+    virtual PlanningResultResourcePtr GetResult();
+
+protected:
+    std::string _robotcontrollerip;
+    int _robotcontrollerport;
+    int _zmqport;
+    bool _bIsInitialized;
 
 private:
+
     std::stringstream _ss;
     std::string GetJsonString(const std::vector<Real>& vec);
     std::string GetJsonString(const std::vector<int>& vec);
@@ -155,12 +165,13 @@ private:
     std::string GetJsonString(const SensorOcclusionCheck& check);
 };
 
-typedef boost::shared_ptr<BinPickingTask> BinPickingTaskPtr;
-typedef boost::weak_ptr<BinPickingTask> BinPickingTaskWeakPtr;
 
-MUJINCLIENT_API BinPickingTaskPtr CreateBinPickingTask(const BinPickingTaskType& tasktype, const std::string& taskname, const std::string& robotcontrollerip, const int robotcontrollerport, ControllerClientPtr controller, SceneResourcePtr scene, const std::string& controllerip, const int zmqport);
-MUJINCLIENT_API void DestroyBinPickingTask();
+namespace utils {
+void GetSensorData(ControllerClientPtr controller, SceneResourcePtr scene, const std::string& sensorname, RobotResource::AttachedSensorResource::SensorData& result);
+void DeleteObject(SceneResourcePtr scene, const std::string& name);
+void UpdateObjects(SceneResourcePtr scene, const std::string& basename, const std::vector<BinPickingTaskResource::DetectedObject>& detectedobjects);
+};
 
-}
+} // namespace mujinclient
 
 #endif

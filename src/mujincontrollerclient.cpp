@@ -15,6 +15,7 @@
 #include "controllerclientimpl.h"
 #include <boost/thread.hpp> // for sleep
 #include <boost/algorithm/string.hpp>
+#include "binpickingtaskzmq.h"
 
 namespace mujinclient {
 
@@ -199,7 +200,7 @@ void RobotResource::GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& a
                 //std::cout << "'"<< p << "'"<< std::endl;
                 try {
                     attachedsensor->sensordata.asus_depth_parameters[iparam++] = boost::lexical_cast<Real>(p);
-                } catch (...){
+                } catch (...) {
                     //lexical_cast fails...
                 }
             }
@@ -307,7 +308,7 @@ SceneResource::SceneResource(ControllerClientPtr controller, const std::string& 
     //this->Get("");
 }
 
-TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& taskname, const std::string& tasktype)
+TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& taskname, const std::string& tasktype, int options)
 {
     GETCONTROLLERIMPL();
     boost::shared_ptr<char> pescapedtaskname = controller->GetURLEscapedString(taskname);
@@ -315,21 +316,38 @@ TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& t
     controller->CallGet(str(boost::format("scene/%s/task/?format=json&limit=1&name=%s&fields=pk,tasktype")%GetPrimaryKey()%pescapedtaskname), pt);
     // task exists
     boost::property_tree::ptree& objects = pt.get_child("objects");
+    std::string pk;
     if( objects.size() > 0 ) {
-        std::string pk = objects.begin()->second.get<std::string>("pk");
+        pk = objects.begin()->second.get<std::string>("pk");
         std::string currenttasktype = objects.begin()->second.get<std::string>("tasktype");
         if( currenttasktype != tasktype ) {
             throw MUJIN_EXCEPTION_FORMAT("task pk %s exists and has type %s, expected is %s", pk%currenttasktype%tasktype, MEC_InvalidState);
         }
+    }
+    else {
+        pt.clear();
+        controller->CallPost(str(boost::format("scene/%s/task/?format=json&fields=pk")%GetPrimaryKey()), str(boost::format("{\"name\":\"%s\", \"tasktype\":\"%s\", \"scenepk\":\"%s\"}")%taskname%tasktype%GetPrimaryKey()), pt);
+        pk = pt.get<std::string>("pk");
+    }
+
+    if( pk.size() == 0 ) {
+        return TaskResourcePtr();
+    }
+
+    if( tasktype == "binpicking" ) {
+        BinPickingTaskResourcePtr task;
+        if( options & 1 ) {
+            task.reset(new BinPickingTaskZmqResource(GetController(), pk));
+        }
+        else {
+            task.reset(new BinPickingTaskResource(GetController(), pk));
+        }
+        return task;
+    }
+    else {
         TaskResourcePtr task(new TaskResource(GetController(), pk));
         return task;
     }
-
-    pt.clear();
-    controller->CallPost(str(boost::format("scene/%s/task/?format=json&fields=pk")%GetPrimaryKey()), str(boost::format("{\"name\":\"%s\", \"tasktype\":\"%s\", \"scenepk\":\"%s\"}")%taskname%tasktype%GetPrimaryKey()), pt);
-    std::string pk = pt.get<std::string>("pk");
-    TaskResourcePtr task(new TaskResource(GetController(), pk));
-    return task;
 }
 
 void SceneResource::SetInstObjectsState(const std::vector<SceneResource::InstObjectPtr>& instobjects, const std::vector<InstanceObjectState>& states)
@@ -360,7 +378,7 @@ void SceneResource::SetInstObjectsState(const std::vector<SceneResource::InstObj
     controller->CallPut(str(boost::format("%s/%s/instobject/?format=json")%GetResourceName()%GetPrimaryKey()), data, pt);
 }
 
-TaskResourcePtr SceneResource::GetTaskFromName_UTF8(const std::string& taskname)
+TaskResourcePtr SceneResource::GetTaskFromName_UTF8(const std::string& taskname, int options)
 {
     GETCONTROLLERIMPL();
     boost::shared_ptr<char> pescapedtaskname = controller->GetURLEscapedString(taskname);
@@ -377,18 +395,28 @@ TaskResourcePtr SceneResource::GetTaskFromName_UTF8(const std::string& taskname)
     return task;
 }
 
-TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF16(const std::wstring& taskname, const std::string& tasktype)
+TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF16(const std::wstring& taskname, const std::string& tasktype, int options)
 {
     std::string taskname_utf8;
     utf8::utf16to8(taskname.begin(), taskname.end(), std::back_inserter(taskname_utf8));
-    return GetOrCreateTaskFromName_UTF8(taskname_utf8, tasktype);
+    return GetOrCreateTaskFromName_UTF8(taskname_utf8, tasktype, options);
 }
 
-TaskResourcePtr SceneResource::GetTaskFromName_UTF16(const std::wstring& taskname)
+TaskResourcePtr SceneResource::GetTaskFromName_UTF16(const std::wstring& taskname, int options)
 {
     std::string taskname_utf8;
     utf8::utf16to8(taskname.begin(), taskname.end(), std::back_inserter(taskname_utf8));
-    return GetTaskFromName_UTF8(taskname_utf8);
+    return GetTaskFromName_UTF8(taskname_utf8, options);
+}
+
+BinPickingTaskResourcePtr SceneResource::GetOrCreateBinPickingTaskFromName_UTF8(const std::string& taskname, int options)
+{
+    return boost::dynamic_pointer_cast<BinPickingTaskResource>(GetOrCreateTaskFromName_UTF8(taskname, "binpicking", options));
+}
+
+BinPickingTaskResourcePtr SceneResource::GetOrCreateBinPickingTaskFromName_UTF16(const std::wstring& taskname, int options)
+{
+    return boost::dynamic_pointer_cast<BinPickingTaskResource>(GetOrCreateTaskFromName_UTF16(taskname, "binpicking", options));
 }
 
 void SceneResource::GetTaskPrimaryKeys(std::vector<std::string>& taskkeys)
@@ -546,7 +574,7 @@ bool TaskResource::Execute()
 {
     GETCONTROLLERIMPL();
     boost::property_tree::ptree pt;
-    controller->CallPost(str(boost::format("task/%s/")%GetPrimaryKey()), std::string(), pt, 200);
+    controller->CallPost("job/", str(boost::format("{\"resource_type\":\"task\", \"target_pk\":%s}")%GetPrimaryKey()), pt, 200);
     _jobpk = pt.get<std::string>("jobpk");
     return true;
 }

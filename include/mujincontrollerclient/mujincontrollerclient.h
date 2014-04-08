@@ -84,6 +84,11 @@ enum MujinErrorCode {
     MEC_HandEyeCalibrationError=17 ///< HandEye Calibration failed
 };
 
+enum TaskResourceOptions
+{
+    TRO_EnableZMQ=1, ///< create a task resource with zeromq client
+};
+
 inline const char* GetErrorCodeString(MujinErrorCode error)
 {
     switch(error) {
@@ -139,8 +144,11 @@ class ObjectResource;
 class RobotResource;
 class SceneResource;
 class TaskResource;
+class BinPickingTaskResource;
+class BinPickingTaskZmqResource;
 class OptimizationResource;
 class PlanningResultResource;
+class BinPickingResultResource;
 
 typedef boost::shared_ptr<ControllerClient> ControllerClientPtr;
 typedef boost::weak_ptr<ControllerClient> ControllerClientWeakPtr;
@@ -152,10 +160,16 @@ typedef boost::shared_ptr<SceneResource> SceneResourcePtr;
 typedef boost::weak_ptr<SceneResource> SceneResourceWeakPtr;
 typedef boost::shared_ptr<TaskResource> TaskResourcePtr;
 typedef boost::weak_ptr<TaskResource> TaskResourceWeakPtr;
+typedef boost::shared_ptr<BinPickingTaskResource> BinPickingTaskResourcePtr;
+typedef boost::weak_ptr<BinPickingTaskResource> BinPickingTaskResourceWeakPtr;
+typedef boost::shared_ptr<BinPickingTaskZmqResource> BinPickingTaskZmqResourcePtr;
+typedef boost::weak_ptr<BinPickingTaskZmqResource> BinPickingTaskZmqResourceWeakPtr;
 typedef boost::shared_ptr<OptimizationResource> OptimizationResourcePtr;
 typedef boost::weak_ptr<OptimizationResource> OptimizationResourceWeakPtr;
 typedef boost::shared_ptr<PlanningResultResource> PlanningResultResourcePtr;
 typedef boost::weak_ptr<PlanningResultResource> PlanningResultResourceWeakPtr;
+typedef boost::shared_ptr<BinPickingResultResource> BinPickingResultResourcePtr;
+typedef boost::weak_ptr<BinPickingResultResource> BinPickingResultResourceWeakPtr;
 typedef double Real;
 
 /// \brief status code for a job
@@ -806,14 +820,14 @@ public:
         - itlplanning
      */
 
-    virtual TaskResourcePtr GetOrCreateTaskFromName_UTF8(const std::string& taskname, const std::string& tasktype);
+    virtual TaskResourcePtr GetOrCreateTaskFromName_UTF8(const std::string& taskname, const std::string& tasktype, int options=0);
 
-    virtual TaskResourcePtr GetOrCreateTaskFromName_UTF8(const std::string& taskname)
+    virtual TaskResourcePtr GetOrCreateTaskFromName_UTF8(const std::string& taskname, int options=0)
     {
-        return GetOrCreateTaskFromName_UTF8(taskname, GetController()->GetDefaultTaskType());
+        return GetOrCreateTaskFromName_UTF8(taskname, GetController()->GetDefaultTaskType(), options);
     }
 
-    virtual TaskResourcePtr GetTaskFromName_UTF8(const std::string& taskname);
+    virtual TaskResourcePtr GetTaskFromName_UTF8(const std::string& taskname, int options=0);
 
     /** \brief Gets or creates the a task part of the scene
 
@@ -822,14 +836,19 @@ public:
         \param tasktype The type of task to create. Supported types are:
         - itlplanning
      */
-    virtual TaskResourcePtr GetOrCreateTaskFromName_UTF16(const std::wstring& taskname, const std::string& tasktype);
+    virtual TaskResourcePtr GetOrCreateTaskFromName_UTF16(const std::wstring& taskname, const std::string& tasktype, int options=0);
 
-    virtual TaskResourcePtr GetOrCreateTaskFromName_UTF16(const std::wstring& taskname)
+    virtual TaskResourcePtr GetOrCreateTaskFromName_UTF16(const std::wstring& taskname, int options=0)
     {
-        return GetOrCreateTaskFromName_UTF16(taskname, GetController()->GetDefaultTaskType());
+        return GetOrCreateTaskFromName_UTF16(taskname, GetController()->GetDefaultTaskType(), options);
     }
 
-    virtual TaskResourcePtr GetTaskFromName_UTF16(const std::wstring& taskname);
+    virtual TaskResourcePtr GetTaskFromName_UTF16(const std::wstring& taskname, int options=0);
+
+
+    virtual BinPickingTaskResourcePtr GetOrCreateBinPickingTaskFromName_UTF8(const std::string& taskname, int options=0);
+    virtual BinPickingTaskResourcePtr GetOrCreateBinPickingTaskFromName_UTF16(const std::wstring& taskname, int options=0);
+
 
     /// \brief gets a list of all the scene primary keys currently available to the user
     virtual void GetTaskPrimaryKeys(std::vector<std::string>& taskkeys);
