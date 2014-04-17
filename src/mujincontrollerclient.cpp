@@ -188,18 +188,18 @@ void RobotResource::GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& a
             attachedsensor->sensordata.image_dimensions[idim++] = boost::lexical_cast<int>(imgdim.second.data());
         }
 
-        if (boost::optional<boost::property_tree::ptree &> asus_depth_parameters_ptree = v.second.get_child_optional("sensordata.asus_depth_parameters")) {
-            std::string parameters_string = asus_depth_parameters_ptree.get().data();
-            //std::cout << "asus param " << parameters_string << std::endl;
+        if (boost::optional<boost::property_tree::ptree &> extra_parameters_ptree = v.second.get_child_optional("sensordata.extra_parameters")) {
+            std::string parameters_string = extra_parameters_ptree.get().data();
+            //std::cout << "extra param " << parameters_string << std::endl;
             std::list<std::string> results;
             boost::split(results, parameters_string, boost::is_any_of(" "));
             results.remove("");
-            attachedsensor->sensordata.asus_depth_parameters.resize(results.size());
+            attachedsensor->sensordata.extra_parameters.resize(results.size());
             size_t iparam = 0;
             BOOST_FOREACH(std::string p, results) {
                 //std::cout << "'"<< p << "'"<< std::endl;
                 try {
-                    attachedsensor->sensordata.asus_depth_parameters[iparam++] = boost::lexical_cast<Real>(p);
+                    attachedsensor->sensordata.extra_parameters[iparam++] = boost::lexical_cast<Real>(p);
                 } catch (...) {
                     //lexical_cast fails...
                 }

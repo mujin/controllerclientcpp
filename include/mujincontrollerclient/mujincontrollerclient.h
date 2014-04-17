@@ -719,7 +719,7 @@ public:
             int image_dimensions[3];
             Real intrinsic[6];
             Real measurement_time;
-            std::vector<Real> asus_depth_parameters;
+            std::vector<Real> extra_parameters;
         };
         SensorData sensordata;
     };
