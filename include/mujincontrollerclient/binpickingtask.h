@@ -168,6 +168,7 @@ protected:
 private:
 
     std::stringstream _ss;
+    std::string GetJsonString(const std::string& string);
     std::string GetJsonString(const std::vector<Real>& vec);
     std::string GetJsonString(const std::vector<int>& vec);
     std::string GetJsonString(const Transform& transform);

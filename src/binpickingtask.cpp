@@ -51,6 +51,11 @@ boost::property_tree::ptree BinPickingResultResource::GetResultPtree() const
     return pt.get_child("output");
 }
 
+std::string BinPickingTaskResource::GetJsonString(const std::string& str)
+{
+    return "\""+str+"\"";
+}
+
 std::string BinPickingTaskResource::GetJsonString (const std::vector<Real>& vec)
 {
     std::stringstream ss;
@@ -89,7 +94,7 @@ std::string BinPickingTaskResource::GetJsonString(const Transform& transform)
     std::stringstream ss;
     ss << std::setprecision(std::numeric_limits<Real>::digits10+1);
     // \"translation\":[%.15f, %.15f, %.15f], \"quaternion\":[%.15f, %.15f, %.15f, %.15f]
-    ss << "\"translation\": [";
+    ss << GetJsonString("translation") << ": [";
     for (unsigned int i=0; i<3; i++) {
         ss << transform.translate[i];
         if (i!=3-1) {
@@ -97,7 +102,7 @@ std::string BinPickingTaskResource::GetJsonString(const Transform& transform)
         }
     }
     ss << "], ";
-    ss << "\"quaternion\": [";
+    ss << GetJsonString("quaternion") << ": [";
     for (unsigned int i=0; i<4; i++) {
         ss << transform.quaternion[i];
         if (i!=4-1) {
@@ -114,8 +119,8 @@ std::string BinPickingTaskResource::GetJsonString(const DetectedObject& obj)
     ss << std::setprecision(std::numeric_limits<Real>::digits10+1);
     //"{\"name\": \"obj\",\"translation_\":[100,200,300],\"quat_\":[1,0,0,0],\"confidence\":0.5}"
     ss << "{";
-    ss << "\"name\": \"" << obj.name << "\", ";
-    ss << "\"translation_\": [";
+    ss << GetJsonString("name") << ": " << GetJsonString(obj.name) << ", ";
+    ss << GetJsonString("translation_") << ": [";
     for (unsigned int i=0; i<3; i++) {
         ss << obj.translation[i];
         if (i!=3-1) {
@@ -123,7 +128,7 @@ std::string BinPickingTaskResource::GetJsonString(const DetectedObject& obj)
         }
     }
     ss << "], ";
-    ss << "\"quat_\": [";
+    ss << GetJsonString("quat_") << ": [";
     for (unsigned int i=0; i<4; i++) {
         ss << obj.quaternion[i];
         if (i!=4-1) {
@@ -131,7 +136,7 @@ std::string BinPickingTaskResource::GetJsonString(const DetectedObject& obj)
         }
     }
     ss << "], ";
-    ss << "\"confidence\": " << obj.confidence;
+    ss << GetJsonString("confidence") << ": " << obj.confidence;
     ss << "}";
     return ss.str();
 }
@@ -141,24 +146,25 @@ std::string BinPickingTaskResource::GetJsonString(const PointCloudObstacle& obj)
     std::stringstream ss;
     ss << std::setprecision(std::numeric_limits<Real>::digits10+1);
     // "\"name\": __dynamicobstacle__, \"pointsize\": 0.005, \"points\": []
-    ss << "\"name\": " << "\"" << obj.name << "\", ";
-    ss << "\"pointsize\": " << obj.pointsize <<", ";
+    ss << GetJsonString("name") << ": " << GetJsonString(obj.name) << ", ";
+    ss << GetJsonString("pointsize") << ": " << obj.pointsize <<", ";
     std::vector<Real> points;
     points.resize(obj.points.size());
     for (unsigned int i=0; i<points.size(); i++) {
-        points[i] = obj.points[i]*1000.0f; // convert from meter to milimeter
+        //points[i] = obj.points[i]*1000.0f; // convert from meter to milimeter
+        points[i] = obj.points[i]; // send in meter
     }
-    ss << "points: " << GetJsonString(points);
+    ss << GetJsonString("points") << ": " << GetJsonString(points);
     return ss.str();
 }
 
 std::string BinPickingTaskResource::GetJsonString(const SensorOcclusionCheck& check)
 {
     std::stringstream ss;
-    ss << "bodyname: " << "\"" << check.bodyname << "\", ";
-    ss << "sensorname: " << "\"" << check.sensorname << "\", ";
-    ss << "starttime: " << check.starttime <<", ";
-    ss << "endtime: " << check.endtime;
+    ss << GetJsonString("bodyname") << ": " << GetJsonString(check.bodyname) << ", ";
+    ss << GetJsonString("sensorname") << ": " << GetJsonString(check.sensorname) << ", ";
+    ss << GetJsonString("starttime") << ": " << check.starttime <<", ";
+    ss << GetJsonString("endtime") << ": " << check.endtime;
     return ss.str();
 }
 
@@ -330,10 +336,10 @@ void BinPickingTaskResource::GetJointValues(ResultGetJointValues& result, const 
 
     _ss.str(""); _ss.clear();
     _ss << "{";
-    _ss << "\"command\": " << "\"" << command << "\", ";
-    _ss << "\"robottype\": " << "\"" << robottype << "\", ";
-    _ss << "\"controllerip\": " << "\"" << _robotcontrollerip << "\", ";
-    _ss << "\"controllerport\": " << "\"" << _robotcontrollerport << "\""; //"\", ";
+    _ss << GetJsonString("command") << ": " << GetJsonString(command) << ", ";
+    _ss << GetJsonString("robottype") << ": " << GetJsonString(robottype) << ", ";
+    _ss << GetJsonString("controllerip") << ": " << GetJsonString(_robotcontrollerip) << ", ";
+    _ss << GetJsonString("controllerport") << ": " << _robotcontrollerport;
     _ss << "}";
 
     result.Parse(ExecuteCommand(_ss.str(), timeout));
@@ -346,14 +352,14 @@ void BinPickingTaskResource::MoveJoints(const std::vector<Real>& goaljoints, con
 
     _ss.str(""); _ss.clear();
     _ss << "{";
-    _ss << "\"command\": " << "\"" << command << "\", ";
-    _ss << "\"robottype\": " << "\"" << robottype << "\", ";
-    _ss << "\"controllerip\": " << "\"" << _robotcontrollerip << "\", ";
-    _ss << "\"controllerport\": " << "\"" << _robotcontrollerport << "\", ";
-    _ss << "\"goaljoints\": " << GetJsonString(goaljoints) << ", ";
-    _ss << "\"jointindices\": " << GetJsonString(jointindices) << ", ";
-    _ss << "\"envclearance\": " << envclearance << ", ";
-    _ss << "\"speed\": " << speed; // << ", ";
+    _ss << GetJsonString("command") << ": " << GetJsonString(command) << ", ";
+    _ss << GetJsonString("robottype") << ": " << GetJsonString(robottype) << ", ";
+    _ss << GetJsonString("controllerip") << ": " << GetJsonString(_robotcontrollerip) << ", ";
+    _ss << GetJsonString("controllerport") << ": " << _robotcontrollerport << ", ";
+    _ss << GetJsonString("goaljoints") << ": " << GetJsonString(goaljoints) << ", ";
+    _ss << GetJsonString("jointindices") << ": " << GetJsonString(jointindices) << ", ";
+    _ss << GetJsonString("envclearance") << ": " << envclearance << ", ";
+    _ss << GetJsonString("speed") << ": " << speed; // << ", ";
     _ss << "}";
     result.Parse(ExecuteCommand(_ss.str(), timeout));
 }
@@ -363,8 +369,8 @@ void BinPickingTaskResource::GetTransform(const std::string& targetname, Transfo
     std::string command = "GetTransform";
     _ss.str(""); _ss.clear();
     _ss << "{";
-    _ss << "\"command\": " << "\"" << command << "\", ";
-    _ss << "\"targetname\": " << "\"" << targetname << "\""; //, ";
+    _ss << GetJsonString("command") << ": " << GetJsonString(command) << ", ";
+    _ss << GetJsonString("targetname") << ": " << GetJsonString(targetname);
     _ss << "}";
     ResultTransform result;
     result.Parse(ExecuteCommand(_ss.str(), timeout));
@@ -376,9 +382,9 @@ void BinPickingTaskResource::SetTransform(const std::string& targetname, const T
     std::string command = "SetTransform";
     _ss.str(""); _ss.clear();
     _ss << "{";
-    _ss << "\"command\": " << "\"" << command << "\", ";
-    _ss << "\"targetname\": " << "\"" << targetname << "\", ";
-    _ss << GetJsonString(transform) << ", ";
+    _ss << GetJsonString("command") << ": " << GetJsonString(command) << ", ";
+    _ss << GetJsonString("targetname") << ": " << GetJsonString(targetname) << ", ";
+    _ss << GetJsonString(transform);
     _ss << "}";
     ExecuteCommand(_ss.str(), timeout, false);
 }
@@ -388,7 +394,7 @@ void BinPickingTaskResource::GetManipTransformToRobot(Transform& transform, cons
     std::string command = "GetManipTransformToRobot";
     _ss.str(""); _ss.clear();
     _ss << "{";
-    _ss << "\"command\": " << "\"" << command << "\""; //, ";
+    _ss << GetJsonString("command") << ": " << GetJsonString(command);
     _ss << "}";
     ResultTransform result;
     result.Parse(ExecuteCommand(_ss.str(), timeout));
@@ -400,7 +406,7 @@ void BinPickingTaskResource::GetManipTransform(Transform& transform, const doubl
     std::string command = "GetManipTransform";
     _ss.str(""); _ss.clear();
     _ss << "{";
-    _ss << "\"command\": " << "\"" << command << "\""; //, ";
+    _ss << GetJsonString("command") << ": " << GetJsonString(command);
     _ss << "}";
     ResultTransform result;
     result.Parse(ExecuteCommand(_ss.str(), timeout));
@@ -412,8 +418,8 @@ void BinPickingTaskResource::InitializeZMQ(const double timeout)
     std::string command = "InitializeZMQ";
     _ss.str(""); _ss.clear();
     _ss << "{";
-    _ss << "\"command\": " << "\"" << command << "\", ";
-    _ss << "\"port\": " << _zmqport;
+    _ss << GetJsonString("command") << ": " << GetJsonString(command) << ", ";
+    _ss << GetJsonString("port") << ": " << _zmqport;
     _ss << "}";
     ExecuteCommand(_ss.str(), timeout, false);
 }
@@ -424,9 +430,10 @@ void BinPickingTaskResource::UpdateObjects(const std::string& basename, const st
     std::string targetname = basename;
     _ss.str(""); _ss.clear();
     _ss << "{";
-    _ss << "\"objectname\": " << "\"" << targetname << "\", ";
-    _ss << "\"object_uri\": " << "\"mujin:/" << targetname << ".mujin.dae\", ";
-    _ss << "\"envstate\": {";
+    _ss << GetJsonString("command") << ": " << GetJsonString(command) << ", ";
+    _ss << GetJsonString("objectname") << ": " << GetJsonString(targetname) << ", ";
+    _ss << GetJsonString("object_uri") << ": " << GetJsonString("mujin:/"+targetname+".mujin.dae") << ", ";
+    _ss << GetJsonString("envstate") << ": {";
     for (unsigned int i=0; i<detectedobjects.size(); i++) {
         _ss << GetJsonString(detectedobjects[i]);
         if (i!=detectedobjects.size()-1) {
@@ -443,7 +450,7 @@ void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<Real>&vpoin
     std::string command = "AddPointCloudObstacle";
     _ss.str(""); _ss.clear();
     _ss << "{";
-    _ss << "\"command\": " << "\"" << command << "\", ";
+    _ss << GetJsonString("command") << ": " << GetJsonString(command) << ", ";
     PointCloudObstacle pointcloudobstacle;
     pointcloudobstacle.name = name;
     pointcloudobstacle.pointsize = pointsize;
@@ -458,8 +465,8 @@ void BinPickingTaskResource::VisualizePointCloud(const std::vector<std::vector<R
     std::string command = "VisualizePointCloud";
     _ss.str(""); _ss.clear();
     _ss << "{";
-    _ss << "\"command\": \"" << command << "\", ";
-    _ss << "\"pointslist\": [";
+    _ss << GetJsonString("command") << ": " << GetJsonString(command) << ", ";
+    _ss << GetJsonString("pointslist") << ": [";
     for (unsigned int i=0; i< pointslist.size(); i++) {
         _ss << GetJsonString(pointslist[i]);
         if (i<pointslist.size()-1) {
@@ -467,10 +474,10 @@ void BinPickingTaskResource::VisualizePointCloud(const std::vector<std::vector<R
         }
     }
     _ss << "], ";
-    _ss << "\"pointsize\": " << pointsize << ", ";
-    _ss << "\"names\": [";
+    _ss << GetJsonString("pointsize") << ": " << pointsize << ", ";
+    _ss << GetJsonString("names") << ": [";
     for (unsigned int i=0; i< names.size(); i++) {
-        _ss << "\"" << names[i] << "\"";
+        _ss << GetJsonString(names[i]);
         if (i<names.size()-1) {
             _ss << ", ";
         }
@@ -485,7 +492,7 @@ void BinPickingTaskResource::ClearVisualization(const double timeout)
     std::string command = "ClearVisualization";
     _ss.str(""); _ss.clear();
     _ss << "{";
-    _ss << "\"command\": " << "\"" << command << "\"";
+    _ss << GetJsonString("command") << ": " << GetJsonString(command);
     _ss << "}";
     ExecuteCommand(_ss.str(), timeout, false);
 }
@@ -495,7 +502,7 @@ void BinPickingTaskResource::GetPickedPositions(ResultGetPickedPositions& r, con
     std::string command = "GetPickedPositions";
     _ss.str(""); _ss.clear();
     _ss << "{";
-    _ss << "\"command\": " << "\"" << command << "\", ";
+    _ss << GetJsonString("command") << ": " << GetJsonString(command);
     _ss << "}";
     r.Parse(ExecuteCommand(_ss.str(), timeout));
 }
@@ -505,7 +512,7 @@ void BinPickingTaskResource::IsRobotOccludingBody(const std::string& bodyname, c
     std::string command = "IsRobotOccludingBody";
     _ss.str(""); _ss.clear();
     _ss << "{";
-    _ss << "\"command\": " << "\"" << command << "\", ";
+    _ss << GetJsonString("command") << ": " << GetJsonString(command) << ", ";
     SensorOcclusionCheck check;
     check.bodyname = bodyname;
     check.sensorname = sensorname;
