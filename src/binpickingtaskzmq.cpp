@@ -102,7 +102,7 @@ void BinPickingTaskZmqResource::Initialize(const std::string& robotcontrollerip,
     std::string host = std::string(hoststart, hostend);
 
     // TODO: improve this so that calling command execution via BinPickingTaskResource from BinPickingTaskZmqResource becomes clean and easy
-    std::string command = "InitZMQ";
+    std::string command = "InitializeZMQ";
     std::stringstream _ss;
     _ss.str(""); _ss.clear();
     _ss << "{";

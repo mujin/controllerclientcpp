@@ -131,14 +131,25 @@ public:
     virtual void UpdateObjects(const std::string& basename, const std::vector<DetectedObject>& detectedobjects, const double timeout /* second */=0);
 
     /// \brief Establish ZMQ connection to the task
-    virtual void InitZMQ(const double timeout /* second */=0);
+    virtual void InitializeZMQ(const double timeout /* second */=0);
 
-    /** \brief Dynamically add a point cloud collision obstacle with name to the environment.
+    /** \brief Add a point cloud collision obstacle with name to the environment.
         \param vpoints list of x,y,z coordinates in meter
         \param pointsize size of each point in meter
         \param name name of the obstacle
      */
     virtual void AddPointCloudObstacle(const std::vector<Real>& vpoints, const Real pointsize, const std::string& name, const double timeout /* second */=0);
+
+    /** \brief Visualize point cloud on controller
+        \param pointslist vector of x,y,z coordinates vector in meter
+        \param pointsize size of each point in meter
+        \param names vector of names for each point cloud
+     */
+    virtual void VisualizePointCloud(const std::vector<std::vector<Real> >& pointslist, const Real pointsize, const std::vector<std::string>& names, const double timeout /* second */=0);
+
+    /** \brief Clear visualization made by VisualizePointCloud.
+     */
+    virtual void ClearVisualization(const double timeout /* second */=0);
 
     /// \brief Check if robot is occluding the object in the view of sensor between starttime and endtime
     virtual void IsRobotOccludingBody(const std::string& bodyname, const std::string& sensorname, const unsigned long long starttime, const unsigned long long endtime, bool result, const double timeout /* second */=0);

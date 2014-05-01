@@ -53,113 +53,113 @@ boost::property_tree::ptree BinPickingResultResource::GetResultPtree() const
 
 std::string BinPickingTaskResource::GetJsonString (const std::vector<Real>& vec)
 {
-    _ss.str(""); _ss.clear();
-    _ss << std::setprecision(std::numeric_limits<Real>::digits10+1);
-    _ss << "[";
+    std::stringstream ss;
+    ss << std::setprecision(std::numeric_limits<Real>::digits10+1);
+    ss << "[";
     if( vec.size() > 0 ) {
         for (unsigned int i = 0; i < vec.size(); i++) {
-            _ss << vec[i];
+            ss << vec[i];
             if( i != vec.size()-1) {
-                _ss << ", ";
+                ss << ", ";
             }
         }
     }
-    _ss << "]";
-    return _ss.str();
+    ss << "]";
+    return ss.str();
 }
 
 std::string BinPickingTaskResource::GetJsonString (const std::vector<int>& vec)
 {
-    _ss.str(""); _ss.clear();
-    _ss << "[";
+    std::stringstream ss;
+    ss << "[";
     if( vec.size() > 0 ) {
         for (unsigned int i = 0; i < vec.size(); i++) {
-            _ss << vec[i];
+            ss << vec[i];
             if( i != vec.size()-1) {
-                _ss << ", ";
+                ss << ", ";
             }
         }
     }
-    _ss << "]";
-    return _ss.str();
+    ss << "]";
+    return ss.str();
 }
 
 std::string BinPickingTaskResource::GetJsonString(const Transform& transform)
 {
-    _ss.str(""); _ss.clear();
-    _ss << std::setprecision(std::numeric_limits<Real>::digits10+1);
+    std::stringstream ss;
+    ss << std::setprecision(std::numeric_limits<Real>::digits10+1);
     // \"translation\":[%.15f, %.15f, %.15f], \"quaternion\":[%.15f, %.15f, %.15f, %.15f]
-    _ss << "\"translation\": [";
+    ss << "\"translation\": [";
     for (unsigned int i=0; i<3; i++) {
-        _ss << transform.translate[i];
+        ss << transform.translate[i];
         if (i!=3-1) {
-            _ss << ", ";
+            ss << ", ";
         }
     }
-    _ss << "], ";
-    _ss << "\"quaternion\": [";
+    ss << "], ";
+    ss << "\"quaternion\": [";
     for (unsigned int i=0; i<4; i++) {
-        _ss << transform.quaternion[i];
+        ss << transform.quaternion[i];
         if (i!=4-1) {
-            _ss << ", ";
+            ss << ", ";
         }
     }
-    _ss << "]";
-    return _ss.str();
+    ss << "]";
+    return ss.str();
 }
 
 std::string BinPickingTaskResource::GetJsonString(const DetectedObject& obj)
 {
-    _ss.str(""); _ss.clear();
-    _ss << std::setprecision(std::numeric_limits<Real>::digits10+1);
+    std::stringstream ss;
+    ss << std::setprecision(std::numeric_limits<Real>::digits10+1);
     //"{\"name\": \"obj\",\"translation_\":[100,200,300],\"quat_\":[1,0,0,0],\"confidence\":0.5}"
-    _ss << "{";
-    _ss << "\"name\": \"" << obj.name << "\", ";
-    _ss << "\"translation_\": [";
+    ss << "{";
+    ss << "\"name\": \"" << obj.name << "\", ";
+    ss << "\"translation_\": [";
     for (unsigned int i=0; i<3; i++) {
-        _ss << obj.translation[i];
+        ss << obj.translation[i];
         if (i!=3-1) {
-            _ss << ", ";
+            ss << ", ";
         }
     }
-    _ss << "], ";
-    _ss << "\"quat_\": [";
+    ss << "], ";
+    ss << "\"quat_\": [";
     for (unsigned int i=0; i<4; i++) {
-        _ss << obj.quaternion[i];
+        ss << obj.quaternion[i];
         if (i!=4-1) {
-            _ss << ", ";
+            ss << ", ";
         }
     }
-    _ss << "], ";
-    _ss << "\"confidence\": " << obj.confidence;
-    _ss << "}";
-    return _ss.str();
+    ss << "], ";
+    ss << "\"confidence\": " << obj.confidence;
+    ss << "}";
+    return ss.str();
 }
 
 std::string BinPickingTaskResource::GetJsonString(const PointCloudObstacle& obj)
 {
-    _ss.str(""); _ss.clear();
-    _ss << std::setprecision(std::numeric_limits<Real>::digits10+1);
+    std::stringstream ss;
+    ss << std::setprecision(std::numeric_limits<Real>::digits10+1);
     // "\"name\": __dynamicobstacle__, \"pointsize\": 0.005, \"points\": []
-    _ss << "\"name\": " << "\"" << obj.name << "\", ";
-    _ss << "\"pointsize\": " << obj.pointsize <<", ";
+    ss << "\"name\": " << "\"" << obj.name << "\", ";
+    ss << "\"pointsize\": " << obj.pointsize <<", ";
     std::vector<Real> points;
     points.resize(obj.points.size());
     for (unsigned int i=0; i<points.size(); i++) {
         points[i] = obj.points[i]*1000.0f; // convert from meter to milimeter
     }
-    _ss << "points: " << GetJsonString(points);
-    return _ss.str();
+    ss << "points: " << GetJsonString(points);
+    return ss.str();
 }
 
 std::string BinPickingTaskResource::GetJsonString(const SensorOcclusionCheck& check)
 {
-    _ss.str(""); _ss.clear();
-    _ss << "bodyname: " << "\"" << check.bodyname << "\", ";
-    _ss << "sensorname: " << "\"" << check.sensorname << "\", ";
-    _ss << "starttime: " << check.starttime <<", ";
-    _ss << "endtime: " << check.endtime;
-    return _ss.str();
+    std::stringstream ss;
+    ss << "bodyname: " << "\"" << check.bodyname << "\", ";
+    ss << "sensorname: " << "\"" << check.sensorname << "\", ";
+    ss << "starttime: " << check.starttime <<", ";
+    ss << "endtime: " << check.endtime;
+    return ss.str();
 }
 
 BinPickingTaskResource::ResultBase::~ResultBase()
@@ -407,9 +407,9 @@ void BinPickingTaskResource::GetManipTransform(Transform& transform, const doubl
     transform = result.transform;
 }
 
-void BinPickingTaskResource::InitZMQ(const double timeout)
+void BinPickingTaskResource::InitializeZMQ(const double timeout)
 {
-    std::string command = "InitZMQ";
+    std::string command = "InitializeZMQ";
     _ss.str(""); _ss.clear();
     _ss << "{";
     _ss << "\"command\": " << "\"" << command << "\", ";
@@ -449,6 +449,43 @@ void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<Real>&vpoin
     pointcloudobstacle.pointsize = pointsize;
     pointcloudobstacle.points = vpoints;
     _ss << GetJsonString(pointcloudobstacle);
+    _ss << "}";
+    ExecuteCommand(_ss.str(), timeout, false);
+}
+
+void BinPickingTaskResource::VisualizePointCloud(const std::vector<std::vector<Real> >& pointslist, const Real pointsize, const std::vector<std::string>& names, const double timeout)
+{
+    std::string command = "VisualizePointCloud";
+    _ss.str(""); _ss.clear();
+    _ss << "{";
+    _ss << "\"command\": \"" << command << "\", ";
+    _ss << "\"pointslist\": [";
+    for (unsigned int i=0; i< pointslist.size(); i++) {
+        _ss << GetJsonString(pointslist[i]);
+        if (i<pointslist.size()-1) {
+            _ss << ", ";
+        }
+    }
+    _ss << "], ";
+    _ss << "\"pointsize\": " << pointsize << ", ";
+    _ss << "\"names\": [";
+    for (unsigned int i=0; i< names.size(); i++) {
+        _ss << "\"" << names[i] << "\"";
+        if (i<names.size()-1) {
+            _ss << ", ";
+        }
+    }
+    _ss << "]";
+    _ss << "}";
+    ExecuteCommand(_ss.str(), timeout, false);
+}
+
+void BinPickingTaskResource::ClearVisualization(const double timeout)
+{
+    std::string command = "ClearVisualization";
+    _ss.str(""); _ss.clear();
+    _ss << "{";
+    _ss << "\"command\": " << "\"" << command << "\"";
     _ss << "}";
     ExecuteCommand(_ss.str(), timeout, false);
 }
