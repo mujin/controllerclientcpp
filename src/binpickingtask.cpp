@@ -519,7 +519,7 @@ void BinPickingTaskResource::GetPickedPositions(ResultGetPickedPositions& r, con
     r.Parse(ExecuteCommand(_ss.str(), timeout));
 }
 
-void BinPickingTaskResource::IsRobotOccludingBody(const std::string& bodyname, const std::string& sensorname, const unsigned long long starttime, const unsigned long long endtime, bool r, const double timeout)
+void BinPickingTaskResource::IsRobotOccludingBody(const std::string& bodyname, const std::string& sensorname, const unsigned long long starttime, const unsigned long long endtime, bool& r, const double timeout)
 {
     std::string command = "IsRobotOccludingBody";
     _ss.str(""); _ss.clear();

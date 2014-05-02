@@ -153,7 +153,7 @@ public:
     virtual void ClearVisualization(const double timeout /* second */=0);
 
     /// \brief Check if robot is occluding the object in the view of sensor between starttime and endtime
-    virtual void IsRobotOccludingBody(const std::string& bodyname, const std::string& sensorname, const unsigned long long starttime, const unsigned long long endtime, bool result, const double timeout /* second */=0);
+    virtual void IsRobotOccludingBody(const std::string& bodyname, const std::string& sensorname, const unsigned long long starttime, const unsigned long long endtime, bool& result, const double timeout /* second */=0);
 
     /// \brief Get the picked positions with corresponding timestamps
     virtual void GetPickedPositions(ResultGetPickedPositions& result, const double timeout /* second */=0);
