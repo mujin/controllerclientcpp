@@ -41,8 +41,7 @@ public:
     struct DetectedObject
     {
         std::string name;
-        std::vector<Real> translation; ///< in meter
-        std::vector<Real> quaternion;
+        Transform transform;
         Real confidence;
     };
 
@@ -126,9 +125,11 @@ public:
 
     /** \brief Update objects in the scene
         \param basename base name of the object. e.g. objects will have name basename_0, basename_1, etc
-        \param detectedobjects list of detected object info including transform and confidence
+        \param transformsworld list of transforms in world frame
+        \param confidence list of confidence of each detection
+        \param unit unit of detectedobject info
      */
-    virtual void UpdateObjects(const std::string& basename, const std::vector<DetectedObject>& detectedobjects, const double timeout /* second */=0);
+    virtual void UpdateObjects(const std::string& basename, const std::vector<Transform>& transformsworld, const std::vector<Real>& confidence, const std::string& unit="m", const double timeout /* second */=0);
 
     /// \brief Establish ZMQ connection to the task
     virtual void InitializeZMQ(const double timeout /* second */=0);
@@ -181,7 +182,7 @@ private:
 namespace utils {
 void GetSensorData(ControllerClientPtr controller, SceneResourcePtr scene, const std::string& sensorname, RobotResource::AttachedSensorResource::SensorData& result);
 void DeleteObject(SceneResourcePtr scene, const std::string& name);
-void UpdateObjects(SceneResourcePtr scene, const std::string& basename, const std::vector<BinPickingTaskResource::DetectedObject>& detectedobjects);
+void UpdateObjects(SceneResourcePtr scene, const std::string& basename, const std::vector<BinPickingTaskResource::DetectedObject>& detectedobjects, const std::string& unit="m");
 };
 
 } // namespace mujinclient

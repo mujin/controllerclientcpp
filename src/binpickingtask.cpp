@@ -122,7 +122,7 @@ std::string BinPickingTaskResource::GetJsonString(const DetectedObject& obj)
     ss << GetJsonString("name") << ": " << GetJsonString(obj.name) << ", ";
     ss << GetJsonString("translation_") << ": [";
     for (unsigned int i=0; i<3; i++) {
-        ss << obj.translation[i];
+        ss << obj.transform.translate[i];
         if (i!=3-1) {
             ss << ", ";
         }
@@ -130,7 +130,7 @@ std::string BinPickingTaskResource::GetJsonString(const DetectedObject& obj)
     ss << "], ";
     ss << GetJsonString("quat_") << ": [";
     for (unsigned int i=0; i<4; i++) {
-        ss << obj.quaternion[i];
+        ss << obj.transform.quaternion[i];
         if (i!=4-1) {
             ss << ", ";
         }
@@ -424,7 +424,7 @@ void BinPickingTaskResource::InitializeZMQ(const double timeout)
     ExecuteCommand(_ss.str(), timeout, false);
 }
 
-void BinPickingTaskResource::UpdateObjects(const std::string& basename, const std::vector<DetectedObject>&detectedobjects, const double timeout)
+void BinPickingTaskResource::UpdateObjects(const std::string& basename, const std::vector<Transform>& transformsworld, const std::vector<Real>& confidence, const std::string& unit, const double timeout)
 {
     std::string command = "UpdateObjects";
     std::string targetname = basename;
@@ -433,14 +433,26 @@ void BinPickingTaskResource::UpdateObjects(const std::string& basename, const st
     _ss << GetJsonString("command") << ": " << GetJsonString(command) << ", ";
     _ss << GetJsonString("objectname") << ": " << GetJsonString(targetname) << ", ";
     _ss << GetJsonString("object_uri") << ": " << GetJsonString("mujin:/"+targetname+".mujin.dae") << ", ";
-    _ss << GetJsonString("envstate") << ": {";
+    std::vector<DetectedObject> detectedobjects;
+    for (unsigned int i=0; i<transformsworld.size(); i++) {
+        DetectedObject detectedobject;
+        std::stringstream name_ss;
+        name_ss << basename << "_" << i;
+        detectedobject.name = name_ss.str();
+        detectedobject.transform = transformsworld[i];
+        detectedobject.confidence = confidence[i];
+        detectedobjects.push_back(detectedobject);
+    }
+
+    _ss << GetJsonString("envstate") << ": [";
     for (unsigned int i=0; i<detectedobjects.size(); i++) {
         _ss << GetJsonString(detectedobjects[i]);
         if (i!=detectedobjects.size()-1) {
             _ss << ", ";
         }
     }
-    _ss << "}";
+    _ss << "], ";
+    _ss << GetJsonString("unit") << ": " << GetJsonString(unit);
     _ss << "}";
     ExecuteCommand(_ss.str(), timeout, false);
 }
@@ -609,7 +621,7 @@ void utils::DeleteObject(SceneResourcePtr scene, const std::string& name)
     }
 }
 
-void utils::UpdateObjects(SceneResourcePtr scene,const std::string& basename, const std::vector<BinPickingTaskResource::DetectedObject>& detectedobjects)
+void utils::UpdateObjects(SceneResourcePtr scene,const std::string& basename, const std::vector<BinPickingTaskResource::DetectedObject>& detectedobjects, const std::string& unit)
 {
     std::vector<SceneResource::InstObjectPtr> oldinstobjects;
     std::vector<SceneResource::InstObjectPtr> oldtargets;
@@ -628,16 +640,21 @@ void utils::UpdateObjects(SceneResourcePtr scene,const std::string& basename, co
     std::vector<Transform> transform_create_pool;
     std::vector<std::string> name_create_pool;
 
+    Real conversion = 1.0f;
+    if (unit=="m") {
+        // detectedobject->translation is in meter, need to convert to millimeter
+        conversion = 1000.0f;
+    }
+
     for (unsigned int obj_i = 0; obj_i < detectedobjects.size(); ++obj_i) {
         Transform objecttransform;
-        // detectedobject->translation is in meter, need to convert to milimeter
-        objecttransform.translate[0] = detectedobjects[obj_i].translation[0] * 1000.0f;
-        objecttransform.translate[1] = detectedobjects[obj_i].translation[1] * 1000.0f;
-        objecttransform.translate[2] = detectedobjects[obj_i].translation[2] * 1000.0f;
-        objecttransform.quaternion[0] = detectedobjects[obj_i].quaternion[0];
-        objecttransform.quaternion[1] = detectedobjects[obj_i].quaternion[1];
-        objecttransform.quaternion[2] = detectedobjects[obj_i].quaternion[2];
-        objecttransform.quaternion[3] = detectedobjects[obj_i].quaternion[3];
+        objecttransform.translate[0] = detectedobjects[obj_i].transform.translate[0] * conversion;
+        objecttransform.translate[1] = detectedobjects[obj_i].transform.translate[1] * conversion;
+        objecttransform.translate[2] = detectedobjects[obj_i].transform.translate[2] * conversion;
+        objecttransform.quaternion[0] = detectedobjects[obj_i].transform.quaternion[0];
+        objecttransform.quaternion[1] = detectedobjects[obj_i].transform.quaternion[1];
+        objecttransform.quaternion[2] = detectedobjects[obj_i].transform.quaternion[2];
+        objecttransform.quaternion[3] = detectedobjects[obj_i].transform.quaternion[3];
 
         int nearest_index = 0;
         double maxdist = (std::numeric_limits<double>::max)();
