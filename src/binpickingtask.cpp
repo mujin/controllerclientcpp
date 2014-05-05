@@ -317,13 +317,15 @@ void BinPickingTaskResource::ResultGetPickedPositions::Parse(const boost::proper
                     transform.quaternion[i]= boost::lexical_cast<Real>(iter->second.data());
                     iter++;
                 }
-                // convert x,y,z in milimeter to meter
+                // x,y,z
                 for (unsigned int i=0; i<3; i++) {
-                    transform.translate[i]= boost::lexical_cast<Real>(iter->second.data())/1000.0f; // convert from milimeter to meter
+                    //transform.translate[i]= boost::lexical_cast<Real>(iter->second.data())/1000.0f; // convert from milimeter to meter
+                    transform.translate[i]= boost::lexical_cast<Real>(iter->second.data());
                     iter++;
                 }
                 transforms.push_back(transform);
-                timestamps.push_back((unsigned long long)(boost::lexical_cast<Real>(iter->second.data())*1000.0f)); // convert from second to milisecond
+                //timestamps.push_back((unsigned long long)(boost::lexical_cast<Real>(iter->second.data())*1000.0f)); // convert from second to milisecond
+                timestamps.push_back((unsigned long long)(boost::lexical_cast<Real>(iter->second.data())));
             }
         }
     }
@@ -509,12 +511,13 @@ void BinPickingTaskResource::ClearVisualization(const double timeout)
     ExecuteCommand(_ss.str(), timeout, false);
 }
 
-void BinPickingTaskResource::GetPickedPositions(ResultGetPickedPositions& r, const double timeout)
+void BinPickingTaskResource::GetPickedPositions(ResultGetPickedPositions& r, const std::string& unit, const double timeout)
 {
     std::string command = "GetPickedPositions";
     _ss.str(""); _ss.clear();
     _ss << "{";
-    _ss << GetJsonString("command") << ": " << GetJsonString(command);
+    _ss << GetJsonString("command") << ": " << GetJsonString(command) << ",";
+    _ss << GetJsonString("unit") << ": " << GetJsonString(unit);
     _ss << "}";
     r.Parse(ExecuteCommand(_ss.str(), timeout));
 }

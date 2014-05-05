@@ -108,8 +108,8 @@ public:
     {
         virtual ~ResultGetPickedPositions();
         void Parse(const boost::property_tree::ptree& pt);
-        std::vector<Transform> transforms; // in meter
-        std::vector<unsigned long long> timestamps; // in milisecond
+        std::vector<Transform> transforms;
+        std::vector<unsigned long long> timestamps; // in millisecond
     };
 
     virtual void Initialize(const std::string& robotcontrollerip, const int robotcontrollerport, const int zmqport);
@@ -156,7 +156,7 @@ public:
     virtual void IsRobotOccludingBody(const std::string& bodyname, const std::string& sensorname, const unsigned long long starttime, const unsigned long long endtime, bool& result, const double timeout /* second */=0);
 
     /// \brief Get the picked positions with corresponding timestamps
-    virtual void GetPickedPositions(ResultGetPickedPositions& result, const double timeout /* second */=0);
+    virtual void GetPickedPositions(ResultGetPickedPositions& result, const std::string& unit="m", const double timeout /* second */=0);
 
     virtual PlanningResultResourcePtr GetResult();
 
