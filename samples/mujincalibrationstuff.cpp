@@ -1,6 +1,5 @@
 // -*- coding: utf-8 -*-
 #include <mujincontrollerclient/mujincontrollerclient.h>
-//#include <mujincontrollerclient/binpickingtask.h>
 #include <mujincontrollerclient/handeyecalibrationtask.h>
 
 #include <boost/thread/thread.hpp> // for sleep
