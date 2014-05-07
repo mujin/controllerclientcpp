@@ -249,7 +249,7 @@ install(FILES ${mujin_header_files} ${CMAKE_CURRENT_BINARY_DIR}/include/mujincon
 
 macro(build_sample name)
   add_executable(${name} ${name}.cpp)
-  set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${Boost_CFLAGS} -std=c++11" LINK_FLAGS "")
+  set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${Boost_CFLAGS}" LINK_FLAGS "")
   add_dependencies(${name} libmujincontrollerclient)
   target_link_libraries (${name} libmujincontrollerclient boost_program_options)
   install(TARGETS ${name} DESTINATION bin)
