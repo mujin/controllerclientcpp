@@ -47,33 +47,33 @@ void HandEyeCalibrationResultResource::GetCalibrationPoses(HandEyeCalibrationRes
     boost::property_tree::ptree pt;
     controller->CallGet(boost::str(boost::format("%s/%s/?format=json&limit=1")%GetResourceName()%GetPrimaryKey()), pt);
     boost::property_tree::ptree& output = pt.get_child("output");
-    BOOST_FOREACH(boost::property_tree::ptree::value_type& value, output) {
-        if (value.first == "poses") {
-            result.poses.resize(value.second.size());
+    FOREACH(value, output) {
+        if (value->first == "poses") {
+            result.poses.resize(value->second.size());
             size_t i = 0;
-            BOOST_FOREACH(boost::property_tree::ptree::value_type &v, value.second) {
+            FOREACH(v, value->second) {
                 result.poses[i].resize(7);
                 size_t j = 0;
-                BOOST_FOREACH(boost::property_tree::ptree::value_type &x, v.second) {
-                    result.poses[i][j++] = boost::lexical_cast<Real>(x.second.data());
+                FOREACH(x, v->second) {
+                    result.poses[i][j++] = boost::lexical_cast<Real>(x->second.data());
                 }
                 i++;
             }
         }
-        else if (value.first == "configs") {
+        else if (value->first == "configs") {
             result.configs.resize(0);
-            BOOST_FOREACH(boost::property_tree::ptree::value_type &v, value.second) {
+            FOREACH(v, value->second) {
                 std::vector<Real> config;
-                BOOST_FOREACH(boost::property_tree::ptree::value_type &x, v.second) {
-                    config.push_back(boost::lexical_cast<Real>(x.second.data()));
+                FOREACH(x, v->second) {
+                    config.push_back(boost::lexical_cast<Real>(x->second.data()));
                 }
                 result.configs.push_back(config);
             }
         }
-        else if (value.first == "jointindices") {
+        else if (value->first == "jointindices") {
             result.jointindices.resize(0);
-            BOOST_FOREACH(boost::property_tree::ptree::value_type &v, value.second) {
-                result.jointindices.push_back(boost::lexical_cast<Real>(v.second.data()));
+            FOREACH(v, value->second) {
+                result.jointindices.push_back(boost::lexical_cast<Real>(v->second.data()));
             }
         }
     }
@@ -124,7 +124,7 @@ void HandEyeCalibrationTaskResource::SetTaskParameters(const HandEyeCalibrationT
 {
     GETCONTROLLERIMPL();
 
-    std::string taskgoalput 
+    std::string taskgoalput
         = boost::str(boost::format("{\"tasktype\": \"handeyecalibration\",\"taskparameters\":{\
 \"command\":\"%s\",\
 \"cameraname\": \"%s\",\

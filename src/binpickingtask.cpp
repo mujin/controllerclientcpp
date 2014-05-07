@@ -179,44 +179,44 @@ BinPickingTaskResource::ResultGetJointValues::~ResultGetJointValues()
 void BinPickingTaskResource::ResultGetJointValues::Parse(const boost::property_tree::ptree& pt)
 {
     _pt = pt;
-    BOOST_FOREACH(const boost::property_tree::ptree::value_type& value, _pt) {
-        if( value.first == "robottype") {
-            robottype = value.second.data();
+    FOREACH(value, _pt) {
+        if( value->first == "robottype") {
+            robottype = value->second.data();
         }
-        else if (value.first == "jointnames") {
-            jointnames.resize(value.second.size());
+        else if (value->first == "jointnames") {
+            jointnames.resize(value->second.size());
             unsigned int i = 0;
-            BOOST_FOREACH(const boost::property_tree::ptree::value_type &v, value.second) {
-                jointnames[i++] = boost::lexical_cast<std::string>(v.second.data());
+            FOREACH(v, value->second) {
+                jointnames[i++] = boost::lexical_cast<std::string>(v->second.data());
             }
         }
-        else if (value.first == "currentjointvalues" ) {
-            currentjointvalues.resize(value.second.size());
+        else if (value->first == "currentjointvalues" ) {
+            currentjointvalues.resize(value->second.size());
             unsigned int i = 0;
-            BOOST_FOREACH(const boost::property_tree::ptree::value_type &v, value.second) {
-                currentjointvalues[i++] = boost::lexical_cast<Real>(v.second.data());
+            FOREACH(v, value->second) {
+                currentjointvalues[i++] = boost::lexical_cast<Real>(v->second.data());
             }
         }
-        else if (value.first == "tools") {
-            BOOST_FOREACH(const boost::property_tree::ptree::value_type &v, value.second) {
-                std::string first = v.first;
-                BOOST_FOREACH(const boost::property_tree::ptree::value_type& value2, _pt) {
-                    if( value2.first == "translate") {
+        else if (value->first == "tools") {
+            FOREACH(v, value->second) {
+                std::string first = v->first;
+                FOREACH(value2, _pt) {
+                    if( value2->first == "translate") {
                         unsigned int i = 0;
-                        if ( value2.second.size() != 3 ) {
+                        if ( value2->second.size() != 3 ) {
                             throw MujinException("the length of translation is invalid", MEC_Timeout);
                         }
-                        BOOST_FOREACH(const boost::property_tree::ptree::value_type &v, value2.second) {
-                            tools[first].translate[i++] = boost::lexical_cast<Real>(v.second.data());
+                        FOREACH(v, value2->second) {
+                            tools[first].translate[i++] = boost::lexical_cast<Real>(v->second.data());
                         }
                     }
-                    else if (value2.first == "quaternion") {
+                    else if (value2->first == "quaternion") {
                         unsigned int i = 0;
-                        if ( value2.second.size() != 4 ) {
+                        if ( value2->second.size() != 4 ) {
                             throw MujinException("the length of quaternion is invalid", MEC_Timeout);
                         }
-                        BOOST_FOREACH(const boost::property_tree::ptree::value_type &v, value2.second) {
-                            tools[first].quaternion[i++] = boost::lexical_cast<Real>(v.second.data());
+                        FOREACH(v, value2->second) {
+                            tools[first].quaternion[i++] = boost::lexical_cast<Real>(v->second.data());
                         }
                     }
                 }
@@ -232,19 +232,19 @@ BinPickingTaskResource::ResultMoveJoints::~ResultMoveJoints()
 void BinPickingTaskResource::ResultMoveJoints::Parse(const boost::property_tree::ptree& pt)
 {
     _pt = pt;
-    BOOST_FOREACH(const boost::property_tree::ptree::value_type& value, _pt) {
-        if (value.first == "robottype" ) {
-            robottype = value.second.data();
+    FOREACH(value, _pt) {
+        if (value->first == "robottype" ) {
+            robottype = value->second.data();
         }
-        else if (value.first == "timedjointvalues") {
-            timedjointvalues.resize(value.second.size());
+        else if (value->first == "timedjointvalues") {
+            timedjointvalues.resize(value->second.size());
             unsigned int i = 0;
-            BOOST_FOREACH(const boost::property_tree::ptree::value_type &v, value.second) {
-                timedjointvalues[i++] = boost::lexical_cast<Real>(v.second.data());
+            FOREACH(v, value->second) {
+                timedjointvalues[i++] = boost::lexical_cast<Real>(v->second.data());
             }
         }
-        else if (value.first == "numpoints" ) {
-            numpoints = boost::lexical_cast<int>(value.second.data());
+        else if (value->first == "numpoints" ) {
+            numpoints = boost::lexical_cast<int>(value->second.data());
         }
         /*
            else if (value.first == "elapsedtime" ) {
@@ -262,23 +262,23 @@ BinPickingTaskResource::ResultTransform::~ResultTransform()
 void BinPickingTaskResource::ResultTransform::Parse(const boost::property_tree::ptree& pt)
 {
     _pt = pt;
-    BOOST_FOREACH(const boost::property_tree::ptree::value_type& value, _pt) {
-        if( value.first == "translation") {
+    FOREACH(value, _pt) {
+        if( value->first == "translation") {
             unsigned int i = 0;
-            if ( value.second.size() != 3 ) {
+            if ( value->second.size() != 3 ) {
                 throw MujinException("the length of translation is invalid", MEC_Timeout);
             }
-            BOOST_FOREACH(const boost::property_tree::ptree::value_type &v, value.second) {
-                transform.translate[i++] = boost::lexical_cast<Real>(v.second.data());
+            FOREACH(v, value->second) {
+                transform.translate[i++] = boost::lexical_cast<Real>(v->second.data());
             }
         }
-        else if (value.first == "quaternion") {
+        else if (value->first == "quaternion") {
             unsigned int i = 0;
-            if ( value.second.size() != 4 ) {
+            if ( value->second.size() != 4 ) {
                 throw MujinException("the length of quaternion is invalid", MEC_Timeout);
             }
-            BOOST_FOREACH(const boost::property_tree::ptree::value_type &v, value.second) {
-                transform.quaternion[i++] = boost::lexical_cast<Real>(v.second.data());
+            FOREACH(v, value->second) {
+                transform.quaternion[i++] = boost::lexical_cast<Real>(v->second.data());
             }
         }
     }
@@ -291,9 +291,9 @@ BinPickingTaskResource::ResultIsRobotOccludingBody::~ResultIsRobotOccludingBody(
 void BinPickingTaskResource::ResultIsRobotOccludingBody::Parse(const boost::property_tree::ptree& pt)
 {
     _pt = pt;
-    BOOST_FOREACH(const boost::property_tree::ptree::value_type& value, _pt) {
-        if( value.first == "occluded") {
-            result = boost::lexical_cast<int>(value.second.data())==1;
+    FOREACH(value, _pt) {
+        if( value->first == "occluded") {
+            result = boost::lexical_cast<int>(value->second.data())==1;
             return;
         }
     }
@@ -307,10 +307,10 @@ BinPickingTaskResource::ResultGetPickedPositions::~ResultGetPickedPositions()
 void BinPickingTaskResource::ResultGetPickedPositions::Parse(const boost::property_tree::ptree& pt)
 {
     _pt = pt;
-    BOOST_FOREACH(const boost::property_tree::ptree::value_type& value, _pt) {
-        if( value.first == "positions") {
-            BOOST_FOREACH(const boost::property_tree::ptree::value_type &v, value.second) {
-                boost::property_tree::ptree::const_iterator iter = v.second.begin();
+    FOREACH(value, _pt) {
+        if( value->first == "positions") {
+            FOREACH(v, value->second) {
+                boost::property_tree::ptree::const_iterator iter = v->second.begin();
                 Transform transform;
                 // w,x,y,z
                 for (unsigned int i=0; i<4; i++) {

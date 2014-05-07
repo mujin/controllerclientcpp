@@ -69,18 +69,18 @@ void ObjectResource::GetLinks(std::vector<ObjectResource::LinkResourcePtr>& link
     boost::property_tree::ptree& objects = pt.get_child("links");
     links.resize(objects.size());
     size_t i = 0;
-    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, objects) {
-        LinkResourcePtr link(new LinkResource(controller, GetPrimaryKey(), v.second.get<std::string>("pk")));
+    FOREACH(v, objects) {
+        LinkResourcePtr link(new LinkResource(controller, GetPrimaryKey(), v->second.get<std::string>("pk")));
 
 
-        link->name = v.second.get<std::string>("name");
-        link->pk = v.second.get<std::string>("pk");
+        link->name = v->second.get<std::string>("name");
+        link->pk = v->second.get<std::string>("pk");
 
-        boost::property_tree::ptree& jsonattachments = v.second.get_child("attachmentpks");
+        boost::property_tree::ptree& jsonattachments = v->second.get_child("attachmentpks");
         link->attachmentpks.resize(jsonattachments.size());
         size_t iattch = 0;
-        BOOST_FOREACH(boost::property_tree::ptree::value_type &att, jsonattachments) {
-            link->attachmentpks[iattch++] = att.second.data();
+        FOREACH(att, jsonattachments) {
+            link->attachmentpks[iattch++] = att->second.data();
         }
 
         //TODO transforms
@@ -104,30 +104,30 @@ void RobotResource::GetTools(std::vector<RobotResource::ToolResourcePtr>& tools)
     boost::property_tree::ptree& objects = pt.get_child("tools");
     tools.resize(objects.size());
     size_t i = 0;
-    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, objects) {
-        ToolResourcePtr tool(new ToolResource(controller, GetPrimaryKey(), v.second.get<std::string>("pk")));
+    FOREACH(v, objects) {
+        ToolResourcePtr tool(new ToolResource(controller, GetPrimaryKey(), v->second.get<std::string>("pk")));
 
 
-        tool->name = v.second.get<std::string>("name");
-        tool->pk = v.second.get<std::string>("pk");
-        tool->frame_origin = v.second.get<std::string>("frame_origin");
-        tool->frame_tip = v.second.get<std::string>("frame_tip");
+        tool->name = v->second.get<std::string>("name");
+        tool->pk = v->second.get<std::string>("pk");
+        tool->frame_origin = v->second.get<std::string>("frame_origin");
+        tool->frame_tip = v->second.get<std::string>("frame_tip");
 
-        boost::property_tree::ptree& jsondirection = v.second.get_child("direction");
+        boost::property_tree::ptree& jsondirection = v->second.get_child("direction");
         size_t idir = 0;
-        BOOST_FOREACH(boost::property_tree::ptree::value_type &vdir, jsondirection) {
-            tool->direction[idir++] = boost::lexical_cast<Real>(vdir.second.data());
+        FOREACH(vdir, jsondirection) {
+            tool->direction[idir++] = boost::lexical_cast<Real>(vdir->second.data());
         }
 
         size_t iquaternion = 0;
-        BOOST_FOREACH(boost::property_tree::ptree::value_type &vquaternion, v.second.get_child("quaternion")) {
+        FOREACH(vquaternion, v->second.get_child("quaternion")) {
             BOOST_ASSERT( iquaternion < 4 );
-            tool->quaternion[iquaternion++] = boost::lexical_cast<Real>(vquaternion.second.data());
+            tool->quaternion[iquaternion++] = boost::lexical_cast<Real>(vquaternion->second.data());
         }
         size_t itranslate = 0;
-        BOOST_FOREACH(boost::property_tree::ptree::value_type &vtranslate, v.second.get_child("translate")) {
+        FOREACH(vtranslate, v->second.get_child("translate")) {
             BOOST_ASSERT( itranslate < 3 );
-            tool->translate[itranslate++] = boost::lexical_cast<Real>(vtranslate.second.data());
+            tool->translate[itranslate++] = boost::lexical_cast<Real>(vtranslate->second.data());
         }
 
         tools[i++] = tool;
@@ -146,49 +146,49 @@ void RobotResource::GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& a
     boost::property_tree::ptree& objects = pt.get_child("attachedsensors");
     attachedsensors.resize(objects.size());
     size_t i = 0;
-    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, objects) {
-        AttachedSensorResourcePtr attachedsensor(new AttachedSensorResource(controller, GetPrimaryKey(), v.second.get<std::string>("pk")));
+    FOREACH(v, objects) {
+        AttachedSensorResourcePtr attachedsensor(new AttachedSensorResource(controller, GetPrimaryKey(), v->second.get<std::string>("pk")));
 
 
-        attachedsensor->name = v.second.get<std::string>("name");
-        attachedsensor->pk = v.second.get<std::string>("pk");
-        attachedsensor->frame_origin = v.second.get<std::string>("frame_origin");
-        attachedsensor->sensortype = v.second.get<std::string>("sensortype");
+        attachedsensor->name = v->second.get<std::string>("name");
+        attachedsensor->pk = v->second.get<std::string>("pk");
+        attachedsensor->frame_origin = v->second.get<std::string>("frame_origin");
+        attachedsensor->sensortype = v->second.get<std::string>("sensortype");
 
         size_t iquaternion = 0;
-        BOOST_FOREACH(boost::property_tree::ptree::value_type &vquaternion, v.second.get_child("quaternion")) {
+        FOREACH(vquaternion, v->second.get_child("quaternion")) {
             BOOST_ASSERT( iquaternion < 4 );
-            attachedsensor->quaternion[iquaternion++] = boost::lexical_cast<Real>(vquaternion.second.data());
+            attachedsensor->quaternion[iquaternion++] = boost::lexical_cast<Real>(vquaternion->second.data());
         }
         size_t itranslate = 0;
-        BOOST_FOREACH(boost::property_tree::ptree::value_type &vtranslate, v.second.get_child("translate")) {
+        FOREACH(vtranslate, v->second.get_child("translate")) {
             BOOST_ASSERT( itranslate < 3 );
-            attachedsensor->translate[itranslate++] = boost::lexical_cast<Real>(vtranslate.second.data());
+            attachedsensor->translate[itranslate++] = boost::lexical_cast<Real>(vtranslate->second.data());
         }
 
         size_t icoeff = 0;
-        BOOST_FOREACH(boost::property_tree::ptree::value_type &coeff, v.second.get_child("sensordata.distortion_coeffs")) {
+        FOREACH(coeff, v->second.get_child("sensordata.distortion_coeffs")) {
             BOOST_ASSERT( icoeff < 5 );
-            attachedsensor->sensordata.distortion_coeffs[icoeff++] = boost::lexical_cast<Real>(coeff.second.data());
+            attachedsensor->sensordata.distortion_coeffs[icoeff++] = boost::lexical_cast<Real>(coeff->second.data());
         }
 
-        attachedsensor->sensordata.distortion_model = v.second.get<std::string>("sensordata.distortion_model");
-        attachedsensor->sensordata.focal_length = (Real)v.second.get<double>("sensordata.focal_length");
-        attachedsensor->sensordata.measurement_time = (Real)v.second.get<double>("sensordata.measurement_time");
+        attachedsensor->sensordata.distortion_model = v->second.get<std::string>("sensordata.distortion_model");
+        attachedsensor->sensordata.focal_length = (Real)v->second.get<double>("sensordata.focal_length");
+        attachedsensor->sensordata.measurement_time = (Real)v->second.get<double>("sensordata.measurement_time");
 
         size_t iintrinsic = 0;
-        BOOST_FOREACH(boost::property_tree::ptree::value_type &intrinsic, v.second.get_child("sensordata.intrinsic")) {
+        FOREACH(intrinsic, v->second.get_child("sensordata.intrinsic")) {
             BOOST_ASSERT( iintrinsic < 6 );
-            attachedsensor->sensordata.intrinsic[iintrinsic++] = boost::lexical_cast<Real>(intrinsic.second.data());
+            attachedsensor->sensordata.intrinsic[iintrinsic++] = boost::lexical_cast<Real>(intrinsic->second.data());
         }
 
         size_t idim = 0;
-        BOOST_FOREACH(boost::property_tree::ptree::value_type &imgdim, v.second.get_child("sensordata.image_dimensions")) {
+        FOREACH(imgdim, v->second.get_child("sensordata.image_dimensions")) {
             BOOST_ASSERT( idim < 3 );
-            attachedsensor->sensordata.image_dimensions[idim++] = boost::lexical_cast<int>(imgdim.second.data());
+            attachedsensor->sensordata.image_dimensions[idim++] = boost::lexical_cast<int>(imgdim->second.data());
         }
 
-        if (boost::optional<boost::property_tree::ptree &> extra_parameters_ptree = v.second.get_child_optional("sensordata.extra_parameters")) {
+        if (boost::optional<boost::property_tree::ptree &> extra_parameters_ptree = v->second.get_child_optional("sensordata.extra_parameters")) {
             std::string parameters_string = extra_parameters_ptree.get().data();
             //std::cout << "extra param " << parameters_string << std::endl;
             std::list<std::string> results;
@@ -427,8 +427,8 @@ void SceneResource::GetTaskPrimaryKeys(std::vector<std::string>& taskkeys)
     boost::property_tree::ptree& objects = pt.get_child("objects");
     taskkeys.resize(objects.size());
     size_t i = 0;
-    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, objects) {
-        taskkeys[i++] = v.second.get<std::string>("pk");
+    FOREACH(v, objects) {
+        taskkeys[i++] = v->second.get<std::string>("pk");
     }
 }
 
@@ -440,90 +440,90 @@ void SceneResource::GetInstObjects(std::vector<SceneResource::InstObjectPtr>& in
     boost::property_tree::ptree& objects = pt.get_child("instobjects");
     instobjects.resize(objects.size());
     size_t i = 0;
-    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, objects) {
-        InstObjectPtr instobject(new InstObject(controller, GetPrimaryKey(), v.second.get<std::string>("pk")));
+    FOREACH(v, objects) {
+        InstObjectPtr instobject(new InstObject(controller, GetPrimaryKey(), v->second.get<std::string>("pk")));
 
-        instobject->name = v.second.get<std::string>("name");
-        instobject->pk = v.second.get<std::string>("pk");
-        instobject->object_pk = v.second.get<std::string>("object_pk");
-        instobject->reference_uri = v.second.get<std::string>("reference_uri");
+        instobject->name = v->second.get<std::string>("name");
+        instobject->pk = v->second.get<std::string>("pk");
+        instobject->object_pk = v->second.get<std::string>("object_pk");
+        instobject->reference_uri = v->second.get<std::string>("reference_uri");
 
-        boost::property_tree::ptree& jsondofvalues = v.second.get_child("dofvalues");
+        boost::property_tree::ptree& jsondofvalues = v->second.get_child("dofvalues");
         instobject->dofvalues.resize(jsondofvalues.size());
         size_t idof = 0;
-        BOOST_FOREACH(boost::property_tree::ptree::value_type &vdof, jsondofvalues) {
-            instobject->dofvalues[idof++] = boost::lexical_cast<Real>(vdof.second.data());
+        FOREACH(vdof, jsondofvalues) {
+            instobject->dofvalues[idof++] = boost::lexical_cast<Real>(vdof->second.data());
         }
 
         size_t iquaternion = 0;
-        BOOST_FOREACH(boost::property_tree::ptree::value_type &vquaternion, v.second.get_child("quaternion")) {
+        FOREACH(vquaternion, v->second.get_child("quaternion")) {
             BOOST_ASSERT( iquaternion < 4 );
-            instobject->quaternion[iquaternion++] = boost::lexical_cast<Real>(vquaternion.second.data());
+            instobject->quaternion[iquaternion++] = boost::lexical_cast<Real>(vquaternion->second.data());
         }
         size_t itranslate = 0;
-        BOOST_FOREACH(boost::property_tree::ptree::value_type &vtranslate, v.second.get_child("translate")) {
+        FOREACH(vtranslate, v->second.get_child("translate")) {
             BOOST_ASSERT( itranslate < 3 );
-            instobject->translate[itranslate++] = boost::lexical_cast<Real>(vtranslate.second.data());
+            instobject->translate[itranslate++] = boost::lexical_cast<Real>(vtranslate->second.data());
         }
 
-        boost::property_tree::ptree& jsonlinks = v.second.get_child("links");
+        boost::property_tree::ptree& jsonlinks = v->second.get_child("links");
         instobject->links.resize(jsonlinks.size());
         size_t ilink = 0;
-        BOOST_FOREACH(boost::property_tree::ptree::value_type &vlink, jsonlinks) {
-            instobject->links[ilink].name = vlink.second.get<std::string>("name");
+        FOREACH(vlink, jsonlinks) {
+            instobject->links[ilink].name = vlink->second.get<std::string>("name");
 
-            boost::property_tree::ptree& quatjson = vlink.second.get_child("quaternion");
+            boost::property_tree::ptree& quatjson = vlink->second.get_child("quaternion");
             int iquat=0;
-            BOOST_FOREACH(boost::property_tree::ptree::value_type &q, quatjson) {
+            FOREACH(q, quatjson) {
                 BOOST_ASSERT(iquat<4);
-                instobject->links[ilink].quaternion[iquat++] = boost::lexical_cast<Real>(q.second.data());
+                instobject->links[ilink].quaternion[iquat++] = boost::lexical_cast<Real>(q->second.data());
             }
 
-            boost::property_tree::ptree& transjson = vlink.second.get_child("translate");
+            boost::property_tree::ptree& transjson = vlink->second.get_child("translate");
             int itrans=0;
-            BOOST_FOREACH(boost::property_tree::ptree::value_type &t, transjson) {
+            FOREACH(t, transjson) {
                 BOOST_ASSERT(itrans<3);
-                instobject->links[ilink].translate[itrans++] = boost::lexical_cast<Real>(t.second.data());
+                instobject->links[ilink].translate[itrans++] = boost::lexical_cast<Real>(t->second.data());
             }
             ilink++;
         }
 
-        boost::property_tree::ptree& jsontools = v.second.get_child("tools");
+        boost::property_tree::ptree& jsontools = v->second.get_child("tools");
         instobject->tools.resize(jsontools.size());
         size_t itool = 0;
-        BOOST_FOREACH(boost::property_tree::ptree::value_type &vtool, jsontools) {
-            instobject->tools[itool].name = vtool.second.get<std::string>("name");
+        FOREACH(vtool, jsontools) {
+            instobject->tools[itool].name = vtool->second.get<std::string>("name");
 
-            boost::property_tree::ptree& quatjson = vtool.second.get_child("quaternion");
+            boost::property_tree::ptree& quatjson = vtool->second.get_child("quaternion");
             int iquat=0;
-            BOOST_FOREACH(boost::property_tree::ptree::value_type &q, quatjson) {
+            FOREACH(q, quatjson) {
                 BOOST_ASSERT(iquat<4);
-                instobject->tools[itool].quaternion[iquat++] = boost::lexical_cast<Real>(q.second.data());
+                instobject->tools[itool].quaternion[iquat++] = boost::lexical_cast<Real>(q->second.data());
             }
 
-            boost::property_tree::ptree& transjson = vtool.second.get_child("translate");
+            boost::property_tree::ptree& transjson = vtool->second.get_child("translate");
             int itrans=0;
-            BOOST_FOREACH(boost::property_tree::ptree::value_type &t, transjson) {
+            FOREACH(t, transjson) {
                 BOOST_ASSERT(itrans<3);
-                instobject->tools[itool].translate[itrans++] = boost::lexical_cast<Real>(t.second.data());
+                instobject->tools[itool].translate[itrans++] = boost::lexical_cast<Real>(t->second.data());
             }
 
-            boost::property_tree::ptree& directionjson = vtool.second.get_child("direction");
+            boost::property_tree::ptree& directionjson = vtool->second.get_child("direction");
             int idir=0;
-            BOOST_FOREACH(boost::property_tree::ptree::value_type &d, directionjson) {
+            FOREACH(d, directionjson) {
                 BOOST_ASSERT(idir<3);
-                instobject->tools[itool].direction[idir++] = boost::lexical_cast<Real>(d.second.data());
+                instobject->tools[itool].direction[idir++] = boost::lexical_cast<Real>(d->second.data());
             }
             itool++;
         }
 
-        boost::property_tree::ptree& jsongrabs = v.second.get_child("grabs");
+        boost::property_tree::ptree& jsongrabs = v->second.get_child("grabs");
         instobject->grabs.resize(jsongrabs.size());
         size_t igrab = 0;
-        BOOST_FOREACH(boost::property_tree::ptree::value_type &vgrab, jsongrabs) {
-            instobject->grabs[igrab].instobjectpk = vgrab.second.get<std::string>("instobjectpk");
-            instobject->grabs[igrab].grabbed_linkpk = vgrab.second.get<std::string>("grabbed_linkpk");
-            instobject->grabs[igrab].grabbing_linkpk = vgrab.second.get<std::string>("grabbing_linkpk");
+        FOREACH(vgrab, jsongrabs) {
+            instobject->grabs[igrab].instobjectpk = vgrab->second.get<std::string>("instobjectpk");
+            instobject->grabs[igrab].grabbed_linkpk = vgrab->second.get<std::string>("grabbed_linkpk");
+            instobject->grabs[igrab].grabbing_linkpk = vgrab->second.get<std::string>("grabbing_linkpk");
             igrab++;
         }
 
@@ -647,8 +647,8 @@ void TaskResource::GetOptimizationPrimaryKeys(std::vector<std::string>& optimiza
     boost::property_tree::ptree& objects = pt.get_child("objects");
     optimizationkeys.resize(objects.size());
     size_t i = 0;
-    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, objects) {
-        optimizationkeys[i++] = v.second.get<std::string>("pk");
+    FOREACH(v, objects) {
+        optimizationkeys[i++] = v->second.get<std::string>("pk");
     }
 }
 
@@ -663,27 +663,27 @@ void TaskResource::GetTaskParameters(ITLPlanningTaskParameters& taskparameters)
     }
     boost::property_tree::ptree& taskparametersjson = pt.get_child("taskparameters");
     taskparameters.SetDefaults();
-    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, taskparametersjson) {
-        if( v.first == "startfromcurrent" ) {
-            taskparameters.startfromcurrent = v.second.data() == std::string("True");
+    FOREACH(v, taskparametersjson) {
+        if( v->first == "startfromcurrent" ) {
+            taskparameters.startfromcurrent = v->second.data() == std::string("True");
         }
-        else if( v.first == "returntostart" ) {
-            taskparameters.returntostart = v.second.data() == std::string("True");
+        else if( v->first == "returntostart" ) {
+            taskparameters.returntostart = v->second.data() == std::string("True");
         }
-        else if( v.first == "ignorefigure" ) {
-            taskparameters.ignorefigure = v.second.data() == std::string("True");
+        else if( v->first == "ignorefigure" ) {
+            taskparameters.ignorefigure = v->second.data() == std::string("True");
         }
-        else if( v.first == "vrcruns" ) {
-            taskparameters.vrcruns = boost::lexical_cast<int>(v.second.data());
+        else if( v->first == "vrcruns" ) {
+            taskparameters.vrcruns = boost::lexical_cast<int>(v->second.data());
         }
-        else if( v.first == "unit" ) {
-            taskparameters.unit = v.second.data();
+        else if( v->first == "unit" ) {
+            taskparameters.unit = v->second.data();
         }
-        else if( v.first == "optimizationvalue" ) {
-            taskparameters.optimizationvalue = boost::lexical_cast<Real>(v.second.data());
+        else if( v->first == "optimizationvalue" ) {
+            taskparameters.optimizationvalue = boost::lexical_cast<Real>(v->second.data());
         }
-        else if( v.first == "program" ) {
-            taskparameters.program = v.second.data();
+        else if( v->first == "program" ) {
+            taskparameters.program = v->second.data();
         }
     }
 }
@@ -796,8 +796,8 @@ void OptimizationResource::GetResults(std::vector<PlanningResultResourcePtr>& re
     boost::property_tree::ptree& objects = pt.get_child("objects");
     results.resize(objects.size());
     size_t i = 0;
-    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, objects) {
-        results[i++].reset(new PlanningResultResource(controller, v.second.get<std::string>("pk")));
+    FOREACH(v, objects) {
+        results[i++].reset(new PlanningResultResource(controller, v->second.get<std::string>("pk")));
     }
 }
 
@@ -816,15 +816,15 @@ void PlanningResultResource::GetEnvironmentState(EnvironmentState& envstate)
     controller->CallGet(str(boost::format("%s/%s/?format=json&fields=envstate")%GetResourceName()%GetPrimaryKey()), pt);
     boost::property_tree::ptree& envstatejson = pt.get_child("envstate");
     envstate.clear();
-    BOOST_FOREACH(boost::property_tree::ptree::value_type &objstatejson, envstatejson) {
+    FOREACH(objstatejson, envstatejson) {
         InstanceObjectState objstate;
-        std::string name = objstatejson.second.get<std::string>("name");
-        boost::property_tree::ptree& quatjson = objstatejson.second.get_child("quat_");
+        std::string name = objstatejson->second.get<std::string>("name");
+        boost::property_tree::ptree& quatjson = objstatejson->second.get_child("quat_");
         int iquat=0;
         Real dist2 = 0;
-        BOOST_FOREACH(boost::property_tree::ptree::value_type &v, quatjson) {
+        FOREACH(v, quatjson) {
             BOOST_ASSERT(iquat<4);
-            Real f = boost::lexical_cast<Real>(v.second.data());
+            Real f = boost::lexical_cast<Real>(v->second.data());
             dist2 += f * f;
             objstate.transform.quaternion[iquat++] = f;
         }
@@ -836,10 +836,10 @@ void PlanningResultResource::GetEnvironmentState(EnvironmentState& envstate)
             objstate.transform.quaternion[2] *= fnorm;
             objstate.transform.quaternion[3] *= fnorm;
         }
-        boost::property_tree::ptree& translationjson = objstatejson.second.get_child("translation_");
+        boost::property_tree::ptree& translationjson = objstatejson->second.get_child("translation_");
         int itranslation=0;
-        BOOST_FOREACH(boost::property_tree::ptree::value_type &v, translationjson) {
-            objstate.transform.translate[itranslation++] = boost::lexical_cast<Real>(v.second.data());
+        FOREACH(v, translationjson) {
+            objstate.transform.translate[itranslation++] = boost::lexical_cast<Real>(v->second.data());
         }
         envstate[name] = objstate;
     }
@@ -863,10 +863,10 @@ void PlanningResultResource::GetPrograms(RobotControllerPrograms& programs, cons
     boost::property_tree::ptree pt;
     programs.programs.clear();
     controller->CallGet(str(boost::format("%s/%s/program/?format=json&type=%s")%GetResourceName()%GetPrimaryKey()%programtype), pt);
-    BOOST_FOREACH(boost::property_tree::ptree::value_type &robotdatajson, pt) {
-        std::string robotpk = robotdatajson.first;
-        std::string program = robotdatajson.second.get<std::string>("program");
-        std::string currenttype = robotdatajson.second.get<std::string>("type");
+    FOREACH(robotdatajson, pt) {
+        std::string robotpk = robotdatajson->first;
+        std::string program = robotdatajson->second.get<std::string>("program");
+        std::string currenttype = robotdatajson->second.get<std::string>("type");
         programs.programs[robotpk] = RobotProgramData(program, currenttype);
     }
 }

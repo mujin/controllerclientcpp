@@ -386,13 +386,13 @@ void ControllerClientImpl::GetRunTimeStatuses(std::vector<JobStatus>& statuses, 
     boost::property_tree::ptree& objects = pt.get_child("objects");
     size_t i = 0;
     statuses.resize(objects.size());
-    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, objects) {
-        statuses[i].pk = v.second.get<std::string>("pk");
-        statuses[i].code = static_cast<JobStatusCode>(boost::lexical_cast<int>(v.second.get<std::string>("status")));
-        statuses[i].type = v.second.get<std::string>("fnname");
-        statuses[i].elapsedtime = v.second.get<double>("elapsedtime");
+    FOREACH(v, objects) {
+        statuses[i].pk = v->second.get<std::string>("pk");
+        statuses[i].code = static_cast<JobStatusCode>(boost::lexical_cast<int>(v->second.get<std::string>("status")));
+        statuses[i].type = v->second.get<std::string>("fnname");
+        statuses[i].elapsedtime = v->second.get<double>("elapsedtime");
         if( options & 1 ) {
-            statuses[i].message = v.second.get<std::string>("status_text");
+            statuses[i].message = v->second.get<std::string>("status_text");
         }
         i++;
     }
@@ -405,8 +405,8 @@ void ControllerClientImpl::GetScenePrimaryKeys(std::vector<std::string>& sceneke
     boost::property_tree::ptree& objects = pt.get_child("objects");
     scenekeys.resize(objects.size());
     size_t i = 0;
-    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, objects) {
-        scenekeys[i++] = v.second.get<std::string>("pk");
+    FOREACH(v, objects) {
+        scenekeys[i++] = v->second.get<std::string>("pk");
     }
 }
 
