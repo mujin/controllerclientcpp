@@ -3,7 +3,7 @@
 
 #include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
-#include <zmq.hpp>
+#include "zmq.hpp"
 #include <sstream>
 
 namespace mujinzmq
