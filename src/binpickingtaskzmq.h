@@ -36,7 +36,9 @@ public:
 
     boost::property_tree::ptree ExecuteCommand(const std::string& command, const double timeout /* [sec] */=0.0, const bool getresult=true);
 
-    void Initialize(const std::string& robotcontrollerip, const int robotcontrollerport, const int zmqport);
+    void Initialize(const std::string& robotControllerIp, const int robotControllerPort, const int zmqPort, const int heartbeatPort, const bool initializezmq=false, const double reinitializetimeout=10, const double timeout=0);
+
+    void InitializeZMQ(const double reinitializetimeout = 5, const double timeout /* second */=0);
 
 private:
     ZmqMujinControllerClientPtr _zmqmujincontrollerclient;

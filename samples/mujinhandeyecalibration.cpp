@@ -23,7 +23,8 @@ int main(int argc, char ** argv)
         ("controller_username_password", bpo::value<std::string>()->required(), "username and password to the mujin controller, e.g. username:password")
         ("robot_controller_ip", bpo::value<std::string>()->default_value("192.168.13.201"), "ip of the robot controller, e.g. 192.168.13.201")
         ("robot_controller_port", bpo::value<unsigned int>()->default_value(5007), "port of the robot controller, e.g. 5007")
-        ("binpicking_task_zmq_port", bpo::value<unsigned int>()->default_value(7100), "port of the binpicking task on the mujin controller, e.g. 7100")
+        ("binpicking_task_zmq_port", bpo::value<unsigned int>()->default_value(7100), "port of the binpicking task on the mujin controller, e.g. 7101")
+        ("binpicking_task_heartbeat_port", bpo::value<unsigned int>()->default_value(7100), "port of the binpicking task's heartbeat signal on the mujin controller, e.g. 7101")
         ("binpicking_task_scenepk", bpo::value<std::string>()->default_value("irex2013.mujin.dae"), "scene pk of the binpicking task on the mujin controller, e.g. irex2013.mujin.dae")
     ;
     bpo::variables_map opts;
@@ -47,6 +48,7 @@ int main(int argc, char ** argv)
     const std::string robotControllerIp = opts["robot_controller_ip"].as<std::string>();
     const unsigned int robotControllerPort = opts["robot_controller_port"].as<unsigned int>();
     const unsigned int binpickingTaskZmqPort = opts["binpicking_task_zmq_port"].as<unsigned int>();
+    const unsigned int binpickingTaskHeartbeatPort = opts["binpicking_task_heartbeat_port"].as<unsigned int>();
     const std::string binpickingTaskScenePk = opts["binpicking_task_scenepk"].as<std::string>();
 
     // connect to mujin controller
@@ -58,7 +60,7 @@ int main(int argc, char ** argv)
     BinPickingTaskResourcePtr binpicking = scene->GetOrCreateBinPickingTaskFromName_UTF8("binpickingtask1");
 
     HandEyeCalibrationTaskResourcePtr calib;
-    binpicking->Initialize(robotControllerIp, robotControllerPort, binpickingTaskZmqPort);
+    binpicking->Initialize(robotControllerIp, robotControllerPort, binpickingTaskZmqPort, binpickingTaskHeartbeatPort);
     calib.reset(new HandEyeCalibrationTaskResource(std::string("calibtask1"), controller,scene));
     BinPickingTaskResource::ResultGetJointValues jointvaluesresult;
     binpicking->GetJointValues(jointvaluesresult);

@@ -16,6 +16,7 @@
 #include <boost/thread.hpp> // for sleep
 #include <boost/property_tree/ptree.hpp>
 #include <mujincontrollerclient/binpickingtask.h>
+#include "zmq.hpp"
 
 namespace mujinclient {
 
@@ -27,19 +28,50 @@ BinPickingResultResource::~BinPickingResultResource()
 {
 }
 
-BinPickingTaskResource::BinPickingTaskResource(ControllerClientPtr controller, const std::string& pk) : TaskResource(controller,pk), _robotcontrollerip(""), _robotcontrollerport(-1), _zmqport(-1), _bIsInitialized(false)
+BinPickingTaskResource::BinPickingTaskResource(ControllerClientPtr pcontroller, const std::string& pk) : TaskResource(pcontroller,pk), _robotControllerIp(""), _robotControllerPort(-1), _zmqPort(-1), _heartbeatPort(-1), _bIsInitialized(false)
 {
+    // get hostname from uri
+    GETCONTROLLERIMPL();
+    const std::string baseuri = controller->GetBaseUri();
+    std::string::const_iterator uriend = baseuri.end();
+    // query start
+    std::string::const_iterator querystart = std::find(baseuri.begin(), uriend, '?');
+    // protocol
+    std::string protocol;
+    std::string::const_iterator protocolstart = baseuri.begin();
+    std::string::const_iterator protocolend = std::find(protocolstart, uriend, ':');
+    if (protocolend != uriend) {
+        std::string p = &*(protocolend);
+        if ((p.length() > 3) & (p.substr(0,3) == "://")) {
+            protocol = std::string(protocolstart, protocolend);
+            protocolend +=3;
+        } else {
+            protocolend = baseuri.begin();
+        }
+    } else {
+        protocolend = baseuri.begin();
+    }
+    // host
+    std::string::const_iterator hoststart = protocolend;
+    std::string::const_iterator pathstart = std::find(hoststart, uriend, '/');
+    std::string::const_iterator hostend = std::find(protocolend, (pathstart != uriend) ? pathstart : querystart, ':');
+    _mujinControllerIp = std::string(hoststart, hostend);
 }
 
 BinPickingTaskResource::~BinPickingTaskResource()
 {
+    if (!_bShutdownHeartbeatMonitor) {
+        _bShutdownHeartbeatMonitor = true;
+        _pHeartbeatMonitorThread->join();
+    }
 }
 
-void BinPickingTaskResource::Initialize(const std::string& robotcontrollerip, const int robotcontrollerport, const int zmqport)
+void BinPickingTaskResource::Initialize(const std::string& robotControllerIp, const int robotControllerPort, const int zmqPort, const int heartbeatPort, const bool initializezmq, const double reinitializetimeout, const double timeout)
 {
-    _robotcontrollerip = robotcontrollerip;
-    _robotcontrollerport = robotcontrollerport;
-    _zmqport = zmqport;
+    _robotControllerIp = robotControllerIp;
+    _robotControllerPort = robotControllerPort;
+    _zmqPort = zmqPort;
+    _heartbeatPort = heartbeatPort;
     _bIsInitialized = true;
 }
 
@@ -165,6 +197,34 @@ std::string BinPickingTaskResource::GetJsonString(const SensorOcclusionCheck& ch
     ss << GetJsonString("sensorname") << ": " << GetJsonString(check.sensorname) << ", ";
     ss << GetJsonString("starttime") << ": " << check.starttime <<", ";
     ss << GetJsonString("endtime") << ": " << check.endtime;
+    return ss.str();
+}
+
+std::string BinPickingTaskResource::GetJsonString(const std::string& key, const std::string& value)
+{
+    std::stringstream ss;
+    ss << GetJsonString(key) << ": " << GetJsonString(value);
+    return ss.str();
+}
+
+std::string BinPickingTaskResource::GetJsonString(const std::string& key, const int value)
+{
+    std::stringstream ss;
+    ss << GetJsonString(key) << ": " << value;
+    return ss.str();
+}
+
+std::string BinPickingTaskResource::GetJsonString(const std::string& key, const unsigned long long value)
+{
+    std::stringstream ss;
+    ss << GetJsonString(key) << ": " << value;
+    return ss.str();
+}
+
+std::string BinPickingTaskResource::GetJsonString(const std::string& key, const Real value)
+{
+    std::stringstream ss;
+    ss << GetJsonString(key) << ": " << value;
     return ss.str();
 }
 
@@ -338,10 +398,10 @@ void BinPickingTaskResource::GetJointValues(ResultGetJointValues& result, const 
 
     _ss.str(""); _ss.clear();
     _ss << "{";
-    _ss << GetJsonString("command") << ": " << GetJsonString(command) << ", ";
-    _ss << GetJsonString("robottype") << ": " << GetJsonString(robottype) << ", ";
-    _ss << GetJsonString("controllerip") << ": " << GetJsonString(_robotcontrollerip) << ", ";
-    _ss << GetJsonString("controllerport") << ": " << _robotcontrollerport;
+    _ss << GetJsonString("command", command) << ", ";
+    _ss << GetJsonString("robottype", robottype) << ", ";
+    _ss << GetJsonString("robotControllerIp", _robotControllerIp) << ", ";
+    _ss << GetJsonString("robotControllerPort", _robotControllerPort);
     _ss << "}";
 
     result.Parse(ExecuteCommand(_ss.str(), timeout));
@@ -354,14 +414,14 @@ void BinPickingTaskResource::MoveJoints(const std::vector<Real>& goaljoints, con
 
     _ss.str(""); _ss.clear();
     _ss << "{";
-    _ss << GetJsonString("command") << ": " << GetJsonString(command) << ", ";
-    _ss << GetJsonString("robottype") << ": " << GetJsonString(robottype) << ", ";
-    _ss << GetJsonString("controllerip") << ": " << GetJsonString(_robotcontrollerip) << ", ";
-    _ss << GetJsonString("controllerport") << ": " << _robotcontrollerport << ", ";
+    _ss << GetJsonString("command", command) << ", ";
+    _ss << GetJsonString("robottype", robottype) << ", ";
+    _ss << GetJsonString("robotControllerIp", _robotControllerIp) << ", ";
+    _ss << GetJsonString ("robotControllerPort", _robotControllerPort) << ", ";
     _ss << GetJsonString("goaljoints") << ": " << GetJsonString(goaljoints) << ", ";
     _ss << GetJsonString("jointindices") << ": " << GetJsonString(jointindices) << ", ";
-    _ss << GetJsonString("envclearance") << ": " << envclearance << ", ";
-    _ss << GetJsonString("speed") << ": " << speed; // << ", ";
+    _ss << GetJsonString("envclearance",envclearance ) << ", ";
+    _ss << GetJsonString("speed", speed);
     _ss << "}";
     result.Parse(ExecuteCommand(_ss.str(), timeout));
 }
@@ -371,21 +431,21 @@ void BinPickingTaskResource::GetTransform(const std::string& targetname, Transfo
     std::string command = "GetTransform";
     _ss.str(""); _ss.clear();
     _ss << "{";
-    _ss << GetJsonString("command") << ": " << GetJsonString(command) << ", ";
-    _ss << GetJsonString("targetname") << ": " << GetJsonString(targetname);
+    _ss << GetJsonString("command", command) << ", ";
+    _ss << GetJsonString("targetname", targetname);
     _ss << "}";
     ResultTransform result;
     result.Parse(ExecuteCommand(_ss.str(), timeout));
     transform = result.transform;
 }
 
-void BinPickingTaskResource::SetTransform(const std::string& targetname, const Transform& transform, const double timeout)
+void BinPickingTaskResource::SetTransform(const std::string& targetname, const Transform &transform, const double timeout)
 {
     std::string command = "SetTransform";
     _ss.str(""); _ss.clear();
     _ss << "{";
-    _ss << GetJsonString("command") << ": " << GetJsonString(command) << ", ";
-    _ss << GetJsonString("targetname") << ": " << GetJsonString(targetname) << ", ";
+    _ss << GetJsonString("command", command) << ", ";
+    _ss << GetJsonString("targetname", targetname) << ", ";
     _ss << GetJsonString(transform);
     _ss << "}";
     ExecuteCommand(_ss.str(), timeout, false);
@@ -396,7 +456,7 @@ void BinPickingTaskResource::GetManipTransformToRobot(Transform& transform, cons
     std::string command = "GetManipTransformToRobot";
     _ss.str(""); _ss.clear();
     _ss << "{";
-    _ss << GetJsonString("command") << ": " << GetJsonString(command);
+    _ss << GetJsonString("command", command);
     _ss << "}";
     ResultTransform result;
     result.Parse(ExecuteCommand(_ss.str(), timeout));
@@ -408,33 +468,30 @@ void BinPickingTaskResource::GetManipTransform(Transform& transform, const doubl
     std::string command = "GetManipTransform";
     _ss.str(""); _ss.clear();
     _ss << "{";
-    _ss << GetJsonString("command") << ": " << GetJsonString(command);
+    _ss << GetJsonString("command", command);
     _ss << "}";
     ResultTransform result;
     result.Parse(ExecuteCommand(_ss.str(), timeout));
     transform = result.transform;
 }
 
-void BinPickingTaskResource::InitializeZMQ(const double timeout)
+void BinPickingTaskResource::InitializeZMQ(const double reinitializetimeout, const double timeout)
 {
-    std::string command = "InitializeZMQ";
-    _ss.str(""); _ss.clear();
-    _ss << "{";
-    _ss << GetJsonString("command") << ": " << GetJsonString(command) << ", ";
-    _ss << GetJsonString("port") << ": " << _zmqport;
-    _ss << "}";
-    ExecuteCommand(_ss.str(), timeout, false);
+    if (!_pHeartbeatMonitorThread) {
+        _bShutdownHeartbeatMonitor = false;
+        _pHeartbeatMonitorThread.reset(new boost::thread(boost::bind(&BinPickingTaskResource::_HeartbeatMonitorThread, this, reinitializetimeout, timeout)));
+    }
 }
 
-void BinPickingTaskResource::UpdateObjects(const std::string& basename, const std::vector<Transform>& transformsworld, const std::vector<Real>& confidence, const std::string& unit, const double timeout)
+void BinPickingTaskResource::UpdateObjects(const std::string& basename, const std::vector<Transform>&transformsworld, const std::vector<Real>&confidence, const std::string& unit, const double timeout)
 {
     std::string command = "UpdateObjects";
     std::string targetname = basename;
     _ss.str(""); _ss.clear();
     _ss << "{";
-    _ss << GetJsonString("command") << ": " << GetJsonString(command) << ", ";
-    _ss << GetJsonString("objectname") << ": " << GetJsonString(targetname) << ", ";
-    _ss << GetJsonString("object_uri") << ": " << GetJsonString("mujin:/"+targetname+".mujin.dae") << ", ";
+    _ss << GetJsonString("command", command) << ", ";
+    _ss << GetJsonString("objectname", targetname) << ", ";
+    _ss << GetJsonString("object_uri", "mujin:/"+targetname+".mujin.dae") << ", ";
     std::vector<DetectedObject> detectedobjects;
     for (unsigned int i=0; i<transformsworld.size(); i++) {
         DetectedObject detectedobject;
@@ -454,7 +511,7 @@ void BinPickingTaskResource::UpdateObjects(const std::string& basename, const st
         }
     }
     _ss << "], ";
-    _ss << GetJsonString("unit") << ": " << GetJsonString(unit);
+    _ss << GetJsonString("unit", unit);
     _ss << "}";
     ExecuteCommand(_ss.str(), timeout, false);
 }
@@ -464,7 +521,7 @@ void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<Real>&vpoin
     std::string command = "AddPointCloudObstacle";
     _ss.str(""); _ss.clear();
     _ss << "{";
-    _ss << GetJsonString("command") << ": " << GetJsonString(command) << ", ";
+    _ss << GetJsonString("command", command) << ", ";
     PointCloudObstacle pointcloudobstacle;
     pointcloudobstacle.name = name;
     pointcloudobstacle.pointsize = pointsize;
@@ -474,12 +531,12 @@ void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<Real>&vpoin
     ExecuteCommand(_ss.str(), timeout, false);
 }
 
-void BinPickingTaskResource::VisualizePointCloud(const std::vector<std::vector<Real> >& pointslist, const Real pointsize, const std::vector<std::string>& names, const double timeout)
+void BinPickingTaskResource::VisualizePointCloud(const std::vector<std::vector<Real> >&pointslist, const Real pointsize, const std::vector<std::string>&names, const double timeout)
 {
     std::string command = "VisualizePointCloud";
     _ss.str(""); _ss.clear();
     _ss << "{";
-    _ss << GetJsonString("command") << ": " << GetJsonString(command) << ", ";
+    _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("pointslist") << ": [";
     for (unsigned int i=0; i< pointslist.size(); i++) {
         _ss << GetJsonString(pointslist[i]);
@@ -506,7 +563,7 @@ void BinPickingTaskResource::ClearVisualization(const double timeout)
     std::string command = "ClearVisualization";
     _ss.str(""); _ss.clear();
     _ss << "{";
-    _ss << GetJsonString("command") << ": " << GetJsonString(command);
+    _ss << GetJsonString("command", command);
     _ss << "}";
     ExecuteCommand(_ss.str(), timeout, false);
 }
@@ -516,8 +573,8 @@ void BinPickingTaskResource::GetPickedPositions(ResultGetPickedPositions& r, con
     std::string command = "GetPickedPositions";
     _ss.str(""); _ss.clear();
     _ss << "{";
-    _ss << GetJsonString("command") << ": " << GetJsonString(command) << ",";
-    _ss << GetJsonString("unit") << ": " << GetJsonString(unit);
+    _ss << GetJsonString("command", command) << ",";
+    _ss << GetJsonString("unit", unit);
     _ss << "}";
     r.Parse(ExecuteCommand(_ss.str(), timeout));
 }
@@ -527,7 +584,7 @@ void BinPickingTaskResource::IsRobotOccludingBody(const std::string& bodyname, c
     std::string command = "IsRobotOccludingBody";
     _ss.str(""); _ss.clear();
     _ss << "{";
-    _ss << GetJsonString("command") << ": " << GetJsonString(command) << ", ";
+    _ss << GetJsonString("command", command) << ", ";
     SensorOcclusionCheck check;
     check.bodyname = bodyname;
     check.sensorname = sensorname;
@@ -624,7 +681,7 @@ void utils::DeleteObject(SceneResourcePtr scene, const std::string& name)
     }
 }
 
-void utils::UpdateObjects(SceneResourcePtr scene,const std::string& basename, const std::vector<BinPickingTaskResource::DetectedObject>& detectedobjects, const std::string& unit)
+void utils::UpdateObjects(SceneResourcePtr scene,const std::string& basename, const std::vector<BinPickingTaskResource::DetectedObject>&detectedobjects, const std::string& unit)
 {
     std::vector<SceneResource::InstObjectPtr> oldinstobjects;
     std::vector<SceneResource::InstObjectPtr> oldtargets;
@@ -699,5 +756,54 @@ void utils::UpdateObjects(SceneResourcePtr scene,const std::string& basename, co
         scene->CreateInstObject(name_create_pool[i], ("mujin:/"+basename+".mujin.dae"), transform_create_pool[i].quaternion, transform_create_pool[i].translate);
     }
 }
+
+void BinPickingTaskResource::_HeartbeatMonitorThread(const double reinitializetimeout, const double commandtimeout)
+{
+    boost::shared_ptr<zmq::context_t> context;
+    boost::shared_ptr<zmq::socket_t>  socket;
+    context.reset(new zmq::context_t(1));
+    socket.reset(new zmq::socket_t((*context.get()),ZMQ_SUB));
+    std::stringstream ss;
+    ss << _heartbeatPort;
+    socket->connect (("tcp://"+ _mujinControllerIp+":"+ss.str()).c_str());
+    socket->setsockopt(ZMQ_SUBSCRIBE, "", 0);
+
+    zmq::pollitem_t pollitem;
+    memset(&pollitem, 0, sizeof(zmq::pollitem_t));
+    pollitem.socket = socket->operator void*();
+    pollitem.events = ZMQ_POLLIN;
+
+    while (!_bShutdownHeartbeatMonitor) {
+        unsigned long long lastheartbeat = GetMilliTime();
+        //unsigned long long initialtimestamp = GetMilliTime();
+        std::string command = "InitializeZMQ";
+        //ss.str(""); ss.clear();
+        //ss << initialtimestamp;
+        //std::string heartbeatMessage = ss.str();
+        ss.str(""); ss.clear();
+        ss << "{";
+        ss << GetJsonString("command",command) << ", ";
+        ss << GetJsonString("port", _zmqPort) << ", ";
+        ss << GetJsonString("heartbeatPort", _heartbeatPort); // << ", ";
+        //ss << GetJsonString("heartbeatMessage", initialtimestamp);
+        ss << "}";
+        BinPickingTaskResource::ExecuteCommand(ss.str(), commandtimeout, false); // need to execute this command via http
+        while ((GetMilliTime() - lastheartbeat) / 1000.0f < reinitializetimeout) {
+            zmq::poll(&pollitem,1, 50); // wait 50 ms for message
+            if (pollitem.revents & ZMQ_POLLIN) {
+                zmq::message_t reply;
+                socket->recv(&reply);
+                std::string replystring((char *) reply.data (), (size_t) reply.size());
+                //std::cout << "got heartbeat: " << replystring << std::endl;
+                //if ((size_t)reply.size() == 1 && ((char *)reply.data())[0]==255) {
+                if (replystring == "255") {
+                    lastheartbeat = GetMilliTime();
+                }
+            }
+        }
+        std::cout << (double)((GetMilliTime() - lastheartbeat)/1000.0f) << " seconds passed since last heartbeat signal, re-intializing ZMQ server." << std::endl;
+    }
+}
+
 
 } // end namespace mujinclient

@@ -19,6 +19,7 @@
 
 #include <mujincontrollerclient/mujincontrollerclient.h>
 #include <boost/property_tree/ptree.hpp>
+#include <boost/thread.hpp>
 
 namespace mujinclient {
 
@@ -38,21 +39,21 @@ public:
     BinPickingTaskResource(ControllerClientPtr controller, const std::string& pk);
     virtual ~BinPickingTaskResource();
 
-    struct DetectedObject
+    struct MUJINCLIENT_API DetectedObject
     {
         std::string name;
         Transform transform;
         Real confidence;
     };
 
-    struct PointCloudObstacle
+    struct MUJINCLIENT_API PointCloudObstacle
     {
         std::string name;
         std::vector<Real> points; ///< consecutive x,y,z values in meter
         Real pointsize; ///< size of each point in meter
     };
 
-    struct SensorOcclusionCheck
+    struct MUJINCLIENT_API SensorOcclusionCheck
     {
         std::string bodyname; ///< name of body whose visibility is to be checked
         std::string sensorname; ///< name of sensor
@@ -60,7 +61,7 @@ public:
         unsigned long long endtime; ///< milisecond
     };
 
-    struct ResultBase
+    struct MUJINCLIENT_API ResultBase
     {
         virtual ~ResultBase();
 
@@ -70,7 +71,7 @@ public:
     };
     typedef boost::shared_ptr<ResultBase> ResultBasePtr;
 
-    struct ResultGetJointValues : public ResultBase
+    struct MUJINCLIENT_API ResultGetJointValues : public ResultBase
     {
         virtual ~ResultGetJointValues();
         void Parse(const boost::property_tree::ptree& pt);
@@ -80,7 +81,7 @@ public:
         std::map<std::string, Transform> tools;
     };
 
-    struct ResultMoveJoints : public ResultBase
+    struct MUJINCLIENT_API ResultMoveJoints : public ResultBase
     {
         virtual ~ResultMoveJoints();
         void Parse(const boost::property_tree::ptree& pt);
@@ -90,21 +91,21 @@ public:
         //Real elapsedtime;
     };
 
-    struct ResultTransform : public ResultBase
+    struct MUJINCLIENT_API ResultTransform : public ResultBase
     {
         virtual ~ResultTransform();
         void Parse(const boost::property_tree::ptree& pt);
         Transform transform;
     };
 
-    struct ResultIsRobotOccludingBody : public ResultBase
+    struct MUJINCLIENT_API ResultIsRobotOccludingBody : public ResultBase
     {
         virtual ~ResultIsRobotOccludingBody();
         void Parse(const boost::property_tree::ptree& pt);
         bool result;
     };
 
-    struct ResultGetPickedPositions : public ResultBase
+    struct MUJINCLIENT_API ResultGetPickedPositions : public ResultBase
     {
         virtual ~ResultGetPickedPositions();
         void Parse(const boost::property_tree::ptree& pt);
@@ -112,7 +113,16 @@ public:
         std::vector<unsigned long long> timestamps; // in millisecond
     };
 
-    virtual void Initialize(const std::string& robotcontrollerip, const int robotcontrollerport, const int zmqport);
+    /** \brief Initializes binpicking task.
+        \param robotControllerIp ip of the robot contorller
+        \param robotControllerPort port of the robot controller
+        \param zmqPort port of the binpicking zmq server
+        \param heartbeatPort port of the binpicking zmq server's heartbeat publisher
+        \param initializezmq whether to call InitializeZMQ() in this call
+        \param reinitializetimeout seconds until calling InitailizeZMQ() if heartbeat has not been received. If 0, do not reinitialize
+        \param timeout seconds until this command times out
+     */
+    virtual void Initialize(const std::string& robotControllerIp, const int robotControllerPort, const int zmqPort, const int heartbeatPort, const bool initializezmq=false, const double reinitializetimeout=10, const double timeout=0);
 
     virtual boost::property_tree::ptree ExecuteCommand(const std::string& command, const double timeout /* second */=0.0, const bool getresult=true);
 
@@ -128,16 +138,21 @@ public:
         \param transformsworld list of transforms in world frame
         \param confidence list of confidence of each detection
         \param unit unit of detectedobject info
+        \param timeout seconds until this command times out
      */
     virtual void UpdateObjects(const std::string& basename, const std::vector<Transform>& transformsworld, const std::vector<Real>& confidence, const std::string& unit="m", const double timeout /* second */=0);
 
-    /// \brief Establish ZMQ connection to the task
-    virtual void InitializeZMQ(const double timeout /* second */=0);
+    /** \brief Establish ZMQ connection to the task
+        \param reinitializetimeout seconds to wait before re-initializing the ZMQ server after the heartbeat signal is lost
+        \param timeout seconds until this command times out
+     */
+    virtual void InitializeZMQ(const double reinitializetimeout = 5,const double timeout /* second */=0);
 
     /** \brief Add a point cloud collision obstacle with name to the environment.
         \param vpoints list of x,y,z coordinates in meter
         \param pointsize size of each point in meter
         \param name name of the obstacle
+        \param timeout seconds until this command times out
      */
     virtual void AddPointCloudObstacle(const std::vector<Real>& vpoints, const Real pointsize, const std::string& name, const double timeout /* second */=0);
 
@@ -145,6 +160,7 @@ public:
         \param pointslist vector of x,y,z coordinates vector in meter
         \param pointsize size of each point in meter
         \param names vector of names for each point cloud
+        \param timeout seconds until this command times out
      */
     virtual void VisualizePointCloud(const std::vector<std::vector<Real> >& pointslist, const Real pointsize, const std::vector<std::string>& names, const double timeout /* second */=0);
 
@@ -152,22 +168,19 @@ public:
      */
     virtual void ClearVisualization(const double timeout /* second */=0);
 
-    /// \brief Check if robot is occluding the object in the view of sensor between starttime and endtime
+    /** \brief Check if robot is occluding the object in the view of sensor between starttime and endtime
+        \param timeout seconds until this command times out
+     */
     virtual void IsRobotOccludingBody(const std::string& bodyname, const std::string& sensorname, const unsigned long long starttime, const unsigned long long endtime, bool& result, const double timeout /* second */=0);
 
-    /// \brief Get the picked positions with corresponding timestamps
+    /** \brief Get the picked positions with corresponding timestamps
+        \param timeout seconds until this command times out
+     */
     virtual void GetPickedPositions(ResultGetPickedPositions& result, const std::string& unit="m", const double timeout /* second */=0);
 
     virtual PlanningResultResourcePtr GetResult();
 
 protected:
-    std::string _robotcontrollerip;
-    int _robotcontrollerport;
-    int _zmqport;
-    bool _bIsInitialized;
-
-private:
-
     std::stringstream _ss;
     std::string GetJsonString(const std::string& string);
     std::string GetJsonString(const std::vector<Real>& vec);
@@ -176,14 +189,36 @@ private:
     std::string GetJsonString(const DetectedObject& obj);
     std::string GetJsonString(const PointCloudObstacle& obj);
     std::string GetJsonString(const SensorOcclusionCheck& check);
+
+    std::string GetJsonString(const std::string& key, const std::string& value);
+    std::string GetJsonString(const std::string& key, const int value);
+    std::string GetJsonString(const std::string& key, const unsigned long long value);
+    std::string GetJsonString(const std::string& key, const Real value);
+
+    /** \brief Monitors heartbeat signals from a running binpicking ZMQ server, and reinitializes the ZMQ server when heartbeat is lost.
+        \param reinitializetimeout seconds to wait before re-initializing the ZMQ server after the heartbeat signal is lost
+        \param execfn function to use to execute the InitializeZMQ command
+     */
+    void _HeartbeatMonitorThread(const double reinitializetimeout, const double commandtimeout);
+
+    std::string _robotControllerIp;
+    int _robotControllerPort;
+    std::string _mujinControllerIp;
+    int _zmqPort;
+    int _heartbeatPort;
+    bool _bIsInitialized;
+
+    boost::shared_ptr<boost::thread> _pHeartbeatMonitorThread;
+    bool _bShutdownHeartbeatMonitor;
 };
 
-
 namespace utils {
+
 void GetSensorData(ControllerClientPtr controller, SceneResourcePtr scene, const std::string& sensorname, RobotResource::AttachedSensorResource::SensorData& result);
 void DeleteObject(SceneResourcePtr scene, const std::string& name);
 void UpdateObjects(SceneResourcePtr scene, const std::string& basename, const std::vector<BinPickingTaskResource::DetectedObject>& detectedobjects, const std::string& unit="m");
-};
+
+}; // namespace utils
 
 } // namespace mujinclient
 

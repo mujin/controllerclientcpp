@@ -67,53 +67,21 @@ BinPickingTaskZmqResource::~BinPickingTaskZmqResource()
 {
 }
 
-void BinPickingTaskZmqResource::Initialize(const std::string& robotcontrollerip, const int robotcontrollerport, const int zmqport)
+void BinPickingTaskZmqResource::Initialize(const std::string& robotControllerIp, const int robotControllerPort, const int zmqPort, const int heartbeatPort, const bool initializezmq, const double reinitializetimeout, const double timeout)
 {
-    _robotcontrollerip = robotcontrollerip;
-    _robotcontrollerport = robotcontrollerport;
-    _zmqport = zmqport;
+    _robotControllerIp = robotControllerIp;
+    _robotControllerPort = robotControllerPort;
+    _zmqPort = zmqPort;
+    _heartbeatPort = heartbeatPort;
     _bIsInitialized = true;
-    GETCONTROLLERIMPL();
 
-    // get hostname from uri
-    const std::string baseuri = controller->GetBaseUri();
-    std::string::const_iterator uriend = baseuri.end();
-    // query start
-    std::string::const_iterator querystart = std::find(baseuri.begin(), uriend, '?');
-    // protocol
-    std::string protocol;
-    std::string::const_iterator protocolstart = baseuri.begin();
-    std::string::const_iterator protocolend = std::find(protocolstart, uriend, ':');
-    if (protocolend != uriend) {
-        std::string p = &*(protocolend);
-        if ((p.length() > 3) & (p.substr(0,3) == "://")) {
-            protocol = std::string(protocolstart, protocolend);
-            protocolend +=3;
-        } else {
-            protocolend = baseuri.begin();
-        }
-    } else {
-        protocolend = baseuri.begin();
+    if (initializezmq) {
+        InitializeZMQ(reinitializetimeout, timeout);
     }
-    // host
-    std::string::const_iterator hoststart = protocolend;
-    std::string::const_iterator pathstart = std::find(hoststart, uriend, '/');
-    std::string::const_iterator hostend = std::find(protocolend, (pathstart != uriend) ? pathstart : querystart, ':');
-    std::string host = std::string(hoststart, hostend);
 
-    // TODO: improve this so that calling command execution via BinPickingTaskResource from BinPickingTaskZmqResource becomes clean and easy
-    std::string command = "InitializeZMQ";
-    std::stringstream _ss;
-    _ss.str(""); _ss.clear();
-    _ss << "{";
-    _ss << "\"command\": " << "\"" << command << "\", ";
-    _ss << "\"port\": " << _zmqport;
-    _ss << "}";
-    BinPickingTaskResource::ExecuteCommand(_ss.str(), 0, false);
-
-    _zmqmujincontrollerclient.reset(new ZmqMujinControllerClient(host, _zmqport));
+    _zmqmujincontrollerclient.reset(new ZmqMujinControllerClient(_mujinControllerIp, _zmqPort));
     if (!_zmqmujincontrollerclient) {
-        throw MujinException(boost::str(boost::format("Failed to establish ZMQ connection to mujin controller at %s:%d")%controller->GetBaseUri()%_zmqport), MEC_Failed);
+        throw MujinException(boost::str(boost::format("Failed to establish ZMQ connection to mujin controller at %s:%d")%_mujinControllerIp%_zmqPort), MEC_Failed);
     }
 }
 
@@ -134,5 +102,14 @@ boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std:
     }
     return pt;
 }
+
+void BinPickingTaskZmqResource::InitializeZMQ(const double reinitializetimeout, const double timeout)
+{
+    if (!_pHeartbeatMonitorThread) {
+        _bShutdownHeartbeatMonitor = false;
+        _pHeartbeatMonitorThread.reset(new boost::thread(boost::bind(&BinPickingTaskZmqResource::_HeartbeatMonitorThread, this, reinitializetimeout, timeout)));
+    }
+}
+
 
 } // end namespace mujinclient
