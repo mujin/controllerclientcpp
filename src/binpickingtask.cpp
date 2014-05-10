@@ -326,7 +326,7 @@ void BinPickingTaskResource::ResultTransform::Parse(const boost::property_tree::
         if( value->first == "translation") {
             unsigned int i = 0;
             if ( value->second.size() != 3 ) {
-                throw MujinException("the length of translation is invalid", MEC_Timeout);
+                throw MujinException("the length of translation is invalid", MEC_Failed);
             }
             FOREACH(v, value->second) {
                 transform.translate[i++] = boost::lexical_cast<Real>(v->second.data());
@@ -335,7 +335,7 @@ void BinPickingTaskResource::ResultTransform::Parse(const boost::property_tree::
         else if (value->first == "quaternion") {
             unsigned int i = 0;
             if ( value->second.size() != 4 ) {
-                throw MujinException("the length of quaternion is invalid", MEC_Timeout);
+                throw MujinException("the length of quaternion is invalid", MEC_Failed);
             }
             FOREACH(v, value->second) {
                 transform.quaternion[i++] = boost::lexical_cast<Real>(v->second.data());
@@ -391,6 +391,33 @@ void BinPickingTaskResource::ResultGetPickedPositions::Parse(const boost::proper
     }
 }
 
+BinPickingTaskResource::ResultAABB::~ResultAABB()
+{
+}
+
+void BinPickingTaskResource::ResultAABB::Parse(const boost::property_tree::ptree& pt)
+{
+    _pt = pt;
+    FOREACH(value, _pt) {
+        if (value->first == "pos") {
+            if (value->second.size() != 3) {
+                throw MujinException("The length of pos is invalid.", MEC_Failed);
+            }
+            FOREACH(v,value->second) {
+                pos.push_back(boost::lexical_cast<Real>(v->second.data()));
+            }
+        }
+        if (value->first == "extents") {
+            if (value->second.size() != 3) {
+                throw MujinException("The length of extents is invalid.", MEC_Failed);
+            }
+            FOREACH(v,value->second) {
+                extents.push_back(boost::lexical_cast<Real>(v->second.data()));
+            }
+        }
+    }
+}
+
 void BinPickingTaskResource::GetJointValues(ResultGetJointValues& result, const double timeout)
 {
     std::string command = "GetJointValues";
@@ -426,53 +453,69 @@ void BinPickingTaskResource::MoveJoints(const std::vector<Real>& goaljoints, con
     result.Parse(ExecuteCommand(_ss.str(), timeout));
 }
 
-void BinPickingTaskResource::GetTransform(const std::string& targetname, Transform& transform, const double timeout)
+void BinPickingTaskResource::GetTransform(const std::string& targetname, Transform& transform, const std::string& unit, const double timeout)
 {
     std::string command = "GetTransform";
     _ss.str(""); _ss.clear();
     _ss << "{";
     _ss << GetJsonString("command", command) << ", ";
-    _ss << GetJsonString("targetname", targetname);
+    _ss << GetJsonString("targetname", targetname) << ", ";
+    _ss << GetJsonString("unit", unit);
     _ss << "}";
     ResultTransform result;
     result.Parse(ExecuteCommand(_ss.str(), timeout));
     transform = result.transform;
 }
 
-void BinPickingTaskResource::SetTransform(const std::string& targetname, const Transform &transform, const double timeout)
+void BinPickingTaskResource::SetTransform(const std::string& targetname, const Transform &transform, const std::string& unit, const double timeout)
 {
     std::string command = "SetTransform";
     _ss.str(""); _ss.clear();
     _ss << "{";
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("targetname", targetname) << ", ";
-    _ss << GetJsonString(transform);
+    _ss << GetJsonString(transform) << ", ";
+    _ss << GetJsonString("unit", unit);
     _ss << "}";
     ExecuteCommand(_ss.str(), timeout, false);
 }
 
-void BinPickingTaskResource::GetManipTransformToRobot(Transform& transform, const double timeout)
+void BinPickingTaskResource::GetManipTransformToRobot(Transform& transform, const std::string& unit, const double timeout)
 {
     std::string command = "GetManipTransformToRobot";
     _ss.str(""); _ss.clear();
     _ss << "{";
-    _ss << GetJsonString("command", command);
+    _ss << GetJsonString("command", command) << ", ";
+    _ss << GetJsonString("unit", unit);
     _ss << "}";
     ResultTransform result;
     result.Parse(ExecuteCommand(_ss.str(), timeout));
     transform = result.transform;
 }
 
-void BinPickingTaskResource::GetManipTransform(Transform& transform, const double timeout)
+void BinPickingTaskResource::GetManipTransform(Transform& transform, const std::string& unit, const double timeout)
 {
     std::string command = "GetManipTransform";
     _ss.str(""); _ss.clear();
     _ss << "{";
-    _ss << GetJsonString("command", command);
+    _ss << GetJsonString("command", command) << ", ";
+    _ss << GetJsonString("unit", unit);
     _ss << "}";
     ResultTransform result;
     result.Parse(ExecuteCommand(_ss.str(), timeout));
     transform = result.transform;
+}
+
+void BinPickingTaskResource::GetAABB(const std::string& targetname, ResultAABB& result, const std::string& unit, const double timeout)
+{
+    std::string command = "GetAABB";
+    _ss.str(""); _ss.clear();
+    _ss << "{";
+    _ss << GetJsonString("command", command) << ", ";
+    _ss << GetJsonString("targetname", targetname) << ", ";
+    _ss << GetJsonString("unit", unit);
+    _ss << "}";
+    result.Parse(ExecuteCommand(_ss.str(), timeout));
 }
 
 void BinPickingTaskResource::InitializeZMQ(const double reinitializetimeout, const double timeout)
@@ -793,7 +836,7 @@ void BinPickingTaskResource::_HeartbeatMonitorThread(const double reinitializeti
         //ss << GetJsonString("heartbeatMessage", initialtimestamp);
         ss << "}";
         BinPickingTaskResource::ExecuteCommand(ss.str(), commandtimeout, false); // need to execute this command via http
-        while ((GetMilliTime() - lastheartbeat) / 1000.0f < reinitializetimeout) {
+        while (!_bShutdownHeartbeatMonitor && (GetMilliTime() - lastheartbeat) / 1000.0f < reinitializetimeout) {
             zmq::poll(&pollitem,1, 50); // wait 50 ms for message
             if (pollitem.revents & ZMQ_POLLIN) {
                 zmq::message_t reply;
@@ -806,7 +849,9 @@ void BinPickingTaskResource::_HeartbeatMonitorThread(const double reinitializeti
                 }
             }
         }
-        std::cout << (double)((GetMilliTime() - lastheartbeat)/1000.0f) << " seconds passed since last heartbeat signal, re-intializing ZMQ server." << std::endl;
+        if (!_bShutdownHeartbeatMonitor) {
+            std::cout << (double)((GetMilliTime() - lastheartbeat)/1000.0f) << " seconds passed since last heartbeat signal, re-intializing ZMQ server." << std::endl;
+        }
     }
 }
 

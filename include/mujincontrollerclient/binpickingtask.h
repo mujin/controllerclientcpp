@@ -113,6 +113,14 @@ public:
         std::vector<unsigned long long> timestamps; // in millisecond
     };
 
+    struct MUJINCLIENT_API ResultAABB : public ResultBase
+    {
+        virtual ~ResultAABB();
+        void Parse(const boost::property_tree::ptree& pt);
+        std::vector<Real> pos;
+        std::vector<Real> extents;
+    };
+
     /** \brief Initializes binpicking task.
         \param robotControllerIp ip of the robot contorller
         \param robotControllerPort port of the robot controller
@@ -128,10 +136,12 @@ public:
 
     virtual void GetJointValues(ResultGetJointValues& result, const double timeout /* second */=0);
     virtual void MoveJoints(const std::vector<Real>& jointvalues, const std::vector<int>& jointindices, const Real envclearance, const Real speed /* 0.1-1 */, ResultMoveJoints& result, const double timeout /* second */=0);
-    virtual void GetTransform(const std::string& targetname, Transform& result, const double timeout /* second */=0);
-    virtual void SetTransform(const std::string& targetname, const Transform& transform, const double timeout /* second */=0);
-    virtual void GetManipTransformToRobot(Transform& result, const double timeout /* second */=0);
-    virtual void GetManipTransform(Transform& result, const double timeout /* second */=0);
+    virtual void GetTransform(const std::string& targetname, Transform& result, const std::string& unit="mm", const double timeout /* second */=0);
+    virtual void SetTransform(const std::string& targetname, const Transform& transform, const std::string& unit="mm", const double timeout /* second */=0);
+    virtual void GetManipTransformToRobot(Transform& result, const std::string& unit="mm", const double timeout /* second */=0);
+    virtual void GetManipTransform(Transform& result, const std::string& unit="mm", const double timeout /* second */=0);
+
+    virtual void GetAABB(const std::string& targetname, ResultAABB& result, const std::string& unit="mm", const double timeout=0);
 
     /** \brief Update objects in the scene
         \param basename base name of the object. e.g. objects will have name basename_0, basename_1, etc
