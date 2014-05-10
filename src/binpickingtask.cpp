@@ -649,7 +649,7 @@ boost::property_tree::ptree BinPickingTaskResource::ExecuteCommand(const std::st
     }
 }
 
-void utils::GetSensorData(ControllerClientPtr controller, SceneResourcePtr scene, const std::string& sensorname, RobotResource::AttachedSensorResource::SensorData& result)
+void utils::GetAttachedSensors(ControllerClientPtr controller, SceneResourcePtr scene, const std::string& sensorname, std::vector<RobotResource::AttachedSensorResourcePtr>& attachedsensors)
 {
     SceneResource::InstObjectPtr sensorinstobject;
     if (!scene->FindInstObject(sensorname, sensorinstobject)) {
@@ -657,12 +657,17 @@ void utils::GetSensorData(ControllerClientPtr controller, SceneResourcePtr scene
     }
 
     RobotResourcePtr sensorrobot;
-    std::vector<RobotResource::AttachedSensorResourcePtr> attachedsensors;
     sensorrobot.reset(new RobotResource(controller,sensorinstobject->object_pk));
     sensorrobot->GetAttachedSensors(attachedsensors);
     if (attachedsensors.size() == 0) {
         throw MujinException("Could not find attached sensor. Is calibration done for sensor: " + sensorname + "?", MEC_Failed);
     }
+}
+
+void utils::GetSensorData(ControllerClientPtr controller, SceneResourcePtr scene, const std::string& sensorname, RobotResource::AttachedSensorResource::SensorData& result)
+{
+    std::vector<RobotResource::AttachedSensorResourcePtr> attachedsensors;
+    utils::GetAttachedSensors(controller, scene, sensorname, attachedsensors);
     result = attachedsensors[0]->sensordata;
 }
 

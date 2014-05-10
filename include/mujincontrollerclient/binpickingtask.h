@@ -214,6 +214,7 @@ protected:
 
 namespace utils {
 
+void GetAttachedSensors(ControllerClientPtr controller, SceneResourcePtr scene, const std::string& sensorname, std::vector<RobotResource::AttachedSensorResourcePtr>& result);
 void GetSensorData(ControllerClientPtr controller, SceneResourcePtr scene, const std::string& sensorname, RobotResource::AttachedSensorResource::SensorData& result);
 void DeleteObject(SceneResourcePtr scene, const std::string& name);
 void UpdateObjects(SceneResourcePtr scene, const std::string& basename, const std::vector<BinPickingTaskResource::DetectedObject>& detectedobjects, const std::string& unit="m");
