@@ -16,6 +16,7 @@
 #include "controllerclientimpl.h"
 #include "binpickingtaskzmq.h"
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/property_tree/exceptions.hpp>
 #include "mujinzmq.h"
 
 #include <algorithm> // find
@@ -96,7 +97,12 @@ boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std:
     if (getresult) {
         std::stringstream result_ss;
         result_ss << _zmqmujincontrollerclient->Call(command);
-        boost::property_tree::read_json(result_ss, pt);
+        //std::cout << result_ss.str() << std::endl;
+        try {
+            boost::property_tree::read_json(result_ss, pt);
+        } catch (boost::property_tree::ptree_error& e) {
+            throw MujinException(boost::str(boost::format("Failed to parse json which is received from mujin controller: \nreceived message: %s \nerror message: %s")%result_ss.str()%e.what()), MEC_Failed);
+        }
     } else {
         _zmqmujincontrollerclient->Call(command);
     }
