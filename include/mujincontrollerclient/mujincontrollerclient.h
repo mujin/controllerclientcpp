@@ -821,7 +821,7 @@ public:
         - itlplanning
      */
 
-    virtual TaskResourcePtr GetOrCreateTaskFromName_UTF8(const std::string& taskname, const std::string& tasktype, int options=0);
+    virtual TaskResourcePtr GetOrCreateTaskFromName_UTF8(const std::string& taskname, const std::string tasktype, int options=0);
 
     virtual TaskResourcePtr GetOrCreateTaskFromName_UTF8(const std::string& taskname, int options=0)
     {
@@ -847,8 +847,8 @@ public:
     virtual TaskResourcePtr GetTaskFromName_UTF16(const std::wstring& taskname, int options=0);
 
 
-    virtual BinPickingTaskResourcePtr GetOrCreateBinPickingTaskFromName_UTF8(const std::string& taskname, int options=0);
-    virtual BinPickingTaskResourcePtr GetOrCreateBinPickingTaskFromName_UTF16(const std::wstring& taskname, int options=0);
+    virtual BinPickingTaskResourcePtr GetOrCreateBinPickingTaskFromName_UTF8(const std::string& taskname, const std::string& tasktype="binpicking", int options=0);
+    virtual BinPickingTaskResourcePtr GetOrCreateBinPickingTaskFromName_UTF16(const std::wstring& taskname, const std::string& tasktype="binpicking", int options=0);
 
 
     /// \brief gets a list of all the scene primary keys currently available to the user

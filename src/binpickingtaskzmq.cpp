@@ -151,7 +151,9 @@ void BinPickingTaskZmqResource::InitializeZMQ(const double reinitializetimeout, 
 {
     if (!_pHeartbeatMonitorThread) {
         _bShutdownHeartbeatMonitor = false;
-        _pHeartbeatMonitorThread.reset(new boost::thread(boost::bind(&BinPickingTaskZmqResource::_HeartbeatMonitorThread, this, reinitializetimeout, timeout)));
+        if (reinitializetimeout > 0 ) {
+            _pHeartbeatMonitorThread.reset(new boost::thread(boost::bind(&BinPickingTaskZmqResource::_HeartbeatMonitorThread, this, reinitializetimeout, timeout)));
+        }
     }
 }
 
