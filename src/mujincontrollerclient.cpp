@@ -308,7 +308,7 @@ SceneResource::SceneResource(ControllerClientPtr controller, const std::string& 
     //this->Get("");
 }
 
-TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& taskname, const std::string& tasktype, int options)
+TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& taskname, const std::string tasktype, int options)
 {
     GETCONTROLLERIMPL();
     boost::shared_ptr<char> pescapedtaskname = controller->GetURLEscapedString(taskname);
@@ -409,14 +409,14 @@ TaskResourcePtr SceneResource::GetTaskFromName_UTF16(const std::wstring& tasknam
     return GetTaskFromName_UTF8(taskname_utf8, options);
 }
 
-BinPickingTaskResourcePtr SceneResource::GetOrCreateBinPickingTaskFromName_UTF8(const std::string& taskname, int options)
+  BinPickingTaskResourcePtr SceneResource::GetOrCreateBinPickingTaskFromName_UTF8(const std::string& taskname, const std::string& tasktype, int options)
 {
-    return boost::dynamic_pointer_cast<BinPickingTaskResource>(GetOrCreateTaskFromName_UTF8(taskname, "binpicking", options));
+    return boost::dynamic_pointer_cast<BinPickingTaskResource>(GetOrCreateTaskFromName_UTF8(taskname, tasktype, options));
 }
 
-BinPickingTaskResourcePtr SceneResource::GetOrCreateBinPickingTaskFromName_UTF16(const std::wstring& taskname, int options)
+BinPickingTaskResourcePtr SceneResource::GetOrCreateBinPickingTaskFromName_UTF16(const std::wstring& taskname, const std::string& tasktype, int options)
 {
-    return boost::dynamic_pointer_cast<BinPickingTaskResource>(GetOrCreateTaskFromName_UTF16(taskname, "binpicking", options));
+    return boost::dynamic_pointer_cast<BinPickingTaskResource>(GetOrCreateTaskFromName_UTF16(taskname, tasktype, options));
 }
 
 void SceneResource::GetTaskPrimaryKeys(std::vector<std::string>& taskkeys)

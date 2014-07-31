@@ -154,9 +154,10 @@ public:
 
     /** \brief Establish ZMQ connection to the task
         \param reinitializetimeout seconds to wait before re-initializing the ZMQ server after the heartbeat signal is lost
+               if reinitializetimeout is 0, then this does not invoke heartbeat monitoring thread
         \param timeout seconds until this command times out
      */
-    virtual void InitializeZMQ(const double reinitializetimeout = 5,const double timeout /* second */=0);
+    virtual void InitializeZMQ(const double reinitializetimeout = 0,const double timeout /* second */=0);
 
     /** \brief Add a point cloud collision obstacle with name to the environment.
         \param vpoints list of x,y,z coordinates in meter

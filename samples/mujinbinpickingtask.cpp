@@ -56,7 +56,7 @@ int main(int argc, char ** argv)
     ControllerClientPtr controller = CreateControllerClient(controllerUsernamePass, url_ss.str());
     std::cout << "connected to mujin controller at " << url_ss.str() << std::endl;
     SceneResourcePtr scene(new SceneResource(controller,binpickingTaskScenePk));
-    BinPickingTaskResourcePtr binpickingzmq = scene->GetOrCreateBinPickingTaskFromName_UTF8("binpickingtask1", TRO_EnableZMQ);
+    BinPickingTaskResourcePtr binpickingzmq = scene->GetOrCreateBinPickingTaskFromName_UTF8("binpickingtask1", "binpicking", TRO_EnableZMQ);
     binpickingzmq->Initialize(robotControllerIp, robotControllerPort, binpickingTaskZmqPort, binpickingTaskHeartbeatPort);
 
     Transform t;
