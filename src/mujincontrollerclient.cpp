@@ -337,10 +337,10 @@ TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& t
     if( tasktype == "binpicking" ) {
         BinPickingTaskResourcePtr task;
         if( options & 1 ) {
-            task.reset(new BinPickingTaskZmqResource(GetController(), pk));
+            task.reset(new BinPickingTaskZmqResource(GetController(), pk, GetPrimaryKey()));
         }
         else {
-            task.reset(new BinPickingTaskResource(GetController(), pk));
+            task.reset(new BinPickingTaskResource(GetController(), pk, GetPrimaryKey()));
         }
         return task;
     }

@@ -168,7 +168,7 @@ protected:
         _socket.reset(new zmq::socket_t ((*(zmq::context_t*)_context.get()), ZMQ_REQ));
         std::ostringstream port_stream;
         port_stream << _port;
-        //std::cout << "connecting to socket at " << _host << ":" << _port << std::endl;
+        std::cout << "connecting to socket at " << _host << ":" << _port << std::endl;
         _socket->connect (("tcp://" + _host + ":" + port_stream.str()).c_str());
     }
 

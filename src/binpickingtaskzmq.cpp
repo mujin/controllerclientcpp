@@ -49,18 +49,20 @@ std::string ZmqMujinControllerClient::Call(const std::string& msg)
     //send
     //std::cout << "serialization done" << std::endl;
     zmq::message_t request (msg.size());
+    // std::cout << msg.size() << std::endl;
+    // std::cout << msg << std::endl;
     memcpy ((void *) request.data (), msg.c_str(), msg.size());
     _socket->send(request);
 
     //recv
     zmq::message_t reply;
 
-    _socket->recv (&reply);
+    _socket->recv(&reply);
     std::string replystring((char *) reply.data (), (size_t) reply.size());
     return replystring;
 }
 
-BinPickingTaskZmqResource::BinPickingTaskZmqResource(ControllerClientPtr c, const std::string& pk) : BinPickingTaskResource::BinPickingTaskResource(c, pk)
+BinPickingTaskZmqResource::BinPickingTaskZmqResource(ControllerClientPtr c, const std::string& pk, const std::string& scenepk) : BinPickingTaskResource::BinPickingTaskResource(c, pk, scenepk)
 {
 }
 
@@ -77,7 +79,7 @@ void BinPickingTaskZmqResource::Initialize(const std::string& robotControllerIp,
     _bIsInitialized = true;
 
     if (initializezmq) {
-        InitializeZMQ(reinitializetimeout, timeout);
+        //InitializeZMQ(reinitializetimeout, timeout);
     }
 
     _zmqmujincontrollerclient.reset(new ZmqMujinControllerClient(_mujinControllerIp, _zmqPort));
