@@ -36,7 +36,7 @@ public:
 class MUJINCLIENT_API BinPickingTaskResource : public TaskResource
 {
 public:
-    BinPickingTaskResource(ControllerClientPtr controller, const std::string& pk);
+    BinPickingTaskResource(ControllerClientPtr controller, const std::string& pk, const std::string& scenepk);
     virtual ~BinPickingTaskResource();
 
     struct MUJINCLIENT_API DetectedObject
@@ -220,6 +220,8 @@ protected:
 
     boost::shared_ptr<boost::thread> _pHeartbeatMonitorThread;
     bool _bShutdownHeartbeatMonitor;
+
+    std::string _sceneparams_json; ///\ parameters of the scene to run tasks on the backend zmq slave
 };
 
 namespace utils {
