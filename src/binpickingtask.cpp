@@ -427,6 +427,27 @@ void BinPickingTaskResource::ResultAABB::Parse(const boost::property_tree::ptree
     }
 }
 
+BinPickingTaskResource::ResultHeartBeat::~ResultHeartBeat()
+{
+}
+
+void BinPickingTaskResource::ResultHeartBeat::Parse(const boost::property_tree::ptree& pt)
+{
+    _pt = pt;
+    FOREACH(value, _pt) {
+        if (value->first == "status") {
+            status = std::string(value->second.data());
+        }
+        if (value->first == "msg") {
+            msg = std::string(value->second.data());
+        }
+        if (value->first == "timestamp") {
+            timestamp = boost::lexical_cast<Real>(value->second.data());
+        }
+    }
+}
+
+
 void BinPickingTaskResource::GetJointValues(ResultGetJointValues& result, const double timeout)
 {
     std::string command = "GetJointValues";
@@ -866,10 +887,10 @@ void BinPickingTaskResource::_HeartbeatMonitorThread(const double reinitializeti
         ss.str(""); ss.clear();
         ss << "{";
         ss << GetJsonString("command",command) << ", ";
-        ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
+        // ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
         ss << "\"sceneparams\": " << _sceneparams_json << ", ";
         ss << GetJsonString("port", _zmqPort) << ", ";
-        ss << GetJsonString("heartbeatPort", _heartbeatPort); // << ", ";
+        ss << GetJsonString("heartbeatPort", _heartbeatPort);
         //ss << GetJsonString("heartbeatMessage", initialtimestamp);
         ss << "}";
         BinPickingTaskResource::ExecuteCommand(ss.str(), commandtimeout, false); // need to execute this command via http

@@ -79,7 +79,7 @@ void BinPickingTaskZmqResource::Initialize(const std::string& robotControllerIp,
     _bIsInitialized = true;
 
     if (initializezmq) {
-        //InitializeZMQ(reinitializetimeout, timeout);
+        InitializeZMQ(reinitializetimeout, timeout);
     }
 
     _zmqmujincontrollerclient.reset(new ZmqMujinControllerClient(_mujinControllerIp, _zmqPort));
@@ -118,6 +118,58 @@ void BinPickingTaskZmqResource::InitializeZMQ(const double reinitializetimeout, 
         _pHeartbeatMonitorThread.reset(new boost::thread(boost::bind(&BinPickingTaskZmqResource::_HeartbeatMonitorThread, this, reinitializetimeout, timeout)));
     }
 }
+
+void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializetimeout, const double commandtimeout)
+{
+    boost::shared_ptr<zmq::context_t> context;
+    boost::shared_ptr<zmq::socket_t>  socket;
+    context.reset(new zmq::context_t(1));
+    socket.reset(new zmq::socket_t((*context.get()),ZMQ_SUB));
+    std::stringstream ss;
+    ss << _heartbeatPort;
+    socket->connect (("tcp://"+ _mujinControllerIp+":"+ss.str()).c_str());
+    socket->setsockopt(ZMQ_SUBSCRIBE, "", 0);
+
+    zmq::pollitem_t pollitem;
+    memset(&pollitem, 0, sizeof(zmq::pollitem_t));
+    pollitem.socket = socket->operator void*();
+    pollitem.events = ZMQ_POLLIN;
+    boost::property_tree::ptree pt;
+    BinPickingTaskResource::ResultHeartBeat heartbeat;
+
+    while (!_bShutdownHeartbeatMonitor) {
+        unsigned long long lastheartbeat = GetMilliTime();
+        while (!_bShutdownHeartbeatMonitor && (GetMilliTime() - lastheartbeat) / 1000.0f < reinitializetimeout) {
+            zmq::poll(&pollitem,1, 50); // wait 50 ms for message
+            if (pollitem.revents & ZMQ_POLLIN) {
+                zmq::message_t reply;
+                socket->recv(&reply);
+                std::string replystring((char *) reply.data (), (size_t) reply.size());
+                std::stringstream replystring_ss;
+                replystring_ss << replystring;
+                // std::cout << "got heartbeat: " << replystring << std::endl;
+                try{
+                    boost::property_tree::read_json(replystring_ss, pt);
+                }
+                catch (std::exception const &e) {
+                    std::cout << "HeartBeat reply is not JSON" << std::endl;
+                    std::cerr << e.what() << std::endl;
+                    continue;
+                }
+                heartbeat.Parse(pt);
+                // std::cout << heartbeat.status << " " << heartbeat.timestamp << " " << heartbeat.msg << std::endl;
+                //if ((size_t)reply.size() == 1 && ((char *)reply.data())[0]==255) {
+                if (heartbeat.status != std::string("lost") && heartbeat.status.size() > 1) {
+                    lastheartbeat = GetMilliTime();
+                }
+            }
+        }
+        if (!_bShutdownHeartbeatMonitor) {
+            std::cout << (double)((GetMilliTime() - lastheartbeat)/1000.0f) << " seconds passed since last heartbeat signal, re-intializing ZMQ server." << std::endl;
+        }
+    }
+}
+
 
 
 } // end namespace mujinclient

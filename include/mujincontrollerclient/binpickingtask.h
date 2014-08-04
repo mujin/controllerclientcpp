@@ -121,6 +121,15 @@ public:
         std::vector<Real> extents;
     };
 
+    struct MUJINCLIENT_API ResultHeartBeat : public ResultBase
+    {
+        virtual ~ResultHeartBeat();
+        void Parse(const boost::property_tree::ptree& pt);
+        std::string status;
+        Real timestamp;
+        std::string msg;
+    };
+
     /** \brief Initializes binpicking task.
         \param robotControllerIp ip of the robot contorller
         \param robotControllerPort port of the robot controller
@@ -190,6 +199,12 @@ public:
 
     virtual PlanningResultResourcePtr GetResult();
 
+    /** \brief Monitors heartbeat signals from a running binpicking ZMQ server, and reinitializes the ZMQ server when heartbeat is lost.
+        \param reinitializetimeout seconds to wait before re-initializing the ZMQ server after the heartbeat signal is lost
+        \param execfn function to use to execute the InitializeZMQ command
+     */
+    virtual void _HeartbeatMonitorThread(const double reinitializetimeout, const double commandtimeout);
+
 protected:
     std::stringstream _ss;
     std::string GetJsonString(const std::string& string);
@@ -204,12 +219,6 @@ protected:
     std::string GetJsonString(const std::string& key, const int value);
     std::string GetJsonString(const std::string& key, const unsigned long long value);
     std::string GetJsonString(const std::string& key, const Real value);
-
-    /** \brief Monitors heartbeat signals from a running binpicking ZMQ server, and reinitializes the ZMQ server when heartbeat is lost.
-        \param reinitializetimeout seconds to wait before re-initializing the ZMQ server after the heartbeat signal is lost
-        \param execfn function to use to execute the InitializeZMQ command
-     */
-    void _HeartbeatMonitorThread(const double reinitializetimeout, const double commandtimeout);
 
     std::string _robotControllerIp;
     int _robotControllerPort;

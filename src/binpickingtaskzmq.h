@@ -39,7 +39,7 @@ public:
     void Initialize(const std::string& robotControllerIp, const int robotControllerPort, const int zmqPort, const int heartbeatPort, const bool initializezmq=false, const double reinitializetimeout=10, const double timeout=0);
 
     void InitializeZMQ(const double reinitializetimeout = 5, const double timeout /* second */=0);
-
+    void _HeartbeatMonitorThread(const double reinitializetimeout, const double commandtimeout);
 private:
     ZmqMujinControllerClientPtr _zmqmujincontrollerclient;
 };
