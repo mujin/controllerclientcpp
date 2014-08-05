@@ -80,7 +80,8 @@ enum MujinErrorCode {
     MEC_UserAuthentication=14, ///< authentication failed
     MEC_AlreadyExists=15, ///< the resource already exists and overwriting terminated
     MEC_BinPickingError=16, ///< BinPicking failed
-    MEC_HandEyeCalibrationError=17 ///< HandEye Calibration failed
+    MEC_HandEyeCalibrationError=17, ///< HandEye Calibration failed
+    MEC_ZMQNoResponse=20 ///< No response from the zmq server, using REQ-REP
 };
 
 enum TaskResourceOptions
@@ -104,6 +105,7 @@ inline const char* GetErrorCodeString(MujinErrorCode error)
     case MEC_AlreadyExists: return "AlreadyExists";
     case MEC_BinPickingError: return "BinPickingError";
     case MEC_HandEyeCalibrationError: return "HandEyeCalibrationError";
+    case MEC_ZMQNoResponse: return "NoResponse";
     }
     // should throw an exception?
     return "";

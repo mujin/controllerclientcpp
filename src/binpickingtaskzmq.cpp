@@ -57,9 +57,21 @@ std::string ZmqMujinControllerClient::Call(const std::string& msg)
     //recv
     zmq::message_t reply;
 
-    _socket->recv(&reply);
-    std::string replystring((char *) reply.data (), (size_t) reply.size());
-    return replystring;
+    zmq::pollitem_t pollitem;
+    memset(&pollitem, 0, sizeof(zmq::pollitem_t));
+    pollitem.socket = _socket->operator void*();
+    pollitem.events = ZMQ_POLLIN;
+    zmq::poll(&pollitem,1, 5000); // wait 5000 ms for message
+    if (pollitem.revents & ZMQ_POLLIN) {
+        _socket->recv(&reply);
+        std::string replystring((char *) reply.data (), (size_t) reply.size());
+        return replystring;
+    }
+    else{
+        // std::cerr << "No response received for msg = " << msg << std::endl;
+        throw MujinException(boost::str(boost::format("Failed to receive response from the mujincontroller slave")), MEC_ZMQNoResponse);
+    }
+    return std::string("{}");
 }
 
 BinPickingTaskZmqResource::BinPickingTaskZmqResource(ControllerClientPtr c, const std::string& pk, const std::string& scenepk) : BinPickingTaskResource::BinPickingTaskResource(c, pk, scenepk)
@@ -98,7 +110,19 @@ boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std:
     boost::property_tree::ptree pt;
     if (getresult) {
         std::stringstream result_ss;
-        result_ss << _zmqmujincontrollerclient->Call(command);
+        try{
+            result_ss << _zmqmujincontrollerclient->Call(command);
+        }
+        catch (const MujinException& e) {
+            std::cerr << e.what() << std::endl;
+            if (e.GetCode() == MEC_ZMQNoResponse) {
+                std::cout << "reinitializing zmq connection with the slave"<< std::endl;
+                _zmqmujincontrollerclient.reset(new ZmqMujinControllerClient(_mujinControllerIp, _zmqPort));
+                if (!_zmqmujincontrollerclient) {
+                    throw MujinException(boost::str(boost::format("Failed to establish ZMQ connection to mujin controller at %s:%d")%_mujinControllerIp%_zmqPort), MEC_Failed);
+                }
+            }
+        }
         //std::cout << result_ss.str() << std::endl;
         try {
             boost::property_tree::read_json(result_ss, pt);
@@ -106,7 +130,19 @@ boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std:
             throw MujinException(boost::str(boost::format("Failed to parse json which is received from mujin controller: \nreceived message: %s \nerror message: %s")%result_ss.str()%e.what()), MEC_Failed);
         }
     } else {
-        _zmqmujincontrollerclient->Call(command);
+        try{
+            _zmqmujincontrollerclient->Call(command);
+        }
+        catch (const MujinException& e) {
+            std::cerr << e.what() << std::endl;
+            if (e.GetCode() == MEC_ZMQNoResponse) {
+                std::cout << "reinitializing zmq connection with the slave"<< std::endl;
+                _zmqmujincontrollerclient.reset(new ZmqMujinControllerClient(_mujinControllerIp, _zmqPort));
+                if (!_zmqmujincontrollerclient) {
+                    throw MujinException(boost::str(boost::format("Failed to establish ZMQ connection to mujin controller at %s:%d")%_mujinControllerIp%_zmqPort), MEC_Failed);
+                }
+            }
+        }
     }
     return pt;
 }
