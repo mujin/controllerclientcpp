@@ -41,6 +41,7 @@ public:
     void InitializeZMQ(const double reinitializetimeout = 5, const double timeout /* second */=0);
     void _HeartbeatMonitorThread(const double reinitializetimeout, const double commandtimeout);
 private:
+    boost::mutex _zmqmutex;
     ZmqMujinControllerClientPtr _zmqmujincontrollerclient;
 };
 

@@ -44,6 +44,7 @@ ZmqMujinControllerClient::~ZmqMujinControllerClient()
     // _DestroySocket() is called in  ~ZmqClient()
 }
 
+// mutex _zmqmutex should be locked
 std::string ZmqMujinControllerClient::Call(const std::string& msg)
 {
     //send
@@ -110,16 +111,20 @@ boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std:
     boost::property_tree::ptree pt;
     if (getresult) {
         std::stringstream result_ss;
-        try{
-            result_ss << _zmqmujincontrollerclient->Call(command);
-        }
-        catch (const MujinException& e) {
-            std::cerr << e.what() << std::endl;
-            if (e.GetCode() == MEC_ZMQNoResponse) {
-                std::cout << "reinitializing zmq connection with the slave"<< std::endl;
-                _zmqmujincontrollerclient.reset(new ZmqMujinControllerClient(_mujinControllerIp, _zmqPort));
-                if (!_zmqmujincontrollerclient) {
-                    throw MujinException(boost::str(boost::format("Failed to establish ZMQ connection to mujin controller at %s:%d")%_mujinControllerIp%_zmqPort), MEC_Failed);
+
+        {
+            boost::mutex::scoped_lock lock(_zmqmutex);
+            try{
+                result_ss << _zmqmujincontrollerclient->Call(command);
+            }
+            catch (const MujinException& e) {
+                std::cerr << e.what() << std::endl;
+                if (e.GetCode() == MEC_ZMQNoResponse) {
+                    std::cout << "reinitializing zmq connection with the slave"<< std::endl;
+                    _zmqmujincontrollerclient.reset(new ZmqMujinControllerClient(_mujinControllerIp, _zmqPort));
+                    if (!_zmqmujincontrollerclient) {
+                        throw MujinException(boost::str(boost::format("Failed to establish ZMQ connection to mujin controller at %s:%d")%_mujinControllerIp%_zmqPort), MEC_Failed);
+                    }
                 }
             }
         }
@@ -130,6 +135,7 @@ boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std:
             throw MujinException(boost::str(boost::format("Failed to parse json which is received from mujin controller: \nreceived message: %s \nerror message: %s")%result_ss.str()%e.what()), MEC_Failed);
         }
     } else {
+        boost::mutex::scoped_lock lock(_zmqmutex);
         try{
             _zmqmujincontrollerclient->Call(command);
         }
