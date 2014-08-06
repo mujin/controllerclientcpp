@@ -821,7 +821,7 @@ public:
         - itlplanning
      */
 
-    virtual TaskResourcePtr GetOrCreateTaskFromName_UTF8(const std::string& taskname, const std::string tasktype, int options=0);
+    virtual TaskResourcePtr GetOrCreateTaskFromName_UTF8(const std::string& taskname, const std::string& tasktype, int options=0);
 
     virtual TaskResourcePtr GetOrCreateTaskFromName_UTF8(const std::string& taskname, int options=0)
     {

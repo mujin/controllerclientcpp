@@ -308,7 +308,7 @@ SceneResource::SceneResource(ControllerClientPtr controller, const std::string& 
     //this->Get("");
 }
 
-TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& taskname, const std::string tasktype, int options)
+TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& taskname, const std::string& tasktype, int options)
 {
     GETCONTROLLERIMPL();
     boost::shared_ptr<char> pescapedtaskname = controller->GetURLEscapedString(taskname);
@@ -347,10 +347,10 @@ TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& t
     else if( tasktype == "cablepicking" ) { // TODO create CablePickingTaskResource OR generic RealTimeTaskResource
         BinPickingTaskResourcePtr task;
         if( options & 1 ) {
-            task.reset(new BinPickingTaskZmqResource(GetController(), pk));
+            task.reset(new BinPickingTaskZmqResource(GetController(), pk, GetPrimaryKey()));
         }
         else {
-            task.reset(new BinPickingTaskResource(GetController(), pk));
+            task.reset(new BinPickingTaskResource(GetController(), pk, GetPrimaryKey()));
         }
         return task;
     }
@@ -419,7 +419,7 @@ TaskResourcePtr SceneResource::GetTaskFromName_UTF16(const std::wstring& tasknam
     return GetTaskFromName_UTF8(taskname_utf8, options);
 }
 
-  BinPickingTaskResourcePtr SceneResource::GetOrCreateBinPickingTaskFromName_UTF8(const std::string& taskname, const std::string& tasktype, int options)
+BinPickingTaskResourcePtr SceneResource::GetOrCreateBinPickingTaskFromName_UTF8(const std::string& taskname, const std::string& tasktype, int options)
 {
     return boost::dynamic_pointer_cast<BinPickingTaskResource>(GetOrCreateTaskFromName_UTF8(taskname, tasktype, options));
 }
