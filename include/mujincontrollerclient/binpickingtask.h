@@ -63,8 +63,6 @@ public:
 
     struct MUJINCLIENT_API ResultBase
     {
-        virtual ~ResultBase();
-
         boost::property_tree::ptree _pt; ///< property tree of result, if user ever wants it for logging purposes
 
         virtual void Parse(const boost::property_tree::ptree& pt) = 0;
@@ -107,7 +105,6 @@ public:
 
     struct MUJINCLIENT_API ResultGetPickedPositions : public ResultBase
     {
-        virtual ~ResultGetPickedPositions();
         void Parse(const boost::property_tree::ptree& pt);
         std::vector<Transform> transforms;
         std::vector<unsigned long long> timestamps; // in millisecond
@@ -115,7 +112,6 @@ public:
 
     struct MUJINCLIENT_API ResultAABB : public ResultBase
     {
-        virtual ~ResultAABB();
         void Parse(const boost::property_tree::ptree& pt);
         std::vector<Real> pos;
         std::vector<Real> extents;

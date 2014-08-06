@@ -344,6 +344,16 @@ TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& t
         }
         return task;
     }
+    else if( tasktype == "cablepicking" ) { // TODO create CablePickingTaskResource OR generic RealTimeTaskResource
+        BinPickingTaskResourcePtr task;
+        if( options & 1 ) {
+            task.reset(new BinPickingTaskZmqResource(GetController(), pk));
+        }
+        else {
+            task.reset(new BinPickingTaskResource(GetController(), pk));
+        }
+        return task;
+    }
     else {
         TaskResourcePtr task(new TaskResource(GetController(), pk));
         return task;

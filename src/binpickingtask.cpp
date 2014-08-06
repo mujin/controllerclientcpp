@@ -237,10 +237,6 @@ std::string BinPickingTaskResource::GetJsonString(const std::string& key, const 
     return ss.str();
 }
 
-BinPickingTaskResource::ResultBase::~ResultBase()
-{
-}
-
 BinPickingTaskResource::ResultGetJointValues::~ResultGetJointValues()
 {
 }
@@ -369,10 +365,6 @@ void BinPickingTaskResource::ResultIsRobotOccludingBody::Parse(const boost::prop
     throw MujinException("Output does not have \"occluded\" attribute!", MEC_Failed);
 }
 
-BinPickingTaskResource::ResultGetPickedPositions::~ResultGetPickedPositions()
-{
-}
-
 void BinPickingTaskResource::ResultGetPickedPositions::Parse(const boost::property_tree::ptree& pt)
 {
     _pt = pt.get_child("output");
@@ -398,10 +390,6 @@ void BinPickingTaskResource::ResultGetPickedPositions::Parse(const boost::proper
             }
         }
     }
-}
-
-BinPickingTaskResource::ResultAABB::~ResultAABB()
-{
 }
 
 void BinPickingTaskResource::ResultAABB::Parse(const boost::property_tree::ptree& pt)
