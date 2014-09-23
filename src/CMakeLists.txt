@@ -13,6 +13,7 @@
 # limitations under the License.
 include_directories(${MUJINCLIENT_INCLUDE_LOCAL_DIRS} ${CURL_INCLUDE_DIRS} ${libzmq_INCLUDE_DIRS})
 link_directories(${MUJINCLIENT_LINK_DIRS} ${libzmq_LIBRARY_DIRS})
+add_definitions("-DBOOST_SPIRIT_THREADSAFE")
 
 set(SOURCE_FILES handeyecalibrationtask.cpp binpickingtask.cpp common.cpp controllerclientimpl.cpp mujincontrollerclient.cpp ${mujin_header_files} common.h utf8.h binpickingtaskzmq.cpp)
 
