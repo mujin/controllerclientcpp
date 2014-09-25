@@ -381,6 +381,9 @@ public:
     /// Check out http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
     virtual void SetLanguage(const std::string& language) = 0;
 
+    /// \brief returns the username logged into this controller
+    virtual const std::string& GetUserName() const = 0;
+    
     /// \brief If necessary, changes the proxy to communicate to the controller server
     ///
     /// \param serverport Specify proxy server to use. To specify port number in this string, append :[port] to the end of the host name. The proxy string may be prefixed with [protocol]:// since any such prefix will be ignored. The proxy's port number may optionally be specified with the separate option. If not specified, will default to using port 1080 for proxies. Setting to empty string will disable the proxy.

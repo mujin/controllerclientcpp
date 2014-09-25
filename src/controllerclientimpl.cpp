@@ -119,7 +119,7 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
     size_t usernameindex = 0;
     usernameindex = usernamepassword.find_first_of(':');
     BOOST_ASSERT(usernameindex != std::string::npos );
-    std::string username = usernamepassword.substr(0,usernameindex);
+    _username = usernamepassword.substr(0,usernameindex);
     std::string password = usernamepassword.substr(usernameindex+1);
 
     _httpheaders = NULL;
@@ -138,10 +138,10 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
     // hack for now since webdav server and api server could be running on different ports
     if( boost::algorithm::ends_with(_baseuri, ":8000/") || (options&0x80000000) ) {
         // testing on localhost, however the webdav server is running on port 80...
-        _basewebdavuri = str(boost::format("%s/u/%s/")%_baseuri.substr(0,_baseuri.size()-6)%username);
+        _basewebdavuri = str(boost::format("%s/u/%s/")%_baseuri.substr(0,_baseuri.size()-6)%_username);
     }
     else {
-        _basewebdavuri = str(boost::format("%su/%s/")%_baseuri%username);
+        _basewebdavuri = str(boost::format("%su/%s/")%_baseuri%_username);
     }
 
     //CURLcode code = curl_global_init(CURL_GLOBAL_SSL|CURL_GLOBAL_WIN32);
@@ -238,7 +238,7 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
         }
         else if( http_code == 200 ) {
             _csrfmiddlewaretoken = _GetCSRFFromCookies();
-            std::string data = str(boost::format("username=%s&password=%s&this_is_the_login_form=1&next=%%2F&csrfmiddlewaretoken=%s")%username%password%_csrfmiddlewaretoken);
+            std::string data = str(boost::format("username=%s&password=%s&this_is_the_login_form=1&next=%%2F&csrfmiddlewaretoken=%s")%_username%password%_csrfmiddlewaretoken);
             curl_easy_setopt(_curl, CURLOPT_POSTFIELDSIZE, data.size());
             curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, data.c_str());
             curl_easy_setopt(_curl, CURLOPT_REFERER, loginuri.c_str());
@@ -291,6 +291,10 @@ std::string ControllerClientImpl::GetVersion()
     return _profile.get<std::string>("version");
 }
 
+const std::string& ControllerClientImpl::GetUserName() const
+{
+    return _username;
+}
 
 void ControllerClientImpl::SetCharacterEncoding(const std::string& newencoding)
 {
