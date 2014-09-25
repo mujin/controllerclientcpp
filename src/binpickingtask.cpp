@@ -57,11 +57,19 @@ BinPickingTaskResource::BinPickingTaskResource(ControllerClientPtr pcontroller, 
     std::string::const_iterator hostend = std::find(protocolend, (pathstart != uriend) ? pathstart : querystart, ':');
     _mujinControllerIp = std::string(hoststart, hostend);
 
+    /// HACK until can think of proper way to send sceneparams
     std::stringstream ss;
     ss.str("");
     ss << "{";
     ss << GetJsonString("scenetype", "mujincollada") << ", ";
-    ss << GetJsonString("scenefilename", scenepk);
+    std::string MUJIN_MEDIA_ROOT_DIR = "/var/www/media/u";
+    char* pMUJIN_MEDIA_ROOT_DIR = getenv("MUJIN_MEDIA_ROOT_DIR");
+    if( !!pMUJIN_MEDIA_ROOT_DIR ) {
+        MUJIN_MEDIA_ROOT_DIR = pMUJIN_MEDIA_ROOT_DIR;
+    }
+    std::string scenebasename = pcontroller->GetNameFromPrimaryKey_UTF8(scenepk);
+    std::string scenefilename = MUJIN_MEDIA_ROOT_DIR + std::string("/") + pcontroller->GetUserName() + std::string("/") + scenebasename;
+    ss << GetJsonString("scenefilename", scenefilename);
     // ss << GetJsonString("scale", "[1.0, 1.0,1.0]");
     ss << "}";
     _sceneparams_json = ss.str();
