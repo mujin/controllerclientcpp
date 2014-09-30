@@ -568,7 +568,7 @@ void BinPickingTaskResource::InitializeZMQ(const double reinitializetimeout, con
     }
 }
 
-void BinPickingTaskResource::UpdateObjects(const std::string& basename, const std::vector<Transform>&transformsworld, const std::vector<Real>&confidence, const std::string& unit, const double timeout)
+void BinPickingTaskResource::UpdateObjects(const std::string& basename, const std::vector<Transform>&transformsworld, const std::vector<std::string>&confidence, const std::string& unit, const double timeout)
 {
     std::string command = "UpdateObjects";
     std::string targetname = basename;

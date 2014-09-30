@@ -43,7 +43,7 @@ public:
     {
         std::string name;
         Transform transform;
-        Real confidence;
+        std::string confidence;
     };
 
     struct MUJINCLIENT_API PointCloudObstacle
@@ -155,7 +155,7 @@ public:
         \param unit unit of detectedobject info
         \param timeout seconds until this command times out
      */
-    virtual void UpdateObjects(const std::string& basename, const std::vector<Transform>& transformsworld, const std::vector<Real>& confidence, const std::string& unit="m", const double timeout /* second */=0);
+    virtual void UpdateObjects(const std::string& basename, const std::vector<Transform>& transformsworld, const std::vector<std::string>& confidence, const std::string& unit="m", const double timeout /* second */=0);
 
     /** \brief Establish ZMQ connection to the task
         \param reinitializetimeout seconds to wait before re-initializing the ZMQ server after the heartbeat signal is lost
