@@ -172,6 +172,10 @@ public:
      */
     virtual void AddPointCloudObstacle(const std::vector<Real>& vpoints, const Real pointsize, const std::string& name, const double timeout /* second */=0);
 
+
+    virtual void UpdateEnvironmentState(const std::string& baseobjectname, const std::vector<Transform>& objecttransforms, const std::vector<std::string>& objectconfidences, const std::vector<Real>& dynamicobstaclepoints, const Real dynamicpointsize, const std::string& dynamicobstaclename, const std::string& unit="m", const double timeout =0);
+
+
     /** \brief Visualize point cloud on controller
         \param pointslist vector of x,y,z coordinates vector in meter
         \param pointsize size of each point in meter

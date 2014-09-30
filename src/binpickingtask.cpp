@@ -620,6 +620,47 @@ void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<Real>&vpoin
     ExecuteCommand(_ss.str(), timeout, false);
 }
 
+void BinPickingTaskResource::UpdateEnvironmentState(const std::string& basename, const std::vector<Transform>& transformsworld, const std::vector<std::string>& confidences, const std::vector<Real>& vpoints, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit, const double timeout)
+{
+    std::string command = "UpdateEnvironmentState";
+    std::string targetname = basename;
+    _ss.str(""); _ss.clear();
+    _ss << "{";
+    _ss << GetJsonString("command", command) << ", ";
+    _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
+    _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
+    _ss << GetJsonString("objectname", targetname) << ", ";
+    _ss << GetJsonString("object_uri", "mujin:/"+targetname+".mujin.dae") << ", ";
+    std::vector<DetectedObject> detectedobjects;
+    for (unsigned int i=0; i<transformsworld.size(); i++) {
+        DetectedObject detectedobject;
+        std::stringstream name_ss;
+        name_ss << basename << "_" << i;
+        detectedobject.name = name_ss.str();
+        detectedobject.transform = transformsworld[i];
+        detectedobject.confidence = confidences[i];
+        detectedobjects.push_back(detectedobject);
+    }
+
+    _ss << GetJsonString("envstate") << ": [";
+    for (unsigned int i=0; i<detectedobjects.size(); i++) {
+        _ss << GetJsonString(detectedobjects[i]);
+        if (i!=detectedobjects.size()-1) {
+            _ss << ", ";
+        }
+    }
+    _ss << "], ";
+    _ss << GetJsonString("unit", unit) << ", ";
+    PointCloudObstacle pointcloudobstacle;
+    pointcloudobstacle.name = pointcloudobstaclename;
+    pointcloudobstacle.pointsize = pointsize;
+    pointcloudobstacle.points = vpoints;
+    _ss << GetJsonString(pointcloudobstacle);
+    _ss << "}";
+    ExecuteCommand(_ss.str(), timeout, false);
+}
+
+
 void BinPickingTaskResource::VisualizePointCloud(const std::vector<std::vector<Real> >&pointslist, const Real pointsize, const std::vector<std::string>&names, const double timeout)
 {
     std::string command = "VisualizePointCloud";
