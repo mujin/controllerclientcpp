@@ -77,8 +77,8 @@ BinPickingTaskResource::BinPickingTaskResource(ControllerClientPtr pcontroller, 
 
 BinPickingTaskResource::~BinPickingTaskResource()
 {
-    if (!_bShutdownHeartbeatMonitor) {
-        _bShutdownHeartbeatMonitor = true;
+    _bShutdownHeartbeatMonitor = true;
+    if (!!_pHeartbeatMonitorThread) {
         _pHeartbeatMonitorThread->join();
     }
 }
