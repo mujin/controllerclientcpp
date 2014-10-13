@@ -73,7 +73,7 @@ void HandEyeCalibrationResultResource::GetCalibrationPoses(HandEyeCalibrationRes
         else if (value->first == "jointindices") {
             result.jointindices.resize(0);
             FOREACH(v, value->second) {
-                result.jointindices.push_back(boost::lexical_cast<Real>(v->second.data()));
+                result.jointindices.push_back(boost::lexical_cast<int>(v->second.data()));
             }
         }
     }

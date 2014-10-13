@@ -16,7 +16,10 @@
 #include <boost/thread.hpp> // for sleep
 #include <boost/property_tree/ptree.hpp>
 #include <mujincontrollerclient/binpickingtask.h>
+
+#ifdef MUJIN_USEZMQ
 #include "zmq.hpp"
+#endif
 
 namespace mujinclient {
 
@@ -560,12 +563,14 @@ void BinPickingTaskResource::GetAABB(const std::string& targetname, ResultAABB& 
 
 void BinPickingTaskResource::InitializeZMQ(const double reinitializetimeout, const double timeout)
 {
+#ifdef MUJIN_USEZMQ
     if (!_pHeartbeatMonitorThread) {
         _bShutdownHeartbeatMonitor = false;
         if ( reinitializetimeout > 0) {
             _pHeartbeatMonitorThread.reset(new boost::thread(boost::bind(&BinPickingTaskResource::_HeartbeatMonitorThread, this, reinitializetimeout, timeout)));
         }
     }
+#endif
 }
 
 void BinPickingTaskResource::UpdateObjects(const std::string& basename, const std::vector<Transform>&transformsworld, const std::vector<std::string>&confidence, const std::string& unit, const double timeout)
@@ -902,6 +907,7 @@ void utils::UpdateObjects(SceneResourcePtr scene,const std::string& basename, co
 
 void BinPickingTaskResource::_HeartbeatMonitorThread(const double reinitializetimeout, const double commandtimeout)
 {
+#ifdef MUJIN_USEZMQ
     boost::shared_ptr<zmq::context_t> context;
     boost::shared_ptr<zmq::socket_t>  socket;
     context.reset(new zmq::context_t(1));
@@ -950,6 +956,9 @@ void BinPickingTaskResource::_HeartbeatMonitorThread(const double reinitializeti
             std::cout << (double)((GetMilliTime() - lastheartbeat)/1000.0f) << " seconds passed since last heartbeat signal, re-intializing ZMQ server." << std::endl;
         }
     }
+#else
+    std::cerr << "cannot create heartbeat monitor since not compiled with libzmq" << std::endl;
+#endif
 }
 
 

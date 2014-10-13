@@ -729,7 +729,7 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, std::vector<unsig
             }
             catch(const std::exception& ex) {
                 // probably failed parsing JSON
-                error_message = ss.str();
+                error_message = str(boost::format("failed to parse json: %s\nerror is %s")%ss.str()%ex.what());
             }
             throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s: %s", desturi%http_code%error_message, MEC_HTTPServer);
         }

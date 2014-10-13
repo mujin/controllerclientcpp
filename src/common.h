@@ -39,7 +39,27 @@
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
+#undef GetUserName // classes with ControllerClient::GetUserName
+
+#include <boost/typeof/std/string.hpp>
+#include <boost/typeof/std/vector.hpp>
+#include <boost/typeof/std/list.hpp>
+#include <boost/typeof/std/map.hpp>
+#include <boost/typeof/std/set.hpp>
+#include <boost/typeof/std/string.hpp>
+
+#define FOREACH(it, v) for(BOOST_TYPEOF(v) ::iterator it = (v).begin(), __itend__=(v).end(); it != __itend__; ++(it))
+#define FOREACH_NOINC(it, v) for(BOOST_TYPEOF(v) ::iterator it = (v).begin(), __itend__=(v).end(); it != __itend__; )
+
+#define FOREACHC(it, v) for(BOOST_TYPEOF(v) ::const_iterator it = (v).begin(), __itend__=(v).end(); it != __itend__; ++(it))
+#define FOREACHC_NOINC(it, v) for(BOOST_TYPEOF(v) ::const_iterator it = (v).begin(), __itend__=(v).end(); it != __itend__; )
+
 #else
+
+#define FOREACH(it, v) for(typeof((v).begin())it = (v).begin(); it != (v).end(); (it)++)
+#define FOREACH_NOINC(it, v) for(typeof((v).begin())it = (v).begin(); it != (v).end(); )
+
+//#define FORIT(it, v) for(it = (v).begin(); it != (v).end(); (it)++)
 
 #if BOOST_VERSION >= 104400
 // boost filesystem v3 is present after v1.44, so force using it
@@ -53,11 +73,6 @@
 
 #endif // defined(_WIN32) || defined(_WIN64)
 
-#define FOREACH(it, v) for(typeof((v).begin())it = (v).begin(); it != (v).end(); (it)++)
-#define FOREACH_NOINC(it, v) for(typeof((v).begin())it = (v).begin(); it != (v).end(); )
-
-#define FORIT(it, v) for(it = (v).begin(); it != (v).end(); (it)++)
-
 #include "utf8.h"
 
 #include <time.h>
@@ -67,8 +82,6 @@
 #include <sys/time.h>
 #endif
 #else
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
 #include <sys/timeb.h>    // ftime(), struct timeb
 inline void usleep(unsigned long microseconds) {
     Sleep((microseconds+999)/1000);

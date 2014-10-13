@@ -19,7 +19,7 @@
 namespace mujinclient {
 
 /// \brief holds information about the binpicking task parameters
-class HandEyeCalibrationTaskParameters
+class MUJINCLIENT_API HandEyeCalibrationTaskParameters
 {
 public:
     HandEyeCalibrationTaskParameters() {

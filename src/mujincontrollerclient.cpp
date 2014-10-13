@@ -16,6 +16,8 @@
 #include <boost/thread.hpp> // for sleep
 #include <boost/algorithm/string.hpp>
 
+#include <mujincontrollerclient/binpickingtask.h>
+
 #ifdef MUJIN_USEZMQ
 #include "binpickingtaskzmq.h"
 #endif
@@ -354,7 +356,11 @@ TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& t
     else if( tasktype == "cablepicking" ) { // TODO create CablePickingTaskResource OR generic RealTimeTaskResource
         BinPickingTaskResourcePtr task;
         if( options & 1 ) {
+#ifdef MUJIN_USEZMQ
             task.reset(new BinPickingTaskZmqResource(GetController(), pk, GetPrimaryKey()));
+#else
+            throw MujinException("cannot create binpicking zmq task since not compiled with zeromq library", MEC_Failed);
+#endif
         }
         else {
             task.reset(new BinPickingTaskResource(GetController(), pk, GetPrimaryKey()));
