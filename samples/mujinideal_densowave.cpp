@@ -119,7 +119,7 @@ int main(int argc, char ** argv)
         OptimizationResourcePtr optimization = task->GetOrCreateOptimizationFromName_UTF8("myopt0","robotplacement");
 
         RobotPlacementOptimizationParameters optparams;
-        optparams.targetname = ""; // no name means the robot
+        optparams.targetname = "0 instobject "
         optparams.framename = "0 robot"; // use the robot frame
         optparams.unit = "mm";
         optparams.minrange[0] = -100; // -X

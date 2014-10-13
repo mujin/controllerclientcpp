@@ -246,8 +246,8 @@ struct RobotPlacementOptimizationParameters
         stepsize[0] = 100; stepsize[1] = 100; stepsize[2] = 100; stepsize[3] = 90;
         ignorebasecollision = 0;
     }
-    std::string targetname; ///< the name of the target object to optimize for. If blank, will use robot. Has to start with "0 instobject " for environment inst object targets.
-    std::string framename; ///< The name of the frame to define the optimization parameters in. If blank, will use the targetname's coordinate system. Has to start iwth "0 instobject " for environment inst object frames.
+    std::string targetname; ///< the name of the target object to optimize for. Cannot be blank. Has to start with "0 instobject " is targetting an environment instance object. For Example "0 instobject myrobot".
+    std::string framename; ///< The name of the frame to define the optimization parameters in. If blank, will use the targetname's coordinate system. For environment inst object frames, has to be "0 instobject mytargetname" 
     Real maxrange[4]; ///< X, Y, Z, Angle (deg)
     Real minrange[4]; ///< X, Y, Z, Angle (deg)
     Real stepsize[4]; ///< X, Y, Z, Angle (deg)
