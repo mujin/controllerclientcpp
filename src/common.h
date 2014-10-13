@@ -59,6 +59,9 @@
 #define FOREACH(it, v) for(typeof((v).begin())it = (v).begin(); it != (v).end(); (it)++)
 #define FOREACH_NOINC(it, v) for(typeof((v).begin())it = (v).begin(); it != (v).end(); )
 
+#define FOREACHC FOREACH
+#define FOREACHC_NOINC FOREACH_NOINC
+
 //#define FORIT(it, v) for(it = (v).begin(); it != (v).end(); (it)++)
 
 #if BOOST_VERSION >= 104400

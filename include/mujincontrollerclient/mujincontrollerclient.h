@@ -229,20 +229,27 @@ public:
     }
     virtual void SetDefaults() {
         startfromcurrent = 0;
-        returntostart = 1;
+        returnmode = "start";
         vrcruns = 1;
         ignorefigure = 1;
         unit = "mm";
         optimizationvalue = 1;
         program.clear();
     }
+    
     int startfromcurrent; ///< Will start planning from the current robot joint values, otherwise will start at the first waypoint in the program.
-    int returntostart; ///< Plan the return path of the robot to where the entire trajectory started. Makes it possible to loop the robot motion.
+    std::string returnmode; ///< specifies the final movement of the robot. There's 3 different modes:
+                            ///< "" - (empty string) meaning robot doesn't return to anything
+                            ///< "start" - robot returns to wherever it started
+                            ///< "final" - robot returns to the final_envstate
     int vrcruns; ///< Use the Robot Virtual Controller for retiming and extra validation. Makes planning slow, but robot timing because very accurate.
     int ignorefigure; ///< if 1, ignores the figure/structure flags for every goal parameter. These flags fix the configuration of the robot from the multitute of possibilities. If 0, will attempt to use the flags and error if task is not possible with them.
     std::string unit; ///< the unit that information is used in. m, mm, nm, inch, etc
     Real optimizationvalue; ///< value in [0,1]. 0 is no optimization (fast), 1 is full optimization (slow)
     std::string program; ///< itl program
+
+    EnvironmentState initial_envstate; ///< initial environment state to set the ITL task to.
+    EnvironmentState final_envstate;  ///< final environment state that describes where the robot should end at. If returnmode is set to final, then use this state.
 };
 
 /// program is wincaps rc8 pac script
@@ -276,7 +283,7 @@ struct RobotPlacementOptimizationParameters
         ignorebasecollision = 0;
     }
     std::string targetname; ///< the name of the target object to optimize for. Cannot be blank. Has to start with "0 instobject " is targetting an environment instance object. For Example "0 instobject myrobot".
-    std::string framename; ///< The name of the frame to define the optimization parameters in. If blank, will use the targetname's coordinate system. For environment inst object frames, has to be "0 instobject mytargetname" 
+    std::string framename; ///< The name of the frame to define the optimization parameters in. If blank, will use the targetname's coordinate system. For environment inst object frames, has to be "0 instobject mytargetname"
     Real maxrange[4]; ///< X, Y, Z, Angle (deg)
     Real minrange[4]; ///< X, Y, Z, Angle (deg)
     Real stepsize[4]; ///< X, Y, Z, Angle (deg)
@@ -375,7 +382,7 @@ public:
 
     /// \brief returns the username logged into this controller
     virtual const std::string& GetUserName() const = 0;
-    
+
     /// \brief If necessary, changes the proxy to communicate to the controller server
     ///
     /// \param serverport Specify proxy server to use. To specify port number in this string, append :[port] to the end of the host name. The proxy string may be prefixed with [protocol]:// since any such prefix will be ignored. The proxy's port number may optionally be specified with the separate option. If not specified, will default to using port 1080 for proxies. Setting to empty string will disable the proxy.
@@ -1031,6 +1038,8 @@ MUJINCLIENT_API void ComputeMatrixFromTransform(Real matrix[12], const Transform
 MUJINCLIENT_API void ComputeZXYFromMatrix(Real ZXY[3], const Real matrix[12]);
 
 MUJINCLIENT_API void ComputeZXYFromTransform(Real ZXY[3], const Transform &transform);
+
+MUJINCLIENT_API void SerializeEnvironmentStateToJSON(const EnvironmentState& envstate, std::ostream& os);
 
 }
 
