@@ -238,10 +238,13 @@ public:
     }
     
     int startfromcurrent; ///< Will start planning from the current robot joint values, otherwise will start at the first waypoint in the program.
-    std::string returnmode; ///< specifies the final movement of the robot. There's 3 different modes:
-                            ///< "" - (empty string) meaning robot doesn't return to anything
-                            ///< "start" - robot returns to wherever it started
-                            ///< "final" - robot returns to the final_envstate
+
+    /// specifies the final movement of the robot. There's 3 different modes:
+    /// - \b "" - (empty string) meaning robot doesn't return to anything
+    /// - \b "start" - robot returns to wherever it started
+    /// - \b "final" - robot returns to the final_envstate
+    std::string returnmode;
+    
     int vrcruns; ///< Use the Robot Virtual Controller for retiming and extra validation. Makes planning slow, but robot timing because very accurate.
     int ignorefigure; ///< if 1, ignores the figure/structure flags for every goal parameter. These flags fix the configuration of the robot from the multitute of possibilities. If 0, will attempt to use the flags and error if task is not possible with them.
     std::string unit; ///< the unit that information is used in. m, mm, nm, inch, etc
