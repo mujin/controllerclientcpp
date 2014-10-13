@@ -1,0 +1,222 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.8.3"/>
+<title>controllerclientcpp: mujinexecutetask_robodia.cpp</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td style="padding-left: 0.5em;">
+   <div id="projectname">controllerclientcpp
+   &#160;<span id="projectnumber">0.3.0</span>
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 作成： Doxygen 1.8.3 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search",false,'検索');
+</script>
+  <div id="navrow1" class="tabs">
+    <ul class="tablist">
+      <li><a href="index.html"><span>メインページ</span></a></li>
+      <li><a href="pages.html"><span>関連ページ</span></a></li>
+      <li><a href="namespaces.html"><span>ネームスペース</span></a></li>
+      <li><a href="annotated.html"><span>クラス</span></a></li>
+      <li><a href="files.html"><span>ファイル</span></a></li>
+      <li><a href="examples.html"><span>例</span></a></li>
+      <li>
+        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="検索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.png" alt=""/></a>
+          </span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</div><!-- top -->
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全て</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>クラス</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>ネームスペース</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>ファイル</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>関数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>変数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>型定義</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>列挙型</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>列挙型の値</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(9)"><span class="SelectionMark">&#160;</span>マクロ定義</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(10)"><span class="SelectionMark">&#160;</span>ページ</a></div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div class="header">
+  <div class="headertitle">
+<div class="title">mujinexecutetask_robodia.cpp</div>  </div>
+</div><!--header-->
+<div class="contents">
+<p>Shows how to import a scene and query a list of the instance objects inside the scene. Note that querying only works for MUJIN COLLADA scenes.</p>
+<div class="fragment"><div class="line"><span class="comment">// -*- coding: utf-8 -*-</span></div>
+<div class="line"><span class="comment"></span><span class="preprocessor">#include &lt;<a class="code" href="mujincontrollerclient_8h.html" title="Defines the public headers of the MUJIN Controller Client.">mujincontrollerclient/mujincontrollerclient.h</a>&gt;</span></div>
+<div class="line"></div>
+<div class="line"><span class="preprocessor">#include &lt;boost/thread/thread.hpp&gt;</span> <span class="comment">// for sleep</span></div>
+<div class="line"></div>
+<div class="line"><span class="preprocessor">#include &lt;iostream&gt;</span></div>
+<div class="line"></div>
+<div class="line"><span class="keyword">using namespace </span>mujinclient;</div>
+<div class="line"></div>
+<div class="line"><span class="keywordtype">int</span> <a name="a0"></a><a class="code" href="cecget_8cpp.html#a3c04138a5bfe5d72780bb7e82a18e627">main</a>(<span class="keywordtype">int</span> argc, <span class="keywordtype">char</span> ** argv)</div>
+<div class="line">{</div>
+<div class="line">    <span class="keywordflow">if</span>( argc &lt; 2 ) {</div>
+<div class="line">        std::cout &lt;&lt; <span class="stringliteral">&quot;need username:password. Example: mujinclienttest myuser:mypass [url]\n\nurl - [optional] For example https://controller.mujin.co.jp/&quot;</span> &lt;&lt; std::endl;</div>
+<div class="line">        <span class="keywordflow">return</span> 1;</div>
+<div class="line">    }</div>
+<div class="line">    <span class="keywordflow">try</span> {</div>
+<div class="line">        <a class="code" href="namespacemujinclient.html#aa0b8a533fc19b5930eca8bf825f2231d">ControllerClientPtr</a> controller;</div>
+<div class="line">        <span class="keywordflow">if</span>( argc &gt;= 5 ) {</div>
+<div class="line">            controller = <a name="a1"></a><a class="code" href="namespacemujinclient.html#a4154f688f4ec2cd2511ab6830a2777a7" title="MUJINコントローラのクライアントを作成する。この関数はスレッドセーフではない。">CreateControllerClient</a>(argv[1], argv[2], argv[3], argv[4]);</div>
+<div class="line">        }</div>
+<div class="line">        <span class="keywordflow">if</span>( argc == 4 ) {</div>
+<div class="line">            controller = <a class="code" href="namespacemujinclient.html#a4154f688f4ec2cd2511ab6830a2777a7" title="MUJINコントローラのクライアントを作成する。この関数はスレッドセーフではない。">CreateControllerClient</a>(argv[1], argv[2], argv[3]);</div>
+<div class="line">        }</div>
+<div class="line">        <span class="keywordflow">else</span> <span class="keywordflow">if</span>( argc == 3 ) {</div>
+<div class="line">            controller = <a class="code" href="namespacemujinclient.html#a4154f688f4ec2cd2511ab6830a2777a7" title="MUJINコントローラのクライアントを作成する。この関数はスレッドセーフではない。">CreateControllerClient</a>(argv[1], argv[2]);</div>
+<div class="line">        }</div>
+<div class="line">        <span class="keywordflow">else</span> {</div>
+<div class="line">            controller = <a class="code" href="namespacemujinclient.html#a4154f688f4ec2cd2511ab6830a2777a7" title="MUJINコントローラのクライアントを作成する。この関数はスレッドセーフではない。">CreateControllerClient</a>(argv[1]);</div>
+<div class="line">        }</div>
+<div class="line">        std::cout &lt;&lt; <span class="stringliteral">&quot;connected to controller v&quot;</span> &lt;&lt; controller-&gt;GetVersion() &lt;&lt; std::endl;</div>
+<div class="line"></div>
+<div class="line">        controller-&gt;SyncUpload_UTF8(<span class="stringliteral">&quot;../share/mujincontrollerclient/robodia_demo1/robodia_demo1.xml&quot;</span>, <span class="stringliteral">&quot;mujin:/robodia_demo1/&quot;</span>, <span class="stringliteral">&quot;cecrobodiaxml&quot;</span>);</div>
+<div class="line"></div>
+<div class="line">        std::string sceneuri = <span class="stringliteral">&quot;mujin:/robodia_demo1/robodia_demo1.xml&quot;</span>;</div>
+<div class="line">        <a class="code" href="namespacemujinclient.html#a9a7bf2721c91516d69ca08837e26b7b8">SceneResourcePtr</a> scene = controller-&gt;RegisterScene_UTF8(sceneuri, <span class="stringliteral">&quot;cecrobodiaxml&quot;</span>);</div>
+<div class="line"></div>
+<div class="line">        std::vector&lt;SceneResource::InstObjectPtr&gt; instobjects;</div>
+<div class="line">        scene-&gt;GetInstObjects(instobjects);</div>
+<div class="line">        std::cout &lt;&lt; <span class="stringliteral">&quot;scene instance objects: &quot;</span>;</div>
+<div class="line">        <span class="keywordflow">for</span>(<span class="keywordtype">size_t</span> i = 0; i &lt; instobjects.size(); ++i) {</div>
+<div class="line">            std::cout &lt;&lt; instobjects[i]-&gt;name &lt;&lt; <span class="stringliteral">&quot;, &quot;</span>;</div>
+<div class="line">        }</div>
+<div class="line">        std::cout &lt;&lt; std::endl;</div>
+<div class="line"></div>
+<div class="line">        <span class="comment">// execute a task</span></div>
+<div class="line"></div>
+<div class="line">        <a class="code" href="namespacemujinclient.html#a414681608c6d6a6dd069e274641a809e">TaskResourcePtr</a> task = scene-&gt;GetOrCreateTaskFromName_UTF8(<span class="stringliteral">&quot;task0&quot;</span>, <span class="stringliteral">&quot;itlplanning&quot;</span>);</div>
+<div class="line">        <a name="_a2"></a><a class="code" href="classmujinclient_1_1ITLPlanningTaskParameters.html" title="holds information about the itlplanning task parameters">ITLPlanningTaskParameters</a> info;</div>
+<div class="line">        info.<a name="a3"></a><a class="code" href="classmujinclient_1_1ITLPlanningTaskParameters.html#a5956fe320ffb03737884a4d677c59d7c" title="value in [0,1]. 0 is no optimization (fast), 1 is full optimization (slow)">optimizationvalue</a> = 0.2; <span class="comment">// set the optimization value [0,1]</span></div>
+<div class="line">        info.<a name="a4"></a><a class="code" href="classmujinclient_1_1ITLPlanningTaskParameters.html#a9171e3176901001b9a61d8360b73e93f" title="Use the Robot Virtual Controller for retiming and extra validation. Makes planning slow...">vrcruns</a> = 0; <span class="comment">// turn off VRC since this environment does not have VRC files</span></div>
+<div class="line">        info.<a name="a5"></a><a class="code" href="classmujinclient_1_1ITLPlanningTaskParameters.html#abc235d116eee6b79a2f9443227979772" title="itl program">program</a> = <span class="stringliteral">&quot;settool(Tcp_HAND2)\n\</span></div>
+<div class="line"><span class="stringliteral">move(p[3_home])\n\</span></div>
+<div class="line"><span class="stringliteral">move(p[3_home_R])\n\</span></div>
+<div class="line"><span class="stringliteral">move(p[3_s1_R])\n\</span></div>
+<div class="line"><span class="stringliteral">movel(p[3_s2_R])\n\</span></div>
+<div class="line"><span class="stringliteral">movel(p[3_s1_R])\n\</span></div>
+<div class="line"><span class="stringliteral">move(p[3_home_R])\n\</span></div>
+<div class="line"><span class="stringliteral">move(p[3_home_L])\n\</span></div>
+<div class="line"><span class="stringliteral">move(p[3_e1_L])\n\</span></div>
+<div class="line"><span class="stringliteral">movel(p[3_e2_L])\n\</span></div>
+<div class="line"><span class="stringliteral">movel(p[3_e1_L])\n\</span></div>
+<div class="line"><span class="stringliteral">move(p[3_home_L])\n\</span></div>
+<div class="line"><span class="stringliteral">move(p[3_home])\n\</span></div>
+<div class="line"><span class="stringliteral">&quot;</span>;</div>
+<div class="line">        task-&gt;SetTaskParameters(info);</div>
+<div class="line"></div>
+<div class="line">        <span class="comment">// if necessary, can cancel all current jobs. this is not required</span></div>
+<div class="line">        controller-&gt;CancelAllJobs();</div>
+<div class="line"></div>
+<div class="line">        task-&gt;Execute();</div>
+<div class="line"></div>
+<div class="line">        std::cout &lt;&lt; <span class="stringliteral">&quot;waiting for task result&quot;</span> &lt;&lt; std::endl;</div>
+<div class="line"></div>
+<div class="line">        <span class="comment">// query the results until they are complete, should take several seconds</span></div>
+<div class="line">        <a class="code" href="namespacemujinclient.html#ac6864839d1aa167298fac02dc4388378">PlanningResultResourcePtr</a> result;</div>
+<div class="line">        <a name="_a6"></a><a class="code" href="structmujinclient_1_1JobStatus.html">JobStatus</a> status;</div>
+<div class="line">        <span class="keywordtype">int</span> iterations = 0, maxiterations = 4000;</div>
+<div class="line">        <span class="keywordflow">while</span> (1) {</div>
+<div class="line">            result = task-&gt;GetResult();</div>
+<div class="line">            <span class="keywordflow">if</span>( !!result ) {</div>
+<div class="line">                <span class="keywordflow">break</span>;</div>
+<div class="line">            }</div>
+<div class="line">            task-&gt;GetRunTimeStatus(status);</div>
+<div class="line">            std::cout &lt;&lt; <span class="stringliteral">&quot;current job status=&quot;</span> &lt;&lt; status.<a name="a7"></a><a class="code" href="structmujinclient_1_1JobStatus.html#afcf4402da19645f6eaf5cca4a5d8bcbb" title="status code on whether the job is active">code</a> &lt;&lt; <span class="stringliteral">&quot;: &quot;</span> &lt;&lt; status.<a name="a8"></a><a class="code" href="structmujinclient_1_1JobStatus.html#a038c1b6fb9981f5ed42f2ffcddff063d" title="current message of the job">message</a> &lt;&lt; std::endl;</div>
+<div class="line">            <span class="keywordflow">if</span>( status.<a class="code" href="structmujinclient_1_1JobStatus.html#afcf4402da19645f6eaf5cca4a5d8bcbb" title="status code on whether the job is active">code</a> == <a name="a9"></a><a class="code" href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829ab86597cf791dda7e9fbaa2d4a294222d" title="The goal was achieved successfully.">JSC_Succeeded</a> ) {</div>
+<div class="line">                <span class="keywordflow">break</span>;</div>
+<div class="line">            }</div>
+<div class="line">            <span class="keywordflow">else</span> <span class="keywordflow">if</span>( status.<a class="code" href="structmujinclient_1_1JobStatus.html#afcf4402da19645f6eaf5cca4a5d8bcbb" title="status code on whether the job is active">code</a> == <a name="a10"></a><a class="code" href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829a5d824abfa8d01f441403c2043fc4d4b3" title="the job is unknown">JSC_Unknown</a> ) {</div>
+<div class="line">                <span class="comment">// wait 30s, then fail</span></div>
+<div class="line">                <span class="keywordflow">if</span>( iterations &gt; 3 ) {</div>
+<div class="line">                    std::cout &lt;&lt; <span class="stringliteral">&quot;task won&#39;t start for some reason&quot;</span> &lt;&lt; std::endl;</div>
+<div class="line">                    <span class="keywordflow">return</span> 1;</div>
+<div class="line">                }</div>
+<div class="line">            }</div>
+<div class="line">            <span class="keywordflow">else</span> <span class="keywordflow">if</span>( status.<a class="code" href="structmujinclient_1_1JobStatus.html#afcf4402da19645f6eaf5cca4a5d8bcbb" title="status code on whether the job is active">code</a> == <a name="a11"></a><a class="code" href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829a60383becc8377fd2dbdb3614c8857e85" title="The goal was aborted during execution due to some failure.">JSC_Aborted</a> || status.<a class="code" href="structmujinclient_1_1JobStatus.html#afcf4402da19645f6eaf5cca4a5d8bcbb" title="status code on whether the job is active">code</a> == <a name="a12"></a><a class="code" href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829aeacb39216adeb97dfebb0861236484cc" title="The goal received a cancel request after it started executing and has since completed its execution...">JSC_Preempted</a> ) {</div>
+<div class="line">                std::cout &lt;&lt; <span class="stringliteral">&quot;task failed execution &quot;</span> &lt;&lt; std::endl;</div>
+<div class="line">                <span class="keywordflow">return</span> 1;</div>
+<div class="line">            }</div>
+<div class="line">            <span class="keywordflow">else</span> <span class="keywordflow">if</span>( status.<a class="code" href="structmujinclient_1_1JobStatus.html#afcf4402da19645f6eaf5cca4a5d8bcbb" title="status code on whether the job is active">code</a> != <a name="a13"></a><a class="code" href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829a550479d7f5cc60cf6e7e0b9ea899001a" title="The goal is currently being processed.">JSC_Active</a> &amp;&amp; status.<a class="code" href="structmujinclient_1_1JobStatus.html#afcf4402da19645f6eaf5cca4a5d8bcbb" title="status code on whether the job is active">code</a> != <a name="a14"></a><a class="code" href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829a535c0f76d3cc8d51fabc8f4bb6318818" title="The goal has yet to be processed.">JSC_Pending</a> &amp;&amp; status.<a class="code" href="structmujinclient_1_1JobStatus.html#afcf4402da19645f6eaf5cca4a5d8bcbb" title="status code on whether the job is active">code</a> != <a class="code" href="namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829ab86597cf791dda7e9fbaa2d4a294222d" title="The goal was achieved successfully.">JSC_Succeeded</a> ) {</div>
+<div class="line">                std::cout &lt;&lt; <span class="stringliteral">&quot;unexpected job status so quitting &quot;</span> &lt;&lt; std::endl;</div>
+<div class="line">                <span class="keywordflow">return</span> 1;</div>
+<div class="line">            }</div>
+<div class="line"></div>
+<div class="line">            boost::this_thread::sleep(boost::posix_time::milliseconds(5000)); <span class="comment">// 5s</span></div>
+<div class="line">            ++iterations;</div>
+<div class="line">            <span class="keywordflow">if</span>( iterations &gt; maxiterations ) {</div>
+<div class="line">                controller-&gt;CancelAllJobs();</div>
+<div class="line">                <span class="keywordflow">throw</span> <a name="_a15"></a><a class="code" href="classmujinclient_1_1MujinException.html" title="Exception that all Mujin internal methods throw; the error codes are held in MujinErrorCode.">MujinException</a>(<span class="stringliteral">&quot;operation timed out, cancelling all jobs and quitting&quot;</span>, <a name="a16"></a><a class="code" href="namespacemujinclient.html#a1660f20af9a56ac9e25f5438db248f44a266d1769428ac7d5f9834ab6abb213f5" title="process timed out">MEC_Timeout</a>);</div>
+<div class="line">            }</div>
+<div class="line">        }</div>
+<div class="line"></div>
+<div class="line">        std::string cecrobodiazipdata;</div>
+<div class="line">        result-&gt;GetAllRawProgramData(cecrobodiazipdata, <span class="stringliteral">&quot;cecrobodiasim&quot;</span>);</div>
+<div class="line">        std::cout &lt;&lt; <span class="stringliteral">&quot;got robodia simulation file, size=&quot;</span> &lt;&lt; cecrobodiazipdata.size() &lt;&lt; <span class="stringliteral">&quot; bytes&quot;</span> &lt;&lt; std::endl;</div>
+<div class="line">        <span class="comment">// get any other programs</span></div>
+<div class="line">        <a name="_a17"></a><a class="code" href="classmujinclient_1_1RobotControllerPrograms.html" title="program data for all robots.">RobotControllerPrograms</a> programs;</div>
+<div class="line">        result-&gt;GetPrograms(programs);</div>
+<div class="line">        std::cout &lt;&lt; <span class="stringliteral">&quot;found &quot;</span> &lt;&lt; programs.<a name="a18"></a><a class="code" href="classmujinclient_1_1RobotControllerPrograms.html#a2b1ab51e0a550773982c52448027bb42" title="the keys are the robot instance primary keys of the scene">programs</a>.size() &lt;&lt; <span class="stringliteral">&quot; programs&quot;</span> &lt;&lt; std::endl;</div>
+<div class="line">        <span class="keywordflow">for</span>(std::map&lt;std::string, RobotProgramData&gt;::iterator it = programs.<a class="code" href="classmujinclient_1_1RobotControllerPrograms.html#a2b1ab51e0a550773982c52448027bb42" title="the keys are the robot instance primary keys of the scene">programs</a>.begin(); it != programs.<a class="code" href="classmujinclient_1_1RobotControllerPrograms.html#a2b1ab51e0a550773982c52448027bb42" title="the keys are the robot instance primary keys of the scene">programs</a>.end(); ++it ) {</div>
+<div class="line">            std::cout &lt;&lt; <span class="stringliteral">&quot;[&quot;</span> &lt;&lt; it-&gt;first &lt;&lt; <span class="stringliteral">&quot;]&quot;</span> &lt;&lt; std::endl &lt;&lt; it-&gt;second.programdata &lt;&lt; std::endl &lt;&lt; std::endl;</div>
+<div class="line">        }</div>
+<div class="line">        std::cout &lt;&lt; <span class="stringliteral">&quot;final task_time is &quot;</span> &lt;&lt; result-&gt;Get(<span class="stringliteral">&quot;task_time&quot;</span>) &lt;&lt; std::endl;</div>
+<div class="line">    }</div>
+<div class="line">    <span class="keywordflow">catch</span>(<span class="keyword">const</span> <a class="code" href="classmujinclient_1_1MujinException.html" title="Exception that all Mujin internal methods throw; the error codes are held in MujinErrorCode.">MujinException</a>&amp; ex) {</div>
+<div class="line">        std::cout &lt;&lt; <span class="stringliteral">&quot;exception thrown: &quot;</span> &lt;&lt; ex.<a name="a19"></a><a class="code" href="classmujinclient_1_1MujinException.html#ad8072416a4bb914157a845b34cde62ff">message</a>() &lt;&lt; std::endl;</div>
+<div class="line">    }</div>
+<div class="line">    <span class="comment">// destroy all mujin controller resources</span></div>
+<div class="line">    <a name="a20"></a><a class="code" href="namespacemujinclient.html#a8ae80bf1bea1a9959dd23a310a3e5d03" title="called at the very end of an application to safely destroy all controller client resources">ControllerClientDestroy</a>();</div>
+<div class="line">}</div>
+</div><!-- fragment --> </div><!-- contents -->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+controllerclientcppに対してWed Nov 13 2013 11:52:44に生成されました。 &#160;<a href="http://www.doxygen.org/index.html">
+<img class="footer" src="doxygen.png" alt="doxygen"/>
+</a> 1.8.3
+</small></address>
+</body>
+</html>

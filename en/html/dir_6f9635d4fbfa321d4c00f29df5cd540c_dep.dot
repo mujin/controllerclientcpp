@@ -1,0 +1,9 @@
+digraph "/home/rdiankov/mujin/controllerclientcpp/samples/" {
+  bgcolor=transparent;
+  compound=true
+  node [ fontsize="10", fontname="Helvetica"];
+  edge [ labelfontsize="10", labelfontname="Helvetica"];
+  dir_6f9635d4fbfa321d4c00f29df5cd540c [shape=box, label="samples", style="filled", fillcolor="#eeeeff", pencolor="black", URL="dir_6f9635d4fbfa321d4c00f29df5cd540c.html"];
+  dir_d44c64559bbebec7f509842c48db8b23 [shape=box label="include" color="red" URL="dir_d44c64559bbebec7f509842c48db8b23.html"];
+  dir_6f9635d4fbfa321d4c00f29df5cd540c->dir_d44c64559bbebec7f509842c48db8b23 [headlabel="16", labeldistance=1.5 headhref="dir_000002_000000.html"];
+}

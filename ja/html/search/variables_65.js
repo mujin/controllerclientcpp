@@ -1,5 +1,7 @@
 var searchData=
 [
   ['elapsedtime',['elapsedtime',['../structmujinclient_1_1JobStatus.html#af4e490958c0bfa777ec544185e425687',1,'mujinclient::JobStatus']]],
-  ['envclearance',['envclearance',['../classmujinclient_1_1BinPickingTaskParameters.html#a3bf82c016c6500cc1ed8bf8d73fa2d67',1,'mujinclient::BinPickingTaskParameters']]]
+  ['endtime',['endtime',['../structmujinclient_1_1BinPickingTaskResource_1_1SensorOcclusionCheck.html#a1c88fd09a0e2e3da48dcb9d519e052fc',1,'mujinclient::BinPickingTaskResource::SensorOcclusionCheck']]],
+  ['extents',['extents',['../structmujinclient_1_1BinPickingTaskResource_1_1ResultAABB.html#a1ba3d3caf9103a8f326dc129c8b5c271',1,'mujinclient::BinPickingTaskResource::ResultAABB']]],
+  ['extra_5fparameters',['extra_parameters',['../classmujinclient_1_1RobotResource_1_1AttachedSensorResource_1_1SensorData.html#a18d785464e77a42ef956c92998c64fdf',1,'mujinclient::RobotResource::AttachedSensorResource::SensorData']]]
 ];

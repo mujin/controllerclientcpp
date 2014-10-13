@@ -1,0 +1,37 @@
+digraph "/home/rdiankov/mujin/controllerclientcpp/include/mujincontrollerclient/mujincontrollerclient.h"
+{
+  bgcolor="transparent";
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node1 [label="/home/rdiankov/mujin\l/controllerclientcpp\l/include/mujincontrollerclient\l/mujincontrollerclient.h",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+  Node1 -> Node2 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 [label="string",height=0.2,width=0.4,color="grey75"];
+  Node1 -> Node3 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 [label="vector",height=0.2,width=0.4,color="grey75"];
+  Node1 -> Node4 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node4 [label="list",height=0.2,width=0.4,color="grey75"];
+  Node1 -> Node5 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node5 [label="map",height=0.2,width=0.4,color="grey75"];
+  Node1 -> Node6 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node6 [label="set",height=0.2,width=0.4,color="grey75"];
+  Node1 -> Node7 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node7 [label="exception",height=0.2,width=0.4,color="grey75"];
+  Node1 -> Node8 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node8 [label="iomanip",height=0.2,width=0.4,color="grey75"];
+  Node1 -> Node9 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node9 [label="fstream",height=0.2,width=0.4,color="grey75"];
+  Node1 -> Node10 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node10 [label="sstream",height=0.2,width=0.4,color="grey75"];
+  Node1 -> Node11 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node11 [label="boost/version.hpp",height=0.2,width=0.4,color="grey75"];
+  Node1 -> Node12 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node12 [label="boost/shared_ptr.hpp",height=0.2,width=0.4,color="grey75"];
+  Node1 -> Node13 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node13 [label="boost/weak_ptr.hpp",height=0.2,width=0.4,color="grey75"];
+  Node1 -> Node14 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node14 [label="boost/format.hpp",height=0.2,width=0.4,color="grey75"];
+  Node1 -> Node15 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node15 [label="boost/array.hpp",height=0.2,width=0.4,color="grey75"];
+  Node1 -> Node16 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node16 [label="mujincontrollerclient\l/config.h",height=0.2,width=0.4,color="grey75"];
+}

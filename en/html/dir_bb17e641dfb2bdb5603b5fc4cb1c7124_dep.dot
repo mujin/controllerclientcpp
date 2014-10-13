@@ -1,0 +1,10 @@
+digraph "/home/rdiankov/mujin/controllerclientcpp/include/mujincontrollerclient/" {
+  bgcolor=transparent;
+  compound=true
+  node [ fontsize="10", fontname="Helvetica"];
+  edge [ labelfontsize="10", labelfontname="Helvetica"];
+  subgraph clusterdir_d44c64559bbebec7f509842c48db8b23 {
+    graph [ bgcolor="#ddddee", pencolor="black", label="include" fontname="Helvetica", fontsize="10", URL="dir_d44c64559bbebec7f509842c48db8b23.html"]
+  dir_bb17e641dfb2bdb5603b5fc4cb1c7124 [shape=box, label="mujincontrollerclient", style="filled", fillcolor="#eeeeff", pencolor="black", URL="dir_bb17e641dfb2bdb5603b5fc4cb1c7124.html"];
+  }
+}

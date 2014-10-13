@@ -1,0 +1,36 @@
+digraph "mujinclient::WebResource"
+{
+  bgcolor="transparent";
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node1 [label="mujinclient::WebResource",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+  Node1 -> Node2 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 [label="mujinclient::ObjectResource",height=0.2,width=0.4,color="black",URL="$classmujinclient_1_1ObjectResource.html"];
+  Node2 -> Node3 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 [label="mujinclient::RobotResource",height=0.2,width=0.4,color="black",URL="$classmujinclient_1_1RobotResource.html"];
+  Node1 -> Node4 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node4 [label="mujinclient::ObjectResource\l::LinkResource",height=0.2,width=0.4,color="black",URL="$classmujinclient_1_1ObjectResource_1_1LinkResource.html"];
+  Node1 -> Node5 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node5 [label="mujinclient::Optimization\lResource",height=0.2,width=0.4,color="black",URL="$classmujinclient_1_1OptimizationResource.html"];
+  Node1 -> Node6 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node6 [label="mujinclient::PlanningResult\lResource",height=0.2,width=0.4,color="black",URL="$classmujinclient_1_1PlanningResultResource.html"];
+  Node6 -> Node7 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node7 [label="mujinclient::BinPickingResult\lResource",height=0.2,width=0.4,color="black",URL="$classmujinclient_1_1BinPickingResultResource.html"];
+  Node6 -> Node8 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node8 [label="mujinclient::HandEyeCalibration\lResultResource",height=0.2,width=0.4,color="black",URL="$classmujinclient_1_1HandEyeCalibrationResultResource.html"];
+  Node1 -> Node9 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node9 [label="mujinclient::RobotResource\l::AttachedSensorResource",height=0.2,width=0.4,color="black",URL="$classmujinclient_1_1RobotResource_1_1AttachedSensorResource.html"];
+  Node1 -> Node10 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node10 [label="mujinclient::RobotResource\l::ToolResource",height=0.2,width=0.4,color="black",URL="$classmujinclient_1_1RobotResource_1_1ToolResource.html"];
+  Node1 -> Node11 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node11 [label="mujinclient::SceneResource",height=0.2,width=0.4,color="black",URL="$classmujinclient_1_1SceneResource.html"];
+  Node1 -> Node12 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node12 [label="mujinclient::SceneResource\l::InstObject",height=0.2,width=0.4,color="black",URL="$classmujinclient_1_1SceneResource_1_1InstObject.html",tooltip="nested resource in the scene describe an object in the scene"];
+  Node1 -> Node13 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node13 [label="mujinclient::TaskResource",height=0.2,width=0.4,color="black",URL="$classmujinclient_1_1TaskResource.html"];
+  Node13 -> Node14 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node14 [label="mujinclient::BinPickingTask\lResource",height=0.2,width=0.4,color="black",URL="$classmujinclient_1_1BinPickingTaskResource.html"];
+  Node13 -> Node15 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node15 [label="mujinclient::HandEyeCalibration\lTaskResource",height=0.2,width=0.4,color="black",URL="$classmujinclient_1_1HandEyeCalibrationTaskResource.html"];
+}
