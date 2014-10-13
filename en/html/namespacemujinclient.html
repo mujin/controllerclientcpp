@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">controllerclientcpp
-   &#160;<span id="projectnumber">0.4.0</span>
+   &#160;<span id="projectnumber">0.5.0</span>
    </div>
   </td>
  </tr>
@@ -236,6 +236,7 @@ Functions</h2></td></tr>
 <tr class="memitem:abce651aa8bbd46444e4b458f4161bf31"><td class="memItemLeft" align="right" valign="top">MUJINCLIENT_API void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacemujinclient.html#abce651aa8bbd46444e4b458f4161bf31">ComputeZXYFromMatrix</a> (<a class="el" href="namespacemujinclient.html#a0ee6d9601b044a916d4deda6b180ecbf">Real</a> ZXY[3], const <a class="el" href="namespacemujinclient.html#a0ee6d9601b044a916d4deda6b180ecbf">Real</a> matrix[12])</td></tr>
 <tr class="memdesc:abce651aa8bbd46444e4b458f4161bf31"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute Euler angles in ZXY order (T = Z*X*Y) from a 3x4 matrix.  <a href="#abce651aa8bbd46444e4b458f4161bf31"></a><br/></td></tr>
 <tr class="memitem:a83fbee6d466d1956403999a8b78a7180"><td class="memItemLeft" align="right" valign="top">MUJINCLIENT_API void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacemujinclient.html#a83fbee6d466d1956403999a8b78a7180">ComputeZXYFromTransform</a> (<a class="el" href="namespacemujinclient.html#a0ee6d9601b044a916d4deda6b180ecbf">Real</a> ZXY[3], const <a class="el" href="structmujinclient_1_1Transform.html">Transform</a> &amp;transform)</td></tr>
+<tr class="memitem:afa478aeeea339cf6d35a7698d0013280"><td class="memItemLeft" align="right" valign="top">MUJINCLIENT_API void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacemujinclient.html#afa478aeeea339cf6d35a7698d0013280">SerializeEnvironmentStateToJSON</a> (const <a class="el" href="namespacemujinclient.html#a974c2ef40a0f222a6559c0798004c021">EnvironmentState</a> &amp;envstate, std::ostream &amp;os)</td></tr>
 </table>
 <h2>Typedef Documentation</h2>
 <a class="anchor" id="aa260fd5276ee04bbc85d1ab71a2e6948"></a>
@@ -897,10 +898,36 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="afa478aeeea339cf6d35a7698d0013280"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">MUJINCLIENT_API void mujinclient::SerializeEnvironmentStateToJSON </td>
+          <td>(</td>
+          <td class="paramtype">const EnvironmentState &amp;&#160;</td>
+          <td class="paramname"><em>envstate</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::ostream &amp;&#160;</td>
+          <td class="paramname"><em>os</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Oct 13 2014 16:29:59 for controllerclientcpp by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Oct 13 2014 17:53:06 for controllerclientcpp by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.1.2
 </small></address>

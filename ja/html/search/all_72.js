@@ -17,7 +17,7 @@ var searchData=
   ['resultisrobotoccludingbody',['ResultIsRobotOccludingBody',['../structmujinclient_1_1BinPickingTaskResource_1_1ResultIsRobotOccludingBody.html',1,'mujinclient::BinPickingTaskResource']]],
   ['resultmovejoints',['ResultMoveJoints',['../structmujinclient_1_1BinPickingTaskResource_1_1ResultMoveJoints.html',1,'mujinclient::BinPickingTaskResource']]],
   ['resulttransform',['ResultTransform',['../structmujinclient_1_1BinPickingTaskResource_1_1ResultTransform.html',1,'mujinclient::BinPickingTaskResource']]],
-  ['returntostart',['returntostart',['../classmujinclient_1_1ITLPlanningTaskParameters.html#a8ed9beee07a74f13b8dda9b24c30a07d',1,'mujinclient::ITLPlanningTaskParameters']]],
+  ['returnmode',['returnmode',['../classmujinclient_1_1ITLPlanningTaskParameters.html#ade9a02e5e778f58744a7dfdcd7114c8d',1,'mujinclient::ITLPlanningTaskParameters']]],
   ['robotcontrollerprograms',['RobotControllerPrograms',['../classmujinclient_1_1RobotControllerPrograms.html',1,'mujinclient']]],
   ['robotplacementoptimizationparameters',['RobotPlacementOptimizationParameters',['../structmujinclient_1_1RobotPlacementOptimizationParameters.html#ae758f7d8e8ad0b7aa43e7918b8700714',1,'mujinclient::RobotPlacementOptimizationParameters']]],
   ['robotplacementoptimizationparameters',['RobotPlacementOptimizationParameters',['../structmujinclient_1_1RobotPlacementOptimizationParameters.html',1,'mujinclient']]],

@@ -6,8 +6,17 @@ digraph "mujinclient::DensoWaveWincapsTaskParameters"
   Node1 [label="mujinclient::DensoWaveWincaps\lTaskParameters",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
   Node2 -> Node1 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
   Node2 [label="mujinclient::ITLPlanning\lTaskParameters",height=0.2,width=0.4,color="black",URL="$classmujinclient_1_1ITLPlanningTaskParameters.html",tooltip="holds information about the itlplanning task parameters"];
-  Node3 -> Node2 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" unit\nprogram" ,fontname="Helvetica"];
-  Node3 [label="std::string",height=0.2,width=0.4,color="grey75",tooltip="STL class."];
-  Node4 -> Node3 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node4 [label="std::basic_string\<\l char \>",height=0.2,width=0.4,color="grey75",tooltip="STL class."];
+  Node3 -> Node2 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" initial_envstate\nfinal_envstate" ,fontname="Helvetica"];
+  Node3 [label="std::map\< std::string,\l InstanceObjectState \>",height=0.2,width=0.4,color="grey75"];
+  Node4 -> Node3 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" keys" ,fontname="Helvetica"];
+  Node4 [label="std::string",height=0.2,width=0.4,color="grey75",tooltip="STL class."];
+  Node5 -> Node4 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node5 [label="std::basic_string\<\l char \>",height=0.2,width=0.4,color="grey75",tooltip="STL class."];
+  Node6 -> Node3 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" elements" ,fontname="Helvetica"];
+  Node6 [label="mujinclient::InstanceObject\lState",height=0.2,width=0.4,color="black",URL="$structmujinclient_1_1InstanceObjectState.html"];
+  Node7 -> Node6 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" transform" ,fontname="Helvetica"];
+  Node7 [label="mujinclient::Transform",height=0.2,width=0.4,color="black",URL="$structmujinclient_1_1Transform.html",tooltip="an affine transform"];
+  Node8 -> Node6 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" dofvalues" ,fontname="Helvetica"];
+  Node8 [label="std::vector\< Real \>",height=0.2,width=0.4,color="grey75"];
+  Node4 -> Node2 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" unit\nreturnmode\nprogram" ,fontname="Helvetica"];
 }
