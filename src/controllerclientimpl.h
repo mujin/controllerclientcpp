@@ -29,6 +29,8 @@ public:
     ControllerClientImpl(const std::string& usernamepassword, const std::string& baseuri, const std::string& proxyserverport, const std::string& proxyuserpw, int options);
     virtual ~ControllerClientImpl();
 
+    virtual const std::string& GetUserName() const;
+    
     virtual std::string GetVersion();
     virtual void SetCharacterEncoding(const std::string& newencoding);
     virtual void SetProxy(const std::string& serverport, const std::string& userpw);
@@ -107,6 +109,11 @@ public:
         return boost::shared_ptr<char>(curl_easy_escape(_curl, name.c_str(), name.size()), curl_free);
     }
 
+    inline std::string GetBaseUri() const
+    {
+        return _baseuri;
+    }
+
 protected:
 
     void GetProfile();
@@ -177,7 +184,7 @@ protected:
     CURL *_curl;
     boost::mutex _mutex;
     std::stringstream _buffer;
-    std::string _baseuri, _baseapiuri, _basewebdavuri, _uri;
+    std::string _baseuri, _baseapiuri, _basewebdavuri, _uri, _username;
 
     curl_slist *_httpheaders;
     std::string _charset, _language;

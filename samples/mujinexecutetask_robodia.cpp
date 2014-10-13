@@ -129,5 +129,5 @@ move(p[3_home])\n\
         std::cout << "exception thrown: " << ex.message() << std::endl;
     }
     // destroy all mujin controller resources
-    ControllerClientDestroy();
+    DestroyControllerClient();
 }

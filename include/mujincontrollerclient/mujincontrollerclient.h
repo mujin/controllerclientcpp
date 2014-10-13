@@ -34,6 +34,12 @@
 #else
 #endif
 
+#if defined(__GNUC__)
+#define MUJINCLIENT_DEPRECATED __attribute__((deprecated))
+#else
+#define MUJINCLIENT_DEPRECATED
+#endif
+
 #include <string>
 #include <vector>
 #include <list>
@@ -68,6 +74,14 @@ enum MujinErrorCode {
     MEC_HTTPServer=13, ///< HTTP server error
     MEC_UserAuthentication=14, ///< authentication failed
     MEC_AlreadyExists=15, ///< the resource already exists and overwriting terminated
+    MEC_BinPickingError=16, ///< BinPicking failed
+    MEC_HandEyeCalibrationError=17, ///< HandEye Calibration failed
+    MEC_ZMQNoResponse=20 ///< No response from the zmq server, using REQ-REP
+};
+
+enum TaskResourceOptions
+{
+    TRO_EnableZMQ=1, ///< create a task resource with zeromq client
 };
 
 inline const char* GetErrorCodeString(MujinErrorCode error)
@@ -84,6 +98,9 @@ inline const char* GetErrorCodeString(MujinErrorCode error)
     case MEC_HTTPServer: return "HTTPServer";
     case MEC_UserAuthentication: return "UserAuthentication";
     case MEC_AlreadyExists: return "AlreadyExists";
+    case MEC_BinPickingError: return "BinPickingError";
+    case MEC_HandEyeCalibrationError: return "HandEyeCalibrationError";
+    case MEC_ZMQNoResponse: return "NoResponse";
     }
     // should throw an exception?
     return "";
@@ -119,21 +136,33 @@ private:
 };
 
 class ControllerClient;
+class ObjectResource;
+class RobotResource;
 class SceneResource;
 class TaskResource;
+class BinPickingTaskResource;
 class OptimizationResource;
 class PlanningResultResource;
+class BinPickingResultResource;
 
 typedef boost::shared_ptr<ControllerClient> ControllerClientPtr;
 typedef boost::weak_ptr<ControllerClient> ControllerClientWeakPtr;
+typedef boost::shared_ptr<ObjectResource> ObjectResourcePtr;
+typedef boost::weak_ptr<ObjectResource> ObjectResourceWeakPtr;
+typedef boost::shared_ptr<RobotResource> RobotResourcePtr;
+typedef boost::weak_ptr<RobotResource> RobotResourceWeakPtr;
 typedef boost::shared_ptr<SceneResource> SceneResourcePtr;
 typedef boost::weak_ptr<SceneResource> SceneResourceWeakPtr;
 typedef boost::shared_ptr<TaskResource> TaskResourcePtr;
 typedef boost::weak_ptr<TaskResource> TaskResourceWeakPtr;
+typedef boost::shared_ptr<BinPickingTaskResource> BinPickingTaskResourcePtr;
+typedef boost::weak_ptr<BinPickingTaskResource> BinPickingTaskResourceWeakPtr;
 typedef boost::shared_ptr<OptimizationResource> OptimizationResourcePtr;
 typedef boost::weak_ptr<OptimizationResource> OptimizationResourceWeakPtr;
 typedef boost::shared_ptr<PlanningResultResource> PlanningResultResourcePtr;
 typedef boost::weak_ptr<PlanningResultResource> PlanningResultResourceWeakPtr;
+typedef boost::shared_ptr<BinPickingResultResource> BinPickingResultResourcePtr;
+typedef boost::weak_ptr<BinPickingResultResource> BinPickingResultResourceWeakPtr;
 typedef double Real;
 
 /// \brief status code for a job
@@ -344,6 +373,9 @@ public:
     /// Check out http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
     virtual void SetLanguage(const std::string& language) = 0;
 
+    /// \brief returns the username logged into this controller
+    virtual const std::string& GetUserName() const = 0;
+    
     /// \brief If necessary, changes the proxy to communicate to the controller server
     ///
     /// \param serverport Specify proxy server to use. To specify port number in this string, append :[port] to the end of the host name. The proxy string may be prefixed with [protocol]:// since any such prefix will be ignored. The proxy's port number may optionally be specified with the separate option. If not specified, will default to using port 1080 for proxies. Setting to empty string will disable the proxy.
@@ -604,9 +636,111 @@ private:
     std::string __resourcename, __pk;
 };
 
+class MUJINCLIENT_API ObjectResource : public WebResource
+{
+public:
+    class MUJINCLIENT_API LinkResource : public WebResource {
+public:
+        LinkResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk);
+        virtual ~LinkResource() {
+        }
+
+        std::vector<std::string> attachmentpks;
+        std::string name;
+        std::string pk;
+        //TODO transforms
+    };
+    typedef boost::shared_ptr<LinkResource> LinkResourcePtr;
+
+    ObjectResource(ControllerClientPtr controller, const std::string& pk);
+    virtual ~ObjectResource() {
+    }
+
+    virtual void GetLinks(std::vector<LinkResourcePtr>& links);
+
+    std::string name;
+    int nundof;
+    std::string datemodified;
+    std::string geometry;
+    bool isrobot;
+    std::string pk;
+    std::string resource_uri;
+    std::string scenepk;
+    std::string unit;
+    std::string uri;
+
+protected:
+    ObjectResource(ControllerClientPtr controller, const std::string& resource, const std::string& pk);
+
+};
+
+class MUJINCLIENT_API RobotResource : public ObjectResource
+{
+public:
+    class MUJINCLIENT_API ToolResource : public WebResource {
+public:
+        ToolResource(ControllerClientPtr controller, const std::string& robotobjectpk, const std::string& pk);
+        virtual ~ToolResource() {
+        }
+
+        std::string name;
+        std::string frame_origin;
+        std::string frame_tip;
+        std::string pk;
+        Real direction[3];
+        Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        Real translate[3];
+    };
+    typedef boost::shared_ptr<ToolResource> ToolResourcePtr;
+
+    class MUJINCLIENT_API AttachedSensorResource : public WebResource {
+public:
+        AttachedSensorResource(ControllerClientPtr controller, const std::string& robotobjectpk, const std::string& pk);
+        virtual ~AttachedSensorResource() {
+        }
+
+        std::string name;
+        std::string frame_origin;
+        std::string pk;
+        //Real direction[3];
+        Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        Real translate[3];
+        std::string sensortype;
+
+        class SensorData {
+public:
+            Real distortion_coeffs[5];
+            std::string distortion_model;
+            Real focal_length;
+            int image_dimensions[3];
+            Real intrinsic[6];
+            Real measurement_time;
+            std::vector<Real> extra_parameters;
+        };
+        SensorData sensordata;
+    };
+
+    typedef boost::shared_ptr<AttachedSensorResource> AttachedSensorResourcePtr;
+
+    RobotResource(ControllerClientPtr controller, const std::string& pk);
+    virtual ~RobotResource() {
+    }
+
+    virtual void GetTools(std::vector<ToolResourcePtr>& tools);
+    virtual void GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& attachedsensors);
+
+    // attachments
+    // ikparams
+    // images
+    int numdof;
+    std::string simulation_file;
+};
+
 class MUJINCLIENT_API SceneResource : public WebResource
 {
 public:
+    class InstObject;
+    typedef boost::shared_ptr<InstObject> InstObjectPtr;
     /// \brief nested resource in the scene describe an object in the scene
     class MUJINCLIENT_API InstObject : public WebResource
     {
@@ -615,7 +749,46 @@ public:
         virtual ~InstObject() {
         }
 
+        class MUJINCLIENT_API Link {
+public:
+            std::string name;
+            Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+            Real translate[3];
+        };
+
+        class MUJINCLIENT_API Tool {
+public:
+            std::string name;
+            Real direction[3];
+            Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+            Real translate[3];
+        };
+
+        class MUJINCLIENT_API Grab {
+public:
+            std::string instobjectpk; ///< grabed_instobject_pk
+            std::string grabbed_linkpk;
+            std::string grabbing_linkpk;
+
+            std::string Serialize() {
+                return boost::str(boost::format("{\"instobjectpk\": \"%s\", \"grabbed_linkpk\": \"%s\",  \"grabbing_linkpk\": \"%s\"}")%instobjectpk%grabbed_linkpk%grabbing_linkpk);
+            }
+
+            bool operator==(const Grab grab) {
+                if (this->instobjectpk == grab.instobjectpk
+                    && this->grabbed_linkpk == grab.grabbed_linkpk
+                    && this->grabbing_linkpk == grab.grabbing_linkpk) {
+                    return true;
+                }
+                return false;
+            }
+        };
+
         void SetTransform(const Transform& t);
+        void SetDOFValues();
+        virtual void GrabObject(InstObjectPtr grabbedobject, std::string& grabbedobjectlinkpk, std::string& grabbinglinkpk);
+        virtual void ReleaseObject(InstObjectPtr grabbedobject, std::string& grabbedobjectlinkpk, std::string& grabbinglinkpk);
+
 
         std::vector<Real> dofvalues;
         std::string name;
@@ -624,8 +797,10 @@ public:
         std::string reference_uri;
         Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
         Real translate[3];
+        std::vector<Grab> grabs;
+        std::vector<Link> links;
+        std::vector<Tool> tools;
     };
-    typedef boost::shared_ptr<InstObject> InstObjectPtr;
 
     SceneResource(ControllerClientPtr controller, const std::string& pk);
     virtual ~SceneResource() {
@@ -640,14 +815,15 @@ public:
         \param tasktype The type of task to create. Supported types are:
         - itlplanning
      */
-    virtual TaskResourcePtr GetOrCreateTaskFromName_UTF8(const std::string& taskname, const std::string& tasktype);
 
-    virtual TaskResourcePtr GetOrCreateTaskFromName_UTF8(const std::string& taskname)
+    virtual TaskResourcePtr GetOrCreateTaskFromName_UTF8(const std::string& taskname, const std::string& tasktype, int options=0);
+
+    virtual TaskResourcePtr GetOrCreateTaskFromName_UTF8(const std::string& taskname, int options=0)
     {
-        return GetOrCreateTaskFromName_UTF8(taskname, GetController()->GetDefaultTaskType());
+        return GetOrCreateTaskFromName_UTF8(taskname, GetController()->GetDefaultTaskType(), options);
     }
 
-    virtual TaskResourcePtr GetTaskFromName_UTF8(const std::string& taskname);
+    virtual TaskResourcePtr GetTaskFromName_UTF8(const std::string& taskname, int options=0);
 
     /** \brief Gets or creates the a task part of the scene
 
@@ -656,22 +832,30 @@ public:
         \param tasktype The type of task to create. Supported types are:
         - itlplanning
      */
-    virtual TaskResourcePtr GetOrCreateTaskFromName_UTF16(const std::wstring& taskname, const std::string& tasktype);
+    virtual TaskResourcePtr GetOrCreateTaskFromName_UTF16(const std::wstring& taskname, const std::string& tasktype, int options=0);
 
-    virtual TaskResourcePtr GetOrCreateTaskFromName_UTF16(const std::wstring& taskname)
+    virtual TaskResourcePtr GetOrCreateTaskFromName_UTF16(const std::wstring& taskname, int options=0)
     {
-        return GetOrCreateTaskFromName_UTF16(taskname, GetController()->GetDefaultTaskType());
+        return GetOrCreateTaskFromName_UTF16(taskname, GetController()->GetDefaultTaskType(), options);
     }
 
-    virtual TaskResourcePtr GetTaskFromName_UTF16(const std::wstring& taskname);
+    virtual TaskResourcePtr GetTaskFromName_UTF16(const std::wstring& taskname, int options=0);
+
+
+    virtual BinPickingTaskResourcePtr GetOrCreateBinPickingTaskFromName_UTF8(const std::string& taskname, const std::string& tasktype="binpicking", int options=0);
+    virtual BinPickingTaskResourcePtr GetOrCreateBinPickingTaskFromName_UTF16(const std::wstring& taskname, const std::string& tasktype="binpicking", int options=0);
+
 
     /// \brief gets a list of all the scene primary keys currently available to the user
     virtual void GetTaskPrimaryKeys(std::vector<std::string>& taskkeys);
 
     /// \brief gets a list of all the instance objects of the scene
     virtual void GetInstObjects(std::vector<InstObjectPtr>& instobjects);
+    virtual bool FindInstObject(const std::string& name, InstObjectPtr& instobject);
 
     virtual SceneResource::InstObjectPtr CreateInstObject(const std::string& name, const std::string& reference_uri, Real quaternion[4], Real translate[3]);
+
+    virtual SceneResourcePtr Copy(const std::string& name);
 };
 
 class MUJINCLIENT_API TaskResource : public WebResource
@@ -763,6 +947,7 @@ protected:
 class MUJINCLIENT_API PlanningResultResource : public WebResource
 {
 public:
+    PlanningResultResource(ControllerClientPtr controller, const std::string& resulttype, const std::string& pk);
     PlanningResultResource(ControllerClientPtr controller, const std::string& pk);
     virtual ~PlanningResultResource() {
     }
@@ -823,7 +1008,10 @@ public:
 MUJINCLIENT_API ControllerClientPtr CreateControllerClient(const std::string& usernamepassword, const std::string& url=std::string(), const std::string& proxyserverport=std::string(), const std::string& proxyuserpw=std::string(), int options=0);
 
 /// \brief called at the very end of an application to safely destroy all controller client resources
-MUJINCLIENT_API void ControllerClientDestroy();
+MUJINCLIENT_API void DestroyControllerClient();
+
+/// \deprecated 14/03/14
+MUJINCLIENT_API void ControllerClientDestroy() MUJINCLIENT_DEPRECATED;
 
 /// \brief Compute a 3x4 matrix from a Transform
 MUJINCLIENT_API void ComputeMatrixFromTransform(Real matrix[12], const Transform &transform);

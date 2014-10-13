@@ -71,5 +71,5 @@ int main(int argc, char ** argv)
         std::cout << "exception thrown: " << ex.message() << std::endl;
     }
     // destroy all mujin controller resources
-    ControllerClientDestroy();
+    DestroyControllerClient();
 }
