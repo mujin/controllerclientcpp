@@ -15,7 +15,10 @@
 #include "controllerclientimpl.h"
 #include <boost/thread.hpp> // for sleep
 #include <boost/algorithm/string.hpp>
+
+#ifdef MUJIN_USEZMQ
 #include "binpickingtaskzmq.h"
+#endif
 
 namespace mujinclient {
 
@@ -337,7 +340,11 @@ TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& t
     if( tasktype == "binpicking" ) {
         BinPickingTaskResourcePtr task;
         if( options & 1 ) {
+#ifdef MUJIN_USEZMQ
             task.reset(new BinPickingTaskZmqResource(GetController(), pk, GetPrimaryKey()));
+#else
+            throw MujinException("cannot create binpicking zmq task since not compiled with zeromq library", MEC_Failed);
+#endif
         }
         else {
             task.reset(new BinPickingTaskResource(GetController(), pk, GetPrimaryKey()));

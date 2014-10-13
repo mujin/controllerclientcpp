@@ -53,6 +53,11 @@
 
 #endif // defined(_WIN32) || defined(_WIN64)
 
+#define FOREACH(it, v) for(typeof((v).begin())it = (v).begin(); it != (v).end(); (it)++)
+#define FOREACH_NOINC(it, v) for(typeof((v).begin())it = (v).begin(); it != (v).end(); )
+
+#define FORIT(it, v) for(it = (v).begin(); it != (v).end(); (it)++)
+
 #include "utf8.h"
 
 #include <time.h>
@@ -189,6 +194,10 @@ inline static unsigned long long GetNanoPerformanceTime()
 BOOST_STATIC_ASSERT(sizeof(unsigned short) == 2); // need this for utf-16 reading
 
 namespace mujinclient {
+
+class BinPickingTaskZmqResource;
+typedef boost::shared_ptr<BinPickingTaskZmqResource> BinPickingTaskZmqResourcePtr;
+typedef boost::weak_ptr<BinPickingTaskZmqResource> BinPickingTaskZmqResourceWeakPtr;
 
 class FileHandler
 {

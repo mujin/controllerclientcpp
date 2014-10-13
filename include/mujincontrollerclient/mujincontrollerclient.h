@@ -58,11 +58,6 @@
 #include <boost/format.hpp>
 #include <boost/array.hpp>
 
-#define FOREACH(it, v) for(typeof((v).begin())it = (v).begin(); it != (v).end(); (it)++)
-#define FOREACH_NOINC(it, v) for(typeof((v).begin())it = (v).begin(); it != (v).end(); )
-
-#define FORIT(it, v) for(it = (v).begin(); it != (v).end(); (it)++)
-
 namespace mujinclient {
 
 #include <mujincontrollerclient/config.h>
@@ -146,7 +141,6 @@ class RobotResource;
 class SceneResource;
 class TaskResource;
 class BinPickingTaskResource;
-class BinPickingTaskZmqResource;
 class OptimizationResource;
 class PlanningResultResource;
 class BinPickingResultResource;
@@ -163,8 +157,6 @@ typedef boost::shared_ptr<TaskResource> TaskResourcePtr;
 typedef boost::weak_ptr<TaskResource> TaskResourceWeakPtr;
 typedef boost::shared_ptr<BinPickingTaskResource> BinPickingTaskResourcePtr;
 typedef boost::weak_ptr<BinPickingTaskResource> BinPickingTaskResourceWeakPtr;
-typedef boost::shared_ptr<BinPickingTaskZmqResource> BinPickingTaskZmqResourcePtr;
-typedef boost::weak_ptr<BinPickingTaskZmqResource> BinPickingTaskZmqResourceWeakPtr;
 typedef boost::shared_ptr<OptimizationResource> OptimizationResourcePtr;
 typedef boost::weak_ptr<OptimizationResource> OptimizationResourceWeakPtr;
 typedef boost::shared_ptr<PlanningResultResource> PlanningResultResourcePtr;

@@ -11,11 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-include_directories(${MUJINCLIENT_INCLUDE_LOCAL_DIRS} ${CURL_INCLUDE_DIRS} ${libzmq_INCLUDE_DIRS})
-link_directories(${MUJINCLIENT_LINK_DIRS} ${libzmq_LIBRARY_DIRS})
-add_definitions("-DBOOST_SPIRIT_THREADSAFE")
+link_directories(${MUJINCLIENT_LINK_DIRS})
 
-set(SOURCE_FILES handeyecalibrationtask.cpp binpickingtask.cpp common.cpp controllerclientimpl.cpp mujincontrollerclient.cpp ${mujin_header_files} common.h utf8.h binpickingtaskzmq.cpp)
+set(SOURCE_FILES handeyecalibrationtask.cpp binpickingtask.cpp common.cpp controllerclientimpl.cpp mujincontrollerclient.cpp ${mujin_header_files} common.h utf8.h)
+if (libzmq_FOUND)
+  set(SOURCE_FILES ${SOURCE_FILES} binpickingtaskzmq.cpp)
+endif()
 
 add_library(libmujincontrollerclient SHARED ${SOURCE_FILES})
 if( EXTRA_MSVC_DEPEND )
