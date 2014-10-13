@@ -27,7 +27,7 @@ namespace mujinclient {
 void ExtractEnvironmentStateFromPTree(const boost::property_tree::ptree& envstatejson, EnvironmentState& envstate)
 {
     envstate.clear();
-    FOREACH(objstatejson, envstatejson) {
+    FOREACHC(objstatejson, envstatejson) {
         InstanceObjectState objstate;
         std::string name = objstatejson->second.get<std::string>("name");
         const boost::property_tree::ptree& quatjson = objstatejson->second.get_child("quat_");
