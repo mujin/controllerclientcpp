@@ -820,6 +820,22 @@ void utils::GetSensorData(ControllerClientPtr controller, SceneResourcePtr scene
     throw MujinException("Could not find attached sensor " + sensorname + " on " + bodyname + ".", MEC_Failed); 
 }
 
+void utils::GetSensorTransform(ControllerClientPtr controller, SceneResourcePtr scene, const std::string& bodyname, const std::string& sensorname, Transform& result)
+{
+    std::vector<RobotResource::AttachedSensorResourcePtr> attachedsensors;
+    utils::GetAttachedSensors(controller, scene, bodyname, attachedsensors);
+    for (size_t i=0; i<attachedsensors.size(); ++i) {
+        if (attachedsensors.at(i)->name == sensorname) {
+            Transform transform;
+            std::copy(attachedsensors.at(i)->quaternion, attachedsensors.at(i)->quaternion+4, transform.quaternion);
+            std::copy(attachedsensors.at(i)->translate, attachedsensors.at(i)->translate+3, transform.translate);
+            result = transform;
+            return;
+        }
+    }
+    throw MujinException("Could not find attached sensor " + sensorname + " on " + bodyname + ".", MEC_Failed); 
+}
+
 void utils::DeleteObject(SceneResourcePtr scene, const std::string& name)
 {
     //TODO needs to robot.Release(name)
