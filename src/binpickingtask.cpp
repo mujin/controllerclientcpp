@@ -792,26 +792,32 @@ boost::property_tree::ptree BinPickingTaskResource::ExecuteCommand(const std::st
     }
 }
 
-void utils::GetAttachedSensors(ControllerClientPtr controller, SceneResourcePtr scene, const std::string& sensorname, std::vector<RobotResource::AttachedSensorResourcePtr>& attachedsensors)
+void utils::GetAttachedSensors(ControllerClientPtr controller, SceneResourcePtr scene, const std::string& bodyname, std::vector<RobotResource::AttachedSensorResourcePtr>& attachedsensors)
 {
     SceneResource::InstObjectPtr sensorinstobject;
-    if (!scene->FindInstObject(sensorname, sensorinstobject)) {
-        throw MujinException("Could not find instobject with name: " + sensorname+".", MEC_Failed);
+    if (!scene->FindInstObject(bodyname, sensorinstobject)) {
+        throw MujinException("Could not find instobject with name: " + bodyname+".", MEC_Failed);
     }
 
     RobotResourcePtr sensorrobot;
     sensorrobot.reset(new RobotResource(controller,sensorinstobject->object_pk));
     sensorrobot->GetAttachedSensors(attachedsensors);
     if (attachedsensors.size() == 0) {
-        throw MujinException("Could not find attached sensor. Is calibration done for sensor: " + sensorname + "?", MEC_Failed);
+        throw MujinException("Could not find attached sensor. Is calibration done for sensor: " + bodyname + "?", MEC_Failed);
     }
 }
 
-void utils::GetSensorData(ControllerClientPtr controller, SceneResourcePtr scene, const std::string& sensorname, RobotResource::AttachedSensorResource::SensorData& result)
+void utils::GetSensorData(ControllerClientPtr controller, SceneResourcePtr scene, const std::string& bodyname, const std::string& sensorname, RobotResource::AttachedSensorResource::SensorData& result)
 {
     std::vector<RobotResource::AttachedSensorResourcePtr> attachedsensors;
-    utils::GetAttachedSensors(controller, scene, sensorname, attachedsensors);
-    result = attachedsensors[0]->sensordata;
+    utils::GetAttachedSensors(controller, scene, bodyname, attachedsensors);
+    for (size_t i=0; i<attachedsensors.size(); ++i) {
+        if (attachedsensors.at(i)->name == sensorname) {
+            result = attachedsensors.at(i)->sensordata;
+            return;
+        }
+    }
+    throw MujinException("Could not find attached sensor " + sensorname + " on " + bodyname + ".", MEC_Failed); 
 }
 
 void utils::DeleteObject(SceneResourcePtr scene, const std::string& name)
