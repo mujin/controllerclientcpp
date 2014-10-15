@@ -127,15 +127,14 @@ public:
     };
 
     /** \brief Initializes binpicking task.
-        \param robotControllerIp ip of the robot contorller
-        \param robotControllerPort port of the robot controller
+        \param robotControllerUri URI of the robot controller, e.g. tcp://127.0.0.1:1234?param0=0,param1=1
         \param zmqPort port of the binpicking zmq server
         \param heartbeatPort port of the binpicking zmq server's heartbeat publisher
         \param initializezmq whether to call InitializeZMQ() in this call
         \param reinitializetimeout seconds until calling InitailizeZMQ() if heartbeat has not been received. If 0, do not reinitialize
         \param timeout seconds until this command times out
      */
-    virtual void Initialize(const std::string& robotControllerIp, const int robotControllerPort, const int zmqPort, const int heartbeatPort, const bool initializezmq=false, const double reinitializetimeout=10, const double timeout=0);
+    virtual void Initialize(const std::string& robotControllerUri, const int zmqPort, const int heartbeatPort, const bool initializezmq=false, const double reinitializetimeout=10, const double timeout=0);
 
     virtual boost::property_tree::ptree ExecuteCommand(const std::string& command, const double timeout /* second */=0.0, const bool getresult=true);
 
@@ -222,8 +221,7 @@ protected:
     std::string GetJsonString(const std::string& key, const unsigned long long value);
     std::string GetJsonString(const std::string& key, const Real value);
 
-    std::string _robotControllerIp;
-    int _robotControllerPort;
+    std::string _robotControllerUri;
     std::string _mujinControllerIp;
     int _zmqPort;
     int _heartbeatPort;
