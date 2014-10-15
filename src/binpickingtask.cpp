@@ -522,6 +522,7 @@ void BinPickingTaskResource::GetManipTransformToRobot(Transform& transform, cons
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
+    _ss << GetJsonString("robotControllerUri", _robotControllerUri) << ", ";
     _ss << GetJsonString("unit", unit);
     _ss << "}";
     ResultTransform result;
@@ -537,6 +538,7 @@ void BinPickingTaskResource::GetManipTransform(Transform& transform, const std::
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
+    _ss << GetJsonString("robotControllerUri", _robotControllerUri) << ", ";
     _ss << GetJsonString("unit", unit);
     _ss << "}";
     ResultTransform result;
@@ -724,6 +726,7 @@ void BinPickingTaskResource::IsRobotOccludingBody(const std::string& bodyname, c
     _ss << "{";
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
+    _ss << GetJsonString("robotControllerUri", _robotControllerUri) << ", ";
     _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
     SensorOcclusionCheck check;
     check.bodyname = bodyname;
