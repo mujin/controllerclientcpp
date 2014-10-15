@@ -56,7 +56,7 @@ public:
     struct MUJINCLIENT_API SensorOcclusionCheck
     {
         std::string bodyname; ///< name of body whose visibility is to be checked
-        std::string sensorname; ///< name of sensor
+        std::string cameraname; ///< name of camera
         unsigned long long starttime; ///< milisecond
         unsigned long long endtime; ///< milisecond
     };
@@ -189,6 +189,7 @@ public:
     virtual void ClearVisualization(const double timeout /* second */=0);
 
     /** \brief Check if robot is occluding the object in the view of sensor between starttime and endtime
+        \param sensorname name of the sensor to be checked, example names: "sensor_kinbodyname/sensor_name" or "sensor_kinbodyname", in the latter case the first attached sensor will be used
         \param timeout seconds until this command times out
      */
     virtual void IsRobotOccludingBody(const std::string& bodyname, const std::string& sensorname, const unsigned long long starttime, const unsigned long long endtime, bool& result, const double timeout /* second */=0);

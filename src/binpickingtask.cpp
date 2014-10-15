@@ -214,7 +214,7 @@ std::string BinPickingTaskResource::GetJsonString(const SensorOcclusionCheck& ch
 {
     std::stringstream ss;
     ss << GetJsonString("bodyname") << ": " << GetJsonString(check.bodyname) << ", ";
-    ss << GetJsonString("sensorname") << ": " << GetJsonString(check.sensorname) << ", ";
+    ss << GetJsonString("cameraname") << ": " << GetJsonString(check.cameraname) << ", ";
     ss << GetJsonString("starttime") << ": " << check.starttime <<", ";
     ss << GetJsonString("endtime") << ": " << check.endtime;
     return ss.str();
@@ -720,7 +720,7 @@ void BinPickingTaskResource::GetPickedPositions(ResultGetPickedPositions& r, con
     r.Parse(ExecuteCommand(_ss.str(), timeout));
 }
 
-void BinPickingTaskResource::IsRobotOccludingBody(const std::string& bodyname, const std::string& sensorname, const unsigned long long starttime, const unsigned long long endtime, bool& r, const double timeout)
+void BinPickingTaskResource::IsRobotOccludingBody(const std::string& bodyname, const std::string& cameraname, const unsigned long long starttime, const unsigned long long endtime, bool& r, const double timeout)
 {
     std::string command = "IsRobotOccludingBody";
     _ss.str(""); _ss.clear();
@@ -730,7 +730,7 @@ void BinPickingTaskResource::IsRobotOccludingBody(const std::string& bodyname, c
     _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
     SensorOcclusionCheck check;
     check.bodyname = bodyname;
-    check.sensorname = sensorname;
+    check.cameraname = cameraname;
     check.starttime = starttime;
     check.endtime = endtime;
     _ss << GetJsonString(check);
