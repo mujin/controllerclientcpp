@@ -112,7 +112,7 @@ If OpenSSL libraries do not exist for the specific Visual Studio version
   - On win32, add ``C:\Program Files\NASM`` to the **PATH** variable.
   - On win64, add ``C:\Program Files (x86)\NASM`` to the **PATH** variable
 
-3. Uncompress **openssl-1.0.1e.tar.gz**.
+3. Uncompress **openssl-1.0.1j.tar.gz**.
 
 4. Open the Visual Studio Command Prompt, cd into ``openssl-1.0.1e``, set the XX depending on the VC++ version.
   
@@ -131,7 +131,7 @@ If OpenSSL libraries do not exist for the specific Visual Studio version
     nmake -f ms\ntdll.mak
     nmake -f ms\ntdll.mak install
   
-5. The final binaries should be in the ``msvc_binaries\vcXX\lib`` folder.
+5. The final binaries should be in the ``msvc_binaries\arch\vcXX\lib`` folder.
 
 Building libcurl (Optional)
 ===========================
