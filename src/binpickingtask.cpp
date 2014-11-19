@@ -820,7 +820,7 @@ void utils::GetSensorData(ControllerClientPtr controller, SceneResourcePtr scene
     throw MujinException("Could not find attached sensor " + sensorname + " on " + bodyname + ".", MEC_Failed); 
 }
 
-void utils::GetSensorTransform(ControllerClientPtr controller, SceneResourcePtr scene, const std::string& bodyname, const std::string& sensorname, Transform& result)
+void utils::GetSensorTransform(ControllerClientPtr controller, SceneResourcePtr scene, const std::string& bodyname, const std::string& sensorname, Transform& result, const std::string& unit)
 {
     SceneResource::InstObjectPtr cameraobj;
     if (scene->FindInstObject(bodyname, cameraobj)) {
@@ -829,6 +829,12 @@ void utils::GetSensorTransform(ControllerClientPtr controller, SceneResourcePtr 
                 Transform transform;
                 std::copy(cameraobj->attachedsensors.at(i).quaternion, cameraobj->attachedsensors.at(i).quaternion+4, transform.quaternion);
                 std::copy(cameraobj->attachedsensors.at(i).translate, cameraobj->attachedsensors.at(i).translate+3, transform.translate);
+                if (unit == "m") {
+                    transform.translate[0] *= 0.001;
+                    transform.translate[1] *= 0.001;
+                    transform.translate[2] *= 0.001;
+                }
+                  
                 result = transform;
                 return;
             }
