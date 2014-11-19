@@ -631,6 +631,25 @@ void SceneResource::GetInstObjects(std::vector<SceneResource::InstObjectPtr>& in
             }
         }
 
+        if ( v->second.find("attachedsensors") != v->second.not_found() ) {
+            boost::property_tree::ptree& jsonattachedsensors = v->second.get_child("attachedsensors");
+            instobject->attachedsensors.resize(jsonattachedsensors.size());
+            size_t iattchedsensor = 0;
+            FOREACH(vattachedsensor, jsonattachedsensors) {
+                instobject->attachedsensors[iattchedsensor].name = vattachedsensor->second.get<std::string>("name");
+                size_t iquaternion = 0;
+                FOREACH(vquaternion, vattachedsensor->second.get_child("quaternion")) {
+                    BOOST_ASSERT( iquaternion < 4 );
+                    instobject->attachedsensors[iattchedsensor].quaternion[iquaternion++] = boost::lexical_cast<Real>(vquaternion->second.data());
+                }
+                size_t itranslate = 0;
+                FOREACH(vtranslate, vattachedsensor->second.get_child("translate")) {
+                    BOOST_ASSERT( itranslate < 3 );
+                    instobject->attachedsensors[iattchedsensor].translate[itranslate++] = boost::lexical_cast<Real>(vtranslate->second.data());
+                }
+                iattchedsensor++;
+            }
+        }
         instobjects.at(iobj++) = instobject;
     }
 }
