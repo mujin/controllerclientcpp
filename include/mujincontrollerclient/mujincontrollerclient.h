@@ -794,6 +794,13 @@ public:
             }
         };
 
+        class MUJINCLIENT_API AttachedSensor {
+public:
+            std::string name;
+            Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+            Real translate[3];
+        };
+
         void SetTransform(const Transform& t);
         void SetDOFValues();
         virtual void GrabObject(InstObjectPtr grabbedobject, std::string& grabbedobjectlinkpk, std::string& grabbinglinkpk);
@@ -810,6 +817,7 @@ public:
         std::vector<Grab> grabs;
         std::vector<Link> links;
         std::vector<Tool> tools;
+        std::vector<AttachedSensor> attachedsensors;
     };
 
     SceneResource(ControllerClientPtr controller, const std::string& pk);
