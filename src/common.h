@@ -357,10 +357,10 @@ inline std::string ConvertFileSystemEncodingToUTF8(const std::string& fs)
 
 #if defined(_WIN32) || defined(_WIN64)
 const char s_filesep = '\\';
-const char s_wfilesep = L'\\';
+const wchar_t s_wfilesep = L'\\';
 #else
 const char s_filesep = '/';
-const char s_wfilesep = L'/';
+const wchar_t s_wfilesep = L'/';
 #endif
 
 } // end namespace mujinclient
