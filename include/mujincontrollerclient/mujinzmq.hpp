@@ -92,6 +92,13 @@ public:
         _DestroySocket();
     }
 
+    bool Publish(const std::string& messagestr)
+    {
+        zmq::message_t message(messagestr.size());
+        memcpy(message.data(), messagestr.data(), messagestr.size());
+        return _socket->send(message);
+    }
+
 protected:
     void _InitializeSocket()
     {
