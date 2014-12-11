@@ -15,10 +15,10 @@
 #include "controllerclientimpl.h"
 #include <boost/thread.hpp> // for sleep
 #include <boost/property_tree/ptree.hpp>
-#include <mujincontrollerclient/binpickingtask.h>
+#include "mujincontrollerclient/binpickingtask.h"
 
 #ifdef MUJIN_USEZMQ
-#include "zmq.hpp"
+#include "mujincontrollerclient/zmq.hpp"
 #endif
 
 namespace mujinclient {

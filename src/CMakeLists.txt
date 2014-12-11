@@ -20,7 +20,7 @@ link_directories(${MUJINCLIENT_LINK_DIRS})
 
 set(SOURCE_FILES handeyecalibrationtask.cpp binpickingtask.cpp common.cpp common.h controllerclientimpl.cpp controllerclientimpl.h mujincontrollerclient.cpp ${mujin_header_files} utf8.h )
 if (libzmq_FOUND)
-  set(SOURCE_FILES ${SOURCE_FILES} zmq.hpp mujinzmq.h binpickingtaskzmq.h binpickingtaskzmq.cpp)
+  set(SOURCE_FILES ${SOURCE_FILES} binpickingtaskzmq.h binpickingtaskzmq.cpp)
 endif()
 
 add_library(libmujincontrollerclient SHARED ${SOURCE_FILES})

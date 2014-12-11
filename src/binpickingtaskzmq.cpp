@@ -17,7 +17,7 @@
 #include "binpickingtaskzmq.h"
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/exceptions.hpp>
-#include "mujinzmq.h"
+#include "mujincontrollerclient/mujinzmq.hpp"
 
 #include <algorithm> // find
 

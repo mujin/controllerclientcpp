@@ -17,8 +17,8 @@
 #ifndef MUJIN_CONTROLLERCLIENT_BINPICKINGTASK_ZMQ_H
 #define MUJIN_CONTROLLERCLIENT_BINPICKINGTASK_ZMQ_H
 
-#include <mujincontrollerclient/binpickingtask.h>
-#include "mujinzmq.h"
+#include "mujincontrollerclient/binpickingtask.h"
+#include "mujincontrollerclient/mujinzmq.hpp"
 namespace mujinclient {
 
 /** \brief client to mujin controller via zmq socket connection

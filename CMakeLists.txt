@@ -248,7 +248,7 @@ else()
   message(WARNING "compiling without libzmq library")
 endif()
 
-file(GLOB mujin_header_files ${CMAKE_CURRENT_SOURCE_DIR}/include/mujincontrollerclient/*.h)
+file(GLOB mujin_header_files ${CMAKE_CURRENT_SOURCE_DIR}/include/mujincontrollerclient/*.h ${CMAKE_CURRENT_SOURCE_DIR}/include/mujincontrollerclient/*.hpp)
 install(FILES ${mujin_header_files} ${CMAKE_CURRENT_BINARY_DIR}/include/mujincontrollerclient/config.h DESTINATION include/mujincontrollerclient)
 
 macro(build_sample name)
