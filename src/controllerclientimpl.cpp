@@ -1324,14 +1324,13 @@ void ControllerClientImpl::_UploadDirectoryToController_UTF8(const std::string& 
 void ControllerClientImpl::_UploadDirectoryToController_UTF16(const std::wstring& copydir_utf16, const std::string& rawuri)
 {
     BOOST_ASSERT(rawuri.size()>0 && copydir_utf16.size()>0);
-    MUJIN_ASSERT_OP_FORMAT(copydir_utf16.at(copydir_utf16.size()-1),!=,s_wfilesep,"copydir '%s' cannot end in slash '%s'", encoding::ConvertUTF16ToFileSystemEncoding(copydir_utf16)%s_filesep, MEC_InvalidArguments);
 
     // if there's a trailing slash, have to get rid of it
     std::string uri;
     if( rawuri.at(rawuri.size()-1) == '/' ) {
-        if( copydir_utf16.at(copydir_utf16.size()-1) != s_filesep ) {
+        if( copydir_utf16.at(copydir_utf16.size()-1) != s_wfilesep ) {
             // append the copydir_utf16 name to rawuri
-            size_t nBaseFilenameStartIndex = copydir_utf16.find_last_of(s_filesep);
+            size_t nBaseFilenameStartIndex = copydir_utf16.find_last_of(s_wfilesep);
             if( nBaseFilenameStartIndex == std::string::npos ) {
                 // there's no path?
                 nBaseFilenameStartIndex = 0;
@@ -1351,6 +1350,7 @@ void ControllerClientImpl::_UploadDirectoryToController_UTF16(const std::wstring
         }
     }
     else {
+        MUJIN_ASSERT_OP_FORMAT(copydir_utf16.at(copydir_utf16.size()-1),!=,s_wfilesep,"copydir '%s' cannot end in slash '%s'", encoding::ConvertUTF16ToFileSystemEncoding(copydir_utf16)%s_filesep, MEC_InvalidArguments);
         uri = rawuri;
     }
 

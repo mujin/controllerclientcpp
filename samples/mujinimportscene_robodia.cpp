@@ -31,6 +31,7 @@ int main(int argc, char ** argv)
         }
         std::cout << "connected to controller v" << controller->GetVersion() << std::endl;
 
+        //controller->SyncUpload_UTF16(L"c:\\controllerclientcpp\\シームレステスト\\シームレステスト.xml", L"mujin:/シームレステスト/", "cecrobodiaxml");
         controller->SyncUpload_UTF8("../share/mujincontrollerclient/robodia_demo1/robodia_demo1.xml", "mujin:/robodia_demo1/", "cecrobodiaxml");
 
         // try to import the scene, if it already exists delete it and import again
