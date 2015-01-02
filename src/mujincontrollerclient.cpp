@@ -660,8 +660,7 @@ bool SceneResource::FindInstObject(const std::string& name, SceneResource::InstO
     std::vector<SceneResource::InstObjectPtr> instobjects;
     this->GetInstObjects(instobjects);
     for(size_t i = 0; i < instobjects.size(); ++i) {
-        std::size_t found_at = instobjects[i]->name.find(name);
-        if (found_at != std::string::npos) {
+        if (instobjects[i]->name == name) {
             instobject = instobjects[i];
             return true;
         }
