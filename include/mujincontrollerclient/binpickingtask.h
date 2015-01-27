@@ -44,6 +44,7 @@ public:
         std::string name;
         Transform transform;
         std::string confidence;
+        unsigned long long timestamp;
     };
 
     struct MUJINCLIENT_API PointCloudObstacle
@@ -172,7 +173,7 @@ public:
     virtual void AddPointCloudObstacle(const std::vector<Real>& vpoints, const Real pointsize, const std::string& name, const double timeout /* second */=0);
 
 
-    virtual void UpdateEnvironmentState(const std::string& baseobjectname, const std::vector<Transform>& objecttransforms, const std::vector<std::string>& objectconfidences, const std::vector<Real>& dynamicobstaclepoints, const Real dynamicpointsize, const std::string& dynamicobstaclename, const std::string& unit="m", const double timeout =0);
+    virtual void UpdateEnvironmentState(const std::string& baseobjectname, const std::vector<Transform>& objecttransforms, const std::vector<std::string>& objectconfidences, const std::vector<unsigned long>& timestamps, const std::vector<Real>& dynamicobstaclepoints, const Real dynamicpointsize, const std::string& dynamicobstaclename, const std::string& unit="m", const double timeout =0);
 
 
     /** \brief Visualize point cloud on controller

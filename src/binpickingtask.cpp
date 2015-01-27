@@ -188,6 +188,7 @@ std::string BinPickingTaskResource::GetJsonString(const DetectedObject& obj)
     }
     ss << "], ";
     ss << GetJsonString("confidence") << ": " << obj.confidence;
+    ss << ", " <<GetJsonString("sensortimestamp") << ": " << obj.timestamp;
     ss << "}";
     return ss.str();
 }
@@ -197,7 +198,7 @@ std::string BinPickingTaskResource::GetJsonString(const PointCloudObstacle& obj)
     std::stringstream ss;
     ss << std::setprecision(std::numeric_limits<Real>::digits10+1);
     // "\"name\": __dynamicobstacle__, \"pointsize\": 0.005, \"points\": []
-    ss << GetJsonString("name") << ": " << GetJsonString(obj.name) << ", ";
+    ss << GetJsonString("pointcloudid") << ": " << GetJsonString(obj.name) << ", ";
     ss << GetJsonString("pointsize") << ": " << obj.pointsize <<", ";
     std::vector<Real> points;
     points.resize(obj.points.size());
@@ -624,7 +625,7 @@ void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<Real>&vpoin
     ExecuteCommand(_ss.str(), timeout, false);
 }
 
-void BinPickingTaskResource::UpdateEnvironmentState(const std::string& basename, const std::vector<Transform>& transformsworld, const std::vector<std::string>& confidences, const std::vector<Real>& vpoints, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit, const double timeout)
+void BinPickingTaskResource::UpdateEnvironmentState(const std::string& basename, const std::vector<Transform>& transformsworld, const std::vector<std::string>& confidences, const std::vector<unsigned long>& timestamps,  const std::vector<Real>& vpoints, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit, const double timeout)
 {
     std::string command = "UpdateEnvironmentState";
     std::string targetname = basename;
@@ -643,6 +644,7 @@ void BinPickingTaskResource::UpdateEnvironmentState(const std::string& basename,
         detectedobject.name = name_ss.str();
         detectedobject.transform = transformsworld[i];
         detectedobject.confidence = confidences[i];
+        detectedobject.timestamp = timestamps[i];
         detectedobjects.push_back(detectedobject);
     }
 
