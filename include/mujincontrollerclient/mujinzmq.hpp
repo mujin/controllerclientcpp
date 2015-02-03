@@ -53,10 +53,10 @@ protected:
 
         std::ostringstream port_stream;
         port_stream << _port;
-        _socket->connect (("tcp://" + _host + ":" + port_stream.str()).c_str());
         _socket->setsockopt(ZMQ_SUBSCRIBE, "", 0);
-    int val = 1;
-    _socket->setsockopt(ZMQ_CONFLATE,&val,sizeof(val));
+        int val = 1;
+        _socket->setsockopt(ZMQ_CONFLATE,&val,sizeof(val));
+        _socket->connect (("tcp://" + _host + ":" + port_stream.str()).c_str());
     }
 
     void _DestroySocket()
