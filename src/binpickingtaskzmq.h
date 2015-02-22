@@ -36,12 +36,12 @@ public:
 
     boost::property_tree::ptree ExecuteCommand(const std::string& command, const double timeout /* [sec] */=0.0, const bool getresult=true);
 
-    void Initialize(const std::string& robotControllerUri, const int zmqPort, const int heartbeatPort, const bool initializezmq=false, const double reinitializetimeout=10, const double timeout=0);
+    void Initialize(const std::string& robotControllerUri, const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq=false, const double reinitializetimeout=10, const double timeout=0);
 
     void InitializeZMQ(const double reinitializetimeout = 5, const double timeout /* second */=0);
     void _HeartbeatMonitorThread(const double reinitializetimeout, const double commandtimeout);
+
 private:
-    boost::mutex _zmqmutex;
     ZmqMujinControllerClientPtr _zmqmujincontrollerclient;
 };
 

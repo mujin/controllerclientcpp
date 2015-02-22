@@ -46,16 +46,22 @@ public:
     }
 
 protected:
-    void _InitializeSocket()
+    void _InitializeSocket(boost::shared_ptr<zmq::context_t> context)
     {
-        _context.reset(new zmq::context_t (1));
+        if (!!context) {
+            _context = context;
+            _sharedcontext = true;
+        } else {
+            _context.reset(new zmq::context_t(1));
+            _sharedcontext = false;
+        }
         _socket.reset(new zmq::socket_t ((*_context.get()), ZMQ_SUB));
 
         std::ostringstream port_stream;
         port_stream << _port;
         _socket->setsockopt(ZMQ_SUBSCRIBE, "", 0);
-        int val = 1;
-        _socket->setsockopt(ZMQ_CONFLATE,&val,sizeof(val));
+        int val = 10;
+        _socket->setsockopt(ZMQ_SNDHWM, &val, sizeof(val));
         _socket->connect (("tcp://" + _host + ":" + port_stream.str()).c_str());
     }
 
@@ -65,7 +71,7 @@ protected:
             _socket->close();
             _socket.reset();
         }
-        if( !!_context ) {
+        if (!!_context && !_sharedcontext) {
             _context->close();
             _context.reset();
         }
@@ -75,6 +81,7 @@ protected:
     boost::shared_ptr<zmq::socket_t>  _socket;
     std::string _host;
     unsigned int _port;
+    bool _sharedcontext;
 };
 
 /** \brief Base class for publisher
@@ -100,12 +107,18 @@ public:
     }
 
 protected:
-    void _InitializeSocket()
+    void _InitializeSocket(boost::shared_ptr<zmq::context_t> context)
     {
-        _context.reset(new zmq::context_t (1));
+        if (!!context) {
+            _context = context;
+            _sharedcontext = true;
+        } else {
+            _context.reset(new zmq::context_t(1));
+            _sharedcontext = false;
+        }
         _socket.reset(new zmq::socket_t ((*(zmq::context_t*)_context.get()), ZMQ_PUB));
-        int val = 1;
-        _socket->setsockopt(ZMQ_CONFLATE,&val,sizeof(val));
+        int val = 10;
+        _socket->setsockopt(ZMQ_SNDHWM, &val, sizeof(val));
         std::ostringstream port_stream;
         port_stream << _port;
         _socket->bind (("tcp://*:" + port_stream.str()).c_str());
@@ -117,7 +130,7 @@ protected:
             _socket->close();
             _socket.reset();
         }
-        if( !!_context ) {
+        if (!!_context && !_sharedcontext) {
             _context->close();
             _context.reset();
         }
@@ -126,6 +139,7 @@ protected:
     boost::shared_ptr<zmq::context_t> _context;
     boost::shared_ptr<zmq::socket_t>  _socket;
     unsigned int _port;
+    bool _sharedcontext;
 };
 
 /** \brief Base class for client
@@ -145,9 +159,15 @@ public:
     }
 
 protected:
-    void _InitializeSocket()
+    void _InitializeSocket(boost::shared_ptr<zmq::context_t> context)
     {
-        _context.reset(new zmq::context_t (1));
+        if (!!context) {
+            _context = context;
+            _sharedcontext = true;
+        } else {
+            _context.reset(new zmq::context_t(1));
+            _sharedcontext = false;
+        }
         _socket.reset(new zmq::socket_t ((*(zmq::context_t*)_context.get()), ZMQ_REQ));
         std::ostringstream port_stream;
         port_stream << _port;
@@ -161,7 +181,7 @@ protected:
             _socket->close();
             _socket.reset();
         }
-        if( !!_context ) {
+        if (!!_context && !_sharedcontext) {
             _context->close();
             _context.reset();
         }
@@ -171,6 +191,7 @@ protected:
     std::string _host;
     boost::shared_ptr<zmq::context_t> _context;
     boost::shared_ptr<zmq::socket_t>  _socket;
+    bool _sharedcontext;
 };
 
 /** \brief Base class for server
@@ -205,9 +226,15 @@ public:
     }
 
 protected:
-    void _InitializeSocket()
+    void _InitializeSocket(boost::shared_ptr<zmq::context_t> context)
     {
-        _context.reset(new zmq::context_t (1));
+        if (!!context) {
+            _context = context;
+            _sharedcontext = true;
+        } else {
+            _context.reset(new zmq::context_t(1));
+            _sharedcontext = false;
+        }
         _socket.reset(new zmq::socket_t ((*(zmq::context_t*)_context.get()), ZMQ_REP));
         std::ostringstream port_stream;
         port_stream << _port;
@@ -221,7 +248,7 @@ protected:
             _socket->close();
             _socket.reset();
         }
-        if( !!_context ) {
+        if (!!_context && !_sharedcontext) {
             _context->close();
             _context.reset();
         }
@@ -230,7 +257,8 @@ protected:
     boost::shared_ptr<zmq::context_t> _context;
     boost::shared_ptr<zmq::socket_t>  _socket;
     zmq::message_t _reply;
+    bool _sharedcontext;
 };
 
-} // namespace mujinvision
+} // namespace mujinzmq
 #endif // MUJIN_ZMQ_H

@@ -57,7 +57,8 @@ int main(int argc, char ** argv)
     std::cout << "connected to mujin controller at " << url_ss.str() << std::endl;
     SceneResourcePtr scene(new SceneResource(controller,binpickingTaskScenePk));
     BinPickingTaskResourcePtr binpickingzmq = scene->GetOrCreateBinPickingTaskFromName_UTF8("binpickingtask1", "binpicking", TRO_EnableZMQ);
-    binpickingzmq->Initialize(robotControllerIp, robotControllerPort, binpickingTaskZmqPort, binpickingTaskHeartbeatPort);
+    boost::shared_ptr<zmq::context_t> zmqcontext(new zmq::context_t(2));
+    binpickingzmq->Initialize(url_ss.str(), binpickingTaskZmqPort, binpickingTaskHeartbeatPort, zmqcontext);
 
     Transform t;
     std::cout << "testing binpickinghttp->GetTransform()" << std::endl;

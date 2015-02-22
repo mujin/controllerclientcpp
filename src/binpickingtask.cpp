@@ -86,12 +86,13 @@ BinPickingTaskResource::~BinPickingTaskResource()
     }
 }
 
-void BinPickingTaskResource::Initialize(const std::string& robotControllerUri, const int zmqPort, const int heartbeatPort, const bool initializezmq, const double reinitializetimeout, const double timeout)
+void BinPickingTaskResource::Initialize(const std::string& robotControllerUri, const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq, const double reinitializetimeout, const double timeout)
 {
     _robotControllerUri = robotControllerUri;
     _zmqPort = zmqPort;
     _heartbeatPort = heartbeatPort;
     _bIsInitialized = true;
+    _zmqcontext = zmqcontext;
 }
 
 boost::property_tree::ptree BinPickingResultResource::GetResultPtree() const
@@ -941,10 +942,8 @@ void utils::UpdateObjects(SceneResourcePtr scene,const std::string& basename, co
 void BinPickingTaskResource::_HeartbeatMonitorThread(const double reinitializetimeout, const double commandtimeout)
 {
 #ifdef MUJIN_USEZMQ
-    boost::shared_ptr<zmq::context_t> context;
     boost::shared_ptr<zmq::socket_t>  socket;
-    context.reset(new zmq::context_t(1));
-    socket.reset(new zmq::socket_t((*context.get()),ZMQ_SUB));
+    socket.reset(new zmq::socket_t((*_zmqcontext.get()),ZMQ_SUB));
     std::stringstream ss;
     ss << _heartbeatPort;
     socket->connect (("tcp://"+ _mujinControllerIp+":"+ss.str()).c_str());

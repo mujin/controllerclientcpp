@@ -20,6 +20,7 @@
 #include <mujincontrollerclient/mujincontrollerclient.h>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/thread.hpp>
+#include "zmq.hpp"
 
 namespace mujinclient {
 
@@ -131,11 +132,12 @@ public:
         \param robotControllerUri URI of the robot controller, e.g. tcp://127.0.0.1:1234?param0=0,param1=1
         \param zmqPort port of the binpicking zmq server
         \param heartbeatPort port of the binpicking zmq server's heartbeat publisher
+        \param zmqcontext zmq context
         \param initializezmq whether to call InitializeZMQ() in this call
         \param reinitializetimeout seconds until calling InitailizeZMQ() if heartbeat has not been received. If 0, do not reinitialize
         \param timeout seconds until this command times out
      */
-    virtual void Initialize(const std::string& robotControllerUri, const int zmqPort, const int heartbeatPort, const bool initializezmq=false, const double reinitializetimeout=10, const double timeout=0);
+    virtual void Initialize(const std::string& robotControllerUri, const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq=false, const double reinitializetimeout=10, const double timeout=0);
 
     virtual boost::property_tree::ptree ExecuteCommand(const std::string& command, const double timeout /* second */=0.0, const bool getresult=true);
 
@@ -224,14 +226,15 @@ protected:
 
     std::string _robotControllerUri;
     std::string _mujinControllerIp;
+    boost::shared_ptr<zmq::context_t> _zmqcontext;
     int _zmqPort;
     int _heartbeatPort;
-    bool _bIsInitialized;
-
+    std::string _sceneparams_json; ///\ parameters of the scene to run tasks on the backend zmq slave
     boost::shared_ptr<boost::thread> _pHeartbeatMonitorThread;
+
+    bool _bIsInitialized;
     bool _bShutdownHeartbeatMonitor;
 
-    std::string _sceneparams_json; ///\ parameters of the scene to run tasks on the backend zmq slave
 };
 
 namespace utils {

@@ -27,16 +27,16 @@ class ZmqMujinControllerClient : public mujinzmq::ZmqClient
 {
 
 public:
-    ZmqMujinControllerClient(const std::string& host, const int port);
+    ZmqMujinControllerClient(boost::shared_ptr<zmq::context_t> context, const std::string& host, const int port);
 
     virtual ~ZmqMujinControllerClient();
 
     std::string Call(const std::string& msg);
 };
 
-ZmqMujinControllerClient::ZmqMujinControllerClient(const std::string& host, const int port) : ZmqClient(host, port)
+ZmqMujinControllerClient::ZmqMujinControllerClient(boost::shared_ptr<zmq::context_t> context, const std::string& host, const int port) : ZmqClient(host, port)
 {
-    _InitializeSocket();
+    _InitializeSocket(context);
 }
 
 ZmqMujinControllerClient::~ZmqMujinControllerClient()
@@ -44,7 +44,6 @@ ZmqMujinControllerClient::~ZmqMujinControllerClient()
     // _DestroySocket() is called in  ~ZmqClient()
 }
 
-// mutex _zmqmutex should be locked
 std::string ZmqMujinControllerClient::Call(const std::string& msg)
 {
     //send
@@ -83,18 +82,18 @@ BinPickingTaskZmqResource::~BinPickingTaskZmqResource()
 {
 }
 
-void BinPickingTaskZmqResource::Initialize(const std::string& robotControllerUri, const int zmqPort, const int heartbeatPort, const bool initializezmq, const double reinitializetimeout, const double timeout)
+    void BinPickingTaskZmqResource::Initialize(const std::string& robotControllerUri, const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq, const double reinitializetimeout, const double timeout)
 {
     _robotControllerUri = robotControllerUri;
     _zmqPort = zmqPort;
     _heartbeatPort = heartbeatPort;
     _bIsInitialized = true;
-
+    _zmqcontext = zmqcontext;
     if (initializezmq) {
         InitializeZMQ(reinitializetimeout, timeout);
     }
 
-    _zmqmujincontrollerclient.reset(new ZmqMujinControllerClient(_mujinControllerIp, _zmqPort));
+    _zmqmujincontrollerclient.reset(new ZmqMujinControllerClient(_zmqcontext, _mujinControllerIp, _zmqPort));
     if (!_zmqmujincontrollerclient) {
         throw MujinException(boost::str(boost::format("Failed to establish ZMQ connection to mujin controller at %s:%d")%_mujinControllerIp%_zmqPort), MEC_Failed);
     }
@@ -111,22 +110,20 @@ boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std:
     if (getresult) {
         std::stringstream result_ss;
 
-        {
-            boost::mutex::scoped_lock lock(_zmqmutex);
-            try{
-                result_ss << _zmqmujincontrollerclient->Call(command);
-            }
-            catch (const MujinException& e) {
-                std::cerr << e.what() << std::endl;
-                if (e.GetCode() == MEC_ZMQNoResponse) {
-                    std::cout << "reinitializing zmq connection with the slave"<< std::endl;
-                    _zmqmujincontrollerclient.reset(new ZmqMujinControllerClient(_mujinControllerIp, _zmqPort));
-                    if (!_zmqmujincontrollerclient) {
-                        throw MujinException(boost::str(boost::format("Failed to establish ZMQ connection to mujin controller at %s:%d")%_mujinControllerIp%_zmqPort), MEC_Failed);
-                    }
+        try{
+            result_ss << _zmqmujincontrollerclient->Call(command);
+        }
+        catch (const MujinException& e) {
+            std::cerr << e.what() << std::endl;
+            if (e.GetCode() == MEC_ZMQNoResponse) {
+                std::cout << "reinitializing zmq connection with the slave"<< std::endl;
+                _zmqmujincontrollerclient.reset(new ZmqMujinControllerClient(_zmqcontext, _mujinControllerIp, _zmqPort));
+                if (!_zmqmujincontrollerclient) {
+                    throw MujinException(boost::str(boost::format("Failed to establish ZMQ connection to mujin controller at %s:%d")%_mujinControllerIp%_zmqPort), MEC_Failed);
                 }
             }
         }
+
         //std::cout << result_ss.str() << std::endl;
         try {
             boost::property_tree::read_json(result_ss, pt);
@@ -134,7 +131,6 @@ boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std:
             throw MujinException(boost::str(boost::format("Failed to parse json which is received from mujin controller: \nreceived message: %s \nerror message: %s")%result_ss.str()%e.what()), MEC_Failed);
         }
     } else {
-        boost::mutex::scoped_lock lock(_zmqmutex);
         try{
             _zmqmujincontrollerclient->Call(command);
         }
@@ -142,7 +138,7 @@ boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std:
             std::cerr << e.what() << std::endl;
             if (e.GetCode() == MEC_ZMQNoResponse) {
                 std::cout << "reinitializing zmq connection with the slave"<< std::endl;
-                _zmqmujincontrollerclient.reset(new ZmqMujinControllerClient(_mujinControllerIp, _zmqPort));
+                _zmqmujincontrollerclient.reset(new ZmqMujinControllerClient(_zmqcontext, _mujinControllerIp, _zmqPort));
                 if (!_zmqmujincontrollerclient) {
                     throw MujinException(boost::str(boost::format("Failed to establish ZMQ connection to mujin controller at %s:%d")%_mujinControllerIp%_zmqPort), MEC_Failed);
                 }
@@ -164,10 +160,8 @@ void BinPickingTaskZmqResource::InitializeZMQ(const double reinitializetimeout, 
 
 void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializetimeout, const double commandtimeout)
 {
-    boost::shared_ptr<zmq::context_t> context;
     boost::shared_ptr<zmq::socket_t>  socket;
-    context.reset(new zmq::context_t(1));
-    socket.reset(new zmq::socket_t((*context.get()),ZMQ_SUB));
+    socket.reset(new zmq::socket_t((*_zmqcontext.get()),ZMQ_SUB));
     std::stringstream ss;
     ss << _heartbeatPort;
     socket->connect (("tcp://"+ _mujinControllerIp+":"+ss.str()).c_str());

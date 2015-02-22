@@ -60,7 +60,8 @@ int main(int argc, char ** argv)
     BinPickingTaskResourcePtr binpicking = scene->GetOrCreateBinPickingTaskFromName_UTF8("binpickingtask1");
 
     HandEyeCalibrationTaskResourcePtr calib;
-    binpicking->Initialize(robotControllerIp, robotControllerPort, binpickingTaskZmqPort, binpickingTaskHeartbeatPort);
+    boost::shared_ptr<zmq::context_t> zmqcontext(new zmq::context_t(2));
+    binpicking->Initialize(url_ss.str(), binpickingTaskZmqPort, binpickingTaskHeartbeatPort, zmqcontext);
     calib.reset(new HandEyeCalibrationTaskResource(std::string("calibtask1"), controller,scene));
     BinPickingTaskResource::ResultGetJointValues jointvaluesresult;
     binpicking->GetJointValues(jointvaluesresult);
