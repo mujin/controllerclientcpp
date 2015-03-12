@@ -67,7 +67,7 @@ BinPickingTaskResource::BinPickingTaskResource(ControllerClientPtr pcontroller, 
     ss << GetJsonString("scenetype", "mujincollada") << ", ";
 
     std::string scenebasename = pcontroller->GetNameFromPrimaryKey_UTF8(scenepk);
-    ss << GetJsonString("sceneuri", std::string("mujin:/")+scenebasename);
+    ss << GetJsonString("sceneuri", std::string("mujin:/")+scenebasename) << ", ";
 
     // should stop sending scenefilename since it is a hack!
     std::string MUJIN_MEDIA_ROOT_DIR = "/var/www/media/u";
