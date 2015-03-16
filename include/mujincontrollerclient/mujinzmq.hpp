@@ -1,5 +1,5 @@
 // -*- coding: utf-8 -*-
-// Copyright (C) 2012-2014 MUJIN Inc. <rosen.diankov@mujin.co.jp>
+// Copyright (C) 2012-2015 MUJIN Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ protected:
         std::ostringstream port_stream;
         port_stream << _port;
         _socket->setsockopt(ZMQ_SUBSCRIBE, "", 0);
-        int val = 10;
+        int val = 2;
         _socket->setsockopt(ZMQ_SNDHWM, &val, sizeof(val));
         _socket->connect (("tcp://" + _host + ":" + port_stream.str()).c_str());
     }
@@ -117,7 +117,7 @@ protected:
             _sharedcontext = false;
         }
         _socket.reset(new zmq::socket_t ((*(zmq::context_t*)_context.get()), ZMQ_PUB));
-        int val = 10;
+        int val = 2;
         _socket->setsockopt(ZMQ_SNDHWM, &val, sizeof(val));
         std::ostringstream port_stream;
         port_stream << _port;
