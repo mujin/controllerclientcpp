@@ -16,6 +16,23 @@
 
 #include <mujincontrollerclient/mujincontrollerclient.h>
 
+#ifndef USE_LOG4CPP // logging
+
+#define CALIBRATION_LOG_INFO(msg) std::cout << msg << std::endl;
+#define CALIBRATION_LOG_ERROR(msg) std::cerr << msg << std::endl;
+
+#else
+
+#include <log4cpp/Category.hh>
+#include <log4cpp/PropertyConfigurator.hh>
+
+LOG4CPP_LOGGER_N(mujincontrollerclientcalibrationlogger, "mujincontrollerclient.calibrationtask");
+
+#define CALIBRATION_LOG_INFO(msg) LOG4CPP_INFO_S(mujincontrollerclientcalibrationlogger) << msg;
+#define CALIBRATION_LOG_ERROR(msg) LOG4CPP_ERROR_S(mujincontrollerclientcalibrationlogger) << msg;
+
+#endif // logging
+
 namespace mujinclient {
 
 /// \brief holds information about the binpicking task parameters

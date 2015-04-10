@@ -24,6 +24,23 @@
 
 #include "mujincontrollerclient/zmq.hpp"
 
+#ifndef USE_LOG4CPP // logging
+
+#define CLIENTZMQ_LOG_INFO(msg) std::cout << msg << std::endl;
+#define CLIENTZMQ_LOG_ERROR(msg) std::cerr << msg << std::endl;
+
+#else
+
+#include <log4cpp/Category.hh>
+#include <log4cpp/PropertyConfigurator.hh>
+
+LOG4CPP_LOGGER_N(mujincontrollerclientzmqlogger, "mujincontrollerclient.zmq");
+
+#define CLIENTZMQ_LOG_INFO(msg) LOG4CPP_INFO_S(mujincontrollerclientzmqlogger) << msg;
+#define CLIENTZMQ_LOG_ERROR(msg) LOG4CPP_ERROR_S(mujincontrollerclientzmqlogger) << msg;
+
+#endif // logging
+
 namespace mujinzmq
 {
 
@@ -171,7 +188,9 @@ protected:
         _socket.reset(new zmq::socket_t ((*(zmq::context_t*)_context.get()), ZMQ_REQ));
         std::ostringstream port_stream;
         port_stream << _port;
-        std::cout << "connecting to socket at " << _host << ":" << _port << std::endl;
+        std::stringstream ss;
+        ss << "connecting to socket at " << _host << ":" << _port;
+        CLIENTZMQ_LOG_INFO(ss.str());
         _socket->connect (("tcp://" + _host + ":" + port_stream.str()).c_str());
     }
 
@@ -239,7 +258,9 @@ protected:
         std::ostringstream port_stream;
         port_stream << _port;
         _socket->bind (("tcp://*:" + port_stream.str()).c_str());
-        std::cout << "binded to tcp://*:" << _port << std::endl;
+        std::stringstream ss;
+        ss << "binded to tcp://*:" <<  _port;
+        CLIENTZMQ_LOG_INFO(ss.str());
     }
 
     void _DestroySocket()

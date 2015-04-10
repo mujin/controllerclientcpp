@@ -16,6 +16,11 @@ if (libzmq_FOUND)
   include_directories(${libzmq_INCLUDE_DIRS})
 endif()
 
+if (log4cpp_FOUND)
+  include_directories(${log4cpp_INCLUDE_DIRS})
+  link_directories(${log4cpp_LIBRARY_DIRS})
+endif()
+
 link_directories(${MUJINCLIENT_LINK_DIRS})
 
 set(SOURCE_FILES handeyecalibrationtask.cpp binpickingtask.cpp common.cpp common.h controllerclientimpl.cpp controllerclientimpl.h mujincontrollerclient.cpp ${mujin_header_files} utf8.h )
@@ -34,7 +39,11 @@ set_target_properties(libmujincontrollerclient PROPERTIES COMPILE_FLAGS "${EXTRA
   VERSION ${MUJINCLIENT_VERSION}
   CLEAN_DIRECT_OUTPUT 1
   )
-target_link_libraries(libmujincontrollerclient ${CURL_LIBRARIES} ${Boost_THREAD_LIBRARY} ${Boost_DATE_TIME_LIBRARY}  ${EXTRA_LIBRARIES} ${libzmq_LIBRARIES})
+if (log4cpp_FOUND)
+  target_link_libraries(libmujincontrollerclient ${CURL_LIBRARIES} ${Boost_THREAD_LIBRARY} ${Boost_DATE_TIME_LIBRARY}  ${EXTRA_LIBRARIES} ${libzmq_LIBRARIES} ${log4cpp_LIBRARIES})
+else()
+  target_link_libraries(libmujincontrollerclient ${CURL_LIBRARIES} ${Boost_THREAD_LIBRARY} ${Boost_DATE_TIME_LIBRARY}  ${EXTRA_LIBRARIES} ${libzmq_LIBRARIES})
+endif()
 if( MSVC )
   install(TARGETS libmujincontrollerclient RUNTIME DESTINATION bin LIBRARY DESTINATION bin ARCHIVE DESTINATION lib${LIB_SUFFIX})
 else()

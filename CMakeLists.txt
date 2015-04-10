@@ -127,6 +127,13 @@ if( MSVC )
   set(Boost_CFLAGS "-DBOOST_ALL_DYN_LINK -DBOOST_ALL_NO_LIB")
 else()
   set(MUJINCLIENT_LIBRARY_SUFFIX "${MUJINCLIENT_SOVERSION}" CACHE STRING "Suffix to append to library names")
+
+  # only try to load log4cpp module if not windows
+  find_package(PkgConfig)
+  pkg_check_modules(log4cpp log4cpp)
+  if (log4cpp_FOUND)
+    add_definitions(-DUSE_LOG4CPP)
+  endif()
 endif()
 
 # only look for installed boost if not an old version of msvc

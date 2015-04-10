@@ -992,11 +992,13 @@ void BinPickingTaskResource::_HeartbeatMonitorThread(const double reinitializeti
             }
         }
         if (!_bShutdownHeartbeatMonitor) {
-            std::cout << (double)((GetMilliTime() - lastheartbeat)/1000.0f) << " seconds passed since last heartbeat signal, re-intializing ZMQ server." << std::endl;
+            std::stringstream ss;
+            ss << (double)((GetMilliTime() - lastheartbeat)/1000.0f) << " seconds passed since last heartbeat signal, re-intializing ZMQ server.";
+            BINPICKING_LOG_INFO(ss.str());
         }
     }
 #else
-    std::cerr << "cannot create heartbeat monitor since not compiled with libzmq" << std::endl;
+    BINPICKING_LOG_ERROR("cannot create heartbeat monitor since not compiled with libzmq");
 #endif
 }
 

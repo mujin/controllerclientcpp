@@ -333,7 +333,9 @@ void SceneResource::InstObject::GrabObject(InstObjectPtr grabbedobject, std::str
     //TODO do not use this->grabs. this is the cached information
     for (size_t igrab = 0; igrab < this->grabs.size(); igrab++) {
         if (this->grabs[igrab] == grab) {
-            std::cerr << grabbedobject->name << "is already grabbed" << std::endl;
+            std::stringstream ss;
+            ss << grabbedobject->name << "is already grabbed";
+            CLIENT_LOG_ERROR(ss.str());
             return;
         }
     }
@@ -378,7 +380,9 @@ void SceneResource::InstObject::ReleaseObject(InstObjectPtr grabbedobject, std::
             controller->CallPut(str(boost::format("%s/%s/?format=json")%GetResourceName()%GetPrimaryKey()), ss.str(), pt);
         }
     }
-    std::cerr << grabbedobject->name << "is not grabbed" << std::endl;
+    std::stringstream ss;
+    ss << grabbedobject->name << "is not grabbed";
+    CLIENT_LOG_ERROR(ss.str());
 
 }
 
@@ -820,7 +824,9 @@ void TaskResource::GetTaskParameters(ITLPlanningTaskParameters& taskparameters)
             ExtractEnvironmentStateFromPTree(v->second, taskparameters.final_envstate);
         }
         else {
-            std::cout << "unsupported ITL task parameter " << v->first << std::endl;
+            std::stringstream ss;
+            ss << "unsupported ITL task parameter " << v->first;
+            CLIENT_LOG_ERROR(ss.str());
         }
     }
     // for back compat

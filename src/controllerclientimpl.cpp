@@ -266,7 +266,9 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
         _charset = itcodepage->second;
     }
 #endif
-    std::cout << "setting character set to " << _charset << std::endl;
+    std::stringstream ss;
+    ss << "setting character set to " << _charset;
+    CLIENT_LOG_INFO(ss.str());
     _SetHTTPHeaders();
 
     try {
@@ -477,7 +479,9 @@ void ControllerClientImpl::SyncUpload_UTF8(const std::string& _sourcefilename, c
 #if defined(_WIN32) || defined(_WIN64)
     // check if / is used anywhere and send a warning if it is
     if( sourcefilename.find_first_of('/') != std::string::npos ) {
-        std::cout << "scene filename '" << sourcefilename << "' is using /, so replacing this with \\" << std::endl;
+        std::stringstream ss;
+        ss << "scene filename '" << sourcefilename << "' is using /, so replacing this with \\";
+        CLIENT_LOG_INFO(ss.str());
         for(size_t i = 0; i < sourcefilename.size(); ++i) {
             if( sourcefilename[i] == '/' ) {
                 sourcefilename[i] = '\\';
@@ -563,7 +567,9 @@ void ControllerClientImpl::SyncUpload_UTF16(const std::wstring& _sourcefilename_
 #if defined(_WIN32) || defined(_WIN64)
     // check if / is used anywhere and send a warning if it is
     if( sourcefilename_utf16.find_first_of(L'/') != std::wstring::npos ) {
-        std::cout << "scene filename '" << encoding::ConvertUTF16ToFileSystemEncoding(sourcefilename_utf16) << "' is using /, so replacing this with \\" << std::endl;
+        std::stringstream ss;
+        ss << "scene filename '" << encoding::ConvertUTF16ToFileSystemEncoding(sourcefilename_utf16) << "' is using /, so replacing this with \\";
+        CLIENT_LOG_INFO(ss.str());
         for(size_t i = 0; i < sourcefilename_utf16.size(); ++i) {
             if( sourcefilename_utf16[i] == L'/' ) {
                 sourcefilename_utf16[i] = L'\\';
@@ -1260,7 +1266,9 @@ void ControllerClientImpl::_UploadDirectoryToController_UTF8(const std::string& 
         sCopyDir_FS.resize(sCopyDir_FS.size()-1);
         bhasseparator = true;
     }
-    std::cout << "uploading " << sCopyDir_FS << " -> " << uri << std::endl;
+    std::stringstream ss;
+    ss << "uploading " << sCopyDir_FS << " -> " << uri;
+    CLIENT_LOG_INFO(ss.str());
 
 #if defined(_WIN32) || defined(_WIN64)
     WIN32_FIND_DATAA ffd;
@@ -1379,7 +1387,9 @@ void ControllerClientImpl::_UploadDirectoryToController_UTF16(const std::wstring
     else {
         sCopyDir_FS = copydir_utf16;
     }
-    std::cout << "uploading " << encoding::ConvertUTF16ToFileSystemEncoding(copydir_utf16) << " -> " << uri << std::endl;
+    std::stringstream ss;
+    ss << "uploading " << encoding::ConvertUTF16ToFileSystemEncoding(copydir_utf16) << " -> " << uri;
+    CLIENT_LOG_INFO(ss.str());
 
 #if defined(_WIN32) || defined(_WIN64)
     WIN32_FIND_DATAW ffd;
@@ -1594,7 +1604,7 @@ void ControllerClientImpl::_DeleteDirectoryOnController(const std::string& destu
     CHECKCURLCODE(res, "curl_easy_perform failed");
     long http_code = 0;
     res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
-    std::cout << http_code << std::endl;
+    CLIENT_LOG_INFO(http_code);
 }
 
 size_t ControllerClientImpl::_ReadUploadCallback(void *ptr, size_t size, size_t nmemb, void *stream)
