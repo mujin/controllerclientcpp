@@ -82,9 +82,10 @@ BinPickingTaskZmqResource::~BinPickingTaskZmqResource()
 {
 }
 
-    void BinPickingTaskZmqResource::Initialize(const std::string& robotControllerUri, const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq, const double reinitializetimeout, const double timeout)
+    void BinPickingTaskZmqResource::Initialize(const std::string& robotControllerUri, const std::string& robotDeviceIOUri,  const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq, const double reinitializetimeout, const double timeout)
 {
     _robotControllerUri = robotControllerUri;
+    _robotDeviceIOUri = robotDeviceIOUri;
     _zmqPort = zmqPort;
     _heartbeatPort = heartbeatPort;
     _bIsInitialized = true;
