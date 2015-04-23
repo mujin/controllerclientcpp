@@ -459,7 +459,7 @@ void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const boost
                             throw MujinException("the length of image_dimensions is invalid", MEC_Failed);
                         }
                         FOREACH(v, v1->second) {
-                            sensordata.distortion_coeffs[i++] = boost::lexical_cast<int>(v->second.data());
+                            sensordata.image_dimensions[i++] = boost::lexical_cast<int>(v->second.data());
                         }
                     }
                     else if (v1->first == "extra_parameters") {
