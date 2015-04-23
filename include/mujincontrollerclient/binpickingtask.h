@@ -116,6 +116,15 @@ public:
         Transform transform;
     };
 
+    struct MUJINCLIENT_API ResultGetInstObjectAndSensorInfo : public ResultBase
+    {
+        virtual ~ResultGetInstObjectAndSensorInfo();
+        void Parse(const boost::property_tree::ptree& pt);
+        std::map<std::string, Transform> minstobjecttransform;
+        std::map<std::string, Transform> msensortransform;
+        std::map<std::string, RobotResource::AttachedSensorResource::SensorData> msensordata;
+    };
+
     struct MUJINCLIENT_API ResultIsRobotOccludingBody : public ResultBase
     {
         virtual ~ResultIsRobotOccludingBody();
@@ -222,6 +231,10 @@ public:
 
     virtual PlanningResultResourcePtr GetResult();
 
+    /** \brief Gets inst object 
+     */
+    virtual void GetInstObjectAndSensorInfo(const std::vector<std::string>& instobjectnames, const std::vector<std::string>& sensornames, ResultGetInstObjectAndSensorInfo& result, const std::string& unit="m", const double timeout /* second */=0);
+
     /** \brief Monitors heartbeat signals from a running binpicking ZMQ server, and reinitializes the ZMQ server when heartbeat is lost.
         \param reinitializetimeout seconds to wait before re-initializing the ZMQ server after the heartbeat signal is lost
         \param execfn function to use to execute the InitializeZMQ command
@@ -233,6 +246,7 @@ protected:
     std::string GetJsonString(const std::string& string);
     std::string GetJsonString(const std::vector<Real>& vec);
     std::string GetJsonString(const std::vector<int>& vec);
+    std::string GetJsonString(const std::vector<std::string>& vec);
     std::string GetJsonString(const Transform& transform);
     std::string GetJsonString(const DetectedObject& obj);
     std::string GetJsonString(const PointCloudObstacle& obj);

@@ -119,12 +119,10 @@ std::string BinPickingTaskResource::GetJsonString (const std::vector<Real>& vec)
     std::stringstream ss;
     ss << std::setprecision(std::numeric_limits<Real>::digits10+1);
     ss << "[";
-    if( vec.size() > 0 ) {
-        for (unsigned int i = 0; i < vec.size(); i++) {
-            ss << vec[i];
-            if( i != vec.size()-1) {
-                ss << ", ";
-            }
+    for (unsigned int i = 0; i < vec.size(); ++i) {
+        ss << vec[i];
+        if (i != vec.size() - 1) {
+            ss << ", ";
         }
     }
     ss << "]";
@@ -135,12 +133,24 @@ std::string BinPickingTaskResource::GetJsonString (const std::vector<int>& vec)
 {
     std::stringstream ss;
     ss << "[";
-    if( vec.size() > 0 ) {
-        for (unsigned int i = 0; i < vec.size(); i++) {
-            ss << vec[i];
-            if( i != vec.size()-1) {
-                ss << ", ";
-            }
+    for (unsigned int i = 0; i < vec.size(); ++i) {
+        ss << vec[i];
+        if (i != vec.size() - 1) {
+            ss << ", ";
+        }
+    }
+    ss << "]";
+    return ss.str();
+}
+
+std::string BinPickingTaskResource::GetJsonString(const std::vector<std::string>& vec)
+{
+    std::stringstream ss;
+    ss << "[";
+    for (unsigned int i = 0; i < vec.size(); ++i) {
+        ss << GetJsonString(vec[i]);
+        if (i != vec.size() - 1) {
+            ss << ", ";
         }
     }
     ss << "]";
@@ -364,6 +374,108 @@ void BinPickingTaskResource::ResultTransform::Parse(const boost::property_tree::
                 transform.quaternion[i++] = boost::lexical_cast<Real>(v->second.data());
             }
         }
+    }
+}
+
+BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::~ResultGetInstObjectAndSensorInfo()
+{
+}
+
+void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const boost::property_tree::ptree& pt)
+{
+    _pt = pt.get_child("output");
+
+    FOREACH(v0, _pt.get_child("instobjects")) {
+        std::string objname = v0->first;
+        Transform transform;
+        FOREACH(value, v0->second) {
+            if( value->first == "translation") {
+                unsigned int i = 0;
+                if ( value->second.size() != 3 ) {
+                    throw MujinException("the length of translation is invalid", MEC_Failed);
+                }
+                FOREACH(v, value->second) {
+                    transform.translate[i++] = boost::lexical_cast<Real>(v->second.data());
+                }
+            }
+            else if (value->first == "quaternion") {
+                unsigned int i = 0;
+                if ( value->second.size() != 4 ) {
+                    throw MujinException("the length of quaternion is invalid", MEC_Failed);
+                }
+                FOREACH(v, value->second) {
+                    transform.quaternion[i++] = boost::lexical_cast<Real>(v->second.data());
+                }
+            }
+        }
+        minstobjecttransform[objname] = transform;
+    }
+    FOREACH(v0, _pt.get_child("sensors")) {
+        std::string sensorname = v0->first;
+        Transform transform;
+        RobotResource::AttachedSensorResource::SensorData sensordata;
+        FOREACH(value, v0->second) {
+            if( value->first == "translation") {
+                unsigned int i = 0;
+                if ( value->second.size() != 3 ) {
+                    throw MujinException("the length of translation is invalid", MEC_Failed);
+                }
+                FOREACH(v, value->second) {
+                    transform.translate[i++] = boost::lexical_cast<Real>(v->second.data());
+                }
+            }
+            else if (value->first == "quaternion") {
+                unsigned int i = 0;
+                if ( value->second.size() != 4 ) {
+                    throw MujinException("the length of quaternion is invalid", MEC_Failed);
+                }
+                FOREACH(v, value->second) {
+                    transform.quaternion[i++] = boost::lexical_cast<Real>(v->second.data());
+                }
+            }
+            else if (value->first == "sensordata") {
+                FOREACH(v1, value->second) {
+                    if (v1->first == "distortion_coeffs") {
+                        unsigned int i = 0;
+                        if ( v1->second.size() != 5 ) {
+                            throw MujinException("the length of distortion_coeffs is invalid", MEC_Failed);
+                        }
+                        FOREACH(v, v1->second) {
+                            sensordata.distortion_coeffs[i++] = boost::lexical_cast<Real>(v->second.data());
+                        }
+                    }
+                    else if (v1->first == "intrinsic") {
+                        unsigned int i = 0;
+                        if ( v1->second.size() != 6 ) {
+                            throw MujinException("the length of intrinsic is invalid", MEC_Failed);
+                        }
+                        FOREACH(v, v1->second) {
+                            sensordata.intrinsic[i++] = boost::lexical_cast<Real>(v->second.data());
+                        }
+                    }
+                    else if (v1->first == "image_dimensions") {
+                        unsigned int i = 0;
+                        if ( v1->second.size() != 3 ) {
+                            throw MujinException("the length of image_dimensions is invalid", MEC_Failed);
+                        }
+                        FOREACH(v, v1->second) {
+                            sensordata.distortion_coeffs[i++] = boost::lexical_cast<int>(v->second.data());
+                        }
+                    }
+                    else if (v1->first == "extra_parameters") {
+                        unsigned int i = 0;
+                        FOREACH(v, v1->second) {
+                            sensordata.extra_parameters[i++] = boost::lexical_cast<Real>(v->second.data());
+                        }
+                    }
+                }
+                sensordata.distortion_model = value->second.get<std::string>("distortion_model");
+                sensordata.focal_length = value->second.get<Real>("focal_length");
+                sensordata.measurement_time = value->second.get<Real>("measurement_time");
+            }
+        }
+        msensortransform[sensorname] = transform;
+        msensordata[sensorname] = sensordata;
     }
 }
 
@@ -772,6 +884,24 @@ PlanningResultResourcePtr BinPickingTaskResource::GetResult()
         }
     }
     return result;
+}
+
+void BinPickingTaskResource::GetInstObjectAndSensorInfo(const std::vector<std::string>& instobjectnames, const std::vector<std::string>& sensornames, ResultGetInstObjectAndSensorInfo& result, const std::string& unit, const double timeout)
+{
+    std::string command = "GetInstObjectAndSensorInfo";
+    _ss.str(""); _ss.clear();
+    _ss << "{";
+    _ss << GetJsonString("command", command) << ", ";
+    _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
+    _ss << GetJsonString("instobjectnames") << ": " << GetJsonString(instobjectnames) << ", ";
+    _ss << GetJsonString("sensornames") << ": " << GetJsonString(sensornames) << ", ";
+    _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
+    _ss << GetJsonString("unit", unit);
+    _ss << "}";
+    std::string tmp = _ss.str();
+    std::cout << tmp << std::endl;
+    boost::property_tree::ptree pt = ExecuteCommand(_ss.str(), timeout);
+    result.Parse(ExecuteCommand(_ss.str(), timeout));
 }
 
 boost::property_tree::ptree BinPickingTaskResource::ExecuteCommand(const std::string& taskparameters, const double timeout, const bool getresult)
