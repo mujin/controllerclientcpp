@@ -479,6 +479,20 @@ void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const boost
     }
 }
 
+BinPickingTaskResource::ResultGetBinpickingState::~ResultGetBinpickingState()
+{
+}
+
+void BinPickingTaskResource::ResultGetBinpickingState::Parse(const boost::property_tree::ptree& pt)
+{
+    _pt = pt.get_child("output");
+
+    statusPickPlace = _pt.get<std::string>("statusPickPlace", "unknown");
+    pickAttemptFromSourceId = _pt.get<int>("pickAttemptFromSourceId", -1);
+    timestamp = (unsigned long long)(_pt.get<double>("timestamp", 0));
+    isRobotOccludingSourceContainer = _pt.get<bool>("isRobotOccludingSourceContainer", true);
+}
+
 BinPickingTaskResource::ResultIsRobotOccludingBody::~ResultIsRobotOccludingBody()
 {
 }
@@ -898,8 +912,20 @@ void BinPickingTaskResource::GetInstObjectAndSensorInfo(const std::vector<std::s
     _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
     _ss << GetJsonString("unit", unit);
     _ss << "}";
-    std::string tmp = _ss.str();
-    std::cout << tmp << std::endl;
+    boost::property_tree::ptree pt = ExecuteCommand(_ss.str(), timeout);
+    result.Parse(ExecuteCommand(_ss.str(), timeout));
+}
+
+void BinPickingTaskResource::GetBinpickingState(ResultGetBinpickingState& result, const std::string& unit, const double timeout)
+{
+    std::string command = "GetBinpickingState";
+    _ss.str(""); _ss.clear();
+    _ss << "{";
+    _ss << GetJsonString("command", command) << ", ";
+    _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
+    _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
+    _ss << GetJsonString("unit", unit);
+    _ss << "}";
     boost::property_tree::ptree pt = ExecuteCommand(_ss.str(), timeout);
     result.Parse(ExecuteCommand(_ss.str(), timeout));
 }

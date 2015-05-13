@@ -125,6 +125,16 @@ public:
         std::map<std::string, RobotResource::AttachedSensorResource::SensorData> msensordata;
     };
 
+    struct MUJINCLIENT_API ResultGetBinpickingState : public ResultBase
+    {
+        virtual ~ResultGetBinpickingState();
+        void Parse(const boost::property_tree::ptree& pt);
+        std::string statusPickPlace;
+        int pickAttemptFromSourceId;
+        unsigned long long timestamp;
+        bool isRobotOccludingSourceContainer;
+    };
+
     struct MUJINCLIENT_API ResultIsRobotOccludingBody : public ResultBase
     {
         virtual ~ResultIsRobotOccludingBody();
@@ -234,6 +244,8 @@ public:
     /** \brief Gets inst object 
      */
     virtual void GetInstObjectAndSensorInfo(const std::vector<std::string>& instobjectnames, const std::vector<std::string>& sensornames, ResultGetInstObjectAndSensorInfo& result, const std::string& unit="m", const double timeout /* second */=0);
+
+    virtual void GetBinpickingState(ResultGetBinpickingState& result, const std::string& unit="m", const double timeout /* second */=0);
 
     /** \brief Monitors heartbeat signals from a running binpicking ZMQ server, and reinitializes the ZMQ server when heartbeat is lost.
         \param reinitializetimeout seconds to wait before re-initializing the ZMQ server after the heartbeat signal is lost
