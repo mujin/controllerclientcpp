@@ -491,6 +491,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const boost::proper
     pickAttemptFromSourceId = _pt.get<int>("pickAttemptFromSourceId", -1);
     timestamp = (unsigned long long)(_pt.get<double>("timestamp", 0));
     isRobotOccludingSourceContainer = _pt.get<bool>("isRobotOccludingSourceContainer", true);
+    forceRequestDetectionResults = _pt.get<bool>("forceRequestDetectionResults", true);
 }
 
 BinPickingTaskResource::ResultIsRobotOccludingBody::~ResultIsRobotOccludingBody()

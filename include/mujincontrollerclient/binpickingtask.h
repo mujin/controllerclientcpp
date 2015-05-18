@@ -133,6 +133,7 @@ public:
         int pickAttemptFromSourceId;
         unsigned long long timestamp;
         bool isRobotOccludingSourceContainer;
+        bool forceRequestDetectionResults;
     };
 
     struct MUJINCLIENT_API ResultIsRobotOccludingBody : public ResultBase
