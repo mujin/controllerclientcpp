@@ -188,6 +188,7 @@ std::string BinPickingTaskResource::GetJsonString(const DetectedObject& obj)
     //"{\"name\": \"obj\",\"translation_\":[100,200,300],\"quat_\":[1,0,0,0],\"confidence\":0.5}"
     ss << "{";
     ss << GetJsonString("name") << ": " << GetJsonString(obj.name) << ", ";
+    ss << GetJsonString("object_uri") << ": " << GetJsonString(obj.object_uri) << ", ";
     ss << GetJsonString("translation_") << ": [";
     for (unsigned int i=0; i<3; i++) {
         ss << obj.transform.translate[i];
@@ -205,7 +206,8 @@ std::string BinPickingTaskResource::GetJsonString(const DetectedObject& obj)
     }
     ss << "], ";
     ss << GetJsonString("confidence") << ": " << obj.confidence;
-    ss << ", " <<GetJsonString("sensortimestamp") << ": " << obj.timestamp;
+    ss << ", " <<GetJsonString("sensortimestamp") << ": " << obj.timestamp << ", ";
+    ss << GetJsonString("extra") << ": " << obj.extra;
     ss << "}";
     return ss.str();
 }
@@ -760,6 +762,38 @@ void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<Real>&vpoin
     pointcloudobstacle.pointsize = pointsize;
     pointcloudobstacle.points = vpoints;
     _ss << GetJsonString(pointcloudobstacle);
+    _ss << "}";
+    ExecuteCommand(_ss.str(), timeout, false);
+}
+
+void BinPickingTaskResource::UpdateEnvironmentState(const std::string& basename, const std::string& default_object_uri, const std::vector<DetectedObject>& detectedobjects, const std::vector<Real>& vpoints, const bool iscontainerempty, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit, const double timeout)
+{
+    std::string command = "UpdateEnvironmentState";
+    _ss.str(""); _ss.clear();
+    _ss << "{";
+    _ss << GetJsonString("command", command) << ", ";
+    _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
+    _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
+    _ss << GetJsonString("objectname", basename) << ", ";
+    _ss << GetJsonString("object_uri", default_object_uri) << ", ";
+    
+    _ss << GetJsonString("envstate") << ": [";  
+    for (unsigned int i=0; i<detectedobjects.size(); i++) {
+        _ss << GetJsonString(detectedobjects[i]);
+        if (i!=detectedobjects.size()-1) {
+            _ss << ", ";
+        }
+    }
+    _ss << "], ";
+
+    _ss << GetJsonString("isContainerEmpty") << ": " << int(iscontainerempty) << ", ";
+    _ss << GetJsonString("unit", unit) << ", ";
+    PointCloudObstacle pointcloudobstacle;
+    pointcloudobstacle.name = pointcloudobstaclename;
+    pointcloudobstacle.pointsize = pointsize;
+    pointcloudobstacle.points = vpoints;
+    _ss << GetJsonString(pointcloudobstacle);
+    
     _ss << "}";
     ExecuteCommand(_ss.str(), timeout, false);
 }

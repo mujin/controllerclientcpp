@@ -57,13 +57,15 @@ class MUJINCLIENT_API BinPickingTaskResource : public TaskResource
 public:
     BinPickingTaskResource(ControllerClientPtr controller, const std::string& pk, const std::string& scenepk);
     virtual ~BinPickingTaskResource();
-
+    
     struct MUJINCLIENT_API DetectedObject
     {
-        std::string name;
-        Transform transform;
+        std::string name;             // "name": "detectionresutl_1"
+        std::string object_uri;       // "object_uri": "mujin:/box0.mujin.dae"
+        Transform transform;  
         std::string confidence;
         unsigned long long timestamp;
+        std::string extra;            // (OPTIONAL) "extra": {"type":"randombox", "length":100, "width":100, "height":100}
     };
 
     struct MUJINCLIENT_API PointCloudObstacle
@@ -213,6 +215,7 @@ public:
      */
     virtual void AddPointCloudObstacle(const std::vector<Real>& vpoints, const Real pointsize, const std::string& name, const double timeout /* second */=0);
 
+    virtual void UpdateEnvironmentState(const std::string& basename, const std::string& default_object_uri, const std::vector<DetectedObject>& detectedobjects, const std::vector<Real>& vpoints, const bool iscontainerempty, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit, const double timeout)
 
     virtual void UpdateEnvironmentState(const std::string& baseobjectname, const std::vector<Transform>& objecttransforms, const std::vector<std::string>& objectconfidences, const std::vector<unsigned long>& timestamps, const std::vector<Real>& dynamicobstaclepoints, const bool iscontainerempty, const Real dynamicpointsize, const std::string& dynamicobstaclename, const std::string& unit="m", const double timeout =0);
 
