@@ -798,6 +798,7 @@ void BinPickingTaskResource::UpdateEnvironmentState(const std::string& basename,
     ExecuteCommand(_ss.str(), timeout, false);
 }
 
+/*
 void BinPickingTaskResource::UpdateEnvironmentState(const std::string& basename, const std::vector<Transform>& transformsworld, const std::vector<std::string>& confidences, const std::vector<unsigned long>& timestamps,  const std::vector<Real>& vpoints, const bool iscontainerempty, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit, const double timeout)
 {
     std::string command = "UpdateEnvironmentState";
@@ -839,7 +840,7 @@ void BinPickingTaskResource::UpdateEnvironmentState(const std::string& basename,
     _ss << "}";
     ExecuteCommand(_ss.str(), timeout, false);
 }
-
+*/
 
 void BinPickingTaskResource::VisualizePointCloud(const std::vector<std::vector<Real> >&pointslist, const Real pointsize, const std::vector<std::string>&names, const double timeout)
 {

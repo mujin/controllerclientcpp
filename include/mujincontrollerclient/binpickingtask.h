@@ -217,9 +217,6 @@ public:
 
     virtual void UpdateEnvironmentState(const std::string& basename, const std::string& default_object_uri, const std::vector<DetectedObject>& detectedobjects, const std::vector<Real>& vpoints, const bool iscontainerempty, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit="m", const double timeout=0);
 
-    virtual void UpdateEnvironmentState(const std::string& baseobjectname, const std::vector<Transform>& objecttransforms, const std::vector<std::string>& objectconfidences, const std::vector<unsigned long>& timestamps, const std::vector<Real>& dynamicobstaclepoints, const bool iscontainerempty, const Real dynamicpointsize, const std::string& dynamicobstaclename, const std::string& unit="m", const double timeout =0);
-
-
     /** \brief Visualize point cloud on controller
         \param pointslist vector of x,y,z coordinates vector in meter
         \param pointsize size of each point in meter
