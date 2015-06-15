@@ -21,6 +21,7 @@
 #include <boost/thread.hpp>
 #include <sstream>
 #include <iostream>
+#include <exception>
 
 #include "mujincontrollerclient/zmq.hpp"
 
@@ -173,6 +174,78 @@ public:
     virtual ~ZmqClient()
     {
         _DestroySocket();
+    }
+
+    std::string Call(const std::string& msg, const double timeout=5.0/*secs*/)
+    {
+        //send
+        zmq::message_t request (msg.size());
+        // std::cout << msg.size() << std::endl;
+        // std::cout << msg << std::endl;
+        memcpy ((void *) request.data (), msg.c_str(), msg.size());
+        try {
+            _socket->send(request);
+        } catch (const zmq::error_t& e) {
+            if (e.num() == EAGAIN) {
+                CLIENTZMQ_LOG_ERROR("failed to send request, zmq::EAGAIN");
+                throw e;
+            }
+            if (e.num() == EFSM) {
+                CLIENTZMQ_LOG_INFO("zmq is in bad state, zmq::EFSM");
+            }
+            CLIENTZMQ_LOG_INFO("re-creating zmq socket and trying again");
+            if (!!_socket) {
+                _socket->close();
+                _socket.reset();
+            }
+            _InitializeSocket(_context);
+            CLIENTZMQ_LOG_INFO("try to send again");
+            _socket->send(request);
+        }
+
+        //recv
+        zmq::message_t reply;
+
+        try {
+
+            zmq::pollitem_t pollitem;
+            memset(&pollitem, 0, sizeof(zmq::pollitem_t));
+            pollitem.socket = _socket->operator void*();
+            pollitem.events = ZMQ_POLLIN;
+
+            // if timeout param is 0, caller means infinite
+            long timeoutms = -1;
+            if (timeout > 0) {
+                timeoutms = timeout * 1000.0;
+            }
+
+            zmq::poll(&pollitem, 1, timeoutms);
+            if (pollitem.revents & ZMQ_POLLIN) {
+                _socket->recv(&reply);
+                std::string replystring((char *) reply.data (), (size_t) reply.size());
+                return replystring;
+            }
+            else{
+                throw std::runtime_error("Timed out receiving response");
+            }
+
+        } catch (const zmq::error_t& e) {
+            if (e.num() == EAGAIN) {
+                CLIENTZMQ_LOG_ERROR("failed to receive reply, zmq::EAGAIN");
+                throw std::runtime_error("Failed to receive response, zmq::EAGAIN");
+            }
+            if (e.num() == EFSM) {
+                CLIENTZMQ_LOG_INFO("zmq is in bad state, zmq::EFSM");
+            }
+            CLIENTZMQ_LOG_INFO("re-creating zmq socket");
+            if (!!_socket) {
+                _socket->close();
+                _socket.reset();
+            }
+            _InitializeSocket(_context);
+            throw std::runtime_error("Got exception receiving response");
+        }
+        return std::string("{}");
     }
 
 protected:
