@@ -31,7 +31,6 @@ public:
 
     virtual ~ZmqMujinControllerClient();
 
-    std::string Call(const std::string& msg);
 };
 
 ZmqMujinControllerClient::ZmqMujinControllerClient(boost::shared_ptr<zmq::context_t> context, const std::string& host, const int port) : ZmqClient(host, port)
@@ -44,36 +43,6 @@ ZmqMujinControllerClient::~ZmqMujinControllerClient()
     // _DestroySocket() is called in  ~ZmqClient()
 }
 
-std::string ZmqMujinControllerClient::Call(const std::string& msg)
-{
-    //send
-    //std::cout << "serialization done" << std::endl;
-    zmq::message_t request (msg.size());
-    // std::cout << msg.size() << std::endl;
-    // std::cout << msg << std::endl;
-    memcpy ((void *) request.data (), msg.c_str(), msg.size());
-    _socket->send(request);
-
-    //recv
-    zmq::message_t reply;
-
-    zmq::pollitem_t pollitem;
-    memset(&pollitem, 0, sizeof(zmq::pollitem_t));
-    pollitem.socket = _socket->operator void*();
-    pollitem.events = ZMQ_POLLIN;
-    zmq::poll(&pollitem,1, 5000); // wait 5000 ms for message
-    if (pollitem.revents & ZMQ_POLLIN) {
-        _socket->recv(&reply);
-        std::string replystring((char *) reply.data (), (size_t) reply.size());
-        return replystring;
-    }
-    else{
-        // std::cerr << "No response received for msg = " << msg << std::endl;
-        throw MujinException(boost::str(boost::format("Failed to receive response from the mujincontroller slave")), MEC_ZMQNoResponse);
-    }
-    return std::string("{}");
-}
-
 BinPickingTaskZmqResource::BinPickingTaskZmqResource(ControllerClientPtr c, const std::string& pk, const std::string& scenepk) : BinPickingTaskResource::BinPickingTaskResource(c, pk, scenepk)
 {
 }
@@ -82,7 +51,7 @@ BinPickingTaskZmqResource::~BinPickingTaskZmqResource()
 {
 }
 
-    void BinPickingTaskZmqResource::Initialize(const std::string& robotControllerUri, const std::string& robotDeviceIOUri,  const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq, const double reinitializetimeout, const double timeout)
+void BinPickingTaskZmqResource::Initialize(const std::string& robotControllerUri, const std::string& robotDeviceIOUri,  const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq, const double reinitializetimeout, const double timeout)
 {
     _robotControllerUri = robotControllerUri;
     _robotDeviceIOUri = robotDeviceIOUri;
