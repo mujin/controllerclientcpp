@@ -572,7 +572,7 @@ void BinPickingTaskResource::ResultHeartBeat::Parse(const boost::property_tree::
     status = "";
     msg = "";
     timestamp = 0;
-    taskstatus = "";
+    taskstate = "";
     FOREACH(value, _pt) {
         if (value->first == "status") {
             status = std::string(value->second.data());
@@ -583,8 +583,8 @@ void BinPickingTaskResource::ResultHeartBeat::Parse(const boost::property_tree::
         if (value->first == "timestamp") {
             timestamp = boost::lexical_cast<Real>(value->second.data());
         }
-        if (value->first == "taskstatus") {
-            taskstatus = std::string(value->second.data());
+        if (value->first == "taskstate") {
+            taskstate = std::string(value->second.data());
         }
     }
 }
@@ -959,34 +959,38 @@ void BinPickingTaskResource::GetInstObjectAndSensorInfo(const std::vector<std::s
     result.Parse(ExecuteCommand(_ss.str(), timeout));
 }
 
-void BinPickingTaskResource::GetBinpickingState(ResultGetBinpickingState& result, const std::string& unit, const bool request, const double timeout)
+void BinPickingTaskResource::GetPublishedTaskState(ResultGetBinpickingState& result, const std::string& unit, const double timeout)
 {
-    std::string taskstatus;
-    if (!request) {
-        {
-            boost::mutex::scoped_lock lock(_mutexTaskStatus);
-            taskstatus =_taskstatus;
-        }
+    std::string taskstate;
+    {
+        boost::mutex::scoped_lock lock(_mutexTaskState);
+        taskstate =_taskstate;
     }
 
-    if (request || (!request && taskstatus == "")) {
-        std::string command = "GetBinpickingState";
-        _ss.str(""); _ss.clear();
-        _ss << "{";
-        _ss << GetJsonString("command", command) << ", ";
-        _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
-        _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
-        _ss << GetJsonString("unit", unit);
-        _ss << "}";
-        boost::property_tree::ptree pt = ExecuteCommand(_ss.str(), timeout);
-        result.Parse(ExecuteCommand(_ss.str(), timeout));
+    if (taskstate == "") {
+        GetBinpickingState(result, unit, timeout);
     } else {
         boost::property_tree::ptree pt;
         std::stringstream ss;
-        ss << "{\"output\":" << taskstatus << "}";
+        ss << "{\"output\":" << taskstate << "}";
         boost::property_tree::read_json(ss, pt);
         result.Parse(pt);
     }
+}
+
+void BinPickingTaskResource::GetBinpickingState(ResultGetBinpickingState& result, const std::string& unit, const double timeout)
+{
+    std::string taskstate;
+    std::string command = "GetBinpickingState";
+    _ss.str(""); _ss.clear();
+    _ss << "{";
+    _ss << GetJsonString("command", command) << ", ";
+    _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
+    _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
+    _ss << GetJsonString("unit", unit);
+    _ss << "}";
+    boost::property_tree::ptree pt = ExecuteCommand(_ss.str(), timeout);
+    result.Parse(ExecuteCommand(_ss.str(), timeout));
 }
 
 boost::property_tree::ptree BinPickingTaskResource::ExecuteCommand(const std::string& taskparameters, const double timeout, const bool getresult)

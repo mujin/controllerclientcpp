@@ -164,7 +164,7 @@ public:
         virtual ~ResultHeartBeat();
         void Parse(const boost::property_tree::ptree& pt);
         std::string status;
-        std::string taskstatus;
+        std::string taskstate;
         Real timestamp;
         std::string msg;
     };
@@ -247,7 +247,8 @@ public:
      */
     virtual void GetInstObjectAndSensorInfo(const std::vector<std::string>& instobjectnames, const std::vector<std::string>& sensornames, ResultGetInstObjectAndSensorInfo& result, const std::string& unit="m", const double timeout /* second */=0);
 
-    virtual void GetBinpickingState(ResultGetBinpickingState& result, const std::string& unit="m", const bool request=true, const double timeout /* second */=0);
+    virtual void GetBinpickingState(ResultGetBinpickingState& result, const std::string& unit="m", const double timeout /* second */=0);
+    virtual void GetPublishedTaskState(ResultGetBinpickingState& result, const std::string& unit="m", const double timeout /* second */=0);
 
     /** \brief Monitors heartbeat signals from a running binpicking ZMQ server, and reinitializes the ZMQ server when heartbeat is lost.
         \param reinitializetimeout seconds to wait before re-initializing the ZMQ server after the heartbeat signal is lost
@@ -274,8 +275,8 @@ protected:
     std::string _robotControllerUri;
     std::string _robotDeviceIOUri;
     std::string _mujinControllerIp;
-    boost::mutex _mutexTaskStatus;
-    std::string _taskstatus;
+    boost::mutex _mutexTaskState;
+    std::string _taskstate;
     boost::shared_ptr<zmq::context_t> _zmqcontext;
     int _zmqPort;
     int _heartbeatPort;

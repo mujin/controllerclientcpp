@@ -165,8 +165,8 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
                 }
                 heartbeat.Parse(pt);
                 {
-                    boost::mutex::scoped_lock lock(_mutexTaskStatus);
-                    _taskstatus = heartbeat.taskstatus;
+                    boost::mutex::scoped_lock lock(_mutexTaskState);
+                    _taskstate = heartbeat.taskstate;
                 }
                 //BINPICKING_LOG_INFO(replystring);
 
