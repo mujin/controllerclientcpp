@@ -164,6 +164,12 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
                     continue;
                 }
                 heartbeat.Parse(pt);
+                {
+                    boost::mutex::scoped_lock lock(_mutexTaskStatus);
+                    _taskstatus = heartbeat.taskstatus;
+                }
+                //BINPICKING_LOG_INFO(replystring);
+
                 // std::cout << heartbeat.status << " " << heartbeat.timestamp << " " << heartbeat.msg << std::endl;
                 //if ((size_t)reply.size() == 1 && ((char *)reply.data())[0]==255) {
                 if (heartbeat.status != std::string("lost") && heartbeat.status.size() > 1) {

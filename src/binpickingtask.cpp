@@ -569,6 +569,10 @@ BinPickingTaskResource::ResultHeartBeat::~ResultHeartBeat()
 void BinPickingTaskResource::ResultHeartBeat::Parse(const boost::property_tree::ptree& pt)
 {
     _pt = pt;
+    status = "";
+    msg = "";
+    timestamp = 0;
+    taskstatus = "";
     FOREACH(value, _pt) {
         if (value->first == "status") {
             status = std::string(value->second.data());
@@ -578,6 +582,9 @@ void BinPickingTaskResource::ResultHeartBeat::Parse(const boost::property_tree::
         }
         if (value->first == "timestamp") {
             timestamp = boost::lexical_cast<Real>(value->second.data());
+        }
+        if (value->first == "taskstatus") {
+            taskstatus = std::string(value->second.data());
         }
     }
 }
@@ -952,18 +959,34 @@ void BinPickingTaskResource::GetInstObjectAndSensorInfo(const std::vector<std::s
     result.Parse(ExecuteCommand(_ss.str(), timeout));
 }
 
-void BinPickingTaskResource::GetBinpickingState(ResultGetBinpickingState& result, const std::string& unit, const double timeout)
+void BinPickingTaskResource::GetBinpickingState(ResultGetBinpickingState& result, const std::string& unit, const bool request, const double timeout)
 {
-    std::string command = "GetBinpickingState";
-    _ss.str(""); _ss.clear();
-    _ss << "{";
-    _ss << GetJsonString("command", command) << ", ";
-    _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
-    _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
-    _ss << GetJsonString("unit", unit);
-    _ss << "}";
-    boost::property_tree::ptree pt = ExecuteCommand(_ss.str(), timeout);
-    result.Parse(ExecuteCommand(_ss.str(), timeout));
+    std::string taskstatus;
+    if (!request) {
+        {
+            boost::mutex::scoped_lock lock(_mutexTaskStatus);
+            taskstatus =_taskstatus;
+        }
+    }
+
+    if (request || (!request && taskstatus == "")) {
+        std::string command = "GetBinpickingState";
+        _ss.str(""); _ss.clear();
+        _ss << "{";
+        _ss << GetJsonString("command", command) << ", ";
+        _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
+        _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
+        _ss << GetJsonString("unit", unit);
+        _ss << "}";
+        boost::property_tree::ptree pt = ExecuteCommand(_ss.str(), timeout);
+        result.Parse(ExecuteCommand(_ss.str(), timeout));
+    } else {
+        boost::property_tree::ptree pt;
+        std::stringstream ss;
+        ss << "{\"output\":" << taskstatus << "}";
+        boost::property_tree::read_json(ss, pt);
+        result.Parse(pt);
+    }
 }
 
 boost::property_tree::ptree BinPickingTaskResource::ExecuteCommand(const std::string& taskparameters, const double timeout, const bool getresult)
@@ -1182,7 +1205,6 @@ void BinPickingTaskResource::_HeartbeatMonitorThread(const double reinitializeti
                 zmq::message_t reply;
                 socket->recv(&reply);
                 std::string replystring((char *) reply.data (), (size_t) reply.size());
-                //std::cout << "got heartbeat: " << replystring << std::endl;
                 //if ((size_t)reply.size() == 1 && ((char *)reply.data())[0]==255) {
                 if (replystring == "255") {
                     lastheartbeat = GetMilliTime();
