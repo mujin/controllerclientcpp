@@ -793,7 +793,7 @@ void BinPickingTaskResource::UpdateEnvironmentState(const std::string& basename,
     }
     _ss << "], ";
 
-    _ss << GetJsonString("state") << ": " << GetJsonString(state) << ", ";
+    _ss << GetJsonString("state") << ": " << state << ", ";
     _ss << GetJsonString("unit", unit) << ", ";
     PointCloudObstacle pointcloudobstacle;
     pointcloudobstacle.name = pointcloudobstaclename;
