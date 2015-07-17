@@ -720,7 +720,7 @@ void BinPickingTaskResource::InitializeZMQ(const double reinitializetimeout, con
 #endif
 }
 
-void BinPickingTaskResource::UpdateObjects(const std::string& basename, const std::vector<Transform>&transformsworld, const std::vector<std::string>&confidence, const bool iscontainerempty, const std::string& unit, const double timeout)
+void BinPickingTaskResource::UpdateObjects(const std::string& basename, const std::vector<Transform>&transformsworld, const std::vector<std::string>&confidence, const std::string& state, const std::string& unit, const double timeout)
 {
     std::string command = "UpdateObjects";
     std::string targetname = basename;
@@ -750,7 +750,7 @@ void BinPickingTaskResource::UpdateObjects(const std::string& basename, const st
         }
     }
     _ss << "], ";
-    _ss << GetJsonString("isContainerEmpty") << ": " << int(iscontainerempty) << ", ";
+    _ss << GetJsonString("state") << ": " << GetJsonString(state) << ", ";
     _ss << GetJsonString("unit", unit);
     _ss << "}";
     ExecuteCommand(_ss.str(), timeout, false);
@@ -773,7 +773,7 @@ void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<Real>&vpoin
     ExecuteCommand(_ss.str(), timeout, false);
 }
 
-void BinPickingTaskResource::UpdateEnvironmentState(const std::string& basename, const std::string& default_object_uri, const std::vector<DetectedObject>& detectedobjects, const std::vector<Real>& vpoints, const bool iscontainerempty, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit, const double timeout)
+void BinPickingTaskResource::UpdateEnvironmentState(const std::string& basename, const std::string& default_object_uri, const std::vector<DetectedObject>& detectedobjects, const std::vector<Real>& vpoints, const std::string& state, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit, const double timeout)
 {
     std::string command = "UpdateEnvironmentState";
     _ss.str(""); _ss.clear();
@@ -793,7 +793,7 @@ void BinPickingTaskResource::UpdateEnvironmentState(const std::string& basename,
     }
     _ss << "], ";
 
-    _ss << GetJsonString("isContainerEmpty") << ": " << int(iscontainerempty) << ", ";
+    _ss << GetJsonString("state") << ": " << GetJsonString(state) << ", ";
     _ss << GetJsonString("unit", unit) << ", ";
     PointCloudObstacle pointcloudobstacle;
     pointcloudobstacle.name = pointcloudobstaclename;
