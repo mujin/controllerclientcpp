@@ -189,7 +189,6 @@ protected:
 
     curl_slist *_httpheaders;
     std::string _charset, _language;
-    std::string _userinfo_json;  ///< userinfo json
     std::string _csrfmiddlewaretoken;
 
     boost::property_tree::ptree _profile; ///< user profile and versioning

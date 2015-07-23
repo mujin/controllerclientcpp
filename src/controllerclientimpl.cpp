@@ -300,7 +300,7 @@ const std::string& ControllerClientImpl::GetUserName() const
 
 const std::string& ControllerClientImpl::GetUserInfo() const
 {
-    return _userinfo_json;
+    return "\"userinfo\": {\"username\": " + _username + ", \"locale\": " + _language + "}";
 }
 
 void ControllerClientImpl::SetCharacterEncoding(const std::string& newencoding)
@@ -321,9 +321,6 @@ void ControllerClientImpl::SetLanguage(const std::string& language)
     boost::mutex::scoped_lock lock(_mutex);
     _language = language;
     _SetHTTPHeaders();
-    std::stringstream ss;
-    ss << "\"userinfo\": {" << "\"username\": " << _username << ", \"locale\": " << _language << "}";
-    _userinfo_json = ss.str();
 }
 
 void ControllerClientImpl::RestartServer()
