@@ -300,7 +300,10 @@ const std::string& ControllerClientImpl::GetUserName() const
 
 const std::string& ControllerClientImpl::GetUserInfo() const
 {
-    return "{\"username\": " + _username + ", \"locale\": " + _language + "}";
+    std::string locale0 = _language.substr(0,_language.find("-"));
+    std::string locale1 = boost::to_upper_copy<std::string>(_language.substr(_language.find("-")+1));
+
+    return "{\"username\": " + _username + ", \"locale\": " + locale0 + "_" + locale1 + "}";
 }
 
 void ControllerClientImpl::SetCharacterEncoding(const std::string& newencoding)
