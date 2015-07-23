@@ -178,8 +178,9 @@ public:
         \param initializezmq whether to call InitializeZMQ() in this call
         \param reinitializetimeout seconds until calling InitailizeZMQ() if heartbeat has not been received. If 0, do not reinitialize
         \param timeout seconds until this command times out
+        \param locale language of the log/status
      */
-    virtual void Initialize(const std::string& robotControllerUri, const std::string& robotDeviceIOUri, const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq=false, const double reinitializetimeout=10, const double timeout=0);
+    virtual void Initialize(const std::string& robotControllerUri, const std::string& robotDeviceIOUri, const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq=false, const double reinitializetimeout=10, const double commandtimeout=0, const std::string& locale="");
 
     virtual boost::property_tree::ptree ExecuteCommand(const std::string& command, const double timeout /* second */=0.0, const bool getresult=true);
 
@@ -282,6 +283,7 @@ protected:
     boost::shared_ptr<zmq::context_t> _zmqcontext;
     int _zmqPort;
     int _heartbeatPort;
+    std::string _userinfo_json;  ///< userinfo json
     std::string _sceneparams_json; ///\ parameters of the scene to run tasks on the backend zmq slave
     boost::shared_ptr<boost::thread> _pHeartbeatMonitorThread;
 

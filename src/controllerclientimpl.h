@@ -30,6 +30,7 @@ public:
     virtual ~ControllerClientImpl();
 
     virtual const std::string& GetUserName() const;
+    virtual const std::string& GetUserInfo() const;
     
     virtual std::string GetVersion();
     virtual void SetCharacterEncoding(const std::string& newencoding);
@@ -188,6 +189,7 @@ protected:
 
     curl_slist *_httpheaders;
     std::string _charset, _language;
+    std::string _userinfo_json;  ///< userinfo json
     std::string _csrfmiddlewaretoken;
 
     boost::property_tree::ptree _profile; ///< user profile and versioning
