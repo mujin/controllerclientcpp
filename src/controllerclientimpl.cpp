@@ -300,7 +300,7 @@ const std::string& ControllerClientImpl::GetUserName() const
 
 const std::string& ControllerClientImpl::GetUserInfo() const
 {
-    return "\"userinfo\": {\"username\": " + _username + ", \"locale\": " + _language + "}";
+    return "{\"username\": " + _username + ", \"locale\": " + _language + "}";
 }
 
 void ControllerClientImpl::SetCharacterEncoding(const std::string& newencoding)
