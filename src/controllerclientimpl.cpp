@@ -298,14 +298,6 @@ const std::string& ControllerClientImpl::GetUserName() const
     return _username;
 }
 
-const std::string& ControllerClientImpl::GetUserInfo() const
-{
-    std::string locale0 = _language.substr(0,_language.find("-"));
-    std::string locale1 = boost::to_upper_copy<std::string>(_language.substr(_language.find("-")+1));
-
-    return "{\"username\": " + _username + ", \"locale\": " + locale0 + "_" + locale1 + "}";
-}
-
 void ControllerClientImpl::SetCharacterEncoding(const std::string& newencoding)
 {
     boost::mutex::scoped_lock lock(_mutex);
@@ -322,7 +314,9 @@ void ControllerClientImpl::SetProxy(const std::string& serverport, const std::st
 void ControllerClientImpl::SetLanguage(const std::string& language)
 {
     boost::mutex::scoped_lock lock(_mutex);
-    _language = language;
+    if (language!= "") {
+        _language = language;
+    }
     _SetHTTPHeaders();
 }
 

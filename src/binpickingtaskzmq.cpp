@@ -51,7 +51,7 @@ BinPickingTaskZmqResource::~BinPickingTaskZmqResource()
 {
 }
 
-void BinPickingTaskZmqResource::Initialize(const std::string& robotControllerUri, const std::string& robotDeviceIOUri,  const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq, const double reinitializetimeout, const double timeout)
+void BinPickingTaskZmqResource::Initialize(const std::string& robotControllerUri, const std::string& robotDeviceIOUri,  const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq, const double reinitializetimeout, const double timeout, const std::string& userinfo)
 {
     _robotControllerUri = robotControllerUri;
     _robotDeviceIOUri = robotDeviceIOUri;
@@ -59,6 +59,8 @@ void BinPickingTaskZmqResource::Initialize(const std::string& robotControllerUri
     _heartbeatPort = heartbeatPort;
     _bIsInitialized = true;
     _zmqcontext = zmqcontext;
+    _userinfo_json = userinfo;
+
     if (initializezmq) {
         InitializeZMQ(reinitializetimeout, timeout);
     }
@@ -73,6 +75,11 @@ boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std:
 {
     if (!_bIsInitialized) {
         throw MujinException("BinPicking task is not initialized, please call Initialzie() first.", MEC_Failed);
+    }
+
+    if (!_zmqmujincontrollerclient) {
+        BINPICKINGZMQ_LOG_ERROR("zmqcontrollerclient is not initialized! initialize");
+        _zmqmujincontrollerclient.reset(new ZmqMujinControllerClient(_zmqcontext, _mujinControllerIp, _zmqPort));
     }
 
     // TODO need to implement timeout

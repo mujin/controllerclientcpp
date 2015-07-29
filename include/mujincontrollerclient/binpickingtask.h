@@ -180,7 +180,7 @@ public:
         \param timeout seconds until this command times out
         \param locale language of the log/status
      */
-    virtual void Initialize(const std::string& robotControllerUri, const std::string& robotDeviceIOUri, const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq=false, const double reinitializetimeout=10, const double commandtimeout=0, const std::string& locale="");
+    virtual void Initialize(const std::string& robotControllerUri, const std::string& robotDeviceIOUri, const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq=false, const double reinitializetimeout=10, const double commandtimeout=0, const std::string& userinfo="{}");
 
     virtual boost::property_tree::ptree ExecuteCommand(const std::string& command, const double timeout /* second */=0.0, const bool getresult=true);
 

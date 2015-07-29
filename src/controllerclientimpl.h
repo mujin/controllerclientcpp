@@ -30,7 +30,6 @@ public:
     virtual ~ControllerClientImpl();
 
     virtual const std::string& GetUserName() const;
-    virtual const std::string& GetUserInfo() const;
     
     virtual std::string GetVersion();
     virtual void SetCharacterEncoding(const std::string& newencoding);
