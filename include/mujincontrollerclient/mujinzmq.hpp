@@ -226,7 +226,9 @@ public:
                 return replystring;
             }
             else{
-                throw std::runtime_error("Timed out receiving response");
+                std::stringstream ss;
+                ss << "Timed out receiving response of command " << msg << " after " << timeout << " seconds";
+                throw std::runtime_error(ss.str());
             }
 
         } catch (const zmq::error_t& e) {
