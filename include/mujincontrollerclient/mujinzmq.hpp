@@ -42,6 +42,113 @@ LOG4CPP_LOGGER_N(mujincontrollerclientzmqlogger, "mujincontrollerclient.zmq");
 
 #endif // logging
 
+#ifndef MUJIN_TIME
+#define MUJIN_TIME
+#include <time.h>
+
+#ifndef _WIN32
+#if !(defined(CLOCK_GETTIME_FOUND) && (POSIX_TIMERS > 0 || _POSIX_TIMERS > 0))
+#include <sys/time.h>
+#endif
+#else
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <sys/timeb.h>    // ftime(), struct timeb
+inline void usleep(unsigned long microseconds) {
+    Sleep((microseconds+999)/1000);
+}
+#endif
+
+#ifdef _WIN32
+inline uint64_t GetMilliTime()
+{
+    LARGE_INTEGER count, freq;
+    QueryPerformanceCounter(&count);
+    QueryPerformanceFrequency(&freq);
+    return (uint64_t)((count.QuadPart * 1000) / freq.QuadPart);
+}
+
+inline uint64_t GetMicroTime()
+{
+    LARGE_INTEGER count, freq;
+    QueryPerformanceCounter(&count);
+    QueryPerformanceFrequency(&freq);
+    return (count.QuadPart * 1000000) / freq.QuadPart;
+}
+
+inline uint64_t GetNanoTime()
+{
+    LARGE_INTEGER count, freq;
+    QueryPerformanceCounter(&count);
+    QueryPerformanceFrequency(&freq);
+    return (count.QuadPart * 1000000000) / freq.QuadPart;
+}
+
+inline static uint64_t GetNanoPerformanceTime() {
+    return GetNanoTime();
+}
+
+#else
+
+inline void GetWallTime(uint32_t& sec, uint32_t& nsec)
+{
+#if defined(CLOCK_GETTIME_FOUND) && (POSIX_TIMERS > 0 || _POSIX_TIMERS > 0)
+    struct timespec start;
+    clock_gettime(CLOCK_REALTIME, &start);
+    sec  = start.tv_sec;
+    nsec = start.tv_nsec;
+#else
+    struct timeval timeofday;
+    gettimeofday(&timeofday,NULL);
+    sec  = timeofday.tv_sec;
+    nsec = timeofday.tv_usec * 1000;
+#endif
+}
+
+inline uint64_t GetMilliTimeOfDay()
+{
+    struct timeval timeofday;
+    gettimeofday(&timeofday,NULL);
+    return (uint64_t)timeofday.tv_sec*1000+(uint64_t)timeofday.tv_usec/1000;
+}
+
+inline uint64_t GetNanoTime()
+{
+    uint32_t sec,nsec;
+    GetWallTime(sec,nsec);
+    return (uint64_t)sec*1000000000 + (uint64_t)nsec;
+}
+
+inline uint64_t GetMicroTime()
+{
+    uint32_t sec,nsec;
+    GetWallTime(sec,nsec);
+    return (uint64_t)sec*1000000 + (uint64_t)nsec/1000;
+}
+
+inline uint64_t GetMilliTime()
+{
+    uint32_t sec,nsec;
+    GetWallTime(sec,nsec);
+    return (uint64_t)sec*1000 + (uint64_t)nsec/1000000;
+}
+
+inline static uint64_t GetNanoPerformanceTime()
+{
+#if defined(CLOCK_GETTIME_FOUND) && (POSIX_TIMERS > 0 || _POSIX_TIMERS > 0) && defined(_POSIX_MONOTONIC_CLOCK)
+    struct timespec start;
+    uint32_t sec, nsec;
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    sec  = start.tv_sec;
+    nsec = start.tv_nsec;
+    return (uint64_t)sec*1000000000 + (uint64_t)nsec;
+#else
+    return GetNanoTime();
+#endif
+}
+#endif
+#endif
+
 namespace mujinzmq
 {
 
@@ -183,71 +290,106 @@ public:
         // std::cout << msg.size() << std::endl;
         // std::cout << msg << std::endl;
         memcpy ((void *) request.data (), msg.c_str(), msg.size());
-        try {
-            _socket->send(request);
-        } catch (const zmq::error_t& e) {
-            if (e.num() == EAGAIN) {
-                CLIENTZMQ_LOG_ERROR("failed to send request, zmq::EAGAIN");
-                throw e;
+
+        uint64_t starttime = GetMilliTime();
+        bool recreatedonce = false;
+        while (GetMilliTime() - starttime < timeout*1000.0) {
+            try {
+                _socket->send(request);
+                break;
+            } catch (const zmq::error_t& e) {
+                if (e.num() == EAGAIN) {
+                    CLIENTZMQ_LOG_ERROR("failed to send request, try again");
+                    boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+                    continue;
+                } else {
+                    CLIENTZMQ_LOG_INFO("failed to send");
+                    CLIENTZMQ_LOG_INFO(msg);
+                }
+                if (!recreatedonce) {
+                    CLIENTZMQ_LOG_INFO("re-creating zmq socket and trying again");
+                    if (!!_socket) {
+                        _socket->close();
+                        _socket.reset();
+                    }
+                    _InitializeSocket(_context);
+                    recreatedonce = true;
+                } else{
+                    std::stringstream ss;
+                    ss << "failed to send request after re-creating socket";
+                    throw std::runtime_error(ss.str());;
+                }
             }
-            if (e.num() == EFSM) {
-                CLIENTZMQ_LOG_INFO("zmq is in bad state, zmq::EFSM");
-            }
-            CLIENTZMQ_LOG_INFO("re-creating zmq socket and trying again");
-            if (!!_socket) {
-                _socket->close();
-                _socket.reset();
-            }
-            _InitializeSocket(_context);
-            CLIENTZMQ_LOG_INFO("try to send again");
-            _socket->send(request);
+        }
+        if (GetMilliTime() - starttime > timeout*1000.0) {
+            std::stringstream ss;
+            ss << "timed out trying to send request";
+            CLIENTZMQ_LOG_ERROR(ss.str());
+            CLIENTZMQ_LOG_INFO(msg);
+            throw std::runtime_error(ss.str());
         }
 
         //recv
+        starttime = GetMilliTime();
+        recreatedonce = false;
         zmq::message_t reply;
+        while (GetMilliTime() - starttime < timeout * 1000.0) {
+            try {
 
-        try {
+                zmq::pollitem_t pollitem;
+                memset(&pollitem, 0, sizeof(zmq::pollitem_t));
+                pollitem.socket = _socket->operator void*();
+                pollitem.events = ZMQ_POLLIN;
 
-            zmq::pollitem_t pollitem;
-            memset(&pollitem, 0, sizeof(zmq::pollitem_t));
-            pollitem.socket = _socket->operator void*();
-            pollitem.events = ZMQ_POLLIN;
+                // if timeout param is 0, caller means infinite
+                long timeoutms = -1;
+                if (timeout > 0) {
+                    timeoutms = timeout * 1000.0;
+                }
 
-            // if timeout param is 0, caller means infinite
-            long timeoutms = -1;
-            if (timeout > 0) {
-                timeoutms = timeout * 1000.0;
-            }
+                zmq::poll(&pollitem, 1, timeoutms);
+                if (pollitem.revents & ZMQ_POLLIN) {
+                    _socket->recv(&reply);
+                    std::string replystring((char *) reply.data (), (size_t) reply.size());
+                    return replystring;
+                }
+                else{
+                    std::stringstream ss;
+                    ss << "Timed out receiving response of command " << msg << " after " << timeout << " seconds";
+                    throw std::runtime_error(ss.str());
+                }
 
-            zmq::poll(&pollitem, 1, timeoutms);
-            if (pollitem.revents & ZMQ_POLLIN) {
-                _socket->recv(&reply);
-                std::string replystring((char *) reply.data (), (size_t) reply.size());
-                return replystring;
+            } catch (const zmq::error_t& e) {
+                if (e.num() == EAGAIN) {
+                    CLIENTZMQ_LOG_ERROR("failed to receive reply, zmq::EAGAIN");
+                    boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+                    continue;
+                } else {
+                    CLIENTZMQ_LOG_INFO("failed to send");
+                    CLIENTZMQ_LOG_INFO(msg);
+                }
+                if (!recreatedonce) {
+                    CLIENTZMQ_LOG_INFO("re-creating zmq socket and trying again");
+                    if (!!_socket) {
+                        _socket->close();
+                        _socket.reset();
+                    }
+                    _InitializeSocket(_context);
+                    recreatedonce = true;
+                } else{
+                    std::stringstream ss;
+                    ss << "failed to receive response after re-creating socket";
+                    throw std::runtime_error(ss.str());;
+                }
             }
-            else{
-                std::stringstream ss;
-                ss << "Timed out receiving response of command " << msg << " after " << timeout << " seconds";
-                throw std::runtime_error(ss.str());
-            }
-
-        } catch (const zmq::error_t& e) {
-            if (e.num() == EAGAIN) {
-                CLIENTZMQ_LOG_ERROR("failed to receive reply, zmq::EAGAIN");
-                throw std::runtime_error("Failed to receive response, zmq::EAGAIN");
-            }
-            if (e.num() == EFSM) {
-                CLIENTZMQ_LOG_INFO("zmq is in bad state, zmq::EFSM");
-            }
-            CLIENTZMQ_LOG_INFO("re-creating zmq socket");
-            if (!!_socket) {
-                _socket->close();
-                _socket.reset();
-            }
-            _InitializeSocket(_context);
-            throw std::runtime_error("Got exception receiving response");
         }
-        return std::string("{}");
+        if (GetMilliTime() - starttime > timeout*1000.0) {
+            std::stringstream ss;
+            ss << "timed out trying to receive request";
+            CLIENTZMQ_LOG_ERROR(ss.str());
+            CLIENTZMQ_LOG_INFO(msg);
+            throw std::runtime_error(ss.str());
+        }
     }
 
 protected:

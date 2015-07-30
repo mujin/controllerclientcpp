@@ -78,6 +78,8 @@
 
 #include "utf8.h"
 
+#ifndef MUJIN_TIME
+#define MUJIN_TIME
 #include <time.h>
 
 #ifndef _WIN32
@@ -178,6 +180,7 @@ inline static unsigned long long GetNanoPerformanceTime()
     return GetNanoTime();
 #endif
 }
+#endif
 #endif
 
 #ifdef _MSC_VER
