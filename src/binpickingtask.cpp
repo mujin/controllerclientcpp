@@ -563,6 +563,12 @@ void BinPickingTaskResource::ResultAABB::Parse(const boost::property_tree::ptree
     }
 }
 
+void BinPickingTaskResource::ResultOBB::Parse(const boost::property_tree::ptree& pt)
+{
+    _pt = pt;
+    // TODO parse
+}
+
 BinPickingTaskResource::ResultHeartBeat::~ResultHeartBeat()
 {
 }
@@ -708,6 +714,24 @@ void BinPickingTaskResource::GetAABB(const std::string& targetname, ResultAABB& 
     _ss << "{";
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("targetname", targetname) << ", ";
+    _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
+    _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
+    _ss << "\"userinfo\": " << _userinfo_json << ", ";
+    _ss << GetJsonString("unit", unit);
+    _ss << "}";
+    result.Parse(ExecuteCommand(_ss.str(), timeout));
+}
+
+void BinPickingTaskResource::GetInnerEmptyRegionOBB(ResultOBB& result, const std::string& targetname, const std::string& linkname, const std::string& unit, const double timeout)
+{
+    std::string command = "GetInnerEmptyRegionOBB";
+    _ss.str(""); _ss.clear();
+    _ss << "{";
+    _ss << GetJsonString("command", command) << ", ";
+    _ss << GetJsonString("targetname", targetname) << ", ";
+    if (linkname != "") {
+        _ss << GetJsonString("linkname", linkname) << ", ";
+    }
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
     _ss << "\"userinfo\": " << _userinfo_json << ", ";
