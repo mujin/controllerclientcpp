@@ -770,6 +770,21 @@ void BinPickingTaskResource::GetInnerEmptyRegionOBB(ResultOBB& result, const std
     result.Parse(ExecuteCommand(_ss.str(), timeout));
 }
 
+void BinPickingTaskResource::GetOBB(ResultOBB& result, const std::string& targetname, const std::string& unit, const double timeout)
+{
+    std::string command = "GetOBB";
+    _ss.str(""); _ss.clear();
+    _ss << "{";
+    _ss << GetJsonString("command", command) << ", ";
+    _ss << GetJsonString("targetname", targetname) << ", ";
+    _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
+    _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
+    _ss << "\"userinfo\": " << _userinfo_json << ", ";
+    _ss << GetJsonString("unit", unit);
+    _ss << "}";
+    result.Parse(ExecuteCommand(_ss.str(), timeout));
+}
+
 void BinPickingTaskResource::InitializeZMQ(const double reinitializetimeout, const double timeout)
 {
 #ifdef MUJIN_USEZMQ
