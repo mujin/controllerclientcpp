@@ -162,7 +162,9 @@ public:
     struct MUJINCLIENT_API ResultOBB : public ResultBase
     {
         void Parse(const boost::property_tree::ptree& pt);
-        // TODO add parsed fields
+        std::vector<Real> translation;
+        std::vector<Real> extents;
+        std::vector<Real> rotationmat;  // row major
     };
 
     struct MUJINCLIENT_API ResultHeartBeat : public ResultBase

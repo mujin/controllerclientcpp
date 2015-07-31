@@ -565,8 +565,38 @@ void BinPickingTaskResource::ResultAABB::Parse(const boost::property_tree::ptree
 
 void BinPickingTaskResource::ResultOBB::Parse(const boost::property_tree::ptree& pt)
 {
-    _pt = pt;
-    // TODO parse
+    _pt = pt.get_child("output");
+    FOREACH(value, _pt) {
+        if (value->first == "translation") {
+            if (value->second.size() != 3) {
+                throw MujinException("The length of translation is invalid.", MEC_Failed);
+            }
+            FOREACH(v, value->second) {
+                translation.push_back(boost::lexical_cast<Real>(v->second.data()));
+            }
+        }
+        if (value->first == "extents") {
+            if (value->second.size() != 3) {
+                throw MujinException("The length of extents is invalid.", MEC_Failed);
+            }
+            FOREACH(v,value->second) {
+                extents.push_back(boost::lexical_cast<Real>(v->second.data()));
+            }
+        }
+        if (value->first == "rotationmat") {
+            if (value->second.size() != 3) {
+                throw MujinException("The row number of rotationmat is invalid.", MEC_Failed);
+            }
+            FOREACH(vr, value->second) {
+                if (vr->second.size() != 3) {
+                    throw MujinException("The column number of rotationmat is invalid.", MEC_Failed);
+                }
+                FOREACH(vc, vr->second) {
+                    rotationmat.push_back(boost::lexical_cast<Real>(vc->second.data()));
+                }
+            }
+        }
+    }
 }
 
 BinPickingTaskResource::ResultHeartBeat::~ResultHeartBeat()
