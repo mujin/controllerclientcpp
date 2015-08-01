@@ -201,7 +201,7 @@ public:
     virtual void GetManipTransform(Transform& result, const std::string& unit="mm", const double timeout /* second */=0);
 
     virtual void GetAABB(const std::string& targetname, ResultAABB& result, const std::string& unit="mm", const double timeout=0);
-    virtual void GetOBB(ResultOBB& result, const std::string& targetname, const std::string& unit="mm", const double timeout=0);
+    virtual void GetOBB(ResultOBB& result, const std::string& targetname, const std::string& linkname="", const std::string& unit="mm", const double timeout=0);
     virtual void GetInnerEmptyRegionOBB(ResultOBB& result, const std::string& targetname, const std::string& linkname="", const std::string& unit="mm", const double timeout=0);
 
     /** \brief Update objects in the scene

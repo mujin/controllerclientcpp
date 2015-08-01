@@ -780,13 +780,16 @@ void BinPickingTaskResource::GetInnerEmptyRegionOBB(ResultOBB& result, const std
     result.Parse(ExecuteCommand(_ss.str(), timeout));
 }
 
-void BinPickingTaskResource::GetOBB(ResultOBB& result, const std::string& targetname, const std::string& unit, const double timeout)
+void BinPickingTaskResource::GetOBB(ResultOBB& result, const std::string& targetname, const std::string& linkname, const std::string& unit, const double timeout)
 {
     std::string command = "GetOBB";
     _ss.str(""); _ss.clear();
     _ss << "{";
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("targetname", targetname) << ", ";
+    if (linkname != "") {
+        _ss << GetJsonString("linkname", linkname) << ", ";
+    }
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
     _ss << "\"userinfo\": " << _userinfo_json << ", ";
