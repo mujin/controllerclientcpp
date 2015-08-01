@@ -129,6 +129,7 @@ public:
 
     struct MUJINCLIENT_API ResultGetBinpickingState : public ResultBase
     {
+        ResultGetBinpickingState();
         virtual ~ResultGetBinpickingState();
         void Parse(const boost::property_tree::ptree& pt);
         std::string statusPickPlace;
@@ -172,7 +173,7 @@ public:
         virtual ~ResultHeartBeat();
         void Parse(const boost::property_tree::ptree& pt);
         std::string status;
-        std::string taskstate;
+        ResultGetBinpickingState taskstate;
         Real timestamp;
         std::string msg;
     };
@@ -289,7 +290,7 @@ protected:
     std::string _robotDeviceIOUri;
     std::string _mujinControllerIp;
     boost::mutex _mutexTaskState;
-    std::string _taskstate;
+    ResultGetBinpickingState _taskstate;
     boost::shared_ptr<zmq::context_t> _zmqcontext;
     int _zmqPort;
     int _heartbeatPort;

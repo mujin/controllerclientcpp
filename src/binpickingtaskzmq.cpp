@@ -69,6 +69,12 @@ void BinPickingTaskZmqResource::Initialize(const std::string& robotControllerUri
     if (!_zmqmujincontrollerclient) {
         throw MujinException(boost::str(boost::format("Failed to establish ZMQ connection to mujin controller at %s:%d")%_mujinControllerIp%_zmqPort), MEC_Failed);
     }
+    if (!_pHeartbeatMonitorThread) {
+        _bShutdownHeartbeatMonitor = false;
+        if (reinitializetimeout > 0 ) {
+            _pHeartbeatMonitorThread.reset(new boost::thread(boost::bind(&BinPickingTaskZmqResource::_HeartbeatMonitorThread, this, reinitializetimeout, timeout)));
+        }
+    }
 }
 
 boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std::string& command, const double timeout /* [sec] */, const bool getresult)
@@ -127,12 +133,6 @@ boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std:
 
 void BinPickingTaskZmqResource::InitializeZMQ(const double reinitializetimeout, const double timeout)
 {
-    if (!_pHeartbeatMonitorThread) {
-        _bShutdownHeartbeatMonitor = false;
-        if (reinitializetimeout > 0 ) {
-            _pHeartbeatMonitorThread.reset(new boost::thread(boost::bind(&BinPickingTaskZmqResource::_HeartbeatMonitorThread, this, reinitializetimeout, timeout)));
-        }
-    }
 }
 
 void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializetimeout, const double commandtimeout)
@@ -175,10 +175,8 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
                     boost::mutex::scoped_lock lock(_mutexTaskState);
                     _taskstate = heartbeat.taskstate;
                 }
-                //BINPICKING_LOG_INFO(replystring);
+                //BINPICKING_LOG_ERROR(replystring);
 
-                // std::cout << heartbeat.status << " " << heartbeat.timestamp << " " << heartbeat.msg << std::endl;
-                //if ((size_t)reply.size() == 1 && ((char *)reply.data())[0]==255) {
                 if (heartbeat.status != std::string("lost") && heartbeat.status.size() > 1) {
                     lastheartbeat = GetMilliTime();
                 }

@@ -482,6 +482,15 @@ void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const boost
     }
 }
 
+BinPickingTaskResource::ResultGetBinpickingState::ResultGetBinpickingState()
+{
+    statusPickPlace = "";
+    pickAttemptFromSourceId = -1;
+    timestamp = 0;
+    isRobotOccludingSourceContainer = true;
+    forceRequestDetectionResults = true;
+}
+
 BinPickingTaskResource::ResultGetBinpickingState::~ResultGetBinpickingState()
 {
 }
@@ -609,7 +618,6 @@ void BinPickingTaskResource::ResultHeartBeat::Parse(const boost::property_tree::
     status = "";
     msg = "";
     timestamp = 0;
-    taskstate = "";
     FOREACH(value, _pt) {
         if (value->first == "status") {
             status = std::string(value->second.data());
@@ -621,7 +629,9 @@ void BinPickingTaskResource::ResultHeartBeat::Parse(const boost::property_tree::
             timestamp = boost::lexical_cast<Real>(value->second.data());
         }
         if (value->first == "taskstate") {
-            taskstate = std::string(value->second.data());
+            boost::property_tree::ptree t;
+            t.put_child("output", value->second);
+            taskstate.Parse(t);
         }
     }
 }
@@ -1002,20 +1012,16 @@ void BinPickingTaskResource::GetInstObjectAndSensorInfo(const std::vector<std::s
 
 void BinPickingTaskResource::GetPublishedTaskState(ResultGetBinpickingState& result, const std::string& unit, const double timeout)
 {
-    std::string taskstate;
+    ResultGetBinpickingState taskstate;
     {
         boost::mutex::scoped_lock lock(_mutexTaskState);
         taskstate =_taskstate;
     }
 
-    if (taskstate == "") {
+    if (taskstate.timestamp == 0) {
         GetBinpickingState(result, unit, timeout);
     } else {
-        boost::property_tree::ptree pt;
-        std::stringstream ss;
-        ss << "{\"output\":" << taskstate << "}";
-        boost::property_tree::read_json(ss, pt);
-        result.Parse(pt);
+        result = taskstate;
     }
 }
 
