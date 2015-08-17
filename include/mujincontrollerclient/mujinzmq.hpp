@@ -435,33 +435,40 @@ protected:
 class MUJINCLIENT_API ZmqServer
 {
 public:
-    ZmqServer(const unsigned int port)
-    {
-        _port = port;
+    ZmqServer(const unsigned int port) : _sharedcontext(false), _port(port) {
     }
 
-    virtual ~ZmqServer()
-    {
+    virtual ~ZmqServer() {
         _DestroySocket();
     }
 
-    unsigned int Recv(std::string& data)
+    unsigned int Recv(std::string& data, long timeout=0)
     {
+        // wait timeout in millisecond for message
+        if (timeout > 0) {
+            zmq::poll(&_pollitem, 1, timeout); 
+            if ((_pollitem.revents & ZMQ_POLLIN) == 0)
+            {
+                // did not receive anything
+                return 0;
+            }
+        }
+
         _socket->recv(&_reply, ZMQ_NOBLOCK);
-        //std::string replystring((char *) reply.data(), (size_t) reply.size());
         data.resize(_reply.size());
-        std::copy((uint8_t*)_reply.data(), (uint8_t*)_reply.data()+_reply.size(), data.begin());
-        return _reply.size(); //replystring;
+        std::copy((uint8_t*)_reply.data(), (uint8_t*)_reply.data() + _reply.size(), data.begin());
+        return _reply.size();
     }
 
     void Send(const std::string& message)
     {
         zmq::message_t request(message.size());
-        memcpy((void *) request.data(), message.c_str(), message.size());
+        memcpy((void *)request.data(), message.c_str(), message.size());
         _socket->send(request);
     }
 
 protected:
+
     void _InitializeSocket(boost::shared_ptr<zmq::context_t> context)
     {
         if (!!context) {
@@ -471,12 +478,19 @@ protected:
             _context.reset(new zmq::context_t(1));
             _sharedcontext = false;
         }
-        _socket.reset(new zmq::socket_t ((*(zmq::context_t*)_context.get()), ZMQ_REP));
-        std::ostringstream port_stream;
-        port_stream << _port;
-        _socket->bind (("tcp://*:" + port_stream.str()).c_str());
+
+        _socket.reset(new zmq::socket_t((*(zmq::context_t*)_context.get()), ZMQ_REP));
+
+        // setup the pollitem
+        memset(&_pollitem, 0, sizeof(_pollitem));
+        _pollitem.socket = _socket->operator void*();
+        _pollitem.events = ZMQ_POLLIN;
+
+        std::ostringstream endpoint;
+        endpoint << "tcp://*:" << _port;
+        _socket->bind(endpoint.str().c_str());
         std::stringstream ss;
-        ss << "binded to tcp://*:" <<  _port;
+        ss << "binded to " << endpoint;
         CLIENTZMQ_LOG_INFO(ss.str());
     }
 
@@ -490,12 +504,16 @@ protected:
             _context->close();
             _context.reset();
         }
+        memset(&_pollitem, 0, sizeof(_pollitem));
     }
+
+    bool _sharedcontext;
     unsigned int _port;
     boost::shared_ptr<zmq::context_t> _context;
     boost::shared_ptr<zmq::socket_t>  _socket;
     zmq::message_t _reply;
-    bool _sharedcontext;
+    zmq::pollitem_t _pollitem;
+    
 };
 
 } // namespace mujinzmq
