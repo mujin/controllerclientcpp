@@ -442,7 +442,7 @@ public:
         _DestroySocket();
     }
 
-    unsigned int Recv(std::string& data, long timeout=0)
+    virtual unsigned int Recv(std::string& data, long timeout=0)
     {
         // wait timeout in millisecond for message
         if (timeout > 0) {
@@ -460,7 +460,7 @@ public:
         return _reply.size();
     }
 
-    void Send(const std::string& message)
+    virtual void Send(const std::string& message)
     {
         zmq::message_t request(message.size());
         memcpy((void *)request.data(), message.c_str(), message.size());
@@ -469,7 +469,7 @@ public:
 
 protected:
 
-    void _InitializeSocket(boost::shared_ptr<zmq::context_t> context)
+    virtual void _InitializeSocket(boost::shared_ptr<zmq::context_t> context)
     {
         if (!!context) {
             _context = context;
@@ -494,7 +494,7 @@ protected:
         CLIENTZMQ_LOG_INFO(ss.str());
     }
 
-    void _DestroySocket()
+    virtual void _DestroySocket()
     {
         if (!!_socket) {
             _socket->close();
