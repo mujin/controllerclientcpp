@@ -176,6 +176,7 @@ public:
         ResultGetBinpickingState taskstate;
         Real timestamp;
         std::string msg;
+        std::string _slaverequestid;
     };
 
     /** \brief Initializes binpicking task.
@@ -189,7 +190,7 @@ public:
         \param timeout seconds until this command times out
         \param locale language of the log/status
      */
-    virtual void Initialize(const std::string& robotControllerUri, const std::string& robotDeviceIOUri, const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq=false, const double reinitializetimeout=10, const double commandtimeout=0, const std::string& userinfo="{}");
+    virtual void Initialize(const std::string& robotControllerUri, const std::string& robotDeviceIOUri, const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq=false, const double reinitializetimeout=10, const double commandtimeout=0, const std::string& userinfo="{}", const std::string& slaverequestid="");
 
     virtual boost::property_tree::ptree ExecuteCommand(const std::string& command, const double timeout /* second */=0.0, const bool getresult=true);
 
@@ -296,6 +297,7 @@ protected:
     int _heartbeatPort;
     std::string _userinfo_json;  ///< userinfo json
     std::string _sceneparams_json; ///\ parameters of the scene to run tasks on the backend zmq slave
+    std::string _slaverequestid; ///< to ensure the same slave is used for binpicking task
     boost::shared_ptr<boost::thread> _pHeartbeatMonitorThread;
 
     bool _bIsInitialized;

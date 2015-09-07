@@ -51,7 +51,7 @@ BinPickingTaskZmqResource::~BinPickingTaskZmqResource()
 {
 }
 
-void BinPickingTaskZmqResource::Initialize(const std::string& robotControllerUri, const std::string& robotDeviceIOUri,  const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq, const double reinitializetimeout, const double timeout, const std::string& userinfo)
+void BinPickingTaskZmqResource::Initialize(const std::string& robotControllerUri, const std::string& robotDeviceIOUri,  const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq, const double reinitializetimeout, const double timeout, const std::string& userinfo, const std::string& slaverequestid)
 {
     _robotControllerUri = robotControllerUri;
     _robotDeviceIOUri = robotDeviceIOUri;
@@ -60,6 +60,7 @@ void BinPickingTaskZmqResource::Initialize(const std::string& robotControllerUri
     _bIsInitialized = true;
     _zmqcontext = zmqcontext;
     _userinfo_json = userinfo;
+    _slaverequestid = slaverequestid;
 
     if (initializezmq) {
         InitializeZMQ(reinitializetimeout, timeout);
@@ -89,6 +90,7 @@ boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std:
     }
 
     // TODO need to implement timeout
+    //std::string task = "{\"tasktype\": \"binpicking\", \"taskparameters\": " + command + "}";
     boost::property_tree::ptree pt;
     if (getresult) {
         std::stringstream result_ss;
@@ -150,7 +152,7 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
     pollitem.events = ZMQ_POLLIN;
     boost::property_tree::ptree pt;
     BinPickingTaskResource::ResultHeartBeat heartbeat;
-
+    heartbeat._slaverequestid = _slaverequestid;
     while (!_bShutdownHeartbeatMonitor) {
         unsigned long long lastheartbeat = GetMilliTime();
         while (!_bShutdownHeartbeatMonitor && (GetMilliTime() - lastheartbeat) / 1000.0f < reinitializetimeout) {

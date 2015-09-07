@@ -91,7 +91,7 @@ BinPickingTaskResource::~BinPickingTaskResource()
     }
 }
 
-void BinPickingTaskResource::Initialize(const std::string& robotControllerUri, const std::string& robotDeviceIOUri, const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq, const double reinitializetimeout, const double timeout, const std::string& userinfo)
+void BinPickingTaskResource::Initialize(const std::string& robotControllerUri, const std::string& robotDeviceIOUri, const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq, const double reinitializetimeout, const double timeout, const std::string& userinfo, const std::string& slaverequestid)
 {
     _robotControllerUri = robotControllerUri;
     _robotDeviceIOUri = robotDeviceIOUri;
@@ -100,6 +100,7 @@ void BinPickingTaskResource::Initialize(const std::string& robotControllerUri, c
     _bIsInitialized = true;
     _zmqcontext = zmqcontext;
     _userinfo_json = userinfo;
+    _slaverequestid = slaverequestid;
 }
 
 boost::property_tree::ptree BinPickingResultResource::GetResultPtree() const
@@ -622,16 +623,20 @@ void BinPickingTaskResource::ResultHeartBeat::Parse(const boost::property_tree::
         if (value->first == "status") {
             status = std::string(value->second.data());
         }
-        if (value->first == "msg") {
+        if (value->first == "message") {
             msg = std::string(value->second.data());
         }
         if (value->first == "timestamp") {
             timestamp = boost::lexical_cast<Real>(value->second.data());
         }
-        if (value->first == "taskstate") {
-            boost::property_tree::ptree t;
-            t.put_child("output", value->second);
-            taskstate.Parse(t);
+        if (value->first == "slavestates") {
+            try {
+                boost::property_tree::ptree t;
+                t.put_child("output", value->second.get_child("slaverequestid-" + _slaverequestid));
+                taskstate.Parse(t);
+            } catch (...) {
+                BINPICKING_LOG_ERROR("failed to parse slavestates");
+            }
         }
     }
 }
@@ -649,6 +654,9 @@ void BinPickingTaskResource::GetJointValues(ResultGetJointValues& result, const 
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
     _ss << "\"userinfo\": " << _userinfo_json << ", ";
+    if (_slaverequestid != "") {
+        _ss << GetJsonString("slaverequestid", _slaverequestid) << ", ";
+    }
     _ss << GetJsonString("robotControllerUri", _robotControllerUri) << ", ";
     _ss << GetJsonString("robotDeviceIOUri", _robotDeviceIOUri);
     _ss << "}";
@@ -670,6 +678,9 @@ void BinPickingTaskResource::MoveJoints(const std::vector<Real>& goaljoints, con
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
     _ss << "\"userinfo\": " << _userinfo_json << ", ";
+    if (_slaverequestid != "") {
+        _ss << GetJsonString("slaverequestid", _slaverequestid) << ", ";
+    }
     _ss << GetJsonString("goaljoints") << ": " << GetJsonString(goaljoints) << ", ";
     _ss << GetJsonString("jointindices") << ": " << GetJsonString(jointindices) << ", ";
     _ss << GetJsonString("envclearance",envclearance ) << ", ";
@@ -688,6 +699,9 @@ void BinPickingTaskResource::GetTransform(const std::string& targetname, Transfo
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
     _ss << "\"userinfo\": " << _userinfo_json << ", ";
+    if (_slaverequestid != "") {
+        _ss << GetJsonString("slaverequestid", _slaverequestid) << ", ";
+    }
     _ss << GetJsonString("unit", unit);
     _ss << "}";
     ResultTransform result;
@@ -705,6 +719,9 @@ void BinPickingTaskResource::SetTransform(const std::string& targetname, const T
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
     _ss << "\"userinfo\": " << _userinfo_json << ", ";
+    if (_slaverequestid != "") {
+        _ss << GetJsonString("slaverequestid", _slaverequestid) << ", ";
+    }
     _ss << GetJsonString(transform) << ", ";
     _ss << GetJsonString("unit", unit);
     _ss << "}";
@@ -720,6 +737,9 @@ void BinPickingTaskResource::GetManipTransformToRobot(Transform& transform, cons
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
     _ss << "\"userinfo\": " << _userinfo_json << ", ";
+    if (_slaverequestid != "") {
+        _ss << GetJsonString("slaverequestid", _slaverequestid) << ", ";
+    }
     _ss << GetJsonString("robotControllerUri", _robotControllerUri) << ", ";
     _ss << GetJsonString("robotDeviceIOUri", _robotDeviceIOUri) << ", ";
     _ss << GetJsonString("unit", unit);
@@ -738,6 +758,9 @@ void BinPickingTaskResource::GetManipTransform(Transform& transform, const std::
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
     _ss << "\"userinfo\": " << _userinfo_json << ", ";
+    if (_slaverequestid != "") {
+        _ss << GetJsonString("slaverequestid", _slaverequestid) << ", ";
+    }
     _ss << GetJsonString("robotControllerUri", _robotControllerUri) << ", ";
     _ss << GetJsonString("robotDeviceIOUri", _robotDeviceIOUri) << ", ";
     _ss << GetJsonString("unit", unit);
@@ -757,6 +780,9 @@ void BinPickingTaskResource::GetAABB(const std::string& targetname, ResultAABB& 
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
     _ss << "\"userinfo\": " << _userinfo_json << ", ";
+    if (_slaverequestid != "") {
+        _ss << GetJsonString("slaverequestid", _slaverequestid) << ", ";
+    }
     _ss << GetJsonString("unit", unit);
     _ss << "}";
     result.Parse(ExecuteCommand(_ss.str(), timeout));
@@ -775,6 +801,9 @@ void BinPickingTaskResource::GetInnerEmptyRegionOBB(ResultOBB& result, const std
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
     _ss << "\"userinfo\": " << _userinfo_json << ", ";
+    if (_slaverequestid != "") {
+        _ss << GetJsonString("slaverequestid", _slaverequestid) << ", ";
+    }
     _ss << GetJsonString("unit", unit);
     _ss << "}";
     result.Parse(ExecuteCommand(_ss.str(), timeout));
@@ -793,6 +822,9 @@ void BinPickingTaskResource::GetOBB(ResultOBB& result, const std::string& target
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
     _ss << "\"userinfo\": " << _userinfo_json << ", ";
+    if (_slaverequestid != "") {
+        _ss << GetJsonString("slaverequestid", _slaverequestid) << ", ";
+    }
     _ss << GetJsonString("unit", unit);
     _ss << "}";
     result.Parse(ExecuteCommand(_ss.str(), timeout));
@@ -820,6 +852,9 @@ void BinPickingTaskResource::UpdateObjects(const std::string& basename, const st
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
     _ss << "\"userinfo\": " << _userinfo_json << ", ";
+    if (_slaverequestid != "") {
+        _ss << GetJsonString("slaverequestid", _slaverequestid) << ", ";
+    }
     _ss << GetJsonString("objectname", targetname) << ", ";
     _ss << GetJsonString("object_uri", "mujin:/"+targetname+".mujin.dae") << ", ";
     std::vector<DetectedObject> detectedobjects;
@@ -856,6 +891,9 @@ void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<Real>&vpoin
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
     _ss << "\"userinfo\": " << _userinfo_json << ", ";
+    if (_slaverequestid != "") {
+        _ss << GetJsonString("slaverequestid", _slaverequestid) << ", ";
+    }
     PointCloudObstacle pointcloudobstacle;
     pointcloudobstacle.name = name;
     pointcloudobstacle.pointsize = pointsize;
@@ -877,6 +915,9 @@ void BinPickingTaskResource::UpdateEnvironmentState(const std::string& basename,
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
     _ss << "\"userinfo\": " << _userinfo_json << ", ";
+    if (_slaverequestid != "") {
+        _ss << GetJsonString("slaverequestid", _slaverequestid) << ", ";
+    }
     _ss << GetJsonString("objectname", basename) << ", ";
     _ss << GetJsonString("object_uri", default_object_uri) << ", ";
     
@@ -910,6 +951,9 @@ void BinPickingTaskResource::VisualizePointCloud(const std::vector<std::vector<R
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
     _ss << "\"userinfo\": " << _userinfo_json << ", ";
+    if (_slaverequestid != "") {
+        _ss << GetJsonString("slaverequestid", _slaverequestid) << ", ";
+    }
     _ss << GetJsonString("pointslist") << ": [";
     for (unsigned int i=0; i< pointslist.size(); i++) {
         _ss << GetJsonString(pointslist[i]);
@@ -940,6 +984,9 @@ void BinPickingTaskResource::ClearVisualization(const double timeout)
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
     _ss << "\"userinfo\": " << _userinfo_json << ", ";
+    if (_slaverequestid != "") {
+        _ss << GetJsonString("slaverequestid", _slaverequestid) << ", ";
+    }
     _ss << "}";
     ExecuteCommand(_ss.str(), timeout, false);
 }
@@ -953,6 +1000,9 @@ void BinPickingTaskResource::GetPickedPositions(ResultGetPickedPositions& r, con
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
     _ss << "\"userinfo\": " << _userinfo_json << ", ";
+    if (_slaverequestid != "") {
+        _ss << GetJsonString("slaverequestid", _slaverequestid) << ", ";
+    }
     _ss << GetJsonString("unit", unit);
     _ss << "}";
     r.Parse(ExecuteCommand(_ss.str(), timeout));
@@ -969,6 +1019,9 @@ void BinPickingTaskResource::IsRobotOccludingBody(const std::string& bodyname, c
     _ss << GetJsonString("robotDeviceIOUri", _robotDeviceIOUri) << ", ";
     _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
     _ss << "\"userinfo\": " << _userinfo_json << ", ";
+    if (_slaverequestid != "") {
+        _ss << GetJsonString("slaverequestid", _slaverequestid) << ", ";
+    }
     SensorOcclusionCheck check;
     check.bodyname = bodyname;
     check.cameraname = cameraname;
@@ -1010,6 +1063,9 @@ void BinPickingTaskResource::GetInstObjectAndSensorInfo(const std::vector<std::s
     _ss << GetJsonString("sensornames") << ": " << GetJsonString(sensornames) << ", ";
     _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
     _ss << "\"userinfo\": " << _userinfo_json << ", ";
+    if (_slaverequestid != "") {
+        _ss << GetJsonString("slaverequestid", _slaverequestid) << ", ";
+    }
     _ss << GetJsonString("unit", unit);
     _ss << "}";
     boost::property_tree::ptree pt = ExecuteCommand(_ss.str(), timeout);
@@ -1041,6 +1097,9 @@ void BinPickingTaskResource::GetBinpickingState(ResultGetBinpickingState& result
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
     _ss << "\"userinfo\": " << _userinfo_json << ", ";
+    if (_slaverequestid != "") {
+        _ss << GetJsonString("slaverequestid", _slaverequestid) << ", ";
+    }
     _ss << GetJsonString("unit", unit);
     _ss << "}";
     boost::property_tree::ptree pt = ExecuteCommand(_ss.str(), timeout);
@@ -1253,6 +1312,9 @@ void BinPickingTaskResource::_HeartbeatMonitorThread(const double reinitializeti
         // ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
         ss << "\"sceneparams\": " << _sceneparams_json << ", ";
         ss << "\"userinfo\": " << _userinfo_json << ", ";
+        if (_slaverequestid != "") {
+            _ss << GetJsonString("slaverequestid", _slaverequestid) << ", ";
+        }
         ss << GetJsonString("port", _zmqPort) << ", ";
         ss << GetJsonString("heartbeatPort", _heartbeatPort);
         //ss << GetJsonString("heartbeatMessage", initialtimestamp);
