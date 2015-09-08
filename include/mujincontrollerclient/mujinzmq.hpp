@@ -355,7 +355,11 @@ public:
                 }
                 else{
                     std::stringstream ss;
+                    if (msg.length() > 1000) {
+                        ss << "Timed out receiving response of command " << msg.substr(0, 1000) << "... after " << timeout << " seconds";
+                    } else {
                     ss << "Timed out receiving response of command " << msg << " after " << timeout << " seconds";
+                    }
                     throw std::runtime_error(ss.str());
                 }
 

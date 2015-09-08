@@ -939,7 +939,7 @@ void BinPickingTaskResource::ClearVisualization(const double timeout)
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     _ss << "\"sceneparams\": " << _sceneparams_json << ", ";
-    _ss << "\"userinfo\": " << _userinfo_json << ", ";
+    _ss << "\"userinfo\": " << _userinfo_json;
     _ss << "}";
     ExecuteCommand(_ss.str(), timeout, false);
 }
