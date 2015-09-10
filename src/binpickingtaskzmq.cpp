@@ -138,20 +138,24 @@ void BinPickingTaskZmqResource::InitializeZMQ(const double reinitializetimeout, 
 void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializetimeout, const double commandtimeout)
 {
     boost::shared_ptr<zmq::socket_t>  socket;
-    socket.reset(new zmq::socket_t((*_zmqcontext.get()),ZMQ_SUB));
-    std::stringstream ss;
-    ss << _heartbeatPort;
-    socket->connect (("tcp://"+ _mujinControllerIp+":"+ss.str()).c_str());
-    socket->setsockopt(ZMQ_SUBSCRIBE, "", 0);
-
-    zmq::pollitem_t pollitem;
-    memset(&pollitem, 0, sizeof(zmq::pollitem_t));
-    pollitem.socket = socket->operator void*();
-    pollitem.events = ZMQ_POLLIN;
     boost::property_tree::ptree pt;
     BinPickingTaskResource::ResultHeartBeat heartbeat;
 
     while (!_bShutdownHeartbeatMonitor) {
+        if (!!socket) {
+            socket->close();
+            socket.reset();
+        }
+        socket.reset(new zmq::socket_t((*_zmqcontext.get()),ZMQ_SUB));
+        std::stringstream ss;
+        ss << _heartbeatPort;
+        socket->connect (("tcp://"+ _mujinControllerIp+":"+ss.str()).c_str());
+        socket->setsockopt(ZMQ_SUBSCRIBE, "", 0);
+
+        zmq::pollitem_t pollitem;
+        memset(&pollitem, 0, sizeof(zmq::pollitem_t));
+        pollitem.socket = socket->operator void*();
+        pollitem.events = ZMQ_POLLIN;
         unsigned long long lastheartbeat = GetMilliTime();
         while (!_bShutdownHeartbeatMonitor && (GetMilliTime() - lastheartbeat) / 1000.0f < reinitializetimeout) {
             zmq::poll(&pollitem,1, 50); // wait 50 ms for message
