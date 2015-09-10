@@ -1288,18 +1288,23 @@ void BinPickingTaskResource::_HeartbeatMonitorThread(const double reinitializeti
 {
 #ifdef MUJIN_USEZMQ
     boost::shared_ptr<zmq::socket_t>  socket;
-    socket.reset(new zmq::socket_t((*_zmqcontext.get()),ZMQ_SUB));
-    std::stringstream ss;
-    ss << _heartbeatPort;
-    socket->connect (("tcp://"+ _mujinControllerIp+":"+ss.str()).c_str());
-    socket->setsockopt(ZMQ_SUBSCRIBE, "", 0);
-
-    zmq::pollitem_t pollitem;
-    memset(&pollitem, 0, sizeof(zmq::pollitem_t));
-    pollitem.socket = socket->operator void*();
-    pollitem.events = ZMQ_POLLIN;
 
     while (!_bShutdownHeartbeatMonitor) {
+        if (!!socket) {
+            socket->close();
+            socket.reset();
+        }
+        socket.reset(new zmq::socket_t((*_zmqcontext.get()),ZMQ_SUB));
+        std::stringstream ss;
+        ss << _heartbeatPort;
+        socket->connect (("tcp://"+ _mujinControllerIp+":"+ss.str()).c_str());
+        socket->setsockopt(ZMQ_SUBSCRIBE, "", 0);
+
+        zmq::pollitem_t pollitem;
+        memset(&pollitem, 0, sizeof(zmq::pollitem_t));
+        pollitem.socket = socket->operator void*();
+        pollitem.events = ZMQ_POLLIN;
+        
         unsigned long long lastheartbeat = GetMilliTime();
         //unsigned long long initialtimestamp = GetMilliTime();
         std::string command = "InitializeZMQ";
