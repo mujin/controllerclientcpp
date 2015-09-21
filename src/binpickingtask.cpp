@@ -1082,6 +1082,10 @@ void BinPickingTaskResource::GetPublishedTaskState(ResultGetBinpickingState& res
 
     if (taskstate.timestamp == 0) {
         GetBinpickingState(result, unit, timeout);
+        {
+            boost::mutex::scoped_lock lock(_mutexTaskState);
+            _taskstate = result;
+        }
     } else {
         result = taskstate;
     }
