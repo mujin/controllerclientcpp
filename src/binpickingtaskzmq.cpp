@@ -78,7 +78,7 @@ void BinPickingTaskZmqResource::Initialize(const std::string& robotControllerUri
     }
 }
 
-boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std::string& command, const double timeout /* [sec] */, const bool getresult)
+boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std::string& taskparameters, const double timeout /* [sec] */, const bool getresult)
 {
     if (!_bIsInitialized) {
         throw MujinException("BinPicking task is not initialized, please call Initialzie() first.", MEC_Failed);
@@ -88,6 +88,16 @@ boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std:
         BINPICKINGZMQ_LOG_ERROR("zmqcontrollerclient is not initialized! initialize");
         _zmqmujincontrollerclient.reset(new ZmqMujinControllerClient(_zmqcontext, _mujinControllerIp, _zmqPort));
     }
+    std::stringstream ss;
+    ss << "{\"fnname\": \"binpicking.RunCommand\", \"taskparams\": {\"tasktype\": \"binpicking\", ";
+    ss << "\"taskparameters\": " << taskparameters << ", ";
+    ss << "\"sceneparams\": " << _sceneparams_json << "}, ";
+    ss << "\"userinfo\": " << _userinfo_json;
+    if (_slaverequestid != "") {
+        ss << ", " << GetJsonString("slaverequestid", _slaverequestid);
+    }
+    ss << "}";
+    std::string command = ss.str();
 
     // TODO need to implement timeout
     //std::string task = "{\"tasktype\": \"binpicking\", \"taskparameters\": " + command + "}";
