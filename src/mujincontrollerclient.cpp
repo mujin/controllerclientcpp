@@ -534,6 +534,34 @@ void SceneResource::GetTaskPrimaryKeys(std::vector<std::string>& taskkeys)
     }
 }
 
+void SceneResource::GetSensorMapping(boost::property_tree::ptree& sensormapping)
+{
+    GETCONTROLLERIMPL();
+    sensormapping.clear();
+    boost::property_tree::ptree pt;
+    controller->CallGet(str(boost::format("scene/%s/instobject/?format=json&limit=0&fields=instobjects")%GetPrimaryKey()), pt);
+    boost::property_tree::ptree& objects = pt.get_child("instobjects");
+    FOREACH(v, objects) {
+        if ( v->second.find("attachedsensors") != v->second.not_found() ) {
+            boost::property_tree::ptree& jsonattachedsensors = v->second.get_child("attachedsensors");
+            if (jsonattachedsensors.size() > 0) {
+                std::string object_pk = v->second.get<std::string>("object_pk");
+                std::string cameracontainername =  v->second.get<std::string>("name");
+                boost::property_tree::ptree pt_robot;
+                controller->CallGet(str(boost::format("robot/%s/attachedsensor/?format=json")%object_pk), pt_robot);
+                boost::property_tree::ptree pt_attachedsensors = pt_robot.get_child("attachedsensors");
+                FOREACH(sensor, pt_attachedsensors) {
+                    std::string sensorname = sensor->second.get<std::string>("name");
+                    //boost::property_tree::ptree& pt_sensordata = sensor->second.get_child("sensordata");
+                    std::string cameraid = sensor->second.get<std::string>("sensordata.hardware_id");
+                    std::string camerafullname = str(boost::format("%s/%s")%cameracontainername%sensorname);
+                    std::cout << camerafullname << ": " << cameraid << std::endl;
+                }
+            }
+        }
+    }
+}
+
 void SceneResource::GetInstObjects(std::vector<SceneResource::InstObjectPtr>& instobjects)
 {
     GETCONTROLLERIMPL();
