@@ -534,7 +534,7 @@ void SceneResource::GetTaskPrimaryKeys(std::vector<std::string>& taskkeys)
     }
 }
 
-void SceneResource::GetSensorMapping(boost::property_tree::ptree& sensormapping)
+void SceneResource::GetSensorMapping(std::map<std::string, std::string>& sensormapping)
 {
     GETCONTROLLERIMPL();
     sensormapping.clear();
@@ -549,13 +549,12 @@ void SceneResource::GetSensorMapping(boost::property_tree::ptree& sensormapping)
                 std::string cameracontainername =  v->second.get<std::string>("name");
                 boost::property_tree::ptree pt_robot;
                 controller->CallGet(str(boost::format("robot/%s/attachedsensor/?format=json")%object_pk), pt_robot);
-                boost::property_tree::ptree pt_attachedsensors = pt_robot.get_child("attachedsensors");
+                boost::property_tree::ptree& pt_attachedsensors = pt_robot.get_child("attachedsensors");
                 FOREACH(sensor, pt_attachedsensors) {
                     std::string sensorname = sensor->second.get<std::string>("name");
-                    //boost::property_tree::ptree& pt_sensordata = sensor->second.get_child("sensordata");
-                    std::string cameraid = sensor->second.get<std::string>("sensordata.hardware_id");
                     std::string camerafullname = str(boost::format("%s/%s")%cameracontainername%sensorname);
-                    std::cout << camerafullname << ": " << cameraid << std::endl;
+                    std::string cameraid = sensor->second.get<std::string>("sensordata.hardware_id");
+                    sensormapping[camerafullname] = cameraid;
                 }
             }
         }

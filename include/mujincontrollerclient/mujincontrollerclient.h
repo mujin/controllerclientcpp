@@ -886,7 +886,7 @@ public:
     virtual void GetTaskPrimaryKeys(std::vector<std::string>& taskkeys);
 
     /// \brief gets a list of all the instance objects of the scene
-    virtual void GetSensorMapping(boost::property_tree::ptree& sensormapping);
+    virtual void GetSensorMapping(std::map<std::string, std::string>& sensormapping);
     virtual void GetInstObjects(std::vector<InstObjectPtr>& instobjects);
     virtual bool FindInstObject(const std::string& name, InstObjectPtr& instobject);
 
