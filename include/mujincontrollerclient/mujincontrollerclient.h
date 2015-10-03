@@ -57,6 +57,7 @@
 #include <boost/weak_ptr.hpp>
 #include <boost/format.hpp>
 #include <boost/array.hpp>
+#include <boost/property_tree/ptree.hpp>
 
 #ifndef USE_LOG4CPP // logging
 
@@ -885,6 +886,7 @@ public:
     virtual void GetTaskPrimaryKeys(std::vector<std::string>& taskkeys);
 
     /// \brief gets a list of all the instance objects of the scene
+    virtual void GetSensorMapping(std::map<std::string, std::string>& sensormapping);
     virtual void GetInstObjects(std::vector<InstObjectPtr>& instobjects);
     virtual bool FindInstObject(const std::string& name, InstObjectPtr& instobject);
 
