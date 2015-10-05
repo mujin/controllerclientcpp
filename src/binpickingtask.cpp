@@ -1021,6 +1021,11 @@ void BinPickingTaskResource::GetBinpickingState(ResultGetBinpickingState& result
     result.Parse(ExecuteCommand(_ss.str(), timeout));
 }
 
+const std::string& BinPickingTaskResource::GetSlaveRequestId() const
+{
+    return _slaverequestid;
+}
+
 boost::property_tree::ptree BinPickingTaskResource::ExecuteCommand(const std::string& taskparameters, const double timeout, const bool getresult)
 {
     if (!_bIsInitialized) {

@@ -271,6 +271,9 @@ public:
      */
     virtual void _HeartbeatMonitorThread(const double reinitializetimeout, const double commandtimeout);
 
+    /// \brief returns the slaverequestid used to communicate with the controller. If empty, then no id is used.
+    virtual const std::string& GetSlaveRequestId() const;
+    
 protected:
     std::stringstream _ss;
     std::string GetJsonString(const std::string& string);
