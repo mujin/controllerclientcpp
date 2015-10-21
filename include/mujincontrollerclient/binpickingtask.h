@@ -229,7 +229,7 @@ public:
         \param name name of the obstacle
         \param timeout seconds until this command times out
      */
-    virtual void AddPointCloudObstacle(const std::vector<Real>& vpoints, const Real pointsize, const std::string& name, const bool executionverification=false, const double timeout /* second */=0);
+    virtual void AddPointCloudObstacle(const std::vector<Real>& vpoints, const Real pointsize, const std::string& name, const unsigned long long timestamp=0, const bool executionverification=false, const double timeout /* second */=0);
 
     virtual void UpdateEnvironmentState(const std::string& basename, const std::string& default_object_uri, const std::vector<DetectedObject>& detectedobjects, const std::vector<Real>& vpoints, const std::string& resultstate, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit="m", const double timeout=0);
 
