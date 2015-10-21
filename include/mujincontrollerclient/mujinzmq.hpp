@@ -360,6 +360,8 @@ public:
                     } else {
                         ss << "Timed out receiving response of command " << msg << " after " << timeout << " seconds";
                     }
+                    std::string errstr = ss.str();
+                    boost::replace_all(errstr, "\"", "\'");
                     throw std::runtime_error(ss.str());
                 }
 
