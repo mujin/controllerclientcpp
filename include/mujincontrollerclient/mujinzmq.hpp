@@ -361,7 +361,7 @@ public:
                         ss << "Timed out receiving response of command " << msg << " after " << timeout << " seconds";
                     }
                     std::string errstr = ss.str();
-                    boost::replace_all(errstr, "\"", "\'");
+                    boost::replace_all(errstr, "\"", ""); // need to remove " in the message so that json parser works
                     throw std::runtime_error(ss.str());
                 }
 

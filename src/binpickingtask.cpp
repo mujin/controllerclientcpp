@@ -632,7 +632,7 @@ void BinPickingTaskResource::ResultHeartBeat::Parse(const boost::property_tree::
         if (value->first == "slavestates") {
             try {
                 boost::property_tree::ptree t;
-                t.put_child("output", value->second.get_child("slaverequestid-" + _slaverequestid));
+                t.put_child("output", value->second.get_child("slaverequestid-" + _slaverequestid + ".taskstate"));
                 taskstate.Parse(t);
             } catch (...) {
                 //BINPICKING_LOG_ERROR("failed to parse slavestates");
