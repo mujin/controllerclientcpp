@@ -113,7 +113,9 @@ boost::property_tree::ptree BinPickingResultResource::GetResultPtree() const
 
 std::string BinPickingTaskResource::GetJsonString(const std::string& str)
 {
-    return "\""+str+"\"";
+    std::string newstr = str;
+    boost::replace_all(newstr, "\"", "\\\"");
+    return "\""+newstr+"\"";
 }
 
 std::string BinPickingTaskResource::GetJsonString (const std::vector<Real>& vec)
@@ -520,6 +522,9 @@ void BinPickingTaskResource::ResultIsRobotOccludingBody::Parse(const boost::prop
             return;
         }
     }
+    std::stringstream ss;
+    write_json (ss, pt, false);
+    BINPICKING_LOG_ERROR(ss.str());
     throw MujinException("Output does not have \"occluded\" attribute!", MEC_Failed);
 }
 
