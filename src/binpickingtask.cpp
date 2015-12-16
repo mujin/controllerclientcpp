@@ -98,9 +98,17 @@ void BinPickingTaskResource::Initialize(const std::string& defaultTaskParameters
         std::stringstream ss(defaultTaskParameters);
         boost::property_tree::read_json(ss, pt);
         FOREACH(itchild, pt) {
-            std::stringstream ssvalue;
-            write_json(ssvalue, itchild->second, false);
-            _mapTaskParameters[itchild->first] = ssvalue.str();
+            std::string value = itchild->second.data();
+            // hack?!
+            if( value.size() > 0 ) {
+                _mapTaskParameters[itchild->first] = GetJsonString(value);
+            }
+            else {
+                std::stringstream ssvalue;
+                write_json(ssvalue, itchild->second, false);
+                _mapTaskParameters[itchild->first] = ssvalue.str();
+            }
+            //std::cout << "initialize " << std::string(itchild->first) << "=" << _mapTaskParameters[itchild->first] << std::endl;
         }
     }
     
@@ -644,12 +652,14 @@ void BinPickingTaskResource::ResultHeartBeat::Parse(const boost::property_tree::
             timestamp = boost::lexical_cast<Real>(value->second.data());
         }
         if (value->first == "slavestates") {
-            try {
-                boost::property_tree::ptree t;
-                t.put_child("output", value->second.get_child("slaverequestid-" + _slaverequestid + ".taskstate"));
-                taskstate.Parse(t);
-            } catch (...) {
-                //BINPICKING_LOG_ERROR("failed to parse slavestates");
+            if( _slaverequestid.size() > 0 ) {
+                try {
+                    boost::property_tree::ptree t;
+                    t.put_child("output", value->second.get_child("slaverequestid-" + _slaverequestid + ".taskstate"));
+                    taskstate.Parse(t);
+                } catch (...) {
+                    //BINPICKING_LOG_ERROR("failed to parse slavestates");
+                }
             }
         }
     }
@@ -663,12 +673,12 @@ void BinPickingTaskResource::GetJointValues(ResultGetJointValues& result, const 
 
     _ss.str(""); _ss.clear();
     _ss << "{";
+    FOREACH(it, _mapTaskParameters) {
+        _ss << "\"" << it->first << "\":" << it->second << ", ";
+    }
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("robottype", robottype) << ", ";
-    _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
-    FOREACH(it, _mapTaskParameters) {
-        _ss << GetJsonString(it->first, it->second) << ", ";
-    }
+    _ss << GetJsonString("tasktype", std::string("binpicking"));
     _ss << "}";
 
     result.Parse(ExecuteCommand(_ss.str(), timeout));
@@ -681,11 +691,11 @@ void BinPickingTaskResource::MoveJoints(const std::vector<Real>& goaljoints, con
 
     _ss.str(""); _ss.clear();
     _ss << "{";
+    FOREACH(it, _mapTaskParameters) {
+        _ss << "\"" << it->first << "\":" << it->second << ", ";
+    }
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("robottype", robottype) << ", ";
-    FOREACH(it, _mapTaskParameters) {
-        _ss << GetJsonString(it->first, it->second) << ", ";
-    }
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     _ss << GetJsonString("goaljoints") << ": " << GetJsonString(goaljoints) << ", ";
     _ss << GetJsonString("jointindices") << ": " << GetJsonString(jointindices) << ", ";
@@ -700,6 +710,9 @@ void BinPickingTaskResource::GetTransform(const std::string& targetname, Transfo
     std::string command = "GetTransform";
     _ss.str(""); _ss.clear();
     _ss << "{";
+    FOREACH(it, _mapTaskParameters) {
+        _ss << "\"" << it->first << "\":" << it->second << ", ";
+    }
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("targetname", targetname) << ", ";
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
@@ -715,6 +728,9 @@ void BinPickingTaskResource::SetTransform(const std::string& targetname, const T
     std::string command = "SetTransform";
     _ss.str(""); _ss.clear();
     _ss << "{";
+    FOREACH(it, _mapTaskParameters) {
+        _ss << "\"" << it->first << "\":" << it->second << ", ";
+    }
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("targetname", targetname) << ", ";
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
@@ -729,11 +745,11 @@ void BinPickingTaskResource::GetManipTransformToRobot(Transform& transform, cons
     std::string command = "GetManipTransformToRobot";
     _ss.str(""); _ss.clear();
     _ss << "{";
+    FOREACH(it, _mapTaskParameters) {
+        _ss << "\"" << it->first << "\":" << it->second << ", ";
+    }
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
-    FOREACH(it, _mapTaskParameters) {
-        _ss << GetJsonString(it->first, it->second) << ", ";
-    }
     _ss << GetJsonString("unit", unit);
     _ss << "}";
     ResultTransform result;
@@ -746,11 +762,11 @@ void BinPickingTaskResource::GetManipTransform(Transform& transform, const std::
     std::string command = "GetManipTransform";
     _ss.str(""); _ss.clear();
     _ss << "{";
+    FOREACH(it, _mapTaskParameters) {
+        _ss << "\"" << it->first << "\":" << it->second << ", ";
+    }
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
-    FOREACH(it, _mapTaskParameters) {
-        _ss << GetJsonString(it->first, it->second) << ", ";
-    }
     _ss << GetJsonString("unit", unit);
     _ss << "}";
     ResultTransform result;
@@ -763,6 +779,9 @@ void BinPickingTaskResource::GetAABB(const std::string& targetname, ResultAABB& 
     std::string command = "GetAABB";
     _ss.str(""); _ss.clear();
     _ss << "{";
+    FOREACH(it, _mapTaskParameters) {
+        _ss << "\"" << it->first << "\":" << it->second << ", ";
+    }
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("targetname", targetname) << ", ";
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
@@ -776,6 +795,9 @@ void BinPickingTaskResource::GetInnerEmptyRegionOBB(ResultOBB& result, const std
     std::string command = "GetInnerEmptyRegionOBB";
     _ss.str(""); _ss.clear();
     _ss << "{";
+    FOREACH(it, _mapTaskParameters) {
+        _ss << "\"" << it->first << "\":" << it->second << ", ";
+    }
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("targetname", targetname) << ", ";
     if (linkname != "") {
@@ -792,6 +814,9 @@ void BinPickingTaskResource::GetOBB(ResultOBB& result, const std::string& target
     std::string command = "GetOBB";
     _ss.str(""); _ss.clear();
     _ss << "{";
+    FOREACH(it, _mapTaskParameters) {
+        _ss << "\"" << it->first << "\":" << it->second << ", ";
+    }
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("targetname", targetname) << ", ";
     if (linkname != "") {
@@ -821,6 +846,9 @@ void BinPickingTaskResource::UpdateObjects(const std::string& basename, const st
     std::string targetname = basename;
     _ss.str(""); _ss.clear();
     _ss << "{";
+    FOREACH(it, _mapTaskParameters) {
+        _ss << "\"" << it->first << "\":" << it->second << ", ";
+    }
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     _ss << GetJsonString("objectname", targetname) << ", ";
@@ -855,6 +883,9 @@ void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<Real>&vpoin
     std::string command = "AddPointCloudObstacle";
     _ss.str(""); _ss.clear();
     _ss << "{";
+    FOREACH(it, _mapTaskParameters) {
+        _ss << "\"" << it->first << "\":" << it->second << ", ";
+    }
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     PointCloudObstacle pointcloudobstacle;
@@ -877,6 +908,9 @@ void BinPickingTaskResource::UpdateEnvironmentState(const std::string& basename,
     std::string command = "UpdateEnvironmentState";
     _ss.str(""); _ss.clear();
     _ss << "{";
+    FOREACH(it, _mapTaskParameters) {
+        _ss << "\"" << it->first << "\":" << it->second << ", ";
+    }
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     _ss << GetJsonString("objectname", basename) << ", ";
@@ -908,6 +942,9 @@ void BinPickingTaskResource::VisualizePointCloud(const std::vector<std::vector<R
     std::string command = "VisualizePointCloud";
     _ss.str(""); _ss.clear();
     _ss << "{";
+    FOREACH(it, _mapTaskParameters) {
+        _ss << "\"" << it->first << "\":" << it->second << ", ";
+    }
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     _ss << GetJsonString("pointslist") << ": [";
@@ -936,6 +973,9 @@ void BinPickingTaskResource::ClearVisualization(const double timeout)
     std::string command = "ClearVisualization";
     _ss.str(""); _ss.clear();
     _ss << "{";
+    FOREACH(it, _mapTaskParameters) {
+        _ss << "\"" << it->first << "\":" << it->second << ", ";
+    }
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     _ss << "}";
@@ -947,11 +987,15 @@ void BinPickingTaskResource::GetPickedPositions(ResultGetPickedPositions& r, con
     std::string command = "GetPickedPositions";
     _ss.str(""); _ss.clear();
     _ss << "{";
+    FOREACH(it, _mapTaskParameters) {
+        _ss << "\"" << it->first << "\":" << it->second << ", ";
+    }
     _ss << GetJsonString("command", command) << ",";
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     _ss << GetJsonString("unit", unit);
     _ss << "}";
-    r.Parse(ExecuteCommand(_ss.str(), timeout));
+    boost::property_tree::ptree pt = ExecuteCommand(_ss.str(), timeout);
+    r.Parse(pt);
 }
 
 void BinPickingTaskResource::IsRobotOccludingBody(const std::string& bodyname, const std::string& cameraname, const unsigned long long starttime, const unsigned long long endtime, bool& r, const double timeout)
@@ -959,11 +1003,11 @@ void BinPickingTaskResource::IsRobotOccludingBody(const std::string& bodyname, c
     std::string command = "IsRobotOccludingBody";
     _ss.str(""); _ss.clear();
     _ss << "{";
+    FOREACH(it, _mapTaskParameters) {
+        _ss << "\"" << it->first << "\":" << it->second << ", ";
+    }
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
-    FOREACH(it, _mapTaskParameters) {
-        _ss << GetJsonString(it->first, it->second) << ", ";
-    }
     SensorOcclusionCheck check;
     check.bodyname = bodyname;
     check.cameraname = cameraname;
@@ -999,6 +1043,9 @@ void BinPickingTaskResource::GetInstObjectAndSensorInfo(const std::vector<std::s
     std::string command = "GetInstObjectAndSensorInfo";
     _ss.str(""); _ss.clear();
     _ss << "{";
+    FOREACH(it, _mapTaskParameters) {
+        _ss << "\"" << it->first << "\":" << it->second << ", ";
+    }
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     _ss << GetJsonString("instobjectnames") << ": " << GetJsonString(instobjectnames) << ", ";
@@ -1006,7 +1053,15 @@ void BinPickingTaskResource::GetInstObjectAndSensorInfo(const std::vector<std::s
     _ss << GetJsonString("unit", unit);
     _ss << "}";
     boost::property_tree::ptree pt = ExecuteCommand(_ss.str(), timeout);
-    result.Parse(ExecuteCommand(_ss.str(), timeout));
+    try {
+        result.Parse(pt);
+    }
+    catch(const std::exception& ex) {
+        std::stringstream sstemp;
+        write_json (sstemp, pt, true);
+        BINPICKING_LOG_ERROR(str(boost::format("got error when parsing result: %s")%sstemp.str()));
+        throw;
+    }
 }
 
 void BinPickingTaskResource::GetPublishedTaskState(ResultGetBinpickingState& result, const std::string& unit, const double timeout)
@@ -1035,12 +1090,15 @@ void BinPickingTaskResource::GetBinpickingState(ResultGetBinpickingState& result
     std::string command = "GetBinpickingState";
     _ss.str(""); _ss.clear();
     _ss << "{";
+    FOREACH(it, _mapTaskParameters) {
+        _ss << "\"" << it->first << "\":" << it->second << ", ";
+    }
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     _ss << GetJsonString("unit", unit);
     _ss << "}";
     boost::property_tree::ptree pt = ExecuteCommand(_ss.str(), timeout);
-    result.Parse(ExecuteCommand(_ss.str(), timeout));
+    result.Parse(pt);
 }
 
 const std::string& BinPickingTaskResource::GetSlaveRequestId() const
