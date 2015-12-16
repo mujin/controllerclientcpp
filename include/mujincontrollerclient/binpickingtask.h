@@ -180,8 +180,6 @@ public:
     };
 
     /** \brief Initializes binpicking task.
-        \param robotControllerUri URI of the robot controller, e.g. tcp://127.0.0.1:1234?param0=0,param1=1
-        \param robotDeviceIOUri URI of the robot IO device, e.g. tcp://127.0.0.1:2345?param0=0,param1=1
         \param zmqPort port of the binpicking zmq server
         \param heartbeatPort port of the binpicking zmq server's heartbeat publisher
         \param zmqcontext zmq context
@@ -190,7 +188,7 @@ public:
         \param timeout seconds until this command times out
         \param locale language of the log/status
      */
-    virtual void Initialize(const std::string& robotControllerUri, const std::string& robotDeviceIOUri, const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq=false, const double reinitializetimeout=10, const double commandtimeout=0, const std::string& userinfo="{}", const std::string& slaverequestid="");
+    virtual void Initialize(const std::string& defaultTaskParameters, const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq=false, const double reinitializetimeout=10, const double commandtimeout=0, const std::string& userinfo="{}", const std::string& slaverequestid="");
 
     virtual boost::property_tree::ptree ExecuteCommand(const std::string& command, const double timeout /* second */=0.0, const bool getresult=true);
 
@@ -290,8 +288,7 @@ protected:
     std::string GetJsonString(const std::string& key, const unsigned long long value);
     std::string GetJsonString(const std::string& key, const Real value);
 
-    std::string _robotControllerUri;
-    std::string _robotDeviceIOUri;
+    std::map<std::string, std::string> _mapTaskParameters; ///< set of key value pairs that should be included 
     std::string _mujinControllerIp;
     boost::mutex _mutexTaskState;
     ResultGetBinpickingState _taskstate;

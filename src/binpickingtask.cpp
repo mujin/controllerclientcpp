@@ -31,7 +31,7 @@ BinPickingResultResource::~BinPickingResultResource()
 {
 }
 
-BinPickingTaskResource::BinPickingTaskResource(ControllerClientPtr pcontroller, const std::string& pk, const std::string& scenepk) : TaskResource(pcontroller,pk), _robotControllerUri(""), _robotDeviceIOUri(""), _zmqPort(-1), _heartbeatPort(-1), _bIsInitialized(false)
+BinPickingTaskResource::BinPickingTaskResource(ControllerClientPtr pcontroller, const std::string& pk, const std::string& scenepk) : TaskResource(pcontroller,pk), _zmqPort(-1), _heartbeatPort(-1), _bIsInitialized(false)
 {
     // get hostname from uri
     GETCONTROLLERIMPL();
@@ -91,10 +91,19 @@ BinPickingTaskResource::~BinPickingTaskResource()
     }
 }
 
-void BinPickingTaskResource::Initialize(const std::string& robotControllerUri, const std::string& robotDeviceIOUri, const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq, const double reinitializetimeout, const double timeout, const std::string& userinfo, const std::string& slaverequestid)
+void BinPickingTaskResource::Initialize(const std::string& defaultTaskParameters, const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq, const double reinitializetimeout, const double timeout, const std::string& userinfo, const std::string& slaverequestid)
 {
-    _robotControllerUri = robotControllerUri;
-    _robotDeviceIOUri = robotDeviceIOUri;
+    if( defaultTaskParameters.size() > 0 ) {
+        boost::property_tree::ptree pt;
+        std::stringstream ss(defaultTaskParameters);
+        boost::property_tree::read_json(ss, pt);
+        FOREACH(itchild, pt) {
+            std::stringstream ssvalue;
+            write_json(ssvalue, itchild->second, false);
+            _mapTaskParameters[itchild->first] = ssvalue.str();
+        }
+    }
+    
     _zmqPort = zmqPort;
     _heartbeatPort = heartbeatPort;
     _bIsInitialized = true;
@@ -657,8 +666,9 @@ void BinPickingTaskResource::GetJointValues(ResultGetJointValues& result, const 
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("robottype", robottype) << ", ";
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
-    _ss << GetJsonString("robotControllerUri", _robotControllerUri) << ", ";
-    _ss << GetJsonString("robotDeviceIOUri", _robotDeviceIOUri);
+    FOREACH(it, _mapTaskParameters) {
+        _ss << GetJsonString(it->first, it->second) << ", ";
+    }
     _ss << "}";
 
     result.Parse(ExecuteCommand(_ss.str(), timeout));
@@ -673,8 +683,9 @@ void BinPickingTaskResource::MoveJoints(const std::vector<Real>& goaljoints, con
     _ss << "{";
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("robottype", robottype) << ", ";
-    _ss << GetJsonString("robotControllerUri", _robotControllerUri) << ", ";
-    _ss << GetJsonString("robotDeviceIOUri", _robotDeviceIOUri) << ", ";
+    FOREACH(it, _mapTaskParameters) {
+        _ss << GetJsonString(it->first, it->second) << ", ";
+    }
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     _ss << GetJsonString("goaljoints") << ": " << GetJsonString(goaljoints) << ", ";
     _ss << GetJsonString("jointindices") << ": " << GetJsonString(jointindices) << ", ";
@@ -720,8 +731,9 @@ void BinPickingTaskResource::GetManipTransformToRobot(Transform& transform, cons
     _ss << "{";
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
-    _ss << GetJsonString("robotControllerUri", _robotControllerUri) << ", ";
-    _ss << GetJsonString("robotDeviceIOUri", _robotDeviceIOUri) << ", ";
+    FOREACH(it, _mapTaskParameters) {
+        _ss << GetJsonString(it->first, it->second) << ", ";
+    }
     _ss << GetJsonString("unit", unit);
     _ss << "}";
     ResultTransform result;
@@ -736,8 +748,9 @@ void BinPickingTaskResource::GetManipTransform(Transform& transform, const std::
     _ss << "{";
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
-    _ss << GetJsonString("robotControllerUri", _robotControllerUri) << ", ";
-    _ss << GetJsonString("robotDeviceIOUri", _robotDeviceIOUri) << ", ";
+    FOREACH(it, _mapTaskParameters) {
+        _ss << GetJsonString(it->first, it->second) << ", ";
+    }
     _ss << GetJsonString("unit", unit);
     _ss << "}";
     ResultTransform result;
@@ -948,8 +961,9 @@ void BinPickingTaskResource::IsRobotOccludingBody(const std::string& bodyname, c
     _ss << "{";
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
-    _ss << GetJsonString("robotControllerUri", _robotControllerUri) << ", ";
-    _ss << GetJsonString("robotDeviceIOUri", _robotDeviceIOUri) << ", ";
+    FOREACH(it, _mapTaskParameters) {
+        _ss << GetJsonString(it->first, it->second) << ", ";
+    }
     SensorOcclusionCheck check;
     check.bodyname = bodyname;
     check.cameraname = cameraname;
