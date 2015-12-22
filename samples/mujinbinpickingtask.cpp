@@ -96,7 +96,7 @@ int main(int argc, char ** argv)
     SceneResourcePtr scene(new SceneResource(controller, binpickingTaskScenePk));
     BinPickingTaskResourcePtr binpickingzmq = scene->GetOrCreateBinPickingTaskFromName_UTF8("binpickingtask1", "binpicking", TRO_EnableZMQ);
     boost::shared_ptr<zmq::context_t> zmqcontext(new zmq::context_t(2));
-    binpickingzmq->Initialize(url_ss.str(), "", binpickingTaskZmqPort, binpickingTaskHeartbeatPort, zmqcontext);
+    binpickingzmq->Initialize("", binpickingTaskZmqPort, binpickingTaskHeartbeatPort, zmqcontext);
 
     Transform t;
     binpickingzmq->GetTransform(testobjectname,t);

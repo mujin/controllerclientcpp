@@ -61,7 +61,7 @@ int main(int argc, char ** argv)
 
     HandEyeCalibrationTaskResourcePtr calib;
     boost::shared_ptr<zmq::context_t> zmqcontext(new zmq::context_t(2));
-    binpicking->Initialize(url_ss.str(), "", binpickingTaskZmqPort, binpickingTaskHeartbeatPort, zmqcontext);
+    binpicking->Initialize("", binpickingTaskZmqPort, binpickingTaskHeartbeatPort, zmqcontext);
     calib.reset(new HandEyeCalibrationTaskResource(std::string("calibtask1"), controller,scene));
     BinPickingTaskResource::ResultGetJointValues jointvaluesresult;
     binpicking->GetJointValues(jointvaluesresult);
