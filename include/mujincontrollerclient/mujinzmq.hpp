@@ -362,6 +362,7 @@ public:
                     }
                     std::string errstr = ss.str();
                     boost::replace_all(errstr, "\"", ""); // need to remove " in the message so that json parser works
+                    boost::replace_all(errstr, "\\", ""); // need to remove \ in the message so that json parser works
                     throw std::runtime_error(ss.str());
                 }
 
