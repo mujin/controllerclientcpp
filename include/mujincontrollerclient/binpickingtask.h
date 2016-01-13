@@ -135,9 +135,11 @@ public:
         std::string statusPickPlace;
         int pickAttemptFromSourceId;
         unsigned long long timestamp;
+        unsigned long long lastGrabbedTargetTimeStamp;
         bool isRobotOccludingSourceContainer;
         bool forceRequestDetectionResults;
         bool isGrabbingTarget;
+        bool isGrabbingLastTarget;
         int orderNumber;
         int numLeftInOrder;
         int numLeftInSupply;

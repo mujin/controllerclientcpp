@@ -507,9 +507,11 @@ BinPickingTaskResource::ResultGetBinpickingState::ResultGetBinpickingState()
     statusPickPlace = "";
     pickAttemptFromSourceId = -1;
     timestamp = 0;
+    lastGrabbedTargetTimeStamp = 0;
     isRobotOccludingSourceContainer = true;
     forceRequestDetectionResults = true;
     isGrabbingTarget = true;
+    isGrabbingLastTarget = true;
     orderNumber = -1;
     numLeftInOrder = -1;
     numLeftInSupply = -1;
@@ -527,9 +529,11 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const boost::proper
     statusPickPlace = _pt.get<std::string>("statusPickPlace", "unknown");
     pickAttemptFromSourceId = _pt.get<int>("pickAttemptFromSourceId", -1);
     timestamp = (unsigned long long)(_pt.get<double>("timestamp", 0));
+    lastGrabbedTargetTimeStamp = (unsigned long long)(_pt.get<double>("lastGrabbedTargetTimeStamp", 0));
     isRobotOccludingSourceContainer = _pt.get<bool>("isRobotOccludingSourceContainer", true);
     forceRequestDetectionResults = _pt.get<bool>("forceRequestDetectionResults", true);
     isGrabbingTarget = _pt.get<bool>("isGrabbingTarget", true);
+    isGrabbingLastTarget = _pt.get<bool>("isGrabbingLastTarget", true);
     boost::optional<const boost::property_tree::ptree&> orderstatept(_pt.get_child_optional("orderstate"));
     if (!!orderstatept) {
         orderNumber = orderstatept->get<int>("orderNumber", -1);
