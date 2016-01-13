@@ -509,6 +509,11 @@ BinPickingTaskResource::ResultGetBinpickingState::ResultGetBinpickingState()
     timestamp = 0;
     isRobotOccludingSourceContainer = true;
     forceRequestDetectionResults = true;
+    isGrabbingTarget = true;
+    orderNumber = -1;
+    numLeftInOrder = -1;
+    numLeftInSupply = -1;
+    placedInDest = -1;
 }
 
 BinPickingTaskResource::ResultGetBinpickingState::~ResultGetBinpickingState()
@@ -524,6 +529,14 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const boost::proper
     timestamp = (unsigned long long)(_pt.get<double>("timestamp", 0));
     isRobotOccludingSourceContainer = _pt.get<bool>("isRobotOccludingSourceContainer", true);
     forceRequestDetectionResults = _pt.get<bool>("forceRequestDetectionResults", true);
+    isGrabbingTarget = _pt.get<bool>("isGrabbingTarget", true);
+    boost::optional<const boost::property_tree::ptree&> orderstatept(_pt.get_child_optional("orderstate"));
+    if (!!orderstatept) {
+        orderNumber = orderstatept->get<int>("orderNumber", -1);
+        numLeftInOrder = orderstatept->get<int>("numLeftInOrder", -1);
+        numLeftInSupply = orderstatept->get<int>("numLeftInSupply", -1);
+        placedInDest = orderstatept->get<int>("placedInDest", -1);
+    }
 }
 
 BinPickingTaskResource::ResultIsRobotOccludingBody::~ResultIsRobotOccludingBody()

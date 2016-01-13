@@ -137,6 +137,11 @@ public:
         unsigned long long timestamp;
         bool isRobotOccludingSourceContainer;
         bool forceRequestDetectionResults;
+        bool isGrabbingTarget;
+        int orderNumber;
+        int numLeftInOrder;
+        int numLeftInSupply;
+        int placedInDest;
     };
 
     struct MUJINCLIENT_API ResultIsRobotOccludingBody : public ResultBase
