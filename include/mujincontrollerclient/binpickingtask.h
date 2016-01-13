@@ -134,8 +134,8 @@ public:
         void Parse(const boost::property_tree::ptree& pt);
         std::string statusPickPlace;
         int pickAttemptFromSourceId;
-        unsigned long long timestamp;
-        unsigned long long lastGrabbedTargetTimeStamp;
+        unsigned long long timestamp;  ///< ms
+        unsigned long long lastGrabbedTargetTimeStamp;   ///< ms
         bool isRobotOccludingSourceContainer;
         bool forceRequestDetectionResults;
         bool isGrabbingTarget;
