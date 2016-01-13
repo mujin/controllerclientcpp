@@ -528,8 +528,8 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const boost::proper
 
     statusPickPlace = _pt.get<std::string>("statusPickPlace", "unknown");
     pickAttemptFromSourceId = _pt.get<int>("pickAttemptFromSourceId", -1);
-    timestamp = (unsigned long long)(_pt.get<double>("timestamp", 0));
-    lastGrabbedTargetTimeStamp = (unsigned long long)(_pt.get<double>("lastGrabbedTargetTimeStamp", 0));
+    timestamp = (unsigned long long)(_pt.get<double>("timestamp", 0) * 1000.0); // s -> ms
+    lastGrabbedTargetTimeStamp = (unsigned long long)(_pt.get<double>("lastGrabbedTargetTimeStamp", 0) * 1000.0); // s -> ms
     isRobotOccludingSourceContainer = _pt.get<bool>("isRobotOccludingSourceContainer", true);
     forceRequestDetectionResults = _pt.get<bool>("forceRequestDetectionResults", true);
     isGrabbingTarget = _pt.get<bool>("isGrabbingTarget", true);
