@@ -236,7 +236,7 @@ public:
      */
     virtual void AddPointCloudObstacle(const std::vector<Real>& vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp=0, const unsigned long long endtimestamp=0, const bool executionverification=false, const double timeout /* second */=0);
 
-    virtual void UpdateEnvironmentState(const std::string& basename, const std::string& default_object_uri, const std::vector<DetectedObject>& detectedobjects, const std::vector<Real>& vpoints, const std::string& resultstate, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit="m", const double timeout=0);
+    virtual void UpdateEnvironmentState(const std::string& targetupdatename, const std::vector<DetectedObject>& detectedobjects, const std::vector<Real>& vpoints, const std::string& resultstate, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit="m", const double timeout=0);
 
     /** \brief Visualize point cloud on controller
         \param pointslist vector of x,y,z coordinates vector in meter

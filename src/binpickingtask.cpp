@@ -920,7 +920,7 @@ void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<Real>&vpoin
     ExecuteCommand(_ss.str(), timeout, false);
 }
 
-void BinPickingTaskResource::UpdateEnvironmentState(const std::string& basename, const std::string& default_object_uri, const std::vector<DetectedObject>& detectedobjects, const std::vector<Real>& vpoints, const std::string& state, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit, const double timeout)
+void BinPickingTaskResource::UpdateEnvironmentState(const std::string& targetupdatename, const std::vector<DetectedObject>& detectedobjects, const std::vector<Real>& vpoints, const std::string& state, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit, const double timeout)
 {
     std::string command = "UpdateEnvironmentState";
     _ss.str(""); _ss.clear();
@@ -930,9 +930,8 @@ void BinPickingTaskResource::UpdateEnvironmentState(const std::string& basename,
     }
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
-    _ss << GetJsonString("objectname", basename) << ", ";
-    _ss << GetJsonString("object_uri", default_object_uri) << ", ";
-    
+    _ss << GetJsonString("targetupdatename", targetupdatename) << ", ";
+
     _ss << GetJsonString("envstate") << ": [";  
     for (unsigned int i=0; i<detectedobjects.size(); i++) {
         _ss << GetJsonString(detectedobjects[i]);
