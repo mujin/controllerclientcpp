@@ -303,8 +303,14 @@ public:
                     boost::this_thread::sleep(boost::posix_time::milliseconds(100));
                     continue;
                 } else {
-                    CLIENTZMQ_LOG_INFO("failed to send");
-                    CLIENTZMQ_LOG_INFO(msg);
+                    std::stringstream errss;
+                    errss << "failed to send msg: ";
+                    if (msg.length() > 1000) {
+                        errss << msg.substr(0, 1000) << "...";
+                    } else {
+                        errss << msg;
+                    }
+                    CLIENTZMQ_LOG_INFO(errss.str());
                 }
                 if (!recreatedonce) {
                     CLIENTZMQ_LOG_INFO("re-creating zmq socket and trying again");
