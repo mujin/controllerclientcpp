@@ -310,7 +310,7 @@ public:
                     } else {
                         errss << msg;
                     }
-                    CLIENTZMQ_LOG_INFO(errss.str());
+                    CLIENTZMQ_LOG_ERROR(errss.str());
                 }
                 if (!recreatedonce) {
                     CLIENTZMQ_LOG_INFO("re-creating zmq socket and trying again");
