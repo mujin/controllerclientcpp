@@ -111,7 +111,7 @@ void BinPickingTaskResource::Initialize(const std::string& defaultTaskParameters
             //std::cout << "initialize " << std::string(itchild->first) << "=" << _mapTaskParameters[itchild->first] << std::endl;
         }
     }
-    
+
     _zmqPort = zmqPort;
     _heartbeatPort = heartbeatPort;
     _bIsInitialized = true;
@@ -869,27 +869,31 @@ void BinPickingTaskResource::UpdateObjects(const std::string& basename, const st
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     _ss << GetJsonString("objectname", targetname) << ", ";
-    _ss << GetJsonString("object_uri", "mujin:/"+targetname+".mujin.dae") << ", ";
-    std::vector<DetectedObject> detectedobjects;
-    for (unsigned int i=0; i<transformsworld.size(); i++) {
-        DetectedObject detectedobject;
-        std::stringstream name_ss;
-        name_ss << basename << "_" << i;
-        detectedobject.name = name_ss.str();
-        detectedobject.transform = transformsworld[i];
-        detectedobject.confidence = confidence[i];
-        detectedobjects.push_back(detectedobject);
+    if( targetname.size() > 0 ) {
+        _ss << GetJsonString("object_uri", "mujin:/"+targetname+".mujin.dae") << ", ";
     }
-
-    _ss << GetJsonString("envstate") << ": [";
-    for (unsigned int i=0; i<detectedobjects.size(); i++) {
-        _ss << GetJsonString(detectedobjects[i]);
-        if (i!=detectedobjects.size()-1) {
-            _ss << ", ";
+    if( transformsworld.size() > 0 ) {
+        std::vector<DetectedObject> detectedobjects;
+        for (unsigned int i=0; i<transformsworld.size(); i++) {
+            DetectedObject detectedobject;
+            std::stringstream name_ss;
+            name_ss << basename << "_" << i;
+            detectedobject.name = name_ss.str();
+            detectedobject.transform = transformsworld[i];
+            detectedobject.confidence = confidence[i];
+            detectedobjects.push_back(detectedobject);
         }
+
+        _ss << GetJsonString("envstate") << ": [";
+        for (unsigned int i=0; i<detectedobjects.size(); i++) {
+            _ss << GetJsonString(detectedobjects[i]);
+            if (i!=detectedobjects.size()-1) {
+                _ss << ", ";
+            }
+        }
+        _ss << "], ";
     }
-    _ss << "], ";
-    _ss << GetJsonString("state") << ": " << GetJsonString(state) << ", ";
+    _ss << GetJsonString("detectionResultState") << ": " << state << ", ";
     _ss << GetJsonString("unit", unit);
     _ss << "}";
     ExecuteCommand(_ss.str(), timeout, false);
@@ -910,10 +914,10 @@ void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<Real>&vpoin
     pointcloudobstacle.pointsize = pointsize;
     pointcloudobstacle.points = vpoints;
     _ss << GetJsonString(pointcloudobstacle);
-    
+
     if (executionverification) {
         _ss << ", \"starttimestamp\": " << starttimestamp;
-	_ss << ", \"endtimestamp\": " << endtimestamp;
+        _ss << ", \"endtimestamp\": " << endtimestamp;
         _ss << ", \"executionverification\": " << (int) executionverification;
     }
     _ss << "}";
@@ -932,7 +936,7 @@ void BinPickingTaskResource::UpdateEnvironmentState(const std::string& objectnam
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     _ss << GetJsonString("objectname", objectname) << ", ";
 
-    _ss << GetJsonString("envstate") << ": [";  
+    _ss << GetJsonString("envstate") << ": [";
     for (unsigned int i=0; i<detectedobjects.size(); i++) {
         _ss << GetJsonString(detectedobjects[i]);
         if (i!=detectedobjects.size()-1) {
@@ -948,7 +952,7 @@ void BinPickingTaskResource::UpdateEnvironmentState(const std::string& objectnam
     pointcloudobstacle.pointsize = pointsize;
     pointcloudobstacle.points = vpoints;
     _ss << GetJsonString(pointcloudobstacle);
-    
+
     _ss << "}";
     ExecuteCommand(_ss.str(), timeout, false);
 }
@@ -1189,7 +1193,7 @@ void utils::GetSensorData(ControllerClientPtr controller, SceneResourcePtr scene
             return;
         }
     }
-    throw MujinException("Could not find attached sensor " + sensorname + " on " + bodyname + ".", MEC_Failed); 
+    throw MujinException("Could not find attached sensor " + sensorname + " on " + bodyname + ".", MEC_Failed);
 }
 
 void utils::GetSensorTransform(ControllerClientPtr controller, SceneResourcePtr scene, const std::string& bodyname, const std::string& sensorname, Transform& result, const std::string& unit)
@@ -1206,7 +1210,7 @@ void utils::GetSensorTransform(ControllerClientPtr controller, SceneResourcePtr 
                     transform.translate[1] *= 0.001;
                     transform.translate[2] *= 0.001;
                 }
-                  
+
                 result = transform;
                 return;
             }
@@ -1328,7 +1332,7 @@ void BinPickingTaskResource::_HeartbeatMonitorThread(const double reinitializeti
         memset(&pollitem, 0, sizeof(zmq::pollitem_t));
         pollitem.socket = socket->operator void*();
         pollitem.events = ZMQ_POLLIN;
-        
+
         unsigned long long lastheartbeat = GetMilliTime();
         while (!_bShutdownHeartbeatMonitor && (GetMilliTime() - lastheartbeat) / 1000.0f < reinitializetimeout) {
             zmq::poll(&pollitem,1, 50); // wait 50 ms for message
