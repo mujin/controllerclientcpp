@@ -130,7 +130,7 @@ else()
 
   # only try to load log4cxx module if not windows
   find_package(PkgConfig)
-  pkg_check_modules(LOG4CXX log4cxx)
+  pkg_check_modules(LOG4CXX liblog4cxx)
   if (LOG4CXX_FOUND)
     add_definitions(-DUSE_LOG4CXX)
   endif()
