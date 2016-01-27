@@ -132,7 +132,7 @@ endif()
 
 find_package(PkgConfig)
 if (OPT_LOG4CXX)
-  pkg_check_modules(LOG4CXX liblog4cxx)
+  pkg_check_modules(LOG4CXX REQUIRED liblog4cxx)
   if (LOG4CXX_FOUND)
     add_definitions(-DUSE_LOG4CXX)
   endif()
