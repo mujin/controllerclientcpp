@@ -128,11 +128,11 @@ if( MSVC )
 else()
   set(MUJINCLIENT_LIBRARY_SUFFIX "${MUJINCLIENT_SOVERSION}" CACHE STRING "Suffix to append to library names")
 
-  # only try to load log4cpp module if not windows
+  # only try to load log4cxx module if not windows
   find_package(PkgConfig)
-  pkg_check_modules(log4cpp log4cpp)
-  if (log4cpp_FOUND)
-    add_definitions(-DUSE_LOG4CPP)
+  pkg_check_modules(LOG4CXX log4cxx)
+  if (LOG4CXX_FOUND)
+    add_definitions(-DUSE_LOG4CXX)
   endif()
 endif()
 

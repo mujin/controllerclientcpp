@@ -21,6 +21,10 @@
 #include "mujincontrollerclient/zmq.hpp"
 #endif
 
+#include "logging.h"
+
+MUJIN_LOGGER("mujin.controllerclientcpp.binpickingtask");
+
 namespace mujinclient {
 
 BinPickingResultResource::BinPickingResultResource(ControllerClientPtr controller, const std::string& pk) : PlanningResultResource(controller,"binpickingresult", pk)
@@ -558,7 +562,7 @@ void BinPickingTaskResource::ResultIsRobotOccludingBody::Parse(const boost::prop
     }
     std::stringstream ss;
     write_json (ss, pt, false);
-    BINPICKING_LOG_ERROR(ss.str());
+    MUJIN_LOG_ERROR(ss.str());
     throw MujinException("Output does not have \"occluded\" attribute!", MEC_Failed);
 }
 
@@ -675,7 +679,7 @@ void BinPickingTaskResource::ResultHeartBeat::Parse(const boost::property_tree::
                     t.put_child("output", value->second.get_child("slaverequestid-" + _slaverequestid + ".taskstate"));
                     taskstate.Parse(t);
                 } catch (...) {
-                    //BINPICKING_LOG_ERROR("failed to parse slavestates");
+                    //MUJIN_LOG_ERROR("failed to parse slavestates");
                 }
             }
         }
@@ -1079,7 +1083,7 @@ void BinPickingTaskResource::GetInstObjectAndSensorInfo(const std::vector<std::s
     catch(const std::exception& ex) {
         std::stringstream sstemp;
         write_json (sstemp, pt, true);
-        BINPICKING_LOG_ERROR(str(boost::format("got error when parsing result: %s")%sstemp.str()));
+        MUJIN_LOG_ERROR(str(boost::format("got error when parsing result: %s")%sstemp.str()));
         throw;
     }
 }
@@ -1093,7 +1097,7 @@ void BinPickingTaskResource::GetPublishedTaskState(ResultGetBinpickingState& res
     }
 
     if (taskstate.timestamp == 0) {
-        BINPICKING_LOG_INFO("have not received published message yet, getting published state from GetBinpickingState()");
+        MUJIN_LOG_INFO("have not received published message yet, getting published state from GetBinpickingState()");
         GetBinpickingState(result, unit, timeout);
         {
             boost::mutex::scoped_lock lock(_mutexTaskState);
@@ -1349,11 +1353,11 @@ void BinPickingTaskResource::_HeartbeatMonitorThread(const double reinitializeti
         if (!_bShutdownHeartbeatMonitor) {
             std::stringstream ss;
             ss << (double)((GetMilliTime() - lastheartbeat)/1000.0f) << " seconds passed since last heartbeat signal, re-intializing ZMQ server.";
-            BINPICKING_LOG_INFO(ss.str());
+            MUJIN_LOG_INFO(ss.str());
         }
     }
 #else
-    BINPICKING_LOG_ERROR("cannot create heartbeat monitor since not compiled with libzmq");
+    MUJIN_LOG_ERROR("cannot create heartbeat monitor since not compiled with libzmq");
 #endif
 }
 

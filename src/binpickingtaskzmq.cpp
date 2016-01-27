@@ -17,9 +17,13 @@
 #include "binpickingtaskzmq.h"
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/exceptions.hpp>
-#include "mujincontrollerclient/mujinzmq.hpp"
+#include "mujincontrollerclient/mujinzmq.h"
 
 #include <algorithm> // find
+
+#include "logging.h"
+
+MUJIN_LOGGER("mujin.controllerclientcpp.binpickingtask.zmq");
 
 namespace mujinclient {
 
@@ -78,7 +82,7 @@ boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std:
     }
 
     if (!_zmqmujincontrollerclient) {
-        BINPICKINGZMQ_LOG_ERROR("zmqcontrollerclient is not initialized! initialize");
+        MUJIN_LOG_ERROR("zmqcontrollerclient is not initialized! initialize");
         _zmqmujincontrollerclient.reset(new ZmqMujinControllerClient(_zmqcontext, _mujinControllerIp, _zmqPort));
     }
     std::stringstream ss;
@@ -102,9 +106,9 @@ boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std:
             result_ss << _zmqmujincontrollerclient->Call(command);
         }
         catch (const MujinException& e) {
-            BINPICKINGZMQ_LOG_ERROR(e.what());
+            MUJIN_LOG_ERROR(e.what());
             if (e.GetCode() == MEC_ZMQNoResponse) {
-                BINPICKINGZMQ_LOG_INFO("reinitializing zmq connection with the slave");
+                MUJIN_LOG_INFO("reinitializing zmq connection with the slave");
                 _zmqmujincontrollerclient.reset(new ZmqMujinControllerClient(_zmqcontext, _mujinControllerIp, _zmqPort));
                 if (!_zmqmujincontrollerclient) {
                     throw MujinException(boost::str(boost::format("Failed to establish ZMQ connection to mujin controller at %s:%d")%_mujinControllerIp%_zmqPort), MEC_Failed);
@@ -123,9 +127,9 @@ boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std:
             _zmqmujincontrollerclient->Call(command);
         }
         catch (const MujinException& e) {
-            BINPICKINGZMQ_LOG_ERROR(e.what());
+            MUJIN_LOG_ERROR(e.what());
             if (e.GetCode() == MEC_ZMQNoResponse) {
-                BINPICKINGZMQ_LOG_INFO("reinitializing zmq connection with the slave");
+                MUJIN_LOG_INFO("reinitializing zmq connection with the slave");
                 _zmqmujincontrollerclient.reset(new ZmqMujinControllerClient(_zmqcontext, _mujinControllerIp, _zmqPort));
                 if (!_zmqmujincontrollerclient) {
                     throw MujinException(boost::str(boost::format("Failed to establish ZMQ connection to mujin controller at %s:%d")%_mujinControllerIp%_zmqPort), MEC_Failed);
@@ -175,8 +179,8 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
                     boost::property_tree::read_json(replystring_ss, pt);
                 }
                 catch (std::exception const &e) {
-                    BINPICKINGZMQ_LOG_ERROR("HeartBeat reply is not JSON");
-                    BINPICKINGZMQ_LOG_ERROR(e.what());
+                    MUJIN_LOG_ERROR("HeartBeat reply is not JSON");
+                    MUJIN_LOG_ERROR(e.what());
                     continue;
                 }
                 heartbeat.Parse(pt);
@@ -194,7 +198,7 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
         if (!_bShutdownHeartbeatMonitor) {
             std::stringstream ss;
             ss << (double)((GetMilliTime() - lastheartbeat)/1000.0f) << " seconds passed since last heartbeat signal, re-intializing ZMQ server.";
-            BINPICKINGZMQ_LOG_INFO(ss.str());
+            MUJIN_LOG_INFO(ss.str());
         }
     }
 }

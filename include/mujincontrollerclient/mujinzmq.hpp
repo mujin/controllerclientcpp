@@ -25,23 +25,6 @@
 
 #include "mujincontrollerclient/zmq.hpp"
 
-#ifndef USE_LOG4CPP // logging
-
-#define CLIENTZMQ_LOG_INFO(msg) std::cout << msg << std::endl;
-#define CLIENTZMQ_LOG_ERROR(msg) std::cerr << msg << std::endl;
-
-#else
-
-#include <log4cpp/Category.hh>
-#include <log4cpp/PropertyConfigurator.hh>
-
-LOG4CPP_LOGGER_N(mujincontrollerclientzmqlogger, "mujincontrollerclient.zmq");
-
-#define CLIENTZMQ_LOG_INFO(msg) LOG4CPP_INFO_S(mujincontrollerclientzmqlogger) << msg;
-#define CLIENTZMQ_LOG_ERROR(msg) LOG4CPP_ERROR_S(mujincontrollerclientzmqlogger) << msg;
-
-#endif // logging
-
 #ifndef MUJIN_TIME
 #define MUJIN_TIME
 #include <time.h>
@@ -148,6 +131,9 @@ inline static uint64_t GetNanoPerformanceTime()
 }
 #endif
 #endif
+
+#define MUJIN_LOG_INFO(msg) std::cout << msg << std::endl;
+#define MUJIN_LOG_ERROR(msg) std::cerr << msg << std::endl;
 
 namespace mujinzmq
 {
@@ -299,7 +285,7 @@ public:
                 break;
             } catch (const zmq::error_t& e) {
                 if (e.num() == EAGAIN) {
-                    CLIENTZMQ_LOG_ERROR("failed to send request, try again");
+                    MUJIN_LOG_ERROR("failed to send request, try again");
                     boost::this_thread::sleep(boost::posix_time::milliseconds(100));
                     continue;
                 } else {
@@ -310,10 +296,10 @@ public:
                     } else {
                         errss << msg;
                     }
-                    CLIENTZMQ_LOG_ERROR(errss.str());
+                    MUJIN_LOG_ERROR(errss.str());
                 }
                 if (!recreatedonce) {
-                    CLIENTZMQ_LOG_INFO("re-creating zmq socket and trying again");
+                    MUJIN_LOG_INFO("re-creating zmq socket and trying again");
                     if (!!_socket) {
                         _socket->close();
                         _socket.reset();
@@ -330,8 +316,8 @@ public:
         if (GetMilliTime() - starttime > timeout*1000.0) {
             std::stringstream ss;
             ss << "timed out trying to send request";
-            CLIENTZMQ_LOG_ERROR(ss.str());
-            CLIENTZMQ_LOG_INFO(msg);
+            MUJIN_LOG_ERROR(ss.str());
+            MUJIN_LOG_INFO(msg);
             throw std::runtime_error(ss.str());
         }
 
@@ -374,15 +360,15 @@ public:
 
             } catch (const zmq::error_t& e) {
                 if (e.num() == EAGAIN) {
-                    CLIENTZMQ_LOG_ERROR("failed to receive reply, zmq::EAGAIN");
+                    MUJIN_LOG_ERROR("failed to receive reply, zmq::EAGAIN");
                     boost::this_thread::sleep(boost::posix_time::milliseconds(100));
                     continue;
                 } else {
-                    CLIENTZMQ_LOG_INFO("failed to send");
-                    CLIENTZMQ_LOG_INFO(msg);
+                    MUJIN_LOG_INFO("failed to send");
+                    MUJIN_LOG_INFO(msg);
                 }
                 if (!recreatedonce) {
-                    CLIENTZMQ_LOG_INFO("re-creating zmq socket and trying again");
+                    MUJIN_LOG_INFO("re-creating zmq socket and trying again");
                     if (!!_socket) {
                         _socket->close();
                         _socket.reset();
@@ -399,8 +385,8 @@ public:
         if (GetMilliTime() - starttime > timeout*1000.0) {
             std::stringstream ss;
             ss << "timed out trying to receive request";
-            CLIENTZMQ_LOG_ERROR(ss.str());
-            CLIENTZMQ_LOG_INFO(msg);
+            MUJIN_LOG_ERROR(ss.str());
+            MUJIN_LOG_INFO(msg);
             throw std::runtime_error(ss.str());
         }
     }
@@ -420,7 +406,7 @@ protected:
         port_stream << _port;
         std::stringstream ss;
         ss << "connecting to socket at " << _host << ":" << _port;
-        CLIENTZMQ_LOG_INFO(ss.str());
+        MUJIN_LOG_INFO(ss.str());
         _socket->connect (("tcp://" + _host + ":" + port_stream.str()).c_str());
     }
 
@@ -504,7 +490,7 @@ protected:
         _socket->bind(endpoint.str().c_str());
         std::stringstream ss;
         ss << "binded to " << endpoint;
-        CLIENTZMQ_LOG_INFO(ss.str());
+        MUJIN_LOG_INFO(ss.str());
     }
 
     virtual void _DestroySocket()

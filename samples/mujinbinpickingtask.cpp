@@ -1,51 +1,12 @@
 #include <mujincontrollerclient/binpickingtask.h>
 #include <iostream>
 
-#ifndef USE_LOG4CPP // logging
-
-#define BINPICKINGSAMPLE_LOG_INFO(msg) std::cout << msg << std::endl;
-#define BINPICKINGSAMPLE_LOG_ERROR(msg) std::cerr << msg << std::endl;
-
-#else
-
-#include <log4cpp/PatternLayout.hh>
-#include <log4cpp/Appender.hh>
-#include "log4cpp/OstreamAppender.hh"
-#include <log4cpp/SyslogAppender.hh>
-
-LOG4CPP_LOGGER_N(mujincontrollerclientbpslogger, "mujincontrollerclient.samples.binpicking");
-
-#define BINPICKINGSAMPLE_LOG_INFO(msg) LOG4CPP_INFO_S(mujincontrollerclientbpslogger) << msg;
-#define BINPICKINGSAMPLE_LOG_ERROR(msg) LOG4CPP_ERROR_S(mujincontrollerclientbpslogger) << msg;
-
-#endif // logging
-
-
 using namespace mujinclient;
 
 #include <boost/program_options.hpp>
 
 int main(int argc, char ** argv)
 {
-#ifdef USE_LOG4CPP
-    std::string logPropertiesFilename = "sample.properties";
-    try{
-        log4cpp::PropertyConfigurator::configure(logPropertiesFilename);
-    } catch (log4cpp::ConfigureFailure& e) {
-        log4cpp::Appender *consoleAppender = new log4cpp::OstreamAppender("console", &std::cout);
-        std::string pattern = "%d %c [%p] %m%n";
-        log4cpp::PatternLayout* patternLayout0 = new log4cpp::PatternLayout();
-        patternLayout0->setConversionPattern(pattern);
-        consoleAppender->setLayout(patternLayout0);
-
-        log4cpp::Category& rootlogger = log4cpp::Category::getRoot();
-        rootlogger.setPriority(log4cpp::Priority::INFO);
-        rootlogger.addAppender(consoleAppender);
-        rootlogger.error("failed to load logger properties at %s, using default logger. error: %s", logPropertiesFilename.c_str(), e.what());
-    }
-
-#endif
-
     // parse command line arguments
     namespace bpo = boost::program_options;
     bpo::options_description desc("Options");
@@ -72,11 +33,9 @@ int main(int argc, char ** argv)
         badargs = true;
     }
     if(opts.count("help") || badargs) {
-        std::stringstream ss;
-        ss << "Usage: " << argv[0] << " [OPTS]" << std::endl;
-        ss << std::endl;
-        ss << desc << std::endl;
-        BINPICKINGSAMPLE_LOG_INFO(ss.str());
+        std::cout << "Usage: " << argv[0] << " [OPTS]" << std::endl;
+        std::cout << std::endl;
+        std::cout << desc << std::endl;
         return (1);
     }
 
@@ -100,11 +59,5 @@ int main(int argc, char ** argv)
 
     Transform t;
     binpickingzmq->GetTransform(testobjectname,t);
-    std::stringstream ss;
-    ss  << "testobject " << testobjectname << " pose: [" << t.quaternion[0] << ", " << t.quaternion[1] << ", " << t.quaternion[2] << ", " << t.quaternion[3] << ", " << t.translate[0] << ", " << t.translate[1] << ", " << t.translate[2] << "]";
-    BINPICKINGSAMPLE_LOG_INFO(ss.str());
-
-#ifdef USE_LOG4CPP
-    log4cpp::Category::shutdown();
-#endif
+    std::cout  << "testobject " << testobjectname << " pose: [" << t.quaternion[0] << ", " << t.quaternion[1] << ", " << t.quaternion[2] << ", " << t.quaternion[3] << ", " << t.translate[0] << ", " << t.translate[1] << ", " << t.translate[2] << "]";
 }

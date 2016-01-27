@@ -19,6 +19,10 @@
 #define SKIP_PEER_VERIFICATION // temporary
 //#define SKIP_HOSTNAME_VERIFICATION
 
+#include "logging.h"
+
+MUJIN_LOGGER("mujin.controllerclientcpp");
+
 namespace mujinclient {
 
 class CurlCustomRequestSetter
@@ -268,7 +272,7 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
 #endif
     std::stringstream ss;
     ss << "setting character set to " << _charset;
-    CLIENT_LOG_INFO(ss.str());
+    MUJIN_LOG_INFO(ss.str());
     _SetHTTPHeaders();
 
     try {
@@ -483,7 +487,7 @@ void ControllerClientImpl::SyncUpload_UTF8(const std::string& _sourcefilename, c
     if( sourcefilename.find_first_of('/') != std::string::npos ) {
         std::stringstream ss;
         ss << "scene filename '" << sourcefilename << "' is using /, so replacing this with \\";
-        CLIENT_LOG_INFO(ss.str());
+        MUJIN_LOG_INFO(ss.str());
         for(size_t i = 0; i < sourcefilename.size(); ++i) {
             if( sourcefilename[i] == '/' ) {
                 sourcefilename[i] = '\\';
@@ -571,7 +575,7 @@ void ControllerClientImpl::SyncUpload_UTF16(const std::wstring& _sourcefilename_
     if( sourcefilename_utf16.find_first_of(L'/') != std::wstring::npos ) {
         std::stringstream ss;
         ss << "scene filename '" << encoding::ConvertUTF16ToFileSystemEncoding(sourcefilename_utf16) << "' is using /, so replacing this with \\";
-        CLIENT_LOG_INFO(ss.str());
+        MUJIN_LOG_INFO(ss.str());
         for(size_t i = 0; i < sourcefilename_utf16.size(); ++i) {
             if( sourcefilename_utf16[i] == L'/' ) {
                 sourcefilename_utf16[i] = L'\\';
@@ -1270,7 +1274,7 @@ void ControllerClientImpl::_UploadDirectoryToController_UTF8(const std::string& 
     }
     std::stringstream ss;
     ss << "uploading " << sCopyDir_FS << " -> " << uri;
-    CLIENT_LOG_INFO(ss.str());
+    MUJIN_LOG_INFO(ss.str());
 
 #if defined(_WIN32) || defined(_WIN64)
     WIN32_FIND_DATAA ffd;
@@ -1391,7 +1395,7 @@ void ControllerClientImpl::_UploadDirectoryToController_UTF16(const std::wstring
     }
     std::stringstream ss;
     ss << "uploading " << encoding::ConvertUTF16ToFileSystemEncoding(copydir_utf16) << " -> " << uri;
-    CLIENT_LOG_INFO(ss.str());
+    MUJIN_LOG_INFO(ss.str());
 
 #if defined(_WIN32) || defined(_WIN64)
     WIN32_FIND_DATAW ffd;
@@ -1606,7 +1610,7 @@ void ControllerClientImpl::_DeleteDirectoryOnController(const std::string& destu
     CHECKCURLCODE(res, "curl_easy_perform failed");
     long http_code = 0;
     res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
-    CLIENT_LOG_INFO(http_code);
+    MUJIN_LOG_INFO(http_code);
 }
 
 size_t ControllerClientImpl::_ReadUploadCallback(void *ptr, size_t size, size_t nmemb, void *stream)

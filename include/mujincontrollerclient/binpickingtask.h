@@ -22,24 +22,6 @@
 #include <boost/thread.hpp>
 #include "zmq.hpp"
 
-#ifndef USE_LOG4CPP // logging
-
-#define BINPICKING_LOG_INFO(msg) std::cout << msg << std::endl;
-#define BINPICKING_LOG_ERROR(msg) std::cerr << msg << std::endl;
-
-#else
-
-#include <log4cpp/Category.hh>
-#include <log4cpp/PropertyConfigurator.hh>
-
-LOG4CPP_LOGGER_N(mujincontrollerclientbinpickinglogger, "mujincontrollerclient.binpickingtask");
-
-#define BINPICKING_LOG_INFO(msg) LOG4CPP_INFO_S(mujincontrollerclientbinpickinglogger) << msg;
-#define BINPICKING_LOG_ERROR(msg) LOG4CPP_ERROR_S(mujincontrollerclientbinpickinglogger) << msg;
-
-#endif // logging
-
-
 namespace mujinclient {
 
 class MUJINCLIENT_API BinPickingResultResource : public PlanningResultResource

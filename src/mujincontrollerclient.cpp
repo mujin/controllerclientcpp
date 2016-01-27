@@ -22,6 +22,10 @@
 #include "binpickingtaskzmq.h"
 #endif
 
+#include "logging.h"
+
+MUJIN_LOGGER("mujin.controllerclientcpp");
+
 namespace mujinclient {
 
 void ExtractEnvironmentStateFromPTree(const boost::property_tree::ptree& envstatejson, EnvironmentState& envstate)
@@ -335,7 +339,7 @@ void SceneResource::InstObject::GrabObject(InstObjectPtr grabbedobject, std::str
         if (this->grabs[igrab] == grab) {
             std::stringstream ss;
             ss << grabbedobject->name << "is already grabbed";
-            CLIENT_LOG_ERROR(ss.str());
+            MUJIN_LOG_ERROR(ss.str());
             return;
         }
     }
@@ -382,7 +386,7 @@ void SceneResource::InstObject::ReleaseObject(InstObjectPtr grabbedobject, std::
     }
     std::stringstream ss;
     ss << grabbedobject->name << "is not grabbed";
-    CLIENT_LOG_ERROR(ss.str());
+    MUJIN_LOG_ERROR(ss.str());
 
 }
 
@@ -853,7 +857,7 @@ void TaskResource::GetTaskParameters(ITLPlanningTaskParameters& taskparameters)
         else {
             std::stringstream ss;
             ss << "unsupported ITL task parameter " << v->first;
-            CLIENT_LOG_ERROR(ss.str());
+            MUJIN_LOG_ERROR(ss.str());
         }
     }
     // for back compat

@@ -59,23 +59,6 @@
 #include <boost/array.hpp>
 #include <boost/property_tree/ptree.hpp>
 
-#ifndef USE_LOG4CPP // logging
-
-#define CLIENT_LOG_INFO(msg) std::cout << msg << std::endl;
-#define CLIENT_LOG_ERROR(msg) std::cerr << msg << std::endl;
-
-#else
-
-#include <log4cpp/Category.hh>
-#include <log4cpp/PropertyConfigurator.hh>
-
-LOG4CPP_LOGGER_N(mujincontrollerclientlogger, "mujincontrollerclient");
-
-#define CLIENT_LOG_INFO(msg) LOG4CPP_INFO_S(mujincontrollerclientlogger) << msg;
-#define CLIENT_LOG_ERROR(msg) LOG4CPP_ERROR_S(mujincontrollerclientlogger) << msg;
-
-#endif // logging
-
 namespace mujinclient {
 
 #include <mujincontrollerclient/config.h>

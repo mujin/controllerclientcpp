@@ -18,24 +18,7 @@
 #define MUJIN_CONTROLLERCLIENT_BINPICKINGTASK_ZMQ_H
 
 #include "mujincontrollerclient/binpickingtask.h"
-#include "mujincontrollerclient/mujinzmq.hpp"
-
-#ifndef USE_LOG4CPP // logging
-
-#define BINPICKINGZMQ_LOG_INFO(msg) std::cout << msg << std::endl;
-#define BINPICKINGZMQ_LOG_ERROR(msg) std::cerr << msg << std::endl;
-
-#else
-
-#include <log4cpp/Category.hh>
-#include <log4cpp/PropertyConfigurator.hh>
-
-LOG4CPP_LOGGER_N(mujincontrollerclientbinpickingzmqlogger, "mujincontrollerclient.binpickingtaskzmq");
-
-#define BINPICKINGZMQ_LOG_INFO(msg) LOG4CPP_INFO_S(mujincontrollerclientbinpickingzmqlogger) << msg;
-#define BINPICKINGZMQ_LOG_ERROR(msg) LOG4CPP_ERROR_S(mujincontrollerclientbinpickingzmqlogger) << msg;
-
-#endif // logging
+#include "mujincontrollerclient/mujinzmq.h"
 
 namespace mujinclient {
 
