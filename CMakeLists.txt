@@ -130,10 +130,13 @@ else()
   set(MUJINCLIENT_LIBRARY_SUFFIX "${MUJINCLIENT_SOVERSION}" CACHE STRING "Suffix to append to library names")
 endif()
 
+set(MUJINCLIENT_LINK_DIRS)
+
 find_package(PkgConfig)
 if (OPT_LOG4CXX)
   pkg_check_modules(LOG4CXX REQUIRED liblog4cxx)
   if (LOG4CXX_FOUND)
+    set(MUJINCLIENT_LINK_DIRS ${MUJINCLIENT_LINK_DIRS} ${LOG4CXX_LIBDIR})
     add_definitions(-DUSE_LOG4CXX)
   endif()
 endif()
@@ -154,7 +157,6 @@ if( NOT MSVC )
   set(EXTRA_LIBRARIES ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY})
 endif()
 
-set(MUJINCLIENT_LINK_DIRS)
 
 if( Boost_FOUND )
   include_directories(${Boost_INCLUDE_DIRS})
@@ -261,6 +263,8 @@ file(GLOB mujin_header_files ${CMAKE_CURRENT_SOURCE_DIR}/include/mujincontroller
 install(FILES ${mujin_header_files} ${CMAKE_CURRENT_BINARY_DIR}/include/mujincontrollerclient/config.h DESTINATION include/mujincontrollerclient)
 
 macro(build_sample name)
+  include_directories(${LOG4CXX_INCLUDEDIR})
+  link_directories(${LOG4CXX_LIBDIR})
   add_executable(${name} ${name}.cpp)
   set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${Boost_CFLAGS}" LINK_FLAGS "")
   add_dependencies(${name} libmujincontrollerclient)

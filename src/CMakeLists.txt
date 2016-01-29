@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-include_directories(${CURL_INCLUDE_DIRS})
+include_directories(${CURL_INCLUDE_DIRS} ${LOG4CXX_INCLUDEDIR})
 if (libzmq_FOUND)
   include_directories(${libzmq_INCLUDE_DIRS})
 endif()
@@ -35,7 +35,7 @@ set_target_properties(libmujincontrollerclient PROPERTIES COMPILE_FLAGS "${EXTRA
   CLEAN_DIRECT_OUTPUT 1
   )
 
-target_link_libraries(libmujincontrollerclient ${CURL_LIBRARIES} ${Boost_THREAD_LIBRARY} ${Boost_DATE_TIME_LIBRARY}  ${EXTRA_LIBRARIES} ${libzmq_LIBRARIES})
+target_link_libraries(libmujincontrollerclient ${CURL_LIBRARIES} ${Boost_THREAD_LIBRARY} ${Boost_DATE_TIME_LIBRARY}  ${EXTRA_LIBRARIES} ${libzmq_LIBRARIES} ${LOG4CXX_LIBRARIES})
 if( MSVC )
   install(TARGETS libmujincontrollerclient RUNTIME DESTINATION bin LIBRARY DESTINATION bin ARCHIVE DESTINATION lib${LIB_SUFFIX})
 else()
@@ -59,6 +59,6 @@ if( OPT_BUILD_STATIC )
                                            COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} ${Boost_CFLAGS} -DMUJINCLIENT_DLL_EXPORTS -DMUJINCLIENT_DLL"
                                            LINK_FLAGS "")
   
-  target_link_libraries(libmujincontrollerclient_static ${CURL_LIBRARIES} ${EXTRA_LIBRARIES} ${libzmq_LIBRARIES})
+  target_link_libraries(libmujincontrollerclient_static ${CURL_LIBRARIES} ${EXTRA_LIBRARIES} ${libzmq_LIBRARIES} ${libzmq_LIBRARIES} ${LOG4CXX_LIBRARIES})
   install(TARGETS libmujincontrollerclient_static DESTINATION lib${LIB_SUFFIX})
 endif()
