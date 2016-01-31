@@ -49,4 +49,7 @@
 #define MUJINCLIENT_VERSION_GE(major1, minor1, patch1, major2, minor2, patch2) (MUJINCLIENT_VERSION_COMBINED(major1, minor1, patch1) >= MUJINCLIENT_VERSION_COMBINED(major2, minor2, patch2))
 #define MUJINCLIENT_VERSION_MINIMUM(major, minor, patch) MUJINCLIENT_VERSION_GE(MUJINCLIENT_VERSION_MAJOR, MUJINCLIENT_VERSION_MINOR, MUJINCLIENT_VERSION_PATCH, major, minor, patch)
 
+// whether log4cxx is to be used
+#define MUJINCLIENT_LOG4CXX @MUJINCLIENT_LOG4CXX@
+
 #endif

@@ -1,13 +1,6 @@
 #pragma once
 
-
-#ifndef USE_LOG4CXX // logging
-
-#define MUJIN_LOGGER(name)
-#define MUJIN_LOG_INFO(msg) std::cout << msg << std::endl;
-#define MUJIN_LOG_ERROR(msg) std::cerr << msg << std::endl;
-
-#else
+#if MUJINCLIENT_LOG4CXX
 
 #include <log4cxx/logger.h>
 
@@ -23,5 +16,11 @@
 
 #define MUJIN_LOG_INFO(msg) LOG4CXX_INFO(logger, msg);
 #define MUJIN_LOG_ERROR(msg) LOG4CXX_ERROR(logger, msg);
+
+#else
+
+#define MUJIN_LOGGER(name)
+#define MUJIN_LOG_INFO(msg) std::cout << msg << std::endl;
+#define MUJIN_LOG_ERROR(msg) std::cerr << msg << std::endl;
 
 #endif // logging
