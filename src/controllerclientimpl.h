@@ -56,6 +56,8 @@ public:
     virtual void UploadDirectoryToController_UTF16(const std::wstring& copydir, const std::wstring& desturi);
     virtual void DownloadFileFromController_UTF8(const std::string& desturi, std::vector<unsigned char>& vdata);
     virtual void DownloadFileFromController_UTF16(const std::wstring& desturi, std::vector<unsigned char>& vdata);
+    virtual void DownloadFileFromControllerIfModifiedSince_UTF8(const std::string& desturi, long localtimeval, long &remotetimeval, std::vector<unsigned char>& vdata);
+    virtual void DownloadFileFromControllerIfModifiedSince_UTF16(const std::wstring& desturi, long localtimeval, long &remotetimeval, std::vector<unsigned char>& vdata);
     virtual void DeleteFileOnController_UTF8(const std::string& desturi);
     virtual void DeleteFileOnController_UTF16(const std::wstring& desturi);
     virtual void DeleteDirectoryOnController_UTF8(const std::string& desturi);
@@ -170,6 +172,9 @@ protected:
     virtual void _DeleteFileOnController(const std::string& desturi);
     /// \brief desturi is URL-encoded. Also assume _mutex is locked.
     virtual void _DeleteDirectoryOnController(const std::string& desturi);
+
+    /// \brief desturi is URL-encoded. Also assume _mutex is locked.
+    virtual void _DownloadFileFromController(const std::string& desturi, long localtimeval, long &remotetimeval, std::vector<unsigned char>& vdata);
 
     //@}
 

@@ -540,6 +540,16 @@ public:
     /// \param vdata filled with the contents of the file on the controller filesystem
     virtual void DownloadFileFromController_UTF16(const std::wstring& desturi, std::vector<unsigned char>& vdata) = 0;
 
+    /// \param localtimeval seconds since epoch, will use input as If-Modified-Since header
+    /// \param remotetimeval will output the modified date in response
+    /// \param vdata filled with the contents of the file on the controller filesystem
+    virtual void DownloadFileFromControllerIfModifiedSince_UTF8(const std::string& desturi, long localtimeval, long &remotetimeval, std::vector<unsigned char>& vdata) = 0;
+
+    /// \param localtimeval seconds since epoch, will use input as If-Modified-Since header
+    /// \param remotetimeval will output the modified date in response
+    /// \param vdata filled with the contents of the file on the controller filesystem
+    virtual void DownloadFileFromControllerIfModifiedSince_UTF16(const std::wstring& desturi, long localtimeval, long &remotetimeval, std::vector<unsigned char>& vdata) = 0;
+
     /// \brief Deletes a file on the controller network filesystem.
     ///
     /// \param uri UTF-8 encoded file in the network filesystem to delete.

@@ -1193,6 +1193,54 @@ void ControllerClientImpl::DownloadFileFromController_UTF16(const std::wstring& 
     _CallGet(_PrepareDestinationURI_UTF16(desturi, false), vdata);
 }
 
+void ControllerClientImpl::DownloadFileFromControllerIfModifiedSince_UTF8(const std::string& desturi, long localtimeval, long& remotetimeval, std::vector<unsigned char>& vdata)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    _DownloadFileFromController(_PrepareDestinationURI_UTF8(desturi, false), localtimeval, remotetimeval, vdata);
+}
+
+void ControllerClientImpl::DownloadFileFromControllerIfModifiedSince_UTF16(const std::wstring& desturi, long localtimeval, long& remotetimeval, std::vector<unsigned char>& vdata)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    _DownloadFileFromController(_PrepareDestinationURI_UTF16(desturi, false), localtimeval, remotetimeval, vdata);
+}
+
+void ControllerClientImpl::_DownloadFileFromController(const std::string& desturi, long localtimeval, long &remotetimeval, std::vector<unsigned char>& outputdata)
+{
+    // on exit, reset the curl options we are going to set
+    boost::shared_ptr<void> onexitresetfiletime((void*)0, boost::bind(boost::function<CURLcode(CURL*, CURLoption, long)>(curl_easy_setopt), _curl, CURLOPT_FILETIME, 0));
+    boost::shared_ptr<void> onexitresettimecondition((void*)0, boost::bind(boost::function<CURLcode(CURL*, CURLoption, curl_TimeCond)>(curl_easy_setopt), _curl, CURLOPT_TIMECONDITION, CURL_TIMECOND_NONE));
+    boost::shared_ptr<void> onexitresettimevalue((void*)0, boost::bind(boost::function<CURLcode(CURL*, CURLoption, long)>(curl_easy_setopt), _curl, CURLOPT_TIMEVALUE, 0));
+
+    remotetimeval = 0;
+
+    // ask for remote file time
+    curl_easy_setopt(_curl, CURLOPT_FILETIME, 1);
+
+    // use if modified since if local file time is provided
+    if (localtimeval > 0) {
+        curl_easy_setopt(_curl, CURLOPT_TIMECONDITION, CURL_TIMECOND_IFMODSINCE);
+        curl_easy_setopt(_curl, CURLOPT_TIMEVALUE, localtimeval);
+    }
+
+    // do the get call
+    long http_code = _CallGet(desturi, outputdata, 0);
+    if ((http_code != 200 && http_code != 304)) {
+        if (outputdata.size() > 0) {
+            std::stringstream ss;
+            ss.write((const char*)&outputdata[0], outputdata.size());
+            throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s: %s", desturi%http_code%ss.str(), MEC_HTTPServer);
+        }
+        throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s", desturi%http_code, MEC_HTTPServer);
+    }
+
+    // retrieve remote file time
+    if (http_code != 304) {
+        CURLcode res = curl_easy_getinfo(_curl, CURLINFO_FILETIME, &remotetimeval);
+        CHECKCURLCODE(res, "curl_easy_getinfo");
+    }
+}
+
 void ControllerClientImpl::DeleteFileOnController_UTF8(const std::string& desturi)
 {
     boost::mutex::scoped_lock lock(_mutex);
