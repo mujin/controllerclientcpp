@@ -23,6 +23,8 @@
 
 MUJIN_LOGGER("mujin.controllerclientcpp");
 
+#define CURL_OPTION_SAVER(curlopt, curvalue, curltype) boost::shared_ptr<void> __curloptionsaver ## curlopt((void*)0, boost::bind(boost::function<CURLcode(CURL*, CURLoption, curltype)>(curl_easy_setopt), _curl, curlopt, curvalue));
+
 namespace mujinclient {
 
 class CurlCustomRequestSetter
@@ -1208,9 +1210,9 @@ void ControllerClientImpl::DownloadFileFromControllerIfModifiedSince_UTF16(const
 void ControllerClientImpl::_DownloadFileFromController(const std::string& desturi, long localtimeval, long &remotetimeval, std::vector<unsigned char>& outputdata)
 {
     // on exit, reset the curl options we are going to set
-    boost::shared_ptr<void> onexitresetfiletime((void*)0, boost::bind(boost::function<CURLcode(CURL*, CURLoption, long)>(curl_easy_setopt), _curl, CURLOPT_FILETIME, 0));
-    boost::shared_ptr<void> onexitresettimecondition((void*)0, boost::bind(boost::function<CURLcode(CURL*, CURLoption, curl_TimeCond)>(curl_easy_setopt), _curl, CURLOPT_TIMECONDITION, CURL_TIMECOND_NONE));
-    boost::shared_ptr<void> onexitresettimevalue((void*)0, boost::bind(boost::function<CURLcode(CURL*, CURLoption, long)>(curl_easy_setopt), _curl, CURLOPT_TIMEVALUE, 0));
+    CURL_OPTION_SAVER(CURLOPT_FILETIME, 0, long);
+    CURL_OPTION_SAVER(CURLOPT_TIMECONDITION, CURL_TIMECOND_NONE, curl_TimeCond);
+    CURL_OPTION_SAVER(CURLOPT_TIMEVALUE, 0, long);
 
     remotetimeval = 0;
 
@@ -1236,6 +1238,7 @@ void ControllerClientImpl::_DownloadFileFromController(const std::string& destur
 
     // retrieve remote file time
     if (http_code != 304) {
+        // got the entire file so fill in the timestamp of that file
         CURLcode res = curl_easy_getinfo(_curl, CURLINFO_FILETIME, &remotetimeval);
         CHECKCURLCODE(res, "curl_easy_getinfo");
     }
