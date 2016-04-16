@@ -624,7 +624,11 @@ void BinPickingTaskResource::ResultAABB::Parse(const boost::property_tree::ptree
 
 void BinPickingTaskResource::ResultOBB::Parse(const boost::property_tree::ptree& pt)
 {
-    _pt = pt.get_child("output");
+    if (pt.count("output") > 0) {
+        _pt = pt.get_child("output");
+    } else {
+        _pt = pt;
+    }
     FOREACH(value, _pt) {
         if (value->first == "translation") {
             if (value->second.size() != 3) {
