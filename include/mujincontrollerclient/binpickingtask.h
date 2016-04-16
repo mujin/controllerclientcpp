@@ -1,5 +1,5 @@
 // -*- coding: utf-8 -*-
-// Copyright (C) 2012-2014 MUJIN Inc. <rosen.diankov@mujin.co.jp>
+// Copyright (C) 2012-2016 MUJIN Inc. <rosen.diankov@mujin.co.jp>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -100,15 +100,6 @@ public:
         Transform transform;
     };
 
-    struct MUJINCLIENT_API ResultGetInstObjectAndSensorInfo : public ResultBase
-    {
-        virtual ~ResultGetInstObjectAndSensorInfo();
-        void Parse(const boost::property_tree::ptree& pt);
-        std::map<std::string, Transform> minstobjecttransform;
-        std::map<std::string, Transform> msensortransform;
-        std::map<std::string, RobotResource::AttachedSensorResource::SensorData> msensordata;
-    };
-
     struct MUJINCLIENT_API ResultGetBinpickingState : public ResultBase
     {
         ResultGetBinpickingState();
@@ -155,6 +146,17 @@ public:
         std::vector<Real> translation;
         std::vector<Real> extents;
         std::vector<Real> rotationmat;  // row major
+    };
+
+    struct MUJINCLIENT_API ResultGetInstObjectAndSensorInfo : public ResultBase
+    {
+        virtual ~ResultGetInstObjectAndSensorInfo();
+        void Parse(const boost::property_tree::ptree& pt);
+        std::map<std::string, Transform> minstobjecttransform; ///< unit is m
+        std::map<std::string, ResultOBB> minstobjectobb; ///< unit is m
+        std::map<std::string, ResultOBB> minstobjectinnerobb; ///< unit is m
+        std::map<std::string, Transform> msensortransform; ///< unit is m
+        std::map<std::string, RobotResource::AttachedSensorResource::SensorData> msensordata;
     };
 
     struct MUJINCLIENT_API ResultHeartBeat : public ResultBase
@@ -246,6 +248,8 @@ public:
     virtual PlanningResultResourcePtr GetResult();
 
     /** \brief Gets inst object 
+        \param unit input unit
+        \param result unit is always in meter
      */
     virtual void GetInstObjectAndSensorInfo(const std::vector<std::string>& instobjectnames, const std::vector<std::string>& sensornames, ResultGetInstObjectAndSensorInfo& result, const std::string& unit="m", const double timeout /* second */=0);
 
@@ -260,7 +264,7 @@ public:
 
     /// \brief returns the slaverequestid used to communicate with the controller. If empty, then no id is used.
     virtual const std::string& GetSlaveRequestId() const;
-    
+
 protected:
     std::stringstream _ss;
     std::string GetJsonString(const std::string& string);

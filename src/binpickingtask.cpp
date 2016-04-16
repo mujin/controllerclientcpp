@@ -1,5 +1,5 @@
 // -*- coding: utf-8 -*-
-// Copyright (C) 2012-2014 MUJIN Inc. <rosen.diankov@mujin.co.jp>
+// Copyright (C) 2012-2016 MUJIN Inc. <rosen.diankov@mujin.co.jp>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -415,6 +415,7 @@ void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const boost
     FOREACH(v0, _pt.get_child("instobjects")) {
         std::string objname = v0->first;
         Transform transform;
+        ResultOBB resultobb, resultinnerobb;
         FOREACH(value, v0->second) {
             if( value->first == "translation") {
                 unsigned int i = 0;
@@ -424,8 +425,7 @@ void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const boost
                 FOREACH(v, value->second) {
                     transform.translate[i++] = boost::lexical_cast<Real>(v->second.data());
                 }
-            }
-            else if (value->first == "quaternion") {
+            } else if (value->first == "quaternion") {
                 unsigned int i = 0;
                 if ( value->second.size() != 4 ) {
                     throw MujinException("the length of quaternion is invalid", MEC_Failed);
@@ -433,9 +433,15 @@ void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const boost
                 FOREACH(v, value->second) {
                     transform.quaternion[i++] = boost::lexical_cast<Real>(v->second.data());
                 }
+            } else if (value->first == "obb") {
+                resultobb.Parse(value->second);
+            } else if (value->first == "innerobb") {
+                resultinnerobb.Parse(value->second);
             }
         }
         minstobjecttransform[objname] = transform;
+        minstobjectobb[objname] = resultobb;
+        minstobjectinnerobb[objname] = resultinnerobb;
     }
     FOREACH(v0, _pt.get_child("sensors")) {
         std::string sensorname = v0->first;
