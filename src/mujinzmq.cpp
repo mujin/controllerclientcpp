@@ -260,6 +260,7 @@ std::string ZmqClient::Call(const std::string& msg, const double timeout)
             } else{
                 std::stringstream ss;
                 ss << "failed to send request after re-creating socket";
+                MUJIN_LOG_ERROR(ss.str());
                 throw std::runtime_error(ss.str());;
             }
         }
@@ -268,15 +269,19 @@ std::string ZmqClient::Call(const std::string& msg, const double timeout)
         std::stringstream ss;
         ss << "timed out trying to send request";
         MUJIN_LOG_ERROR(ss.str());
-        MUJIN_LOG_INFO(msg);
+        if (msg.length() > 1000) {
+            MUJIN_LOG_INFO(msg.substr(0,1000) << "...");
+        } else {
+            MUJIN_LOG_INFO(msg);
+        }
         throw std::runtime_error(ss.str());
     }
 
     //recv
-    starttime = GetMilliTime();
     recreatedonce = false;
     zmq::message_t reply;
-    while (GetMilliTime() - starttime < timeout * 1000.0) {
+    bool receivedonce = false; // receive at least once
+    while (!receivedonce || GetMilliTime() - starttime < timeout * 1000.0) {
         try {
 
             zmq::pollitem_t pollitem;
@@ -291,18 +296,19 @@ std::string ZmqClient::Call(const std::string& msg, const double timeout)
             }
 
             zmq::poll(&pollitem, 1, timeoutms);
+            receivedonce = true;
             if (pollitem.revents & ZMQ_POLLIN) {
                 _socket->recv(&reply);
                 std::string replystring((char *) reply.data (), (size_t) reply.size());
                 return replystring;
-            }
-            else{
+            } else{
                 std::stringstream ss;
                 if (msg.length() > 1000) {
                     ss << "Timed out receiving response of command " << msg.substr(0, 1000) << "... after " << timeout << " seconds";
                 } else {
                     ss << "Timed out receiving response of command " << msg << " after " << timeout << " seconds";
                 }
+                MUJIN_LOG_ERROR(ss.str());
                 std::string errstr = ss.str();
                 boost::replace_all(errstr, "\"", ""); // need to remove " in the message so that json parser works
                 boost::replace_all(errstr, "\\", ""); // need to remove \ in the message so that json parser works
@@ -316,7 +322,11 @@ std::string ZmqClient::Call(const std::string& msg, const double timeout)
                 continue;
             } else {
                 MUJIN_LOG_INFO("failed to send");
-                MUJIN_LOG_INFO(msg);
+                if (msg.length() > 1000) {
+                    MUJIN_LOG_INFO(msg.substr(0,1000) << "...");
+                } else {
+                    MUJIN_LOG_INFO(msg);
+                }
             }
             if (!recreatedonce) {
                 MUJIN_LOG_INFO("re-creating zmq socket and trying again");
@@ -327,9 +337,9 @@ std::string ZmqClient::Call(const std::string& msg, const double timeout)
                 _InitializeSocket(_context);
                 recreatedonce = true;
             } else{
-                std::stringstream ss;
-                ss << "failed to receive response after re-creating socket";
-                throw std::runtime_error(ss.str());;
+                std::string errstr = "failed to receive response after re-creating socket";
+                MUJIN_LOG_ERROR(errstr);
+                throw std::runtime_error(errstr);
             }
         }
     }
@@ -337,7 +347,11 @@ std::string ZmqClient::Call(const std::string& msg, const double timeout)
         std::stringstream ss;
         ss << "timed out trying to receive request";
         MUJIN_LOG_ERROR(ss.str());
-        MUJIN_LOG_INFO(msg);
+        if (msg.length() > 1000) {
+            MUJIN_LOG_INFO(msg.substr(0,1000) << "...");
+        } else {
+            MUJIN_LOG_INFO(msg);
+        }
         throw std::runtime_error(ss.str());
     }
 
@@ -427,7 +441,7 @@ void ZmqServer::_InitializeSocket(boost::shared_ptr<zmq::context_t> context)
     endpoint << "tcp://*:" << _port;
     _socket->bind(endpoint.str().c_str());
     std::stringstream ss;
-    ss << "binded to " << endpoint;
+    ss << "binded to " << endpoint.str();
     MUJIN_LOG_INFO(ss.str());
 }
 
