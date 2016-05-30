@@ -768,7 +768,7 @@ void BinPickingTaskResource::SetTransform(const std::string& targetname, const T
     _ss << GetJsonString(transform) << ", ";
     _ss << GetJsonString("unit", unit);
     _ss << "}";
-    ExecuteCommand(_ss.str(), timeout, false);
+    ExecuteCommand(_ss.str(), timeout); // need to check return code
 }
 
 void BinPickingTaskResource::GetManipTransformToRobot(Transform& transform, const std::string& unit, const double timeout)
@@ -910,7 +910,7 @@ void BinPickingTaskResource::UpdateObjects(const std::string& basename, const st
     _ss << GetJsonString("detectionResultState") << ": " << state << ", ";
     _ss << GetJsonString("unit", unit);
     _ss << "}";
-    ExecuteCommand(_ss.str(), timeout, false);
+    ExecuteCommand(_ss.str(), timeout); // need to check return code
 }
 
 void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<Real>&vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp, const unsigned long long endtimestamp, const bool executionverification, const double timeout)
@@ -935,7 +935,7 @@ void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<Real>&vpoin
         _ss << ", \"executionverification\": " << (int) executionverification;
     }
     _ss << "}";
-    ExecuteCommand(_ss.str(), timeout, false);
+    ExecuteCommand(_ss.str(), timeout); // need to check return code
 }
 
 void BinPickingTaskResource::UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<Real>& vpoints, const std::string& state, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit, const double timeout)
@@ -968,7 +968,7 @@ void BinPickingTaskResource::UpdateEnvironmentState(const std::string& objectnam
     _ss << GetJsonString(pointcloudobstacle);
 
     _ss << "}";
-    ExecuteCommand(_ss.str(), timeout, false);
+    ExecuteCommand(_ss.str(), timeout); // need to check return code
 }
 
 void BinPickingTaskResource::VisualizePointCloud(const std::vector<std::vector<Real> >&pointslist, const Real pointsize, const std::vector<std::string>&names, const double timeout)
@@ -999,7 +999,7 @@ void BinPickingTaskResource::VisualizePointCloud(const std::vector<std::vector<R
     }
     _ss << "]";
     _ss << "}";
-    ExecuteCommand(_ss.str(), timeout, false);
+    ExecuteCommand(_ss.str(), timeout); // need to check return code
 }
 
 void BinPickingTaskResource::ClearVisualization(const double timeout)
@@ -1013,7 +1013,7 @@ void BinPickingTaskResource::ClearVisualization(const double timeout)
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
     _ss << "}";
-    ExecuteCommand(_ss.str(), timeout, false);
+    ExecuteCommand(_ss.str(), timeout); // need to check return code
 }
 
 void BinPickingTaskResource::GetPickedPositions(ResultGetPickedPositions& r, const std::string& unit, const double timeout)
