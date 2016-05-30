@@ -119,12 +119,33 @@ boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std:
         //std::cout << result_ss.str() << std::endl;
         try {
             boost::property_tree::read_json(result_ss, pt);
+            boost::property_tree::ptree::const_assoc_iterator iterror = pt.find("error");
+            if( iterror != pt.not_found() ) {
+                boost::optional<std::string> erroroptional = iterror->second.get_optional<std::string>("errorcode");
+                boost::optional<std::string> descriptionoptional = iterror->second.get_optional<std::string>("description");
+                if (!!erroroptional && erroroptional.get().size() > 0 ) {
+                    std::string serror;
+                    if (!!descriptionoptional && descriptionoptional.get().size() > 0 ) {
+                        serror = descriptionoptional.get();
+                    }
+                    else {
+                        serror = erroroptional.get();
+                    }
+                    if( serror.size() > 1000 ) {
+                        MUJIN_LOG_ERROR(str(boost::format("truncated original error message from %d")%serror.size()));
+                        serror = serror.substr(0,1000);
+                    }
+                    
+                    throw MujinException(str(boost::format("Error when calling binpicking.RunCommand: %s")%serror), MEC_BinPickingError);
+                }
+            }
         } catch (boost::property_tree::ptree_error& e) {
             throw MujinException(boost::str(boost::format("Failed to parse json which is received from mujin controller: \nreceived message: %s \nerror message: %s")%result_ss.str()%e.what()), MEC_Failed);
         }
     } else {
         try{
             _zmqmujincontrollerclient->Call(command);
+            // TODO since not getting response, internal zmq will be in a bad state, have to recreate
         }
         catch (const MujinException& e) {
             MUJIN_LOG_ERROR(e.what());
