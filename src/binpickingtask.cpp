@@ -21,6 +21,8 @@
 #include "mujincontrollerclient/zmq.hpp"
 #endif
 
+#include <cmath>
+
 #include "logging.h"
 
 MUJIN_LOGGER("mujin.controllerclientcpp.binpickingtask");
@@ -244,13 +246,19 @@ std::string BinPickingTaskResource::GetJsonString(const PointCloudObstacle& obj)
     // "\"name\": __dynamicobstacle__, \"pointsize\": 0.005, \"points\": []
     ss << GetJsonString("pointcloudid") << ": " << GetJsonString(obj.name) << ", ";
     ss << GetJsonString("pointsize") << ": " << obj.pointsize <<", ";
-    std::vector<Real> points;
-    points.resize(obj.points.size());
-    for (unsigned int i=0; i<points.size(); i++) {
-        //points[i] = obj.points[i]*1000.0f; // convert from meter to milimeter
-        points[i] = obj.points[i]; // send in meter
+
+    ss << GetJsonString("points") << ": " << "[";
+    bool bwrite = false;
+    for (unsigned int i = 0; i < obj.points.size(); i+=3) {
+        if( !isnan(obj.points[i]) && !isnan(obj.points[i+1]) && !isnan(obj.points[i+2]) ) { // sometimes point clouds can have NaNs, although it's a bug on detectors sending bad point clouds, these points can usually be ignored.
+            if( bwrite ) {
+                ss << ",";
+            }
+            ss << obj.points[i] << "," << obj.points[i+1] << "," << obj.points[i+2];
+            bwrite = true;
+        }
     }
-    ss << GetJsonString("points") << ": " << GetJsonString(points);
+    ss << "]";
     return ss.str();
 }
 
