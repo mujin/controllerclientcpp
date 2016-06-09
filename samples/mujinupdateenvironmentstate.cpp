@@ -3,41 +3,7 @@
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
-#undef GetUserName // classes with ControllerClient::GetUserName
-
-#include <boost/typeof/std/string.hpp>
-#include <boost/typeof/std/vector.hpp>
-#include <boost/typeof/std/list.hpp>
-#include <boost/typeof/std/map.hpp>
-#include <boost/typeof/std/set.hpp>
-#include <boost/typeof/std/string.hpp>
-
-#define FOREACH(it, v) for(BOOST_TYPEOF(v) ::iterator it = (v).begin(), __itend__=(v).end(); it != __itend__; ++(it))
-#define FOREACH_NOINC(it, v) for(BOOST_TYPEOF(v) ::iterator it = (v).begin(), __itend__=(v).end(); it != __itend__; )
-
-#define FOREACHC(it, v) for(BOOST_TYPEOF(v) ::const_iterator it = (v).begin(), __itend__=(v).end(); it != __itend__; ++(it))
-#define FOREACHC_NOINC(it, v) for(BOOST_TYPEOF(v) ::const_iterator it = (v).begin(), __itend__=(v).end(); it != __itend__; )
-
-#else
-
-#define FOREACH(it, v) for(typeof((v).begin())it = (v).begin(); it != (v).end(); (it)++)
-#define FOREACH_NOINC(it, v) for(typeof((v).begin())it = (v).begin(); it != (v).end(); )
-
-#define FOREACHC FOREACH
-#define FOREACHC_NOINC FOREACH_NOINC
-
-//#define FORIT(it, v) for(it = (v).begin(); it != (v).end(); (it)++)
-
-#if BOOST_VERSION >= 104400
-// boost filesystem v3 is present after v1.44, so force using it
-#define BOOST_FILESYSTEM_VERSION 3
-#endif
-
-// only use boost filesystem on linux since it is difficult to get working correctly with windows
-#include <boost/filesystem/operations.hpp>
-#include <sys/stat.h>
-#include <fcntl.h>
-
+#undef GetUserName // clashes with ControllerClient::GetUserName
 #endif // defined(_WIN32) || defined(_WIN64)
 
 
@@ -48,13 +14,13 @@
 #ifndef _WIN32
 #if !(defined(CLOCK_GETTIME_FOUND) && (POSIX_TIMERS > 0 || _POSIX_TIMERS > 0))
 #include <sys/time.h>
-#endif
+#endif // !(defined(CLOCK_GETTIME_FOUND) && (POSIX_TIMERS > 0 || _POSIX_TIMERS > 0))
 #else
 #include <sys/timeb.h>    // ftime(), struct timeb
 inline void usleep(unsigned long microseconds) {
     Sleep((microseconds+999)/1000);
 }
-#endif
+#endif  // _WIN32
 
 #ifdef _WIN32
 inline unsigned long long GetMilliTime()
@@ -63,26 +29,6 @@ inline unsigned long long GetMilliTime()
     QueryPerformanceCounter(&count);
     QueryPerformanceFrequency(&freq);
     return (unsigned long long)((count.QuadPart * 1000) / freq.QuadPart);
-}
-
-inline unsigned long long GetMicroTime()
-{
-    LARGE_INTEGER count, freq;
-    QueryPerformanceCounter(&count);
-    QueryPerformanceFrequency(&freq);
-    return (count.QuadPart * 1000000) / freq.QuadPart;
-}
-
-inline unsigned long long GetNanoTime()
-{
-    LARGE_INTEGER count, freq;
-    QueryPerformanceCounter(&count);
-    QueryPerformanceFrequency(&freq);
-    return (count.QuadPart * 1000000000) / freq.QuadPart;
-}
-
-inline static unsigned long long GetNanoPerformanceTime() {
-    return GetNanoTime();
 }
 
 #else
@@ -99,28 +45,7 @@ inline void GetWallTime(unsigned int& sec, unsigned int& nsec)
     gettimeofday(&timeofday,NULL);
     sec  = timeofday.tv_sec;
     nsec = timeofday.tv_usec * 1000;
-#endif
-}
-
-inline unsigned long long GetMilliTimeOfDay()
-{
-    struct timeval timeofday;
-    gettimeofday(&timeofday,NULL);
-    return (unsigned long long)timeofday.tv_sec*1000+(unsigned long long)timeofday.tv_usec/1000;
-}
-
-inline unsigned long long GetNanoTime()
-{
-    unsigned int sec,nsec;
-    GetWallTime(sec,nsec);
-    return (unsigned long long)sec*1000000000 + (unsigned long long)nsec;
-}
-
-inline unsigned long long GetMicroTime()
-{
-    unsigned int sec,nsec;
-    GetWallTime(sec,nsec);
-    return (unsigned long long)sec*1000000 + (unsigned long long)nsec/1000;
+#endif //defined(CLOCK_GETTIME_FOUND) && (POSIX_TIMERS > 0 || _POSIX_TIMERS > 0)
 }
 
 inline unsigned long long GetMilliTime()
@@ -129,22 +54,8 @@ inline unsigned long long GetMilliTime()
     GetWallTime(sec,nsec);
     return (unsigned long long)sec*1000 + (unsigned long long)nsec/1000000;
 }
-
-inline static unsigned long long GetNanoPerformanceTime()
-{
-#if defined(CLOCK_GETTIME_FOUND) && (POSIX_TIMERS > 0 || _POSIX_TIMERS > 0) && defined(_POSIX_MONOTONIC_CLOCK)
-    struct timespec start;
-    unsigned int sec, nsec;
-    clock_gettime(CLOCK_MONOTONIC, &start);
-    sec  = start.tv_sec;
-    nsec = start.tv_nsec;
-    return (unsigned long long)sec*1000000000 + (unsigned long long)nsec;
-#else
-    return GetNanoTime();
-#endif
-}
-#endif
-#endif
+#endif // _WIN32
+#endif // MUJIN_TIME
 
 #ifdef _MSC_VER
 #ifndef __PRETTY_FUNCTION__
@@ -239,17 +150,19 @@ int main(int argc, char ** argv)
         std::vector<Real> points;
         std::string resultstate;
 
+        // create object
         BinPickingTaskResource::DetectedObject detectedobject;
         detectedobject.name = str(boost::format("%s_%d") % objectupdatename % 0);
         detectedobject.object_uri = objecturi;
         Transform transform;
         transform.quaternion[0] = 1; transform.quaternion[1] = 0; transform.quaternion[2] = 0; transform.quaternion[3] = 0;
-        transform.translate[0] = 450; transform.translate[1] = 0; transform.translate[2] = 60;
+        transform.translate[0] = 450; transform.translate[1] = 0; transform.translate[2] = 60;  // in milimeter
         detectedobject.transform = transform;
         detectedobject.confidence = objectconfidence;
         detectedobject.timestamp = GetMilliTime();
         detectedobject.extra = objectextra;
 
+        // load pointcloud from file, assuming comma seprated xyz coordinates in meter
         std::ifstream pointsfile(pointsfilename.c_str());
         while (pointsfile) {
             std::string s;
@@ -266,9 +179,11 @@ int main(int argc, char ** argv)
             }
         }
         std::cout << "loaded " << points.size() / 3 << " points from " << pointsfilename << std::endl;
+
+        // update environment loop
         while (1) {
             try {
-                pBinpickingTask->UpdateEnvironmentState(objectupdatename, detectedobjects, points, resultstate, pointsize, obstaclename, "m", 10);
+                pBinpickingTask->UpdateEnvironmentState(objectupdatename, detectedobjects, points, resultstate, pointsize, obstaclename);
                 std::cout << "UpdateEnvironmentState with " << detectedobjects.size() << " objects " << (points.size()/3.) << " points" << std::endl;
             }
             catch(const std::exception& ex) {
