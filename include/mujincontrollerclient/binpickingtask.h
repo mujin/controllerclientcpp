@@ -202,7 +202,7 @@ public:
         \param unit unit of detectedobject info
         \param timeout seconds until this command times out
      */
-    virtual void UpdateObjects(const std::string& basename, const std::vector<Transform>& transformsworld, const std::vector<std::string>& confidence, const std::string& state, const std::string& unit="m", const double timeout /* second */=0);
+    virtual void UpdateObjects(const std::string& basename, const std::vector<Transform>& transformsworld, const std::vector<std::string>& confidence, const std::string& state, const std::string& unit="mm", const double timeout /* second */=0);
 
     /** \brief Establish ZMQ connection to the task
         \param reinitializetimeout seconds to wait before re-initializing the ZMQ server after the heartbeat signal is lost
@@ -218,9 +218,9 @@ public:
         \param name name of the obstacle
         \param timeout seconds until this command times out
      */
-    virtual void AddPointCloudObstacle(const std::vector<Real>& vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp=0, const unsigned long long endtimestamp=0, const bool executionverification=false, const double timeout /* second */=0);
+    virtual void AddPointCloudObstacle(const std::vector<Real>& vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp=0, const unsigned long long endtimestamp=0, const bool executionverification=false, const std::string& unit="mm", const double timeout /* second */=0);
 
-    virtual void UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<Real>& vpoints, const std::string& resultstate, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit="m", const double timeout=0);
+    virtual void UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<Real>& vpoints, const std::string& resultstate, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit="mm", const double timeout=0);
 
     /** \brief Visualize point cloud on controller
         \param pointslist vector of x,y,z coordinates vector in meter
