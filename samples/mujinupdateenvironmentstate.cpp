@@ -85,8 +85,8 @@ int main(int argc, char ** argv)
         ("objectconfidence", bpo::value<std::string>()->default_value("{\"global_confidence\":1.0}"), "target object confidence")
         ("objectextra", bpo::value<std::string>()->default_value(""), "target object extras, e.g. {\"randombox\": {\"height\":100,\"width\":100,\"length\":100}}")
         ("waitinterval", bpo::value<unsigned int>()->default_value(500), "update interval in ms")
-        ("pointsfilename", bpo::value<std::string>()->required(), "path to text file containing commaseparated point xyz positions in meter")
-        ("pointsize", bpo::value<double>()->default_value(0.005), "pointcloud pointsize")
+        ("pointsfilename", bpo::value<std::string>()->required(), "path to text file containing commaseparated point xyz positions in millimeter")
+        ("pointsize", bpo::value<double>()->default_value(0.005), "pointcloud pointsize in millimeter")
         ("obstaclename", bpo::value<std::string>()->default_value("__dynamicobstacle__"), "pointcloud obstacle name")
     ;
 
@@ -156,7 +156,7 @@ int main(int argc, char ** argv)
         detectedobject.timestamp = GetMilliTime();
         detectedobject.extra = objectextra;
 
-        // load pointcloud from file, assuming comma seprated xyz coordinates in meter
+        // load pointcloud from file, assuming comma seprated xyz coordinates in millimeter
         std::ifstream pointsfile(pointsfilename.c_str());
         while (pointsfile) {
             std::string s;
@@ -175,9 +175,10 @@ int main(int argc, char ** argv)
         std::cout << "loaded " << points.size() / 3 << " points from " << pointsfilename << std::endl;
 
         // update environment loop
+        std::string inputdataunit = "mm";
         while (1) {
             try {
-                pBinpickingTask->UpdateEnvironmentState(objectupdatename, detectedobjects, points, resultstate, pointsize, obstaclename);
+                pBinpickingTask->UpdateEnvironmentState(objectupdatename, detectedobjects, points, resultstate, pointsize, obstaclename, inputdataunit, controllerCommandTimeout);
                 std::cout << "UpdateEnvironmentState with " << detectedobjects.size() << " objects " << (points.size()/3.) << " points" << std::endl;
             }
             catch(const std::exception& ex) {
