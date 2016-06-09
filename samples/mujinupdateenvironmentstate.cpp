@@ -57,12 +57,6 @@ inline unsigned long long GetMilliTime()
 #endif // _WIN32
 #endif // MUJIN_TIME
 
-#ifdef _MSC_VER
-#ifndef __PRETTY_FUNCTION__
-#define __PRETTY_FUNCTION__ __FUNCDNAME__
-#endif
-#endif
-
 using namespace mujinclient;
 
 #include <boost/program_options.hpp>
