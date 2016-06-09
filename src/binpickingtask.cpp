@@ -39,6 +39,7 @@ BinPickingResultResource::~BinPickingResultResource()
 
 BinPickingTaskResource::BinPickingTaskResource(ControllerClientPtr pcontroller, const std::string& pk, const std::string& scenepk) : TaskResource(pcontroller,pk), _zmqPort(-1), _heartbeatPort(-1), _bIsInitialized(false)
 {
+    _scenepk = scenepk;
     // get hostname from uri
     GETCONTROLLERIMPL();
     const std::string baseuri = controller->GetBaseUri();
@@ -95,6 +96,32 @@ BinPickingTaskResource::~BinPickingTaskResource()
     if (!!_pHeartbeatMonitorThread) {
         _pHeartbeatMonitorThread->join();
     }
+}
+
+void BinPickingTaskResource::Initialize(const std::string& defaultTaskParameters, const double timeout, const std::string& userinfo, const std::string& slaverequestid)
+{
+    if( defaultTaskParameters.size() > 0 ) {
+        boost::property_tree::ptree pt;
+        std::stringstream ss(defaultTaskParameters);
+        boost::property_tree::read_json(ss, pt);
+        FOREACH(itchild, pt) {
+            std::string value = itchild->second.data();
+            // hack?!
+            if( value.size() > 0 ) {
+                _mapTaskParameters[itchild->first] = GetJsonString(value);
+            }
+            else {
+                std::stringstream ssvalue;
+                write_json(ssvalue, itchild->second, false);
+                _mapTaskParameters[itchild->first] = ssvalue.str();
+            }
+            //std::cout << "initialize " << std::string(itchild->first) << "=" << _mapTaskParameters[itchild->first] << std::endl;
+        }
+    }
+
+    _bIsInitialized = true;
+    _userinfo_json = userinfo;
+    _slaverequestid = slaverequestid;
 }
 
 void BinPickingTaskResource::Initialize(const std::string& defaultTaskParameters, const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq, const double reinitializetimeout, const double timeout, const std::string& userinfo, const std::string& slaverequestid)
@@ -1167,6 +1194,7 @@ boost::property_tree::ptree BinPickingTaskResource::ExecuteCommand(const std::st
     std::string taskgoalput = ss.str();
     boost::property_tree::ptree pt;
     controller->CallPut(str(boost::format("task/%s/?format=json")%GetPrimaryKey()), taskgoalput, pt);
+    //controller->CallGet(str(boost::format("scene/%s/resultget") % _scenepk), taskgoalput, pt);
     Execute();
 
     double secondspassed = 0;

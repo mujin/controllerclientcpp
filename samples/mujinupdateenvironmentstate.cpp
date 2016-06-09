@@ -1,6 +1,157 @@
 #include <mujincontrollerclient/binpickingtask.h>
 #include <iostream>
 
+#if defined(_WIN32) || defined(_WIN64)
+#include <windows.h>
+#undef GetUserName // classes with ControllerClient::GetUserName
+
+#include <boost/typeof/std/string.hpp>
+#include <boost/typeof/std/vector.hpp>
+#include <boost/typeof/std/list.hpp>
+#include <boost/typeof/std/map.hpp>
+#include <boost/typeof/std/set.hpp>
+#include <boost/typeof/std/string.hpp>
+
+#define FOREACH(it, v) for(BOOST_TYPEOF(v) ::iterator it = (v).begin(), __itend__=(v).end(); it != __itend__; ++(it))
+#define FOREACH_NOINC(it, v) for(BOOST_TYPEOF(v) ::iterator it = (v).begin(), __itend__=(v).end(); it != __itend__; )
+
+#define FOREACHC(it, v) for(BOOST_TYPEOF(v) ::const_iterator it = (v).begin(), __itend__=(v).end(); it != __itend__; ++(it))
+#define FOREACHC_NOINC(it, v) for(BOOST_TYPEOF(v) ::const_iterator it = (v).begin(), __itend__=(v).end(); it != __itend__; )
+
+#else
+
+#define FOREACH(it, v) for(typeof((v).begin())it = (v).begin(); it != (v).end(); (it)++)
+#define FOREACH_NOINC(it, v) for(typeof((v).begin())it = (v).begin(); it != (v).end(); )
+
+#define FOREACHC FOREACH
+#define FOREACHC_NOINC FOREACH_NOINC
+
+//#define FORIT(it, v) for(it = (v).begin(); it != (v).end(); (it)++)
+
+#if BOOST_VERSION >= 104400
+// boost filesystem v3 is present after v1.44, so force using it
+#define BOOST_FILESYSTEM_VERSION 3
+#endif
+
+// only use boost filesystem on linux since it is difficult to get working correctly with windows
+#include <boost/filesystem/operations.hpp>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+#endif // defined(_WIN32) || defined(_WIN64)
+
+
+#ifndef MUJIN_TIME
+#define MUJIN_TIME
+#include <time.h>
+
+#ifndef _WIN32
+#if !(defined(CLOCK_GETTIME_FOUND) && (POSIX_TIMERS > 0 || _POSIX_TIMERS > 0))
+#include <sys/time.h>
+#endif
+#else
+#include <sys/timeb.h>    // ftime(), struct timeb
+inline void usleep(unsigned long microseconds) {
+    Sleep((microseconds+999)/1000);
+}
+#endif
+
+#ifdef _WIN32
+inline unsigned long long GetMilliTime()
+{
+    LARGE_INTEGER count, freq;
+    QueryPerformanceCounter(&count);
+    QueryPerformanceFrequency(&freq);
+    return (unsigned long long)((count.QuadPart * 1000) / freq.QuadPart);
+}
+
+inline unsigned long long GetMicroTime()
+{
+    LARGE_INTEGER count, freq;
+    QueryPerformanceCounter(&count);
+    QueryPerformanceFrequency(&freq);
+    return (count.QuadPart * 1000000) / freq.QuadPart;
+}
+
+inline unsigned long long GetNanoTime()
+{
+    LARGE_INTEGER count, freq;
+    QueryPerformanceCounter(&count);
+    QueryPerformanceFrequency(&freq);
+    return (count.QuadPart * 1000000000) / freq.QuadPart;
+}
+
+inline static unsigned long long GetNanoPerformanceTime() {
+    return GetNanoTime();
+}
+
+#else
+
+inline void GetWallTime(unsigned int& sec, unsigned int& nsec)
+{
+#if defined(CLOCK_GETTIME_FOUND) && (POSIX_TIMERS > 0 || _POSIX_TIMERS > 0)
+    struct timespec start;
+    clock_gettime(CLOCK_REALTIME, &start);
+    sec  = start.tv_sec;
+    nsec = start.tv_nsec;
+#else
+    struct timeval timeofday;
+    gettimeofday(&timeofday,NULL);
+    sec  = timeofday.tv_sec;
+    nsec = timeofday.tv_usec * 1000;
+#endif
+}
+
+inline unsigned long long GetMilliTimeOfDay()
+{
+    struct timeval timeofday;
+    gettimeofday(&timeofday,NULL);
+    return (unsigned long long)timeofday.tv_sec*1000+(unsigned long long)timeofday.tv_usec/1000;
+}
+
+inline unsigned long long GetNanoTime()
+{
+    unsigned int sec,nsec;
+    GetWallTime(sec,nsec);
+    return (unsigned long long)sec*1000000000 + (unsigned long long)nsec;
+}
+
+inline unsigned long long GetMicroTime()
+{
+    unsigned int sec,nsec;
+    GetWallTime(sec,nsec);
+    return (unsigned long long)sec*1000000 + (unsigned long long)nsec/1000;
+}
+
+inline unsigned long long GetMilliTime()
+{
+    unsigned int sec,nsec;
+    GetWallTime(sec,nsec);
+    return (unsigned long long)sec*1000 + (unsigned long long)nsec/1000000;
+}
+
+inline static unsigned long long GetNanoPerformanceTime()
+{
+#if defined(CLOCK_GETTIME_FOUND) && (POSIX_TIMERS > 0 || _POSIX_TIMERS > 0) && defined(_POSIX_MONOTONIC_CLOCK)
+    struct timespec start;
+    unsigned int sec, nsec;
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    sec  = start.tv_sec;
+    nsec = start.tv_nsec;
+    return (unsigned long long)sec*1000000000 + (unsigned long long)nsec;
+#else
+    return GetNanoTime();
+#endif
+}
+#endif
+#endif
+
+#ifdef _MSC_VER
+#ifndef __PRETTY_FUNCTION__
+#define __PRETTY_FUNCTION__ __FUNCDNAME__
+#endif
+#endif
+
 using namespace mujinclient;
 
 #include <boost/program_options.hpp>
@@ -14,22 +165,24 @@ int main(int argc, char ** argv)
 
     desc.add_options()
         ("help,h", "produce help message")
-        ("controller_ip", bpo::value<std::string>()->required(), "ip of the mujin controller, e.g. controller3")
+        ("controller_ip", bpo::value<std::string>()->required(), "ip of the mujin controller, e.g. controller")
         ("controller_port", bpo::value<unsigned int>()->default_value(80), "port of the mujin controller, e.g. 80")
         ("controller_username_password", bpo::value<std::string>()->required(), "username and password to the mujin controller, e.g. username:password")
         ("controller_command_timeout", bpo::value<double>()->default_value(10), "command timeout in seconds, e.g. 10")
         ("locale", bpo::value<std::string>()->default_value("en_US"), "locale to use for the mujin controller client")        
-        ("binpicking_task_zmq_port", bpo::value<unsigned int>()->required(), "port of the binpicking task on the mujin controller, e.g. 7100")
-        ("binpicking_task_heartbeat_port", bpo::value<unsigned int>()->required(), "port of the binpicking task's heartbeat signal on the mujin controller, e.g. 7101")
-        ("binpicking_task_heartbeat_timeout", bpo::value<unsigned int>()->default_value(10), "binpicking task's heartbeat timeout in seconds, e.g. 10")
-        ("binpicking_task_scenepk", bpo::value<std::string>()->required(), "scene pk of the binpicking task on the mujin controller, e.g. irex2013.mujin.dae")
-        ("slaverequestid", bpo::value<std::string>()->required(), "slaverequestid")
-        ("robotname", bpo::value<std::string>()->required(), "robot name, e.g. VP-5243I")
-        ("regionname", bpo::value<std::string>()->required(), "regionname, e.g. sourcecontainer")
-        ("targetupdatename", bpo::value<std::string>()->required(), "target object name, e.g. floor")
-        ("waitinterval", bpo::value<unsigned int>()->default_value(100), "update interval in ms")
+        ("binpicking_task_scenepk", bpo::value<std::string>()->required(), "scene pk of the binpicking task on the mujin controller, e.g. officeboltpicking.mujin.dae")
+        ("taskparameters", bpo::value<std::string>()->required(), "binpicking task parameters, e.g. {'robotname': 'robot', 'robots':{'robot': {'externalCollisionIO':{}, 'gripperControlInfo':{}, 'robotControllerUri': '', robotDeviceIOUri': '', 'toolname': 'tool'}}}")
+        ("slaverequestid", bpo::value<std::string>()->required(), "slaverequestid, e.g. hostname_slave0")
+        ("robotname", bpo::value<std::string>()->required(), "robot name, e.g. VS060A3-AV6-NNN-NNN")
+        ("regionname", bpo::value<std::string>()->required(), "regionname, e.g. smallcontainer")
+        ("objectupdatename", bpo::value<std::string>()->required(), "target object name, e.g. detected")
+        ("objecturi", bpo::value<std::string>()->required(), "target object uri, e.g. mujin:/bolt0.mujin.dae")
+        ("objectconfidence", bpo::value<std::string>()->default_value("{\"global_confidence\":1.0}"), "target object confidence")
+        ("objectextra", bpo::value<std::string>()->default_value(""), "target object extras, e.g. {\"randombox\": {\"height\":100,\"width\":100,\"length\":100}}")
+        ("waitinterval", bpo::value<unsigned int>()->default_value(500), "update interval in ms")
+        ("pointsfilename", bpo::value<std::string>()->required(), "path to text file containing commaseparated point xyz positions in meter")
         ("pointsize", bpo::value<double>()->default_value(0.005), "pointcloud pointsize")
-        ("obstaclename", bpo::value<std::string>()->required(), "pointcloud obstacle name")
+        ("obstaclename", bpo::value<std::string>()->default_value("__dynamicobstacle__"), "pointcloud obstacle name")
     ;
 
     bpo::variables_map opts;
@@ -51,123 +204,79 @@ int main(int argc, char ** argv)
     const std::string controllerIp = opts["controller_ip"].as<std::string>();
     const unsigned int controllerPort = opts["controller_port"].as<unsigned int>();
     const std::string controllerUsernamePass = opts["controller_username_password"].as<std::string>();
-    const unsigned int binpickingTaskZmqPort = opts["binpicking_task_zmq_port"].as<unsigned int>();
-    const unsigned int binpickingTaskHeartbeatPort = opts["binpicking_task_heartbeat_port"].as<unsigned int>();
-    const double binpickingTaskHeartbeatTimeout = opts["binpicking_task_heartbeat_timeout"].as<double>();
     const double controllerCommandTimeout = opts["controller_command_timeout"].as<double>();
     const std::string binpickingTaskScenePk = opts["binpicking_task_scenepk"].as<std::string>();
     const std::string robotname = opts["robotname"].as<std::string>();
-    const std::string targetupdatename = opts["targetupdatename"].as<std::string>();
+    const std::string objectupdatename = opts["objectupdatename"].as<std::string>();
+    const std::string objecturi = opts["objecturi"].as<std::string>();
+    const std::string objectconfidence = opts["objectconfidence"].as<std::string>();
+    const std::string objectextra = opts["objectextra"].as<std::string>();
     const std::string regionname = opts["regionname"].as<std::string>();
     const std::string taskparameters = opts["taskparameters"].as<std::string>();
     const std::string slaverequestid = opts["slaverequestid"].as<std::string>();
     const unsigned int waitinterval = opts["waitinterval"].as<unsigned int>();
+    const std::string pointsfilename = opts["pointsfilename"].as<std::string>();
     const double pointsize = opts["pointsize"].as<double>();
     const std::string obstaclename = opts["obstaclename"].as<std::string>();
     const std::string locale = opts["locale"].as<std::string>();
 
     std::string tasktype = "binpicking";
     try {
-        boost::shared_ptr<zmq::context_t> zmqcontext(new zmq::context_t(8));
         // connect to mujin controller
         std::stringstream url_ss;
         url_ss << "http://"<< controllerIp << ":" << controllerPort;
         ControllerClientPtr controllerclient = CreateControllerClient(controllerUsernamePass, url_ss.str());
         SceneResourcePtr scene(new SceneResource(controllerclient, binpickingTaskScenePk));
-        // TODO made these options
+
+        // initialize binpicking task
+        BinPickingTaskResourcePtr pBinpickingTask = scene->GetOrCreateBinPickingTaskFromName_UTF8(tasktype+std::string("task1"), tasktype);
+        std::string userinfo_json = "{\"username\": \"" + controllerclient->GetUserName() + "\", \"locale\": \"" + locale + "\"}";
+        std::cout << "initialzing binpickingtask in UpdateEnvironmentThread with userinfo=" + userinfo_json << " taskparameters=" << taskparameters << " slaverequestid=" << slaverequestid << std::endl;
+        pBinpickingTask->Initialize(taskparameters, controllerCommandTimeout, userinfo_json, slaverequestid);
+
+        // populate dummy data
+        std::vector<BinPickingTaskResource::DetectedObject> detectedobjects;
+        std::vector<Real> points;
         std::string resultstate;
 
+        BinPickingTaskResource::DetectedObject detectedobject;
+        detectedobject.name = str(boost::format("%s_%d") % objectupdatename % 0);
+        detectedobject.object_uri = objecturi;
+        Transform transform;
+        transform.quaternion[0] = 1; transform.quaternion[1] = 0; transform.quaternion[2] = 0; transform.quaternion[3] = 0;
+        transform.translate[0] = 450; transform.translate[1] = 0; transform.translate[2] = 60;
+        detectedobject.transform = transform;
+        detectedobject.confidence = objectconfidence;
+        detectedobject.timestamp = GetMilliTime();
+        detectedobject.extra = objectextra;
 
-        BinPickingTaskResourcePtr pBinpickingTask = scene->GetOrCreateBinPickingTaskFromName_UTF8(tasktype+std::string("task1"), tasktype, TRO_EnableZMQ);
-        std::string userinfo_json = "{\"username\": \"" + controllerclient->GetUserName() + "\", \"locale\": \"" + locale + "\"}";
-        std::cout << "initialzing binpickingtask in UpdateEnvironmentThread with userinfo " + userinfo_json << std::endl;
-
-        pBinpickingTask->Initialize(taskparameters, binpickingTaskZmqPort, binpickingTaskHeartbeatPort, zmqcontext, false, binpickingTaskHeartbeatTimeout, controllerCommandTimeout, userinfo_json, slaverequestid);
-        uint64_t starttime;
-        uint64_t lastwarnedtimestamp1 = 0;
-
-        // TODO populate these with dummy data
-        std::vector<BinPickingTaskResource::DetectedObject> detectedobjects;
-        std::vector<Real> totalpoints;
-        std::map<std::string, std::vector<Real> > mResultPoints;
-        std::vector<Real> newpoints;
-
-
-        while (1) {
-            bool bDetectedObjectsValid = false;
-
-            //MUJIN_LOG_INFO(str(boost::format("updating environment with %d detected objects")%vDetectedObject.size()));
-
-            // use the already acquired detection results without locking
-            unsigned int nameind = 0;
-            //DetectedObjectPtr detectedobject;
-            // TransformMatrix O_T_region, O_T_baselinkcenter, tBaseLinkInInnerRegionTopCenter;
-            // unsigned int numUpdatedRegions = 0;
-            // for (unsigned int i=0; i<detectedobjects.size(); i++) {
-            //     //Transform newtransform;
-            //     //BinPickingTaskResource::DetectedObject detectedobject;
-            //     //newtransform = vDetectedObject[i]->transform; // apply offset to result transform
-            //     // overwrite name because we need to add id to the end
-            //     std::stringstream name_ss;
-            //     name_ss << targetupdatename << nameind;
-            //     detectedobjects[i].name = name_ss.str();
-            //     nameind++;
-
-            //     // convert to mujinclient format
-            //     Transform transform;
-            //     transform.quaternion[0] = newtransform.rot[0];
-            //     transform.quaternion[1] = newtransform.rot[1];
-            //     transform.quaternion[2] = newtransform.rot[2];
-            //     transform.quaternion[3] = newtransform.rot[3];
-            //     transform.translate[0] = newtransform.trans[0];
-            //     transform.translate[1] = newtransform.trans[1];
-            //     transform.translate[2] = newtransform.trans[2];
-
-            //     detectedobject.object_uri = vDetectedObject[i]->objecturi;
-            //     detectedobject.transform = transform;
-            //     detectedobject.confidence = vDetectedObject[i]->confidence;
-            //     detectedobject.timestamp = vDetectedObject[i]->timestamp;
-            //     detectedobject.extra = vDetectedObject[i]->extra;
-            //     detectedobjects.push_back(detectedobject);
-            // }
-            // for(unsigned int i=0; i<cameranamestobeused.size(); i++) {
-            //     std::string cameraname = cameranamestobeused[i];
-            //     std::map<std::string, std::vector<Real> >::const_iterator itpoints = mResultPoints.find(cameraname);
-            //     if( itpoints != mResultPoints.end() ) {
-            //         // get point cloud obstacle
-            //         newpoints.resize(itpoints->second.size());
-            //         for (size_t j=0; j<itpoints->second.size(); j+=3) {
-            //             Vector newpoint = Vector(itpoints->second.at(j), itpoints->second.at(j+1), itpoints->second.at(j+2));
-            //             newpoints[j] = newpoint.x;
-            //             newpoints[j+1] = newpoint.y;
-            //             newpoints[j+2] = newpoint.z;
-            //         }
-            //         totalpoints.insert(totalpoints.end(), newpoints.begin(), newpoints.end());
-            //     }
-            // }
-            try {
-                //starttime = GetMilliTime();
-                pBinpickingTask->UpdateEnvironmentState(targetupdatename, detectedobjects, totalpoints, resultstate, pointsize, obstaclename, "m", 10);
-                std::stringstream ss;
-                //ss << "UpdateEnvironmentState with " << detectedobjects.size() << " objects " << (totalpoints.size()/3.) << " points, took " << (GetMilliTime() - starttime) / 1000.0f << " secs";
-                ss << "UpdateEnvironmentState with " << detectedobjects.size() << " objects " << (totalpoints.size()/3.) << " points";
-                std::cout << ss.str() << std::endl;
+        std::ifstream pointsfile(pointsfilename.c_str());
+        while (pointsfile) {
+            std::string s;
+            if (!std::getline(pointsfile, s)) {
+                break;
             }
-            catch(const std::exception& ex) {
-                //if (GetMilliTime() - lastwarnedtimestamp1 > 1000.0) {
-                //lastwarnedtimestamp1 = GetMilliTime();
-                    std::stringstream ss;
-                    ss << "Failed to update environment state: " << ex.what() << ".";
-                    std::cout << ss.str() << std::endl;
-                    //}
-                boost::this_thread::sleep(boost::posix_time::milliseconds(waitinterval));
+            std::istringstream ss(s);
+            while (ss) {
+                std::string s;
+                if (!std::getline(ss, s, ',')) {
+                    break;
+                }
+                points.push_back(boost::lexical_cast<double>(s));
             }
         }
-    }
-    catch (const zmq::error_t& e) {
-        std::stringstream errss;
-        errss << "Caught zmq exception errornum=" << e.num();
-        std::cerr << errss.str() << std::endl;
+        std::cout << "loaded " << points.size() / 3 << " points from " << pointsfilename << std::endl;
+        while (1) {
+            try {
+                pBinpickingTask->UpdateEnvironmentState(objectupdatename, detectedobjects, points, resultstate, pointsize, obstaclename, "m", 10);
+                std::cout << "UpdateEnvironmentState with " << detectedobjects.size() << " objects " << (points.size()/3.) << " points" << std::endl;
+            }
+            catch(const std::exception& ex) {
+                std::cerr << "Failed to update environment state: " << ex.what() << "." << std::endl;
+
+            }
+            boost::this_thread::sleep(boost::posix_time::milliseconds(waitinterval));
+        }
     }
     catch(const std::exception& ex) {
         std::stringstream errss;
