@@ -980,7 +980,7 @@ void BinPickingTaskResource::UpdateEnvironmentState(const std::string& objectnam
     ExecuteCommand(_ss.str(), timeout); // need to check return code
 }
 
-void BinPickingTaskResource::VisualizePointCloud(const std::vector<std::vector<Real> >&pointslist, const Real pointsize, const std::vector<std::string>&names, const double timeout)
+void BinPickingTaskResource::VisualizePointCloud(const std::vector<std::vector<Real> >&pointslist, const Real pointsize, const std::vector<std::string>&names, const std::string& unit, const double timeout)
 {
     std::string command = "VisualizePointCloud";
     _ss.str(""); _ss.clear();
@@ -1006,7 +1006,8 @@ void BinPickingTaskResource::VisualizePointCloud(const std::vector<std::vector<R
             _ss << ", ";
         }
     }
-    _ss << "]";
+    _ss << "]" << ", ";
+    _ss << GetJsonString("unit", unit);
     _ss << "}";
     ExecuteCommand(_ss.str(), timeout); // need to check return code
 }

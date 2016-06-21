@@ -226,9 +226,10 @@ public:
         \param pointslist vector of x,y,z coordinates vector in meter
         \param pointsize size of each point in meter
         \param names vector of names for each point cloud
+        \param unit of points
         \param timeout seconds until this command times out
      */
-    virtual void VisualizePointCloud(const std::vector<std::vector<Real> >& pointslist, const Real pointsize, const std::vector<std::string>& names, const double timeout /* second */=0);
+    virtual void VisualizePointCloud(const std::vector<std::vector<Real> >& pointslist, const Real pointsize, const std::vector<std::string>& names, const std::string& unit="m", const double timeout /* second */=0);
 
     /** \brief Clear visualization made by VisualizePointCloud.
      */
