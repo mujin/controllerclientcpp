@@ -171,13 +171,21 @@ public:
     };
 
     /** \brief Initializes binpicking task.
+        \param commandtimeout seconds until this command times out
+        \param userinfo json string user info, such as locale
+        \param slaverequestid id of mujincontroller planning slave to connect to
+     */
+    virtual void Initialize(const std::string& defaultTaskParameters, const double commandtimeout=0, const std::string& userinfo="{}", const std::string& slaverequestid="");
+
+    /** \brief Initializes binpicking task.
         \param zmqPort port of the binpicking zmq server
         \param heartbeatPort port of the binpicking zmq server's heartbeat publisher
         \param zmqcontext zmq context
         \param initializezmq whether to call InitializeZMQ() in this call
         \param reinitializetimeout seconds until calling InitailizeZMQ() if heartbeat has not been received. If 0, do not reinitialize
-        \param timeout seconds until this command times out
-        \param locale language of the log/status
+        \param commandtimeout seconds until this command times out
+        \param userinfo json string user info, such as locale
+        \param slaverequestid id of mujincontroller planning slave to connect to
      */
     virtual void Initialize(const std::string& defaultTaskParameters, const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq=false, const double reinitializetimeout=10, const double commandtimeout=0, const std::string& userinfo="{}", const std::string& slaverequestid="");
 
@@ -292,6 +300,7 @@ protected:
     std::string _userinfo_json;  ///< userinfo json
     std::string _sceneparams_json; ///\ parameters of the scene to run tasks on the backend zmq slave
     std::string _slaverequestid; ///< to ensure the same slave is used for binpicking task
+    std::string _scenepk; ///< scene pk
     boost::shared_ptr<boost::thread> _pHeartbeatMonitorThread;
 
     bool _bIsInitialized;
