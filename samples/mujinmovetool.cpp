@@ -13,6 +13,11 @@
 #include <mujincontrollerclient/binpickingtask.h>
 #include <iostream>
 
+#if defined(_WIN32) || defined(_WIN64)
+#undef GetUserName // clashes with ControllerClient::GetUserName
+#endif // defined(_WIN32) || defined(_WIN64)
+
+
 using namespace mujinclient;
 
 #include <boost/program_options.hpp>

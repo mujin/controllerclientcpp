@@ -625,7 +625,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const boost::proper
         if (tool_val_itr != _pt.not_found()) {
             currentToolValues.resize(tool_val_itr->second.size());
             size_t idx = 0;
-            FOREACH(value, tool_val_itr->second) {
+            FOREACHC(value, tool_val_itr->second) {
                 currentToolValues[idx++] = boost::lexical_cast<Real>(value->second.data());
             }
         }
@@ -639,7 +639,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const boost::proper
         {
             currentJointValues.resize(joint_val_itr->second.size());
             size_t idx = 0;
-            FOREACH(value, joint_val_itr->second) {
+            FOREACHC(value, joint_val_itr->second) {
                 currentJointValues[idx++] = boost::lexical_cast<Real>(value->second.data());
             }
         }
@@ -653,7 +653,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const boost::proper
         if (joint_name_itr != _pt.not_found()) {
             jointNames.resize(joint_name_itr->second.size());
             size_t idx = 0;
-            FOREACH(value, joint_name_itr->second) {
+            FOREACHC(value, joint_name_itr->second) {
                 jointNames[idx++] = value->second.data();
             }
         }
@@ -815,7 +815,7 @@ namespace
     {
         ss.str(""); ss.clear();
         ss << "{";
-        FOREACH(it, params) {
+        FOREACHC(it, params) {
             ss << "\"" << it->first << "\":" << it->second << ", ";
         }
     }
@@ -1216,7 +1216,7 @@ void BinPickingTaskResource::SetJogModeVelocities(const std::string& jogtype, co
     }
     _ss << GetJsonString("movejointsigns") << ": " << GetJsonString(movejointsigns);
     _ss << "}";
-    std::cout << "Sending\n" << _ss.str() << " from " << __func__ << std::endl;
+    //std::cout << "Sending\n" << _ss.str() << " from " << __func__ << std::endl;
     ExecuteCommand(_ss.str(), timeout);
 }
 

@@ -16,6 +16,10 @@
 #include <signal.h>
 #include <iostream>
 
+#if defined(_WIN32) || defined(_WIN64)
+#undef GetUserName // clashes with ControllerClient::GetUserName
+#endif // defined(_WIN32) || defined(_WIN64)
+
 void sigint_handler(int sig);
 static bool s_sigintreceived = false;
 
@@ -164,7 +168,7 @@ void Run(BinPickingTaskResourcePtr& pTask,
          const string& mode,
          unsigned int axis,
          bool moveInPositive,
-         unsigned int duration,
+         double duration,
          double speed,
          double acc,
          const string& robotname,
