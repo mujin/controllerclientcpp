@@ -2,16 +2,24 @@
 /** \example mujinjog.cpp
 
     Shows how to jog robot in joint and tool spaces.
-    TODO: add example set of options
+    example: ./mujinjog --controller_hostname=controllerXX --controller_url=http://controllerXX:80  --controller_username_password=youruser:yourpassword --task_scenepk=yourfile.mujin.dae --robotname=yourrobot --jointmode=true --axis=0 --move_in_positive=false --speed=0.1 --run_with_controllerui=true
+
+    tips:
+     1. if solution is not found, try to set --move_in_positive=true
+     2. if solution is not found, try to set --movelinear==false
+
  */
 
 #include <mujincontrollerclient/binpickingtask.h>
-#include <iostream>
-
-using namespace mujinclient;
 
 #include <boost/program_options.hpp>
+#include <signal.h>
+#include <iostream>
 
+void sigint_handler(int sig);
+static bool s_sigintreceived = false;
+
+using namespace mujinclient;
 namespace bpo = boost::program_options;
 using namespace std;
 
@@ -27,10 +35,9 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
 
     desc.add_options()
         ("help,h", "produce help message")
-        ("controller_ip", bpo::value<string>()->required(), "ip of the mujin controller, e.g. 127.0.0.1")
+        ("controller_url", bpo::value<string>()->required(), "ip of the mujin controller, e.g. http://controller20:80")
         ("controller_hostname", bpo::value<string>()->required(), "hostname of the mujin controller, e.g. controller20")
         ("run_with_controllerui", bpo::value<bool>()->default_value(true), "true if connecting to controller where controller ui is running ")
-        ("controller_port", bpo::value<unsigned int>()->default_value(80), "port of the mujin controller, e.g. 80")
         ("controller_username_password", bpo::value<string>()->required(), "username and password to the mujin controller, e.g. username:password")
         ("controller_command_timeout", bpo::value<double>()->default_value(10), "command timeout in seconds, e.g. 10")
         ("locale", bpo::value<string>()->default_value("en_US"), "locale to use for the mujin controller client")
@@ -44,7 +51,6 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("move_in_positive", bpo::value<bool>()->required(), "whether to move in increasing or decreasing direction")
         ("jog_duration", bpo::value<double>()->default_value(1.0), "duration of jogging")
         ("speed", bpo::value<double>()->default_value(0.1), "speed to move at, a value between 0 and 1. ")
-        ("print_period_ms", bpo::value<unsigned int>()->default_value(0), "how oftern to print robot state in millisecond. 0 indicates printing only before and after jogging")
         ;
 
     try {
@@ -61,7 +67,10 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
     try {
         bpo::notify(opts);
     }
-    catch(...) {
+    catch(const exception& ex) {
+        stringstream errss;
+        errss << "Caught exception " << ex.what();
+        cerr << errss.str() << endl;
         badargs = true;
     }
 
@@ -80,11 +89,10 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
 void InitializeTask(const bpo::variables_map& opts,
                     BinPickingTaskResourcePtr& pBinpickingTask)
 {
-    const string controllerIp = opts["controller_ip"].as<string>();
+    const string controllerUrl = opts["controller_url"].as<string>();
     const string controllerHostname = opts["controller_hostname"].as<string>();
     const bool runwithcontrollerui = opts["run_with_controllerui"].as<bool>();
     const string slavename = controllerHostname + (runwithcontrollerui ? "_slave0" : "_slave1");
-    const unsigned int controllerPort = opts["controller_port"].as<unsigned int>();
     const string controllerUsernamePass = opts["controller_username_password"].as<string>();
     const double controllerCommandTimeout = opts["controller_command_timeout"].as<double>();
     const string taskScenePk = opts["task_scenepk"].as<string>();
@@ -97,11 +105,9 @@ void InitializeTask(const bpo::variables_map& opts,
     string tasktype = "binpicking";
 
     // connect to mujin controller
-    stringstream url;
-    url << "http://"<< controllerIp << ":" << controllerPort;
-    ControllerClientPtr controllerclient = CreateControllerClient(controllerUsernamePass, url.str());
+    ControllerClientPtr controllerclient = CreateControllerClient(controllerUsernamePass, controllerUrl);
 
-    cout << "connected to mujin controller at " << url.str() << endl;
+    cout << "connected to mujin controller at " << controllerUrl << endl;
 
     SceneResourcePtr scene(new SceneResource(controllerclient, taskScenePk));
 
@@ -162,7 +168,6 @@ void Run(BinPickingTaskResourcePtr& pTask,
          double speed,
          double acc,
          const string& robotname,
-         unsigned int printPeriodMs,
          double timeout)
 {
     // print state
@@ -171,41 +176,38 @@ void Run(BinPickingTaskResourcePtr& pTask,
     cout << "Starting:\n" << ConvertStateToString(result) << endl;
 
     const size_t dof = mode == "joints" ? result.currentJointValues.size() : 6;
-    vector<int> movejointsigns(dof, 0);
+    // when exiting this function, make sure to send zero velocities
+    const vector<int> stopjoints(dof, 0);  
+    boost::shared_ptr<void> setdisconnectfn((void*)0,
+                                            boost::bind(&BinPickingTaskResource::SetJogModeVelocities, pTask, mode,
+                                                        stopjoints, robotname, "", speed, acc, timeout));
 
     // start moving
+    vector<int> movejointsigns(dof, 0);
     movejointsigns[axis] = moveInPositive ? 1 : -1;
-    try {
-        pTask->SetJogModeVelocities(mode, movejointsigns, robotname, "", speed, acc, timeout);
-    }
-    catch (...)
-    {
-        // stop for safety
-        movejointsigns[axis] = 0;
-        pTask->SetJogModeVelocities(mode, movejointsigns, robotname, "", speed, acc, timeout);
-    }
+    pTask->SetJogModeVelocities(mode, movejointsigns, robotname, "", speed, acc, timeout);
     
     // let it jog for specified duration
-    if (printPeriodMs == 0) {
-        boost::this_thread::sleep(boost::posix_time::seconds(duration));
-    }
-    else {
-        unsigned int it_sleep = 0;
-        for (; it_sleep < duration*1000; it_sleep += printPeriodMs) {
-            boost::this_thread::sleep(boost::posix_time::milliseconds(printPeriodMs));
-            pTask->GetPublishedTaskState(result, robotname, "mm", timeout);
-            cout << ConvertStateToString(result) << endl;
+    unsigned long long previoustimestamp = result.timestamp;
+    for (unsigned int it_sleep = 0; it_sleep < duration*1000; it_sleep++) {
+        if (s_sigintreceived) {
+            break;
+        }
+        
+        boost::this_thread::sleep(boost::posix_time::milliseconds(1));
+        pTask->GetPublishedTaskState(result, robotname, "mm", timeout);
+        if (previoustimestamp == result.timestamp) {
+            continue;
         }
 
-        if (const int delta = it_sleep - duration*1000 > 0) {
-            boost::this_thread::sleep(boost::posix_time::milliseconds(delta));
-        }
+        // value updated, print it
+        cout << ConvertStateToString(result) << endl;
+        previoustimestamp = result.timestamp;
     }
 
-    // stop
-    movejointsigns[axis] = 0;
-    pTask->SetJogModeVelocities(mode, movejointsigns, robotname, "", speed, acc, timeout);
-
+    
+    pTask->SetJogModeVelocities(mode, stopjoints, robotname, "", speed, acc, timeout);
+    
     // print state
     pTask->GetPublishedTaskState(result, robotname, "mm", timeout);
     cout << "Finished:\n" << ConvertStateToString(result) << endl;
@@ -222,7 +224,6 @@ int main(int argc, char ** argv)
     const string robotname = opts["robotname"].as<string>();
     const unsigned int axis = opts["axis"].as<unsigned int>();
     const bool moveinpositive = opts["move_in_positive"].as<bool>();
-    const unsigned int printPeriodMs = opts["print_period_ms"].as<unsigned int>();
     const double speed = opts["speed"].as<double>();
     const double acc = speed * 0.7;
     const double timeout = opts["controller_command_timeout"].as<double>();
@@ -242,20 +243,19 @@ int main(int argc, char ** argv)
         errss << "Caught exception " << ex.what();
         cerr << errss.str() << endl;
     }
-    catch (...) {
-        stringstream errss;
-        errss << "Caught unknown exception!";
-        cerr << errss.str() << endl;
-    }
 
     if (!succesfullyInitialized) {
         // task initialization faliled
         return 2;
     }
 
+    // add a signal handler
+    signal(SIGINT,sigint_handler); // control C
+    cout << "Ctrl-C to stop jogging before jogduration passed.\n";
+
     // do interesting part
     try {
-        Run(pBinpickingTask, mode, axis, moveinpositive, jogduration, speed, acc, robotname, printPeriodMs, timeout);
+        Run(pBinpickingTask, mode, axis, moveinpositive, jogduration, speed, acc, robotname, timeout);
     }
     catch (const exception& ex) {
         stringstream errss;
@@ -267,4 +267,16 @@ int main(int argc, char ** argv)
     }
 
     return 0;
+}
+
+void sigint_handler(int sig)
+{
+    s_sigintreceived = true;
+    cout << "Sigint received. Stopping jogging\n";
+    
+#ifndef _WIN32
+    // have to let the default sigint properly shutdown the program
+    signal(SIGINT, SIG_DFL);
+    kill(0 /*getpid()*/, SIGINT);
+#endif
 }

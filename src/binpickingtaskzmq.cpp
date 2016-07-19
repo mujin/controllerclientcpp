@@ -98,7 +98,6 @@ boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std:
     std::string command = ss.str();
     //    std::cout << "Sending " << command << " from " << __func__ << std::endl;
 
-    // TODO need to implement timeout
     //std::string task = "{\"tasktype\": \"binpicking\", \"taskparameters\": " + command + "}";
     boost::property_tree::ptree pt;
     if (getresult) {

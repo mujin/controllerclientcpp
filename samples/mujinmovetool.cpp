@@ -2,6 +2,12 @@
 /** \example mujinmovetool.cpp
 
     Shows how to move tool to a specified position and orientation in two ways.
+    example: ./mujinmovetool --controller_hostname=controllerXX --controller_url=http://controllerXX:80 --controller_username_password=youruser:yourpassword --task_scenepk=yourfile.mujin.dae --robotname=yourrobot --goals=100 200 300 0 90 180 --goaltype=transform6d --movelinear=true --speed=0.1
+
+    tips:
+     1. if solution is not found, try to set goal close to current tool position
+     2. if solution is not found, try to set --movelinear==false
+
  */
 
 #include <mujincontrollerclient/binpickingtask.h>
@@ -26,17 +32,16 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
 
     desc.add_options()
         ("help,h", "produce help message")
-        ("controller_ip", bpo::value<string>()->required(), "ip of the mujin controller, e.g. 127.0.0.1")
+        ("controller_url", bpo::value<string>()->required(), "ip of the mujin controller, e.g. http://controller20:80")
         ("controller_hostname", bpo::value<string>()->required(), "hostname of the mujin controller, e.g. controller")
         ("run_with_controllerui", bpo::value<bool>()->default_value(true), "true if connecting to controller where controller ui is running ")
-        ("controller_port", bpo::value<unsigned int>()->default_value(80), "port of the mujin controller, e.g. 80")
         ("controller_username_password", bpo::value<string>()->required(), "username and password to the mujin controller, e.g. username:password")
         ("controller_command_timeout", bpo::value<double>()->default_value(10), "command timeout in seconds, e.g. 10")
         ("locale", bpo::value<string>()->default_value("en_US"), "locale to use for the mujin controller client")
         ("task_scenepk", bpo::value<string>()->required(), "scene pk of the binpicking task on the mujin controller, e.g. officeboltpicking.mujin.dae")
         ("robotname", bpo::value<string>()->required(), "robot name, e.g. VP-5243I")
         ("toolname", bpo::value<string>()->default_value(""), "tool name, e.g. flange")
-        ("taskparameters", bpo::value<string>()->required(), "binpicking task parameters, e.g. {'robotname': 'robot', 'robots':{'robot': {'externalCollisionIO':{}, 'gripperControlInfo':{}, 'robotControllerUri': '', robotDeviceIOUri': '', 'toolname': 'tool'}}}")
+        ("taskparameters", bpo::value<string>()->default_value("{}"), "binpicking task parameters, e.g. {'robotname': 'robot', 'robots':{'robot': {'externalCollisionIO':{}, 'gripperControlInfo':{}, 'robotControllerUri': '', robotDeviceIOUri': '', 'toolname': 'tool'}}}")
         ("zmq_port", bpo::value<unsigned int>()->default_value(11000), "port of the binpicking task on the mujin controller")
         ("heartbeat_port", bpo::value<unsigned int>()->default_value(11001), "port of the binpicking task's heartbeat signal on the mujin controller")
         ("goaltype", bpo::value<string>()->default_value("transform6d"), "mode to move tool with. Either transform6d or translationdirection5d")
@@ -65,9 +70,6 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         cerr << errss.str() << endl;
         badargs = true;
     }
-    catch(...) {
-        badargs = true;
-    }
 
     if(opts.count("help") || badargs) {
         cout << "Usage: " << argv[0] << " [OPTS]" << endl;
@@ -84,11 +86,10 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
 void InitializeTask(const bpo::variables_map& opts,
                     BinPickingTaskResourcePtr& pBinpickingTask)
 {
-    const string controllerIp = opts["controller_ip"].as<string>();
+    const string controllerUrl = opts["controller_url"].as<string>();
     const string controllerHostname = opts["controller_hostname"].as<string>();
     const bool runwithcontrollerui = opts["run_with_controllerui"].as<bool>();
     const string slavename = controllerHostname + (runwithcontrollerui ? "_slave0" : "_slave1");
-    const unsigned int controllerPort = opts["controller_port"].as<unsigned int>();
     const string controllerUsernamePass = opts["controller_username_password"].as<string>();
     const double controllerCommandTimeout = opts["controller_command_timeout"].as<double>();
     const string taskScenePk = opts["task_scenepk"].as<string>();
@@ -101,11 +102,9 @@ void InitializeTask(const bpo::variables_map& opts,
     string tasktype = "binpicking";
 
     // connect to mujin controller
-    stringstream url;
-    url << "http://"<< controllerIp << ":" << controllerPort;
-    ControllerClientPtr controllerclient = CreateControllerClient(controllerUsernamePass, url.str());
+    ControllerClientPtr controllerclient = CreateControllerClient(controllerUsernamePass, controllerUrl);
 
-    cout << "connected to mujin controller at " << url.str() << endl;
+    cout << "connected to mujin controller at " << controllerUrl << endl;
 
     SceneResourcePtr scene(new SceneResource(controllerclient, taskScenePk));
 
@@ -207,11 +206,6 @@ int main(int argc, char ** argv)
     catch(const exception& ex) {
         stringstream errss;
         errss << "Caught exception " << ex.what();
-        cerr << errss.str() << endl;
-    }
-    catch (...) {
-        stringstream errss;
-        errss << "Caught unknown exception!";
         cerr << errss.str() << endl;
     }
 
