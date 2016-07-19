@@ -26,6 +26,7 @@
 MUJIN_LOGGER("mujin.controllerclientcpp.binpickingtask.zmq");
 
 namespace mujinclient {
+using namespace utils;
 
 class ZmqMujinControllerClient : public mujinzmq::ZmqClient
 {
@@ -95,6 +96,7 @@ boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std:
     }
     ss << "}";
     std::string command = ss.str();
+    //    std::cout << "Sending " << command << " from " << __func__ << std::endl;
 
     // TODO need to implement timeout
     //std::string task = "{\"tasktype\": \"binpicking\", \"taskparameters\": " + command + "}";
@@ -103,7 +105,7 @@ boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std:
         std::stringstream result_ss;
 
         try{
-            result_ss << _zmqmujincontrollerclient->Call(command);
+            result_ss << _zmqmujincontrollerclient->Call(command, timeout);
         }
         catch (const MujinException& e) {
             MUJIN_LOG_ERROR(e.what());
@@ -144,7 +146,7 @@ boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std:
         }
     } else {
         try{
-            _zmqmujincontrollerclient->Call(command);
+            _zmqmujincontrollerclient->Call(command, timeout);
             // TODO since not getting response, internal zmq will be in a bad state, have to recreate
         }
         catch (const MujinException& e) {

@@ -46,7 +46,6 @@ int main(int argc, char ** argv)
     const unsigned int controllerPort = opts["controller_port"].as<unsigned int>();
     const std::string controllerUsernamePass = opts["controller_username_password"].as<std::string>();
     const std::string robotControllerIp = opts["robot_controller_ip"].as<std::string>();
-    const unsigned int robotControllerPort = opts["robot_controller_port"].as<unsigned int>();
     const unsigned int binpickingTaskZmqPort = opts["binpicking_task_zmq_port"].as<unsigned int>();
     const unsigned int binpickingTaskHeartbeatPort = opts["binpicking_task_heartbeat_port"].as<unsigned int>();
     const std::string binpickingTaskScenePk = opts["binpicking_task_scenepk"].as<std::string>();
@@ -84,21 +83,21 @@ int main(int argc, char ** argv)
     HandEyeCalibrationResultResource::CalibrationResult result;
     calib->ComputeCalibrationPoses(30, calibparam, result);
     std::cout << "poses: " << std::endl;
-    for (int i = 0; i < result.poses.size(); i++) {
+    for (size_t i = 0; i < result.poses.size(); i++) {
         for (int j = 0; j < 7; j++) {
             std::cout << result.poses[i][j] << ", ";
         }
         std::cout << std::endl;
     }
     std::cout << "configs: " << std::endl;
-    for (int i = 0; i < result.configs.size(); i++) {
-        for (int j = 0; j < result.configs[i].size(); j++) {
+    for (size_t i = 0; i < result.configs.size(); i++) {
+        for (size_t j = 0; j < result.configs[i].size(); j++) {
             std::cout << result.configs[i][j] << ", ";
         }
         std::cout << std::endl;
     }
     std::cout << "jointindices: " << std::endl;
-    for (int i = 0; i < result.jointindices.size(); i++) {
+    for (size_t i = 0; i < result.jointindices.size(); i++) {
         std::cout << result.jointindices[i] << ", ";
     }
     std::cout << std::endl;

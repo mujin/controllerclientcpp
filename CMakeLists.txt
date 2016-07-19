@@ -281,6 +281,7 @@ endif()
 
 if (libzmq_FOUND)
   add_definitions(-DMUJIN_USEZMQ)
+  include_directories(${libzmq_INCLUDE_DIRS})
   set(MUJINCLIENT_LINK_DIRS ${MUJINCLIENT_LINK_DIRS} ${libzmq_LIBRARY_DIRS})
 else()
   message(WARNING "compiling without libzmq library")

@@ -31,7 +31,7 @@ class CurlCustomRequestSetter
 {
 public:
     CurlCustomRequestSetter(CURL *curl, const char* method) : _curl(curl) {
-        CURLcode res = curl_easy_setopt(_curl, CURLOPT_CUSTOMREQUEST, method);
+        curl_easy_setopt(_curl, CURLOPT_CUSTOMREQUEST, method);
     }
     ~CurlCustomRequestSetter() {
         curl_easy_setopt(_curl, CURLOPT_CUSTOMREQUEST, NULL);
@@ -44,7 +44,7 @@ class CurlWriteDataSetter
 {
 public:
     CurlWriteDataSetter(CURL *curl, const void* pdata) : _curl(curl) {
-        CURLcode res = curl_easy_setopt(_curl, CURLOPT_WRITEDATA, pdata);
+        curl_easy_setopt(_curl, CURLOPT_WRITEDATA, pdata);
     }
     ~CurlWriteDataSetter() {
         curl_easy_setopt(_curl, CURLOPT_WRITEDATA, NULL);
@@ -57,7 +57,7 @@ class CurlUploadSetter
 {
 public:
     CurlUploadSetter(CURL *curl) : _curl(curl) {
-        CURLcode res = curl_easy_setopt(_curl, CURLOPT_UPLOAD, 1L);
+        curl_easy_setopt(_curl, CURLOPT_UPLOAD, 1L);
     }
     ~CurlUploadSetter() {
         curl_easy_setopt(_curl, CURLOPT_UPLOAD, 0L);
@@ -1318,16 +1318,17 @@ void ControllerClientImpl::_UploadDirectoryToController_UTF8(const std::string& 
 
     std::string sCopyDir_FS = encoding::ConvertUTF8ToFileSystemEncoding(copydir_utf8);
     // remove the fileseparator if it exists
-    bool bhasseparator = false;
-    if( sCopyDir_FS.size() > 0 && sCopyDir_FS.at(sCopyDir_FS.size()-1) == s_filesep ) {
-        sCopyDir_FS.resize(sCopyDir_FS.size()-1);
-        bhasseparator = true;
-    }
     std::stringstream ss;
     ss << "uploading " << sCopyDir_FS << " -> " << uri;
     MUJIN_LOG_INFO(ss.str());
 
 #if defined(_WIN32) || defined(_WIN64)
+    bool bhasseparator = false;
+    if( sCopyDir_FS.size() > 0 && sCopyDir_FS.at(sCopyDir_FS.size()-1) == s_filesep ) {
+        sCopyDir_FS.resize(sCopyDir_FS.size()-1);
+        bhasseparator = true;
+    }
+
     WIN32_FIND_DATAA ffd;
     std::string searchstr = sCopyDir_FS + std::string("\\*");
     HANDLE hFind = FindFirstFileA(searchstr.c_str(), &ffd);

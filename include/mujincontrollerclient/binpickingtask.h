@@ -20,7 +20,9 @@
 #include <mujincontrollerclient/mujincontrollerclient.h>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/thread.hpp>
+#ifdef MUJIN_USEZMQ
 #include "zmq.hpp"
+#endif
 
 namespace mujinclient {
 
@@ -106,6 +108,10 @@ public:
         virtual ~ResultGetBinpickingState();
         void Parse(const boost::property_tree::ptree& pt);
         std::string statusPickPlace;
+        std::string statusDescPickPlace;
+        std::string statusPhysics;
+        bool isDynamicEnvironmentStateEmpty;
+        bool isSourceContainerEmpty;
         int pickAttemptFromSourceId;
         unsigned long long timestamp;  ///< ms
         unsigned long long lastGrabbedTargetTimeStamp;   ///< ms
@@ -117,6 +123,11 @@ public:
         int numLeftInOrder;
         int numLeftInSupply;
         int placedInDest;
+        std::vector<double> currentJointValues;
+        std::vector<double> currentToolValues;
+        std::vector<std::string> jointNames;
+        bool isControllerInError;
+        std::string robotbridgestatus;
     };
 
     struct MUJINCLIENT_API ResultIsRobotOccludingBody : public ResultBase
@@ -177,6 +188,7 @@ public:
      */
     virtual void Initialize(const std::string& defaultTaskParameters, const double commandtimeout=0, const std::string& userinfo="{}", const std::string& slaverequestid="");
 
+#ifdef MUJIN_USEZMQ
     /** \brief Initializes binpicking task.
         \param zmqPort port of the binpicking zmq server
         \param heartbeatPort port of the binpicking zmq server's heartbeat publisher
@@ -188,6 +200,7 @@ public:
         \param slaverequestid id of mujincontroller planning slave to connect to
      */
     virtual void Initialize(const std::string& defaultTaskParameters, const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq=false, const double reinitializetimeout=10, const double commandtimeout=0, const std::string& userinfo="{}", const std::string& slaverequestid="");
+#endif
 
     virtual boost::property_tree::ptree ExecuteCommand(const std::string& command, const double timeout /* second */=0.0, const bool getresult=true);
 
@@ -257,14 +270,54 @@ public:
 
     virtual PlanningResultResourcePtr GetResult();
 
-    /** \brief Gets inst object 
+    /** \brief Gets inst object
         \param unit input unit
         \param result unit is always in meter
      */
     virtual void GetInstObjectAndSensorInfo(const std::vector<std::string>& instobjectnames, const std::vector<std::string>& sensornames, ResultGetInstObjectAndSensorInfo& result, const std::string& unit="m", const double timeout /* second */=0);
 
-    virtual void GetBinpickingState(ResultGetBinpickingState& result, const std::string& unit="m", const double timeout /* second */=0);
-    virtual void GetPublishedTaskState(ResultGetBinpickingState& result, const std::string& unit="m", const double timeout /* second */=0);
+    /// \brief Get state of bin picking
+    /// \param result state of bin picking
+    /// \param robotname name of robot
+    /// \param unit unit to receive values in, either "m" (indicates radian for angle) or "mm" (indicates degree for angle)
+    /// \param timeout timeout of communication
+    virtual void GetBinpickingState(ResultGetBinpickingState& result, const std::string& robotname, const std::string& unit="m", const double timeout /* second */=0);
+
+    /// \brief Get published state of bin picking
+    /// except for initial call, this returns cached value.
+    /// \param result state of bin picking
+    /// \param robotname name of robot
+    /// \param unit unit to receive values in, either "m" (indicates radian for angle) or "mm" (indicates degree for angle)
+    /// \param timeout timeout of communication
+    virtual void GetPublishedTaskState(ResultGetBinpickingState& result, const std::string& robotname, const std::string& unit="m", const double timeout /* second */=0);
+
+    /// \brief Jogs robot in joint or tool space
+    /// \param jogtype type of jogging, either "joints" or "tool"
+    /// \param goals where to move hand to [X, Y, Z, RX, RY, RZ] in mm and deg
+    /// \param robotname name of the robot to move
+    /// \param toolname name of the tool to move
+    /// \param robotspeed speed at which to move. this is a ratio to maximum speed and thus valid range is 0 to 1.
+    /// \param robotaccelmult acceleration multiplier at which to move. this is a ratio to maximum acceleration and thus valid range is 0 to 1.
+    /// \param timeout timeout of communication
+    virtual void SetJogModeVelocities(const std::string& jogtype, const std::vector<int>& movejointsigns, const std::string& robotname = "", const std::string& toolname = "", const double robotspeed = -1, const double robotaccelmult = -1.0, const double timeout=1);
+
+    /// \brief Moves hand to specified posistion linearly
+    /// \param goaltype whether to specify goal in full six degrees of freedom (transform6d) or three dimentional position and two dimentional angle (translationdirection5d)
+    /// \param goals where to move hand to [X, Y, Z, RX, RY, RZ] in mm and deg
+    /// \param robotname name of the robot to move
+    /// \param toolname name of the tool to move
+    /// \param robotspeed speed at which to move. this is a ratio to maximum speed and thus valid range is 0 to 1.
+    /// \param timeout timeout of communication
+    virtual void MoveToolLinear(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname = "", const std::string& toolname = "", const double robotspeed = -1, const double timeout = 10);
+
+    /// \brief Moves hand to specified posistion
+    /// \param goaltype whether to specify goal in full six degrees of freedom (transform6d) or three dimentional position and two dimentional angle (translationdirection5d)
+    /// \param goals where to move hand to [X, Y, Z, RX, RY, RZ] in mm and deg
+    /// \param robotname name of the robot to move
+    /// \param toolname name of the tool to move
+    /// \param robotspeed speed at which to move
+    /// \param timeout timeout of communication
+    virtual void MoveToHandPosition(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname = "", const std::string& toolname = "", const double robotspeed = -1, const double timeout = 10);
 
     /** \brief Monitors heartbeat signals from a running binpicking ZMQ server, and reinitializes the ZMQ server when heartbeat is lost.
         \param reinitializetimeout seconds to wait before re-initializing the ZMQ server after the heartbeat signal is lost
@@ -277,25 +330,14 @@ public:
 
 protected:
     std::stringstream _ss;
-    std::string GetJsonString(const std::string& string);
-    std::string GetJsonString(const std::vector<Real>& vec);
-    std::string GetJsonString(const std::vector<int>& vec);
-    std::string GetJsonString(const std::vector<std::string>& vec);
-    std::string GetJsonString(const Transform& transform);
-    std::string GetJsonString(const DetectedObject& obj);
-    std::string GetJsonString(const PointCloudObstacle& obj);
-    std::string GetJsonString(const SensorOcclusionCheck& check);
 
-    std::string GetJsonString(const std::string& key, const std::string& value);
-    std::string GetJsonString(const std::string& key, const int value);
-    std::string GetJsonString(const std::string& key, const unsigned long long value);
-    std::string GetJsonString(const std::string& key, const Real value);
-
-    std::map<std::string, std::string> _mapTaskParameters; ///< set of key value pairs that should be included 
+    std::map<std::string, std::string> _mapTaskParameters; ///< set of key value pairs that should be included
     std::string _mujinControllerIp;
     boost::mutex _mutexTaskState;
     ResultGetBinpickingState _taskstate;
+#ifdef MUJIN_USEZMQ
     boost::shared_ptr<zmq::context_t> _zmqcontext;
+#endif
     int _zmqPort;
     int _heartbeatPort;
     std::string _userinfo_json;  ///< userinfo json
@@ -310,6 +352,19 @@ protected:
 };
 
 namespace utils {
+std::string GetJsonString(const std::string& string);
+std::string GetJsonString(const std::vector<Real>& vec);
+std::string GetJsonString(const std::vector<int>& vec);
+std::string GetJsonString(const std::vector<std::string>& vec);
+std::string GetJsonString(const Transform& transform);
+std::string GetJsonString(const BinPickingTaskResource::DetectedObject& obj);
+std::string GetJsonString(const BinPickingTaskResource::PointCloudObstacle& obj);
+std::string GetJsonString(const BinPickingTaskResource::SensorOcclusionCheck& check);
+
+std::string GetJsonString(const std::string& key, const std::string& value);
+std::string GetJsonString(const std::string& key, const int value);
+std::string GetJsonString(const std::string& key, const unsigned long long value);
+std::string GetJsonString(const std::string& key, const Real value);
 
 void GetAttachedSensors(ControllerClientPtr controller, SceneResourcePtr scene, const std::string& bodyname, std::vector<RobotResource::AttachedSensorResourcePtr>& result);
 void GetSensorData(ControllerClientPtr controller, SceneResourcePtr scene, const std::string& bodyname, const std::string& sensorname, RobotResource::AttachedSensorResource::SensorData& result);

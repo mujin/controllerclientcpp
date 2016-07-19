@@ -41,8 +41,7 @@ int main(int argc, char ** argv)
     //std::cout << "newname: " << newscene->Get("name") << std::endl;
 
     scene->GetInstObjects(instobjects);
-    size_t robotinstindex = -1;
-    size_t objectinstndex = 0;
+    int robotinstindex = -1;
     for(size_t i = 0; i < instobjects.size(); ++i) {
         //std::cout << "==============" << std::endl;
         //instobjects[i]->Print();
@@ -56,7 +55,7 @@ int main(int argc, char ** argv)
         exit(1);
     }
     std::cout << "links: " << std::endl;
-    for (int i = 0; i < instobjects[robotinstindex]->links.size(); i++) {
+    for (size_t i = 0; i < instobjects[robotinstindex]->links.size(); i++) {
         std::cout << "\tname: " << instobjects[robotinstindex]->links[i].name << std::endl;
         std::cout << "\tquaternion: ";
         for (int j = 0; j < 4; j++) {
@@ -71,7 +70,7 @@ int main(int argc, char ** argv)
     }
 
     std::cout << "instobjects[robotinstindex]->tools: " << std::endl;
-    for (int i = 0; i < instobjects[robotinstindex]->tools.size(); i++) {
+    for (size_t i = 0; i < instobjects[robotinstindex]->tools.size(); i++) {
         std::cout << "tool" << i << std::endl;
         std::cout << "\tname: " << instobjects[robotinstindex]->tools[i].name << std::endl;
 
