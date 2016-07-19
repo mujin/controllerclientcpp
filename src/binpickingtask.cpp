@@ -21,6 +21,11 @@
 #include "mujincontrollerclient/zmq.hpp"
 #endif
 
+#ifdef _WIN32
+#include <float.h>
+#define isnan _isnan
+#endif
+
 #include <cmath>
 
 #include "logging.h"
@@ -112,7 +117,11 @@ void BinPickingTaskResource::Initialize(const std::string& defaultTaskParameters
             }
             else {
                 std::stringstream ssvalue;
-                write_json(ssvalue, itchild->second, false);
+#if BOOST_VERSION > 104800
+                write_json(ssvalue, itchild->second, false); // pretty print false
+#else
+                write_json(ssvalue, itchild->second); // pretty print false
+#endif
                 _mapTaskParameters[itchild->first] = ssvalue.str();
             }
             //std::cout << "initialize " << std::string(itchild->first) << "=" << _mapTaskParameters[itchild->first] << std::endl;
@@ -138,7 +147,11 @@ void BinPickingTaskResource::Initialize(const std::string& defaultTaskParameters
             }
             else {
                 std::stringstream ssvalue;
-                write_json(ssvalue, itchild->second, false);
+#if BOOST_VERSION > 104800
+                write_json(ssvalue, itchild->second, false); // pretty print false
+#else
+                write_json(ssvalue, itchild->second);
+#endif
                 _mapTaskParameters[itchild->first] = ssvalue.str();
             }
             //std::cout << "initialize " << std::string(itchild->first) << "=" << _mapTaskParameters[itchild->first] << std::endl;
@@ -164,7 +177,13 @@ boost::property_tree::ptree BinPickingResultResource::GetResultPtree() const
 std::string BinPickingTaskResource::GetJsonString(const std::string& str)
 {
     std::string newstr = str;
+#if BOOST_VERSION > 104800
     boost::replace_all(newstr, "\"", "\\\"");
+#else
+    std::vector< std::pair<std::string, std::string> > serachpairs(1);
+    serachpairs[0].first = "\""; serachpairs[0].second = "\\\"";
+    SearchAndReplace(newstr, str, serachpairs);
+#endif
     return "\""+newstr+"\"";
 }
 
@@ -602,7 +621,11 @@ void BinPickingTaskResource::ResultIsRobotOccludingBody::Parse(const boost::prop
         }
     }
     std::stringstream ss;
-    write_json (ss, pt, false);
+#if BOOST_VERSION > 104800
+    write_json (ss, pt, false); // pretty print false
+#else
+    write_json (ss, pt);
+#endif
     MUJIN_LOG_ERROR(ss.str());
     throw MujinException("Output does not have \"occluded\" attribute!", MEC_Failed);
 }
@@ -1130,7 +1153,11 @@ void BinPickingTaskResource::GetInstObjectAndSensorInfo(const std::vector<std::s
     }
     catch(const std::exception& ex) {
         std::stringstream sstemp;
-        write_json (sstemp, pt, true);
+#if BOOST_VERSION > 104800
+        write_json (sstemp, pt, true); // pretty print true
+#else
+        write_json (sstemp, pt);
+#endif
         MUJIN_LOG_ERROR(str(boost::format("got error when parsing result: %s")%sstemp.str()));
         throw;
     }

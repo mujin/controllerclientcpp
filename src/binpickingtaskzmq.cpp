@@ -47,7 +47,7 @@ ZmqMujinControllerClient::~ZmqMujinControllerClient()
     // _DestroySocket() is called in  ~ZmqClient()
 }
 
-BinPickingTaskZmqResource::BinPickingTaskZmqResource(ControllerClientPtr c, const std::string& pk, const std::string& scenepk) : BinPickingTaskResource::BinPickingTaskResource(c, pk, scenepk)
+BinPickingTaskZmqResource::BinPickingTaskZmqResource(ControllerClientPtr c, const std::string& pk, const std::string& scenepk) : BinPickingTaskResource(c, pk, scenepk)
 {
 }
 

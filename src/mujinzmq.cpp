@@ -4,7 +4,7 @@
 #include <sstream>
 #include <iostream>
 
-
+#include "common.h"
 #include "logging.h"
 
 MUJIN_LOGGER("mujin.controllerclientcpp.mujinzmq");
@@ -309,9 +309,17 @@ std::string ZmqClient::Call(const std::string& msg, const double timeout)
                     ss << "Timed out receiving response of command " << msg << " after " << timeout << " seconds";
                 }
                 MUJIN_LOG_ERROR(ss.str());
+#if BOOST_VERSION > 104800
                 std::string errstr = ss.str();
                 boost::replace_all(errstr, "\"", ""); // need to remove " in the message so that json parser works
                 boost::replace_all(errstr, "\\", ""); // need to remove \ in the message so that json parser works
+#else
+                std::vector< std::pair<std::string, std::string> > serachpairs(2);
+                serachpairs[0].first = "\""; serachpairs[0].second = "";
+                serachpairs[1].first = "\\"; serachpairs[1].second = "";
+                std::string errstr;
+                mujinclient::SearchAndReplace(errstr, ss.str(), serachpairs);
+#endif
                 throw std::runtime_error(errstr);
             }
 
