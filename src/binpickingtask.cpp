@@ -43,7 +43,7 @@ BinPickingResultResource::~BinPickingResultResource()
 {
 }
 
-BinPickingTaskResource::BinPickingTaskResource(ControllerClientPtr pcontroller, const std::string& pk, const std::string& scenepk) : TaskResource(pcontroller,pk), _zmqPort(-1), _heartbeatPort(-1), _bIsInitialized(false)
+    BinPickingTaskResource::BinPickingTaskResource(ControllerClientPtr pcontroller, const std::string& pk, const std::string& scenepk, const std::string& tasktype) : TaskResource(pcontroller,pk), _zmqPort(-1), _heartbeatPort(-1), _tasktype(tasktype), _bIsInitialized(false)
 {
     _scenepk = scenepk;
     // get hostname from uri
@@ -829,7 +829,7 @@ void BinPickingTaskResource::GetJointValues(ResultGetJointValues& result, const 
     std::string robottype = "densowave";
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("robottype", robottype) << ", ";
-    _ss << GetJsonString("tasktype", std::string("binpicking"));
+    _ss << GetJsonString("tasktype", _tasktype);
     _ss << "}";
 
     result.Parse(ExecuteCommand(_ss.str(), timeout));
@@ -842,7 +842,7 @@ void BinPickingTaskResource::MoveJoints(const std::vector<Real>& goaljoints, con
     std::string robottype = "densowave";
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("robottype", robottype) << ", ";
-    _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
+    _ss << GetJsonString("tasktype", _tasktype) << ", ";
     _ss << GetJsonString("goaljoints") << ": " << GetJsonString(goaljoints) << ", ";
     _ss << GetJsonString("jointindices") << ": " << GetJsonString(jointindices) << ", ";
     _ss << GetJsonString("envclearance",envclearance ) << ", ";
@@ -857,7 +857,7 @@ void BinPickingTaskResource::GetTransform(const std::string& targetname, Transfo
     std::string command = "GetTransform";
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("targetname", targetname) << ", ";
-    _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
+    _ss << GetJsonString("tasktype", _tasktype) << ", ";
     _ss << GetJsonString("unit", unit);
     _ss << "}";
     ResultTransform result;
@@ -871,7 +871,7 @@ void BinPickingTaskResource::SetTransform(const std::string& targetname, const T
     std::string command = "SetTransform";
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("targetname", targetname) << ", ";
-    _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
+    _ss << GetJsonString("tasktype", _tasktype) << ", ";
     _ss << GetJsonString(transform) << ", ";
     _ss << GetJsonString("unit", unit);
     _ss << "}";
@@ -883,7 +883,7 @@ void BinPickingTaskResource::GetManipTransformToRobot(Transform& transform, cons
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "GetManipTransformToRobot";
     _ss << GetJsonString("command", command) << ", ";
-    _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
+    _ss << GetJsonString("tasktype", _tasktype) << ", ";
     _ss << GetJsonString("unit", unit);
     _ss << "}";
     ResultTransform result;
@@ -896,7 +896,7 @@ void BinPickingTaskResource::GetManipTransform(Transform& transform, const std::
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "GetManipTransform";
     _ss << GetJsonString("command", command) << ", ";
-    _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
+    _ss << GetJsonString("tasktype", _tasktype) << ", ";
     _ss << GetJsonString("unit", unit);
     _ss << "}";
     ResultTransform result;
@@ -910,7 +910,7 @@ void BinPickingTaskResource::GetAABB(const std::string& targetname, ResultAABB& 
     std::string command = "GetAABB";
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("targetname", targetname) << ", ";
-    _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
+    _ss << GetJsonString("tasktype", _tasktype) << ", ";
     _ss << GetJsonString("unit", unit);
     _ss << "}";
     result.Parse(ExecuteCommand(_ss.str(), timeout));
@@ -925,7 +925,7 @@ void BinPickingTaskResource::GetInnerEmptyRegionOBB(ResultOBB& result, const std
     if (linkname != "") {
         _ss << GetJsonString("linkname", linkname) << ", ";
     }
-    _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
+    _ss << GetJsonString("tasktype", _tasktype) << ", ";
     _ss << GetJsonString("unit", unit);
     _ss << "}";
     result.Parse(ExecuteCommand(_ss.str(), timeout));
@@ -940,7 +940,7 @@ void BinPickingTaskResource::GetOBB(ResultOBB& result, const std::string& target
     if (linkname != "") {
         _ss << GetJsonString("linkname", linkname) << ", ";
     }
-    _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
+    _ss << GetJsonString("tasktype", _tasktype) << ", ";
     _ss << GetJsonString("unit", unit);
     _ss << "}";
     result.Parse(ExecuteCommand(_ss.str(), timeout));
@@ -964,7 +964,7 @@ void BinPickingTaskResource::UpdateObjects(const std::string& basename, const st
     static const std::string command = "UpdateObjects";
     const std::string& targetname = basename;
     _ss << GetJsonString("command", command) << ", ";
-    _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
+    _ss << GetJsonString("tasktype", _tasktype) << ", ";
     _ss << GetJsonString("objectname", targetname) << ", ";
     if( targetname.size() > 0 ) {
         _ss << GetJsonString("object_uri", "mujin:/"+targetname+".mujin.dae") << ", ";
@@ -1001,7 +1001,7 @@ void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<Real>&vpoin
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "AddPointCloudObstacle";
     _ss << GetJsonString("command", command) << ", ";
-    _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
+    _ss << GetJsonString("tasktype", _tasktype) << ", ";
     _ss << GetJsonString("isoccluded", isoccluded) << ", ";
     PointCloudObstacle pointcloudobstacle;
     pointcloudobstacle.name = name;
@@ -1024,7 +1024,7 @@ void BinPickingTaskResource::UpdateEnvironmentState(const std::string& objectnam
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "UpdateEnvironmentState";
     _ss << GetJsonString("command", command) << ", ";
-    _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
+    _ss << GetJsonString("tasktype", _tasktype) << ", ";
     _ss << GetJsonString("objectname", objectname) << ", ";
 
     _ss << GetJsonString("envstate") << ": [";
@@ -1053,7 +1053,7 @@ void BinPickingTaskResource::VisualizePointCloud(const std::vector<std::vector<R
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "VisualizePointCloud";
     _ss << GetJsonString("command", command) << ", ";
-    _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
+    _ss << GetJsonString("tasktype", _tasktype) << ", ";
     _ss << GetJsonString("pointslist") << ": [";
     for (unsigned int i=0; i< pointslist.size(); i++) {
         _ss << GetJsonString(pointslist[i]);
@@ -1081,7 +1081,7 @@ void BinPickingTaskResource::ClearVisualization(const double timeout)
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "ClearVisualization";
     _ss << GetJsonString("command", command) << ", ";
-    _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
+    _ss << GetJsonString("tasktype", _tasktype) << ", ";
     _ss << "}";
     ExecuteCommand(_ss.str(), timeout); // need to check return code
 }
@@ -1091,7 +1091,7 @@ void BinPickingTaskResource::GetPickedPositions(ResultGetPickedPositions& r, con
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "GetPickedPositions";
     _ss << GetJsonString("command", command) << ",";
-    _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
+    _ss << GetJsonString("tasktype", _tasktype) << ", ";
     _ss << GetJsonString("unit", unit);
     _ss << "}";
     boost::property_tree::ptree pt = ExecuteCommand(_ss.str(), timeout);
@@ -1103,7 +1103,7 @@ void BinPickingTaskResource::IsRobotOccludingBody(const std::string& bodyname, c
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "IsRobotOccludingBody";
     _ss << GetJsonString("command", command) << ", ";
-    _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
+    _ss << GetJsonString("tasktype", _tasktype) << ", ";
     SensorOcclusionCheck check;
     check.bodyname = bodyname;
     check.cameraname = cameraname;
@@ -1139,7 +1139,7 @@ void BinPickingTaskResource::GetInstObjectAndSensorInfo(const std::vector<std::s
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "GetInstObjectAndSensorInfo";
     _ss << GetJsonString("command", command) << ", ";
-    _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
+    _ss << GetJsonString("tasktype", _tasktype) << ", ";
     _ss << GetJsonString("instobjectnames") << ": " << GetJsonString(instobjectnames) << ", ";
     _ss << GetJsonString("sensornames") << ": " << GetJsonString(sensornames) << ", ";
     _ss << GetJsonString("unit", unit);
@@ -1184,7 +1184,7 @@ void BinPickingTaskResource::GetBinpickingState(ResultGetBinpickingState& result
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
     _ss << GetJsonString("command", std::string("GetBinpickingState")) << ", ";
-    _ss << GetJsonString("tasktype", std::string("binpicking")) << ", ";
+    _ss << GetJsonString("tasktype", _tasktype) << ", ";
     if (!robotname.empty()) {
         _ss << GetJsonString("robotname", robotname) << ", ";
     }
@@ -1216,7 +1216,7 @@ void BinPickingTaskResource::SetJogModeVelocities(const std::string& jogtype, co
     }
     _ss << GetJsonString("movejointsigns") << ": " << GetJsonString(movejointsigns);
     _ss << "}";
-    //    std::cout << "Sending\n" << _ss.str() << " from " << __func__ << std::endl;
+    std::cout << "Sending\n" << _ss.str() << " from " << __func__ << std::endl;
     ExecuteCommand(_ss.str(), timeout);
 }
 

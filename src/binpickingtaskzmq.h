@@ -31,7 +31,7 @@ typedef boost::weak_ptr<ZmqMujinControllerClient> ZmqMujinControllerClientWeakPt
 class MUJINCLIENT_API BinPickingTaskZmqResource : public BinPickingTaskResource
 {
 public:
-    BinPickingTaskZmqResource(ControllerClientPtr controller, const std::string& pk, const std::string& scenepk);
+    BinPickingTaskZmqResource(ControllerClientPtr controller, const std::string& pk, const std::string& scenepk, const std::string& tasktype = "binpicking");
 
     ~BinPickingTaskZmqResource();
 

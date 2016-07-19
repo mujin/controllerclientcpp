@@ -422,11 +422,11 @@ TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& t
         return TaskResourcePtr();
     }
 
-    if( tasktype == "binpicking" ) {
+    if( tasktype == "binpicking" || tasktype == "realtimeitlplanning") {
         BinPickingTaskResourcePtr task;
         if( options & 1 ) {
 #ifdef MUJIN_USEZMQ
-            task.reset(new BinPickingTaskZmqResource(GetController(), pk, GetPrimaryKey()));
+            task.reset(new BinPickingTaskZmqResource(GetController(), pk, GetPrimaryKey(), tasktype));
 #else
             throw MujinException("cannot create binpicking zmq task since not compiled with zeromq library", MEC_Failed);
 #endif
@@ -436,7 +436,7 @@ TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& t
         }
         return task;
     }
-    else if( tasktype == "cablepicking" ) { // TODO create CablePickingTaskResource OR generic RealTimeTaskResource
+    else if( tasktype == "cablepicking" ) { // TODO create CablePickingTaskResource
         BinPickingTaskResourcePtr task;
         if( options & 1 ) {
 #ifdef MUJIN_USEZMQ

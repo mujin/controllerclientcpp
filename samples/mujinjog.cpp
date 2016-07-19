@@ -102,7 +102,7 @@ void InitializeTask(const bpo::variables_map& opts,
     const unsigned int taskZmqPort = opts["zmq_port"].as<unsigned int>();
 
     //    cout << taskparameters << endl;
-    string tasktype = "binpicking";
+    const string tasktype = "realtimeitlplanning";
 
     // connect to mujin controller
     ControllerClientPtr controllerclient = CreateControllerClient(controllerUsernamePass, controllerUrl);

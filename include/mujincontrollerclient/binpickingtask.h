@@ -39,7 +39,7 @@ public:
 class MUJINCLIENT_API BinPickingTaskResource : public TaskResource
 {
 public:
-    BinPickingTaskResource(ControllerClientPtr controller, const std::string& pk, const std::string& scenepk);
+    BinPickingTaskResource(ControllerClientPtr controller, const std::string& pk, const std::string& scenepk, const std::string& tasktype = "binpicking");
     virtual ~BinPickingTaskResource();
     
     struct MUJINCLIENT_API DetectedObject
@@ -344,6 +344,7 @@ protected:
     std::string _sceneparams_json; ///\ parameters of the scene to run tasks on the backend zmq slave
     std::string _slaverequestid; ///< to ensure the same slave is used for binpicking task
     std::string _scenepk; ///< scene pk
+    const std::string _tasktype; ///< the specific task type to create internally. As long as the task supports the binpicking interface, it can be used.
     boost::shared_ptr<boost::thread> _pHeartbeatMonitorThread;
 
     bool _bIsInitialized;
