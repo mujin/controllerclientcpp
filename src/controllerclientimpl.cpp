@@ -661,7 +661,18 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, boost::property_t
     res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
     CHECKCURLCODE(res, "curl_easy_getinfo");
     if( _buffer.rdbuf()->in_avail() > 0 ) {
+#ifdef _WIN32
+        // sometimes buffer can container \n or \\, which windows boost property_tree does not like
+        std::string newbuffer;
+        std::vector< std::pair<std::string, std::string> > serachpairs(2);
+        serachpairs[0].first = "\n"; serachpairs[0].second = "";
+        serachpairs[1].first = "\\"; serachpairs[1].second = "";
+        SearchAndReplace(newbuffer, _buffer.str(), serachpairs);
+        std::stringstream newss(newbuffer);
+        boost::property_tree::read_json(newss, pt);
+#else
         boost::property_tree::read_json(_buffer, pt);
+#endif
     }
     if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
         std::string error_message = pt.get<std::string>("error_message", std::string());

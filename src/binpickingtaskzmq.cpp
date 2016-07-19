@@ -193,9 +193,17 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
             if (pollitem.revents & ZMQ_POLLIN) {
                 zmq::message_t reply;
                 socket->recv(&reply);
-                std::string replystring((char *) reply.data (), (size_t) reply.size());
-                std::stringstream replystring_ss;
-                replystring_ss << replystring;
+                std::string replystring((char *) reply.data (), (size_t) reply.size());                
+#ifdef _WIN32
+                // sometimes buffer can container \n or \\, which windows boost property_tree does not like
+                std::string newbuffer;
+                std::vector< std::pair<std::string, std::string> > serachpairs(1);
+                serachpairs[0].first = "\\"; serachpairs[0].second = "";
+                SearchAndReplace(newbuffer, replystring, serachpairs);
+                std::stringstream replystring_ss(newbuffer);
+#else
+                std::stringstream replystring_ss(replystring);
+#endif
                 // std::cout << "got heartbeat: " << replystring << std::endl;
                 try{
                     boost::property_tree::read_json(replystring_ss, pt);

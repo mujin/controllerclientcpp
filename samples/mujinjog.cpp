@@ -236,22 +236,7 @@ int main(int argc, char ** argv)
 
     // initializing
     BinPickingTaskResourcePtr pBinpickingTask;
-    bool succesfullyInitialized = false;
-    try {
-
-        InitializeTask(opts, pBinpickingTask);
-        succesfullyInitialized = true;
-    }
-    catch(const exception& ex) {
-        stringstream errss;
-        errss << "Caught exception " << ex.what();
-        cerr << errss.str() << endl;
-    }
-
-    if (!succesfullyInitialized) {
-        // task initialization faliled
-        return 2;
-    }
+    InitializeTask(opts, pBinpickingTask);
 
     // add a signal handler
     signal(SIGINT,sigint_handler); // control C
