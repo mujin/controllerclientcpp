@@ -204,7 +204,6 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
 #else
                 std::stringstream replystring_ss(replystring);
 #endif
-                // std::cout << "got heartbeat: " << replystring << std::endl;
                 try{
                     boost::property_tree::read_json(replystring_ss, pt);
                 }
@@ -233,6 +232,6 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
     }
 }
 
-
+    
 
 } // end namespace mujinclient

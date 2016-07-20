@@ -1494,5 +1494,113 @@ void BinPickingTaskResource::_HeartbeatMonitorThread(const double reinitializeti
 #endif
 }
 
+#ifdef MUJIN_USEZMQ
+std::string utils::GetHeartbeat(const std::string& endpoint) {
+    zmq::context_t zmqcontext(1);
+    zmq::socket_t socket(zmqcontext, ZMQ_SUB);
+    socket.connect(endpoint.c_str());
+    socket.setsockopt(ZMQ_SUBSCRIBE, "", 0);
+
+    zmq::pollitem_t pollitem;
+    memset(&pollitem, 0, sizeof(zmq::pollitem_t));
+    pollitem.socket = socket;
+    pollitem.events = ZMQ_POLLIN;
+
+    boost::property_tree::ptree pt;
+    zmq::poll(&pollitem,1, 50); // wait 50 ms for message
+    if (!(pollitem.revents & ZMQ_POLLIN)) {
+        return "";
+    }
+    
+    zmq::message_t reply;
+    socket.recv(&reply);
+    return std::string((char *) reply.data (), (size_t) reply.size());
+}
+
+
+namespace {
+std::string FindSmallestSlaveRequestId(const boost::property_tree::ptree& pt) {
+    // get all slave request ids
+    std::vector<std::string> slavereqids;
+    FOREACH(it1, pt) {
+        if (it1->first != "slavestates") {
+            continue;
+        }
+        FOREACH(it2, it1->second) {
+            slavereqids.push_back(it2->first);
+        }
+        break;
+    }
+
+    // find numerically smallest suffix (find one with smallest ### in slave request id of form hostname_slave###)
+    int smallest_suffix_index = -1;
+    int smallest_suffix = INT_MAX;
+    static const std::string searchstr("_slave");
+    for (std::vector<std::string>::const_iterator it = slavereqids.begin();
+         it != slavereqids.end(); ++it) {
+        const size_t foundindex = it->rfind(searchstr);
+        if (foundindex == std::string::npos) {
+            continue;
+        }
+
+        std::stringstream suffix_ss(it->substr(foundindex + searchstr.length()));
+        int suffix;
+        suffix_ss >> suffix;
+        if (suffix_ss.fail()) {
+            continue;
+        }
+
+        if (smallest_suffix > suffix) {
+            smallest_suffix = suffix;
+            smallest_suffix_index = std::distance<std::vector<std::string>::const_iterator>(slavereqids.begin(), it);
+        }                                   
+    }
+
+    if (smallest_suffix_index == -1) {
+        throw MujinException("Failed to find slave request id like hostname_slave### where ### is a number");
+    }
+    return slavereqids[smallest_suffix_index];
+}
+    
+std::string GetValueForSmallestSlaveRequestId(const std::string& heartbeat,
+                                                     const std::string& key)
+{
+    boost::property_tree::ptree pt;
+    std::stringstream ss(heartbeat);
+    boost::property_tree::read_json(ss, pt);
+
+    try {
+        const std::string slavereqid = FindSmallestSlaveRequestId(pt);
+
+        return pt.get_child("slavestates").get_child(slavereqid).get_child(key).data();
+    }
+    catch (const MujinException& ex) {
+        throw MujinException(boost::str(boost::format("%s from heartbeat:\n%s")%ex.what()%heartbeat));
+    }
+
+}
+}
+
+    
+std::string utils::GetScenePkFromHeatbeat(const std::string& heartbeat) {
+    static const std::string prefix("mujin:\/");
+    return GetValueForSmallestSlaveRequestId(heartbeat, "currentsceneuri").substr(prefix.length());
+}
+
+std::string utils::GetSlaveRequestIdFromHeatbeat(const std::string& heartbeat) {
+    boost::property_tree::ptree pt;
+    std::stringstream ss(heartbeat);
+    boost::property_tree::read_json(ss, pt);
+
+    try {
+        static const std::string prefix("slaverequestid-");
+        return FindSmallestSlaveRequestId(pt).substr(prefix.length());
+;
+    }
+    catch (const MujinException& ex) {
+        throw MujinException(boost::str(boost::format("%s from heartbeat:\n%s")%ex.what()%heartbeat));
+    }
+}
+#endif
 
 } // end namespace mujinclient

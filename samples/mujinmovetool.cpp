@@ -2,12 +2,8 @@
 /** \example mujinmovetool.cpp
 
     Shows how to move tool to a specified position and orientation in two ways.
-    example: ./mujinmovetool --controller_hostname=controllerXX --controller_url=http://controllerXX:80 --controller_username_password=youruser:yourpassword --task_scenepk=yourfile.mujin.dae --robotname=yourrobot --goals=100 200 300 0 90 180 --goaltype=transform6d --movelinear=true --speed=0.1
-
-    tips:
-     1. if solution is not found, try to set goal close to current tool position
-     2. if solution is not found, try to set --movelinear==false
-
+    example1: mujinmovetool --controller_hostname=yourhost --robotname=yourrobot --goals=700 600 500 0 0 180
+    example2: mujinmovetool --controller_hostname=yourhost --robotname=yourrobot --goals=700 600 500 0 0 180 --goaltype=translationdirection5d --movelinear=true
  */
 
 #include <mujincontrollerclient/binpickingtask.h>
@@ -37,18 +33,19 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
 
     desc.add_options()
         ("help,h", "produce help message")
-        ("controller_url", bpo::value<string>()->required(), "ip of the mujin controller, e.g. http://controller20:80")
-        ("controller_hostname", bpo::value<string>()->required(), "hostname of the mujin controller, e.g. controller")
-        ("run_with_controllerui", bpo::value<bool>()->default_value(true), "true if connecting to controller where controller ui is running ")
-        ("controller_username_password", bpo::value<string>()->required(), "username and password to the mujin controller, e.g. username:password")
+        ("controller_hostname", bpo::value<string>()->required(), "hostname or ip of the mujin controller, e.g. controllerXX or 192.168.0.1")
+        ("controller_port", bpo::value<unsigned int>()->default_value(80), "port of the mujin controller")
+        ("slave_request_id", bpo::value<string>()->default_value(""), "request id of the mujin slave, e.g. controller20_slave0. If empty, uses  ")
+        ("controller_username_password", bpo::value<string>()->default_value("testuser:pass"), "username and password to the mujin controller, e.g. username:password")
         ("controller_command_timeout", bpo::value<double>()->default_value(10), "command timeout in seconds, e.g. 10")
         ("locale", bpo::value<string>()->default_value("en_US"), "locale to use for the mujin controller client")
-        ("task_scenepk", bpo::value<string>()->required(), "scene pk of the binpicking task on the mujin controller, e.g. officeboltpicking.mujin.dae")
-        ("robotname", bpo::value<string>()->required(), "robot name, e.g. VP-5243I")
-        ("toolname", bpo::value<string>()->default_value(""), "tool name, e.g. flange")
+        ("task_scenepk", bpo::value<string>()->default_value(""), "scene pk of the binpicking task on the mujin controller, e.g. officeboltpicking.mujin.dae.")
+        ("robotname", bpo::value<string>()->required(), "robot name.")
         ("taskparameters", bpo::value<string>()->default_value("{}"), "binpicking task parameters, e.g. {'robotname': 'robot', 'robots':{'robot': {'externalCollisionIO':{}, 'gripperControlInfo':{}, 'robotControllerUri': '', robotDeviceIOUri': '', 'toolname': 'tool'}}}")
         ("zmq_port", bpo::value<unsigned int>()->default_value(11000), "port of the binpicking task on the mujin controller")
         ("heartbeat_port", bpo::value<unsigned int>()->default_value(11001), "port of the binpicking task's heartbeat signal on the mujin controller")
+
+        ("toolname", bpo::value<string>()->default_value(""), "tool name, e.g. flange")
         ("goaltype", bpo::value<string>()->default_value("transform6d"), "mode to move tool with. Either transform6d or translationdirection5d")
         ("goals", bpo::value<vector<double> >()->multitoken(), "goal to move tool to, \'X Y Z RX RY RZ\'. Units are in mm and deg.")
         ("speed", bpo::value<double>()->default_value(0.1), "speed to move at")
@@ -91,25 +88,57 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
 void InitializeTask(const bpo::variables_map& opts,
                     BinPickingTaskResourcePtr& pBinpickingTask)
 {
-    const string controllerUrl = opts["controller_url"].as<string>();
-    const string controllerHostname = opts["controller_hostname"].as<string>();
-    const bool runwithcontrollerui = opts["run_with_controllerui"].as<bool>();
-    const string slavename = controllerHostname + (runwithcontrollerui ? "_slave0" : "_slave1");
     const string controllerUsernamePass = opts["controller_username_password"].as<string>();
     const double controllerCommandTimeout = opts["controller_command_timeout"].as<double>();
-    const string taskScenePk = opts["task_scenepk"].as<string>();
     const string taskparameters = opts["taskparameters"].as<string>();
     const string locale = opts["locale"].as<string>();
-    const unsigned int taskHeartbeatPort = opts["heartbeat_port"].as<unsigned int>();
     const unsigned int taskZmqPort = opts["zmq_port"].as<unsigned int>();
+    const string hostname = opts["controller_hostname"].as<string>();
+    const unsigned int controllerPort = opts["controller_port"].as<unsigned int>();
+    stringstream urlss;
+    urlss << "http://" << hostname << ":" << controllerPort;
+
+    const unsigned int heartbeatPort = opts["heartbeat_port"].as<unsigned int>();
+    string slaverequestid = opts["slave_request_id"].as<string>();
+    string taskScenePk = opts["task_scenepk"].as<string>();
+    
+    const bool needtoobtainfromheatbeat = taskScenePk.empty() || slaverequestid.empty();
+    if (needtoobtainfromheatbeat) {
+        stringstream endpoint;
+        endpoint << "tcp:\/\/" << hostname << ":" << heartbeatPort;
+        cout << "connecting to heartbeat at " << endpoint.str() << endl;
+        string heartbeat;
+        const size_t num_try_heartbeat(5);
+        for (size_t it_try_heartbeat = 0; it_try_heartbeat < num_try_heartbeat; ++it_try_heartbeat) {
+            heartbeat = utils::GetHeartbeat(endpoint.str());
+            if (!heartbeat.empty()) {
+                break;
+            }
+            cout << "Failed to get heart beat " << it_try_heartbeat << "/" << num_try_heartbeat << "\n";
+            boost::this_thread::sleep(boost::posix_time::seconds(1));
+        }
+        if (heartbeat.empty()) {
+            throw MujinException(boost::str(boost::format("Failed to obtain heartbeat from %s. Is controller running?")%endpoint.str()));
+        }
+        
+        if (taskScenePk.empty()) {
+            taskScenePk = utils::GetScenePkFromHeatbeat(heartbeat);
+            cout << "task_scenepk: " << taskScenePk << " is obtained from heatbeat\n";
+        }
+        if (slaverequestid.empty()) {
+            slaverequestid = utils::GetSlaveRequestIdFromHeatbeat(heartbeat);
+            cout << "slave_request_id: " << slaverequestid << " is obtained from heatbeat\n";
+        }
+    }
+
 
     //    cout << taskparameters << endl;
     const string tasktype = "realtimeitlplanning";
 
     // connect to mujin controller
-    ControllerClientPtr controllerclient = CreateControllerClient(controllerUsernamePass, controllerUrl);
+    ControllerClientPtr controllerclient = CreateControllerClient(controllerUsernamePass, urlss.str());
 
-    cout << "connected to mujin controller at " << controllerUrl << endl;
+    cout << "connected to mujin controller at " << urlss.str() << endl;
 
     SceneResourcePtr scene(new SceneResource(controllerclient, taskScenePk));
 
@@ -119,7 +148,7 @@ void InitializeTask(const bpo::variables_map& opts,
     cout << "initialzing binpickingtask in UpdateEnvironmentThread with userinfo=" + userinfo << " taskparameters=" << taskparameters << endl;
 
     boost::shared_ptr<zmq::context_t> zmqcontext(new zmq::context_t(1));
-    pBinpickingTask->Initialize("", taskZmqPort, taskHeartbeatPort, zmqcontext, false, 10, controllerCommandTimeout, userinfo, slavename);
+    pBinpickingTask->Initialize(taskparameters, taskZmqPort, heartbeatPort, zmqcontext, false, 10, controllerCommandTimeout, userinfo, slaverequestid);
 }
 
 /// \brief convert state of bin picking task to string
