@@ -22,6 +22,7 @@ using namespace std;
 
 void sigint_handler(int sig);
 static bool s_sigintreceived = false;
+static string s_robotname;
 
 /// \brief parse command line options and store in a map
 /// \param argc number of arguments
@@ -42,7 +43,7 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("controller_command_timeout", bpo::value<double>()->default_value(10), "command timeout in seconds, e.g. 10")
         ("locale", bpo::value<string>()->default_value("en_US"), "locale to use for the mujin controller client")
         ("task_scenepk", bpo::value<string>()->default_value(""), "scene pk of the binpicking task on the mujin controller, e.g. officeboltpicking.mujin.dae.")
-        ("robotname", bpo::value<string>()->required(), "robot name.")
+        ("robotname", bpo::value<string>()->default_value(""), "robot name.")
         ("taskparameters", bpo::value<string>()->default_value("{}"), "binpicking task parameters, e.g. {'robotname': 'robot', 'robots':{'robot': {'externalCollisionIO':{}, 'gripperControlInfo':{}, 'robotControllerUri': '', robotDeviceIOUri': '', 'toolname': 'tool'}}}")
         ("zmq_port", bpo::value<unsigned int>()->default_value(11000), "port of the binpicking task on the mujin controller")
         ("heartbeat_port", bpo::value<unsigned int>()->default_value(11001), "port of the binpicking task's heartbeat signal on the mujin controller")
@@ -147,6 +148,24 @@ void InitializeTask(const bpo::variables_map& opts,
     const string userinfo = "{\"username\": \"" + controllerclient->GetUserName() + "\", ""\"locale\": \"" + locale + "\"}";
     cout << "initialzing binpickingtask with userinfo=" + userinfo << " taskparameters=" << taskparameters << endl;
 
+    s_robotname = opts["robotname"].as<string>();
+    if (s_robotname.empty()) {
+        vector<SceneResource::InstObjectPtr> instobjects;
+        scene->GetInstObjects(instobjects);
+        for (vector<SceneResource::InstObjectPtr>::const_iterator it = instobjects.begin();
+             it != instobjects.end(); ++it) {
+            if (!(**it).dofvalues.empty()) {
+                s_robotname = (**it).name;
+                cout << "robot name: " << s_robotname << " is obtained from scene\n";
+                break;
+            }
+        }
+        if (s_robotname.empty()) {
+            throw MujinException("Robot name was not given by command line option. Also, failed to obtain robot name from scene.\n");
+        }
+    }
+
+    
     boost::shared_ptr<zmq::context_t> zmqcontext(new zmq::context_t(1));
     pBinpickingTask->Initialize(taskparameters, taskZmqPort, heartbeatPort, zmqcontext, false, 10, controllerCommandTimeout, userinfo, slaverequestid);
 }
@@ -259,7 +278,6 @@ int main(int argc, char ** argv)
     const double timeout = opts["controller_command_timeout"].as<double>();
     const double jogduration = opts["jog_duration"].as<double>();
     const string mode =  opts["jointmode"].as<bool>() ? "joints" : "tool";
-    const string robotname = opts["robotname"].as<string>();
 
     // initializing
     BinPickingTaskResourcePtr pBinpickingTask;
@@ -270,18 +288,7 @@ int main(int argc, char ** argv)
     cout << "Ctrl-C to stop jogging before jogduration passed.\n";
 
     // do interesting part
-    try {
-        Run(pBinpickingTask, mode, axis, moveinpositive, jogduration, speed, acc, robotname, timeout);
-    }
-    catch (const exception& ex) {
-        stringstream errss;
-        errss << "Caught exception " << ex.what();
-        cerr << errss.str() << endl;
-
-        // task execution failed
-        return 3;
-    }
-
+    Run(pBinpickingTask, mode, axis, moveinpositive, jogduration, speed, acc, s_robotname, timeout);
     return 0;
 }
 

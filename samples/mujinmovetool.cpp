@@ -21,6 +21,8 @@ using namespace mujinclient;
 namespace bpo = boost::program_options;
 using namespace std;
 
+static string s_robotname;
+
 /// \brief parse command line options and store in a map
 /// \param argc number of arguments
 /// \param argv arguments
@@ -40,7 +42,7 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("controller_command_timeout", bpo::value<double>()->default_value(10), "command timeout in seconds, e.g. 10")
         ("locale", bpo::value<string>()->default_value("en_US"), "locale to use for the mujin controller client")
         ("task_scenepk", bpo::value<string>()->default_value(""), "scene pk of the binpicking task on the mujin controller, e.g. officeboltpicking.mujin.dae.")
-        ("robotname", bpo::value<string>()->required(), "robot name.")
+        ("robotname", bpo::value<string>()->default_value(""), "robot name.")
         ("taskparameters", bpo::value<string>()->default_value("{}"), "binpicking task parameters, e.g. {'robotname': 'robot', 'robots':{'robot': {'externalCollisionIO':{}, 'gripperControlInfo':{}, 'robotControllerUri': '', robotDeviceIOUri': '', 'toolname': 'tool'}}}")
         ("zmq_port", bpo::value<unsigned int>()->default_value(11000), "port of the binpicking task on the mujin controller")
         ("heartbeat_port", bpo::value<unsigned int>()->default_value(11001), "port of the binpicking task's heartbeat signal on the mujin controller")
@@ -82,7 +84,7 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
     return true;
 }
 
-/// \brief initialize BinPickingTask and establish communication with server
+/// \brief initialize BinPickingTask and establish communication with controller
 /// \param opts options parsed from command line
 /// \param pBinPickingTask bin picking task to be initialized
 void InitializeTask(const bpo::variables_map& opts,
@@ -131,7 +133,6 @@ void InitializeTask(const bpo::variables_map& opts,
         }
     }
 
-
     //    cout << taskparameters << endl;
     const string tasktype = "realtimeitlplanning";
 
@@ -145,8 +146,26 @@ void InitializeTask(const bpo::variables_map& opts,
     // initialize binpicking task
     pBinpickingTask = scene->GetOrCreateBinPickingTaskFromName_UTF8(tasktype+string("task1"), tasktype, TRO_EnableZMQ);
     const string userinfo = "{\"username\": \"" + controllerclient->GetUserName() + "\", ""\"locale\": \"" + locale + "\"}";
-    cout << "initialzing binpickingtask in UpdateEnvironmentThread with userinfo=" + userinfo << " taskparameters=" << taskparameters << endl;
+    cout << "initialzing binpickingtask with userinfo=" + userinfo << " taskparameters=" << taskparameters << endl;
 
+    s_robotname = opts["robotname"].as<string>();
+    if (s_robotname.empty()) {
+        vector<SceneResource::InstObjectPtr> instobjects;
+        scene->GetInstObjects(instobjects);
+        for (vector<SceneResource::InstObjectPtr>::const_iterator it = instobjects.begin();
+             it != instobjects.end(); ++it) {
+            if (!(**it).dofvalues.empty()) {
+                s_robotname = (**it).name;
+                cout << "robot name: " << s_robotname << " is obtained from scene\n";
+                break;
+            }
+        }
+        if (s_robotname.empty()) {
+            throw MujinException("Robot name was not given by command line option. Also, failed to obtain robot name from scene.\n");
+        }
+    }
+
+    
     boost::shared_ptr<zmq::context_t> zmqcontext(new zmq::context_t(1));
     pBinpickingTask->Initialize(taskparameters, taskZmqPort, heartbeatPort, zmqcontext, false, 10, controllerCommandTimeout, userinfo, slaverequestid);
 }
@@ -231,35 +250,10 @@ int main(int argc, char ** argv)
 
     // initializing
     BinPickingTaskResourcePtr pBinpickingTask;
-    bool succesfullyInitialized = false;
-    try {
-
-        InitializeTask(opts, pBinpickingTask);
-        succesfullyInitialized = true;
-    }
-    catch(const exception& ex) {
-        stringstream errss;
-        errss << "Caught exception " << ex.what();
-        cerr << errss.str() << endl;
-    }
-
-    if (!succesfullyInitialized) {
-        // task initialization faliled
-        return 2;
-    }
+    InitializeTask(opts, pBinpickingTask);
 
     // do interesting part
-    try {
-        Run(pBinpickingTask, goaltype, goals, speed, robotname, toolname, movelinearly);
-    }
-    catch (const exception& ex) {
-        stringstream errss;
-        errss << "Caught exception " << ex.what();
-        cerr << errss.str() << endl;
-
-        // task execution failed
-        return 3;
-    }
+    Run(pBinpickingTask, goaltype, goals, speed, s_robotname, toolname, movelinearly);
 
     return 0;
 }
