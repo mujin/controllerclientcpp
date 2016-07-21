@@ -1,0 +1,8 @@
+digraph "クラス階層図"
+{
+  bgcolor="transparent";
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node1 [label="zmq::error_t",height=0.2,width=0.4,color="black",URL="$classzmq_1_1error__t.html"];
+}

@@ -1,11 +1,12 @@
 var searchData=
 [
   ['calibrationresult',['CalibrationResult',['../classmujinclient_1_1HandEyeCalibrationResultResource_1_1CalibrationResult.html',1,'mujinclient::HandEyeCalibrationResultResource']]],
-  ['cameraname',['cameraname',['../classmujinclient_1_1HandEyeCalibrationTaskParameters.html#a0f57a6ed7d046300affdb5167394ab7a',1,'mujinclient::HandEyeCalibrationTaskParameters']]],
+  ['call',['Call',['../classmujinzmq_1_1ZmqClient.html#aec9f0bb420993633d4a35d15640f7fad',1,'mujinzmq::ZmqClient::Call(const std::string &amp;msg, const double timeout=5.0)'],['../classmujinzmq_1_1ZmqClient.html#aec9f0bb420993633d4a35d15640f7fad',1,'mujinzmq::ZmqClient::Call(const std::string &amp;msg, const double timeout=5.0)']]],
+  ['cameraname',['cameraname',['../structmujinclient_1_1BinPickingTaskResource_1_1SensorOcclusionCheck.html#ab5eaa5ce5d246a56931bdf278ddb8b65',1,'mujinclient::BinPickingTaskResource::SensorOcclusionCheck::cameraname()'],['../classmujinclient_1_1HandEyeCalibrationTaskParameters.html#a0f57a6ed7d046300affdb5167394ab7a',1,'mujinclient::HandEyeCalibrationTaskParameters::cameraname()']]],
   ['cancel',['Cancel',['../classmujinclient_1_1TaskResource.html#ac9e9d0bc44d2472e6802a62013de137d',1,'mujinclient::TaskResource::Cancel()'],['../classmujinclient_1_1OptimizationResource.html#aabab7268a07e81999883f8a62591b108',1,'mujinclient::OptimizationResource::Cancel()']]],
   ['cancelalljobs',['CancelAllJobs',['../classmujinclient_1_1ControllerClient.html#ac57697fbb9e267d4c5ceae150bb249bc',1,'mujinclient::ControllerClient']]],
-  ['cecget_2ecpp',['cecget.cpp',['../cecget_8cpp.html',1,'']]],
   ['clearvisualization',['ClearVisualization',['../classmujinclient_1_1BinPickingTaskResource.html#ae9abedbd949a106a4fbc1d05d3c0db31',1,'mujinclient::BinPickingTaskResource']]],
+  ['close',['close',['../classzmq_1_1context__t.html#ad3e8bd9655968f6867d4590c936706f9',1,'zmq::context_t::close()'],['../classzmq_1_1socket__t.html#a367fdb8a22e4df4c26f8eab7a237d782',1,'zmq::socket_t::close()']]],
   ['code',['code',['../structmujinclient_1_1JobStatus.html#afcf4402da19645f6eaf5cca4a5d8bcbb',1,'mujinclient::JobStatus']]],
   ['command',['command',['../classmujinclient_1_1HandEyeCalibrationTaskParameters.html#a6afcba2112f90de9e7c5225adcd0bf7d',1,'mujinclient::HandEyeCalibrationTaskParameters']]],
   ['computecalibrationposes',['ComputeCalibrationPoses',['../classmujinclient_1_1HandEyeCalibrationTaskResource.html#a888f386f6308a6ea6efaa41690552f2b',1,'mujinclient::HandEyeCalibrationTaskResource']]],
@@ -16,12 +17,18 @@ var searchData=
   ['conedirection',['conedirection',['../classmujinclient_1_1HandEyeCalibrationTaskParameters.html#a42a927a42c06c638e7670f33fd40babc',1,'mujinclient::HandEyeCalibrationTaskParameters']]],
   ['confidence',['confidence',['../structmujinclient_1_1BinPickingTaskResource_1_1DetectedObject.html#a14906c7e111f376eeb0aa4eb0bee82ca',1,'mujinclient::BinPickingTaskResource::DetectedObject']]],
   ['configs',['configs',['../classmujinclient_1_1HandEyeCalibrationResultResource_1_1CalibrationResult.html#acade01df63cd0c71cee063fca9899f0e',1,'mujinclient::HandEyeCalibrationResultResource::CalibrationResult']]],
+  ['connect',['connect',['../classzmq_1_1socket__t.html#a63a0811c756f33028b490c9686c24487',1,'zmq::socket_t']]],
+  ['connected',['connected',['../classzmq_1_1socket__t.html#a814d76ae0211b0fb6b5a3db18cea457a',1,'zmq::socket_t']]],
+  ['context_5ft',['context_t',['../classzmq_1_1context__t.html#a363a609b7e045e4efb0989504d660a4e',1,'zmq::context_t::context_t()'],['../classzmq_1_1context__t.html#aeab35ff4601c331ee27fc815be659ec0',1,'zmq::context_t::context_t(int io_threads_)']]],
+  ['context_5ft',['context_t',['../classzmq_1_1context__t.html',1,'zmq']]],
   ['controllerclient',['ControllerClient',['../classmujinclient_1_1ControllerClient.html',1,'mujinclient']]],
   ['controllerclientdestroy',['ControllerClientDestroy',['../namespacemujinclient.html#a076d73ff3d7106c184a68647a6e4245a',1,'mujinclient']]],
   ['controllerclientptr',['ControllerClientPtr',['../namespacemujinclient.html#aa0b8a533fc19b5930eca8bf825f2231d',1,'mujinclient']]],
   ['controllerclientweakptr',['ControllerClientWeakPtr',['../namespacemujinclient.html#a182c7c2d839784c764c14b9deb7cee93',1,'mujinclient']]],
-  ['copy',['Copy',['../classmujinclient_1_1WebResource.html#aae0aa448ddac268123c7bebdf67ae60c',1,'mujinclient::WebResource::Copy()'],['../classmujinclient_1_1SceneResource.html#a6fe329a9567b650116a69e107420186d',1,'mujinclient::SceneResource::Copy()']]],
+  ['convertstatetostring',['ConvertStateToString',['../mujinjog_8cpp.html#ae447300c5f038db628252d7d43395d36',1,'ConvertStateToString(const BinPickingTaskResource::ResultGetBinpickingState &amp;state):&#160;mujinjog.cpp'],['../mujinmovetool_8cpp.html#ae447300c5f038db628252d7d43395d36',1,'ConvertStateToString(const BinPickingTaskResource::ResultGetBinpickingState &amp;state):&#160;mujinmovetool.cpp']]],
+  ['copy',['Copy',['../classmujinclient_1_1WebResource.html#aae0aa448ddac268123c7bebdf67ae60c',1,'mujinclient::WebResource::Copy()'],['../classmujinclient_1_1SceneResource.html#a6fe329a9567b650116a69e107420186d',1,'mujinclient::SceneResource::Copy()'],['../classzmq_1_1message__t.html#a4071d4ba79e2b35209df2a2ed00b7c79',1,'zmq::message_t::copy()']]],
   ['createcontrollerclient',['CreateControllerClient',['../namespacemujinclient.html#a4154f688f4ec2cd2511ab6830a2777a7',1,'mujinclient']]],
   ['createinstobject',['CreateInstObject',['../classmujinclient_1_1SceneResource.html#a85a167da2abae5d47c8edaf99bb02840',1,'mujinclient::SceneResource']]],
-  ['currentjointvalues',['currentjointvalues',['../structmujinclient_1_1BinPickingTaskResource_1_1ResultGetJointValues.html#a94db57b57eca6670a501d9e943fb914f',1,'mujinclient::BinPickingTaskResource::ResultGetJointValues']]]
+  ['currentjointvalues',['currentJointValues',['../structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState.html#a549366a57b8067953c7cbc55b078eeb7',1,'mujinclient::BinPickingTaskResource::ResultGetBinpickingState::currentJointValues()'],['../structmujinclient_1_1BinPickingTaskResource_1_1ResultGetJointValues.html#a94db57b57eca6670a501d9e943fb914f',1,'mujinclient::BinPickingTaskResource::ResultGetJointValues::currentjointvalues()']]],
+  ['currenttoolvalues',['currentToolValues',['../structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState.html#a54f36496a978cd38e8420eff474f632d',1,'mujinclient::BinPickingTaskResource::ResultGetBinpickingState']]]
 ];

@@ -1,0 +1,471 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<title>controllerclientcpp: クラス mujinzmq::ZmqSubscriber</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td style="padding-left: 0.5em;">
+   <div id="projectname">controllerclientcpp
+   &#160;<span id="projectnumber">0.5.1</span>
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 作成： Doxygen 1.8.1.2 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search",false,'検索');
+</script>
+  <div id="navrow1" class="tabs">
+    <ul class="tablist">
+      <li><a href="index.html"><span>メインページ</span></a></li>
+      <li><a href="pages.html"><span>関連ページ</span></a></li>
+      <li><a href="namespaces.html"><span>ネームスペース</span></a></li>
+      <li class="current"><a href="annotated.html"><span>クラス</span></a></li>
+      <li><a href="files.html"><span>ファイル</span></a></li>
+      <li><a href="examples.html"><span>例</span></a></li>
+      <li>
+        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="検索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.png" alt=""/></a>
+          </span>
+        </div>
+      </li>
+    </ul>
+  </div>
+  <div id="navrow2" class="tabs2">
+    <ul class="tablist">
+      <li><a href="annotated.html"><span>構成</span></a></li>
+      <li><a href="inherits.html"><span>クラス階層</span></a></li>
+      <li><a href="functions.html"><span>構成メンバ</span></a></li>
+    </ul>
+  </div>
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全て</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>クラス</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>ネームスペース</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>ファイル</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>関数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>変数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>型定義</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>列挙型</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>列挙型の値</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(9)"><span class="SelectionMark">&#160;</span>マクロ定義</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(10)"><span class="SelectionMark">&#160;</span>ページ</a></div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div id="nav-path" class="navpath">
+  <ul>
+<li class="navelem"><a class="el" href="namespacemujinzmq.html">mujinzmq</a></li><li class="navelem"><a class="el" href="classmujinzmq_1_1ZmqSubscriber.html">ZmqSubscriber</a></li>  </ul>
+</div>
+</div><!-- top -->
+<div class="header">
+  <div class="summary">
+<a href="#pub-methods">Public メソッド</a> &#124;
+<a href="#pro-methods">Protected メソッド</a> &#124;
+<a href="#pro-attribs">Protected 変数</a> &#124;
+<a href="classmujinzmq_1_1ZmqSubscriber-members.html">すべてのメンバ一覧</a>  </div>
+  <div class="headertitle">
+<div class="title">クラス mujinzmq::ZmqSubscriber</div>  </div>
+</div><!--header-->
+<div class="contents">
+
+<p>Base class for subscriber.  
+ <a href="classmujinzmq_1_1ZmqSubscriber.html#details">[詳細]</a></p>
+
+<p><code>#include &lt;<a class="el" href="mujinzmq_8h_source.html">mujinzmq.h</a>&gt;</code></p>
+<div class="dynheader">
+mujinzmq::ZmqSubscriberのコラボレーション図</div>
+<div class="dyncontent">
+<div class="center"><img src="classmujinzmq_1_1ZmqSubscriber__coll__graph.png" border="0" usemap="#mujinzmq_1_1ZmqSubscriber_coll__map" alt="Collaboration graph"/></div>
+<map name="mujinzmq_1_1ZmqSubscriber_coll__map" id="mujinzmq_1_1ZmqSubscriber_coll__map">
+</map>
+<center><span class="legend">[<a href="graph_legend.html">凡例</a>]</span></center></div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2><a name="pub-methods"></a>
+Public メソッド</h2></td></tr>
+<tr class="memitem:a03775e039942f1e34a17834fd8f2ce1d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinzmq_1_1ZmqSubscriber.html#a03775e039942f1e34a17834fd8f2ce1d">ZmqSubscriber</a> (const std::string &amp;host, const unsigned int port)</td></tr>
+<tr class="memitem:a57f67311a767b6c888ad8e1f847c8171"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinzmq_1_1ZmqSubscriber.html#a57f67311a767b6c888ad8e1f847c8171">~ZmqSubscriber</a> ()</td></tr>
+<tr class="memitem:a03775e039942f1e34a17834fd8f2ce1d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinzmq_1_1ZmqSubscriber.html#a03775e039942f1e34a17834fd8f2ce1d">ZmqSubscriber</a> (const std::string &amp;host, const unsigned int port)</td></tr>
+<tr class="memitem:a57f67311a767b6c888ad8e1f847c8171"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinzmq_1_1ZmqSubscriber.html#a57f67311a767b6c888ad8e1f847c8171">~ZmqSubscriber</a> ()</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2><a name="pro-methods"></a>
+Protected メソッド</h2></td></tr>
+<tr class="memitem:a73f48104536cdf117b5aeddf294b2c42"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinzmq_1_1ZmqSubscriber.html#a73f48104536cdf117b5aeddf294b2c42">_InitializeSocket</a> (boost::shared_ptr&lt; <a class="el" href="classzmq_1_1context__t.html">zmq::context_t</a> &gt; context)</td></tr>
+<tr class="memitem:a25d1e490e7cef1fcd85d8e2ae0891aae"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinzmq_1_1ZmqSubscriber.html#a25d1e490e7cef1fcd85d8e2ae0891aae">_DestroySocket</a> ()</td></tr>
+<tr class="memitem:a73f48104536cdf117b5aeddf294b2c42"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinzmq_1_1ZmqSubscriber.html#a73f48104536cdf117b5aeddf294b2c42">_InitializeSocket</a> (boost::shared_ptr&lt; <a class="el" href="classzmq_1_1context__t.html">zmq::context_t</a> &gt; context)</td></tr>
+<tr class="memitem:a25d1e490e7cef1fcd85d8e2ae0891aae"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinzmq_1_1ZmqSubscriber.html#a25d1e490e7cef1fcd85d8e2ae0891aae">_DestroySocket</a> ()</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2><a name="pro-attribs"></a>
+Protected 変数</h2></td></tr>
+<tr class="memitem:a98cebafbb062e4c454df013ef0614a38"><td class="memItemLeft" align="right" valign="top">boost::shared_ptr&lt; <a class="el" href="classzmq_1_1context__t.html">zmq::context_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinzmq_1_1ZmqSubscriber.html#a98cebafbb062e4c454df013ef0614a38">_context</a></td></tr>
+<tr class="memitem:a1557aba9b087db7eef4019456fa5ef56"><td class="memItemLeft" align="right" valign="top">boost::shared_ptr&lt; <a class="el" href="classzmq_1_1socket__t.html">zmq::socket_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinzmq_1_1ZmqSubscriber.html#a1557aba9b087db7eef4019456fa5ef56">_socket</a></td></tr>
+<tr class="memitem:ab98df9658a863f46dddea208aca983b8"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinzmq_1_1ZmqSubscriber.html#ab98df9658a863f46dddea208aca983b8">_host</a></td></tr>
+<tr class="memitem:a6c7b997a6c0e272e7aca658a23c8983d"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinzmq_1_1ZmqSubscriber.html#a6c7b997a6c0e272e7aca658a23c8983d">_port</a></td></tr>
+<tr class="memitem:aab73445ea5bbb4f919be4a1d27c318a4"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinzmq_1_1ZmqSubscriber.html#aab73445ea5bbb4f919be4a1d27c318a4">_sharedcontext</a></td></tr>
+</table>
+<a name="details" id="details"></a><h2>説明</h2>
+<div class="textblock"><p>Base class for subscriber. </p>
+
+<p> <a class="el" href="mujinzmq_8h_source.html">mujinzmq.h</a> の <a class="el" href="mujinzmq_8h_source.html#l00031">31</a> 行で定義されています。</p>
+</div><h2>コンストラクタとデストラクタ</h2>
+<a class="anchor" id="a03775e039942f1e34a17834fd8f2ce1d"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">mujinzmq::ZmqSubscriber::ZmqSubscriber </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>host</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const unsigned int&#160;</td>
+          <td class="paramname"><em>port</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a57f67311a767b6c888ad8e1f847c8171"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual mujinzmq::ZmqSubscriber::~ZmqSubscriber </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a03775e039942f1e34a17834fd8f2ce1d"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">mujinzmq::ZmqSubscriber::ZmqSubscriber </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>host</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const unsigned int&#160;</td>
+          <td class="paramname"><em>port</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="mujinzmq_8hpp_source.html">mujinzmq.hpp</a> の <a class="el" href="mujinzmq_8hpp_source.html#l00148">148</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a57f67311a767b6c888ad8e1f847c8171"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual mujinzmq::ZmqSubscriber::~ZmqSubscriber </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="mujinzmq_8hpp_source.html">mujinzmq.hpp</a> の <a class="el" href="mujinzmq_8hpp_source.html#l00154">154</a> 行で定義されています。</p>
+
+</div>
+</div>
+<h2>関数</h2>
+<a class="anchor" id="a25d1e490e7cef1fcd85d8e2ae0891aae"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void mujinzmq::ZmqSubscriber::_DestroySocket </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a25d1e490e7cef1fcd85d8e2ae0891aae"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void mujinzmq::ZmqSubscriber::_DestroySocket </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="mujinzmq_8hpp_source.html">mujinzmq.hpp</a> の <a class="el" href="mujinzmq_8hpp_source.html#l00179">179</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a73f48104536cdf117b5aeddf294b2c42"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void mujinzmq::ZmqSubscriber::_InitializeSocket </td>
+          <td>(</td>
+          <td class="paramtype">boost::shared_ptr&lt; <a class="el" href="classzmq_1_1context__t.html">zmq::context_t</a> &gt;&#160;</td>
+          <td class="paramname"><em>context</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a73f48104536cdf117b5aeddf294b2c42"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void mujinzmq::ZmqSubscriber::_InitializeSocket </td>
+          <td>(</td>
+          <td class="paramtype">boost::shared_ptr&lt; <a class="el" href="classzmq_1_1context__t.html">zmq::context_t</a> &gt;&#160;</td>
+          <td class="paramname"><em>context</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="mujinzmq_8hpp_source.html">mujinzmq.hpp</a> の <a class="el" href="mujinzmq_8hpp_source.html#l00160">160</a> 行で定義されています。</p>
+
+</div>
+</div>
+<h2>変数</h2>
+<a class="anchor" id="a98cebafbb062e4c454df013ef0614a38"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">boost::shared_ptr&lt; <a class="el" href="classzmq_1_1context__t.html">zmq::context_t</a> &gt; mujinzmq::ZmqSubscriber::_context</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="mujinzmq_8h_source.html">mujinzmq.h</a> の <a class="el" href="mujinzmq_8h_source.html#l00041">41</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="ab98df9658a863f46dddea208aca983b8"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string mujinzmq::ZmqSubscriber::_host</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="mujinzmq_8h_source.html">mujinzmq.h</a> の <a class="el" href="mujinzmq_8h_source.html#l00043">43</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a6c7b997a6c0e272e7aca658a23c8983d"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">unsigned int mujinzmq::ZmqSubscriber::_port</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="mujinzmq_8h_source.html">mujinzmq.h</a> の <a class="el" href="mujinzmq_8h_source.html#l00044">44</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="aab73445ea5bbb4f919be4a1d27c318a4"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool mujinzmq::ZmqSubscriber::_sharedcontext</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="mujinzmq_8h_source.html">mujinzmq.h</a> の <a class="el" href="mujinzmq_8h_source.html#l00045">45</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a1557aba9b087db7eef4019456fa5ef56"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">boost::shared_ptr&lt; <a class="el" href="classzmq_1_1socket__t.html">zmq::socket_t</a> &gt; mujinzmq::ZmqSubscriber::_socket</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="mujinzmq_8h_source.html">mujinzmq.h</a> の <a class="el" href="mujinzmq_8h_source.html#l00042">42</a> 行で定義されています。</p>
+
+</div>
+</div>
+<hr/>このクラスの説明は次のファイルから生成されました:<ul>
+<li>/home/mujin/mujin/checkoutroot/controllerclientcpp/include/mujincontrollerclient/<a class="el" href="mujinzmq_8h_source.html">mujinzmq.h (2014-10-13 18:26:34 +0900, commit:12272dd)</a></li>
+<li>/home/mujin/mujin/checkoutroot/controllerclientcpp/include/mujincontrollerclient/<a class="el" href="mujinzmq_8hpp_source.html">mujinzmq.hpp (2014-10-13 18:26:34 +0900, commit:12272dd)</a></li>
+</ul>
+</div><!-- contents -->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+controllerclientcppに対してThu Jul 21 2016 19:31:11に生成されました。 &#160;<a href="http://www.doxygen.org/index.html">
+<img class="footer" src="doxygen.png" alt="doxygen"/>
+</a> 1.8.1.2
+</small></address>
+</body>
+</html>

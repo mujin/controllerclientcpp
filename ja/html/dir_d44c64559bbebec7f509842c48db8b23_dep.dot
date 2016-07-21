@@ -1,4 +1,4 @@
-digraph "/home/rdiankov/mujin/controllerclientcpp/include/" {
+digraph "/home/mujin/mujin/checkoutroot/controllerclientcpp/include/" {
   bgcolor=transparent;
   compound=true
   node [ fontsize="10", fontname="Helvetica"];

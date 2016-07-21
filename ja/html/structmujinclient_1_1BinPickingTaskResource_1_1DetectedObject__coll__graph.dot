@@ -6,7 +6,7 @@ digraph "mujinclient::BinPickingTaskResource::DetectedObject"
   Node1 [label="mujinclient::BinPickingTask\lResource::DetectedObject",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
   Node2 -> Node1 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" transform" ,fontname="Helvetica"];
   Node2 [label="mujinclient::Transform",height=0.2,width=0.4,color="black",URL="$structmujinclient_1_1Transform.html",tooltip="an affine transform"];
-  Node3 -> Node1 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" confidence\nname" ,fontname="Helvetica"];
+  Node3 -> Node1 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" confidence\nobject_uri\nextra\nname" ,fontname="Helvetica"];
   Node3 [label="std::string",height=0.2,width=0.4,color="grey75",tooltip="STL class."];
   Node4 -> Node3 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
   Node4 [label="std::basic_string\<\l char \>",height=0.2,width=0.4,color="grey75",tooltip="STL class."];

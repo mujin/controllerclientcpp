@@ -1,0 +1,431 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<title>controllerclientcpp: /home/mujin/mujin/checkoutroot/controllerclientcpp/samples/mujinjog.cpp</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td style="padding-left: 0.5em;">
+   <div id="projectname">controllerclientcpp
+   &#160;<span id="projectnumber">0.5.1</span>
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 作成： Doxygen 1.8.1.2 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search",false,'検索');
+</script>
+  <div id="navrow1" class="tabs">
+    <ul class="tablist">
+      <li><a href="index.html"><span>メインページ</span></a></li>
+      <li><a href="pages.html"><span>関連ページ</span></a></li>
+      <li><a href="namespaces.html"><span>ネームスペース</span></a></li>
+      <li><a href="annotated.html"><span>クラス</span></a></li>
+      <li class="current"><a href="files.html"><span>ファイル</span></a></li>
+      <li><a href="examples.html"><span>例</span></a></li>
+      <li>
+        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="検索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.png" alt=""/></a>
+          </span>
+        </div>
+      </li>
+    </ul>
+  </div>
+  <div id="navrow2" class="tabs2">
+    <ul class="tablist">
+      <li><a href="files.html"><span>ファイル一覧</span></a></li>
+      <li><a href="globals.html"><span>ファイルメンバ</span></a></li>
+    </ul>
+  </div>
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全て</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>クラス</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>ネームスペース</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>ファイル</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>関数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>変数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>型定義</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>列挙型</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>列挙型の値</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(9)"><span class="SelectionMark">&#160;</span>マクロ定義</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(10)"><span class="SelectionMark">&#160;</span>ページ</a></div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div id="nav-path" class="navpath">
+  <ul>
+<li class="navelem"><a class="el" href="dir_6f9635d4fbfa321d4c00f29df5cd540c.html">samples</a></li>  </ul>
+</div>
+</div><!-- top -->
+<div class="header">
+  <div class="summary">
+<a href="#func-members">関数</a> &#124;
+<a href="#var-members">変数</a>  </div>
+  <div class="headertitle">
+<div class="title">mujinjog.cpp</div>  </div>
+</div><!--header-->
+<div class="contents">
+<h3 class="version">(2014-10-13 18:26:34 +0900, commit:12272dd)</h3><div class="textblock"><code>#include &lt;<a class="el" href="binpickingtask_8h_source.html">mujincontrollerclient/binpickingtask.h</a>&gt;</code><br/>
+<code>#include &lt;boost/program_options.hpp&gt;</code><br/>
+<code>#include &lt;signal.h&gt;</code><br/>
+<code>#include &lt;iostream&gt;</code><br/>
+</div><div class="textblock"><div class="dynheader">
+mujinjog.cppのインクルード依存関係図</div>
+<div class="dyncontent">
+<div class="center"><img src="mujinjog_8cpp__incl.png" border="0" usemap="#_2home_2mujin_2mujin_2checkoutroot_2controllerclientcpp_2samples_2mujinjog_8cpp" alt=""/></div>
+<map name="_2home_2mujin_2mujin_2checkoutroot_2controllerclientcpp_2samples_2mujinjog_8cpp" id="_2home_2mujin_2mujin_2checkoutroot_2controllerclientcpp_2samples_2mujinjog_8cpp">
+</map>
+</div>
+</div>
+<p><a href="mujinjog_8cpp_source.html">ソースコードを見る。</a></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2><a name="func-members"></a>
+関数</h2></td></tr>
+<tr class="memitem:a258e3b580e688a0cf46e4258525aeaf1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mujinjog_8cpp.html#a258e3b580e688a0cf46e4258525aeaf1">sigint_handler</a> (int sig)</td></tr>
+<tr class="memitem:a6f58488a42ca5b7dd063aa3a7641e60e"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mujinjog_8cpp.html#a6f58488a42ca5b7dd063aa3a7641e60e">ParseOptions</a> (int argc, char **argv, bpo::variables_map &amp;opts)</td></tr>
+<tr class="memdesc:a6f58488a42ca5b7dd063aa3a7641e60e"><td class="mdescLeft">&#160;</td><td class="mdescRight">parse command line options and store in a map  <a href="#a6f58488a42ca5b7dd063aa3a7641e60e"></a><br/></td></tr>
+<tr class="memitem:a4ff756831d636c1b4c750f4260b26904"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mujinjog_8cpp.html#a4ff756831d636c1b4c750f4260b26904">InitializeTask</a> (const bpo::variables_map &amp;opts, <a class="el" href="namespacemujinclient.html#a94060c5e195c463ab3731c0975afd19f">BinPickingTaskResourcePtr</a> &amp;pBinpickingTask)</td></tr>
+<tr class="memdesc:a4ff756831d636c1b4c750f4260b26904"><td class="mdescLeft">&#160;</td><td class="mdescRight">initialize BinPickingTask and establish communication with controller  <a href="#a4ff756831d636c1b4c750f4260b26904"></a><br/></td></tr>
+<tr class="memitem:ae447300c5f038db628252d7d43395d36"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mujinjog_8cpp.html#ae447300c5f038db628252d7d43395d36">ConvertStateToString</a> (const <a class="el" href="structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState.html">BinPickingTaskResource::ResultGetBinpickingState</a> &amp;state)</td></tr>
+<tr class="memdesc:ae447300c5f038db628252d7d43395d36"><td class="mdescLeft">&#160;</td><td class="mdescRight">convert state of bin picking task to string  <a href="#ae447300c5f038db628252d7d43395d36"></a><br/></td></tr>
+<tr class="memitem:a696d5e458ad0e868e9e99de4b8987c45"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mujinjog_8cpp.html#a696d5e458ad0e868e9e99de4b8987c45">Run</a> (<a class="el" href="namespacemujinclient.html#a94060c5e195c463ab3731c0975afd19f">BinPickingTaskResourcePtr</a> &amp;pTask, const string &amp;mode, unsigned int axis, bool moveInPositive, double duration, double speed, double acc, const string &amp;robotname, double timeout)</td></tr>
+<tr class="memdesc:a696d5e458ad0e868e9e99de4b8987c45"><td class="mdescLeft">&#160;</td><td class="mdescRight">jogs robot either in joint space or tool space  <a href="#a696d5e458ad0e868e9e99de4b8987c45"></a><br/></td></tr>
+<tr class="memitem:a3c04138a5bfe5d72780bb7e82a18e627"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mujinjog_8cpp.html#a3c04138a5bfe5d72780bb7e82a18e627">main</a> (int argc, char **argv)</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2><a name="var-members"></a>
+変数</h2></td></tr>
+<tr class="memitem:a03753120c2767023f9d0d61942b10890"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mujinjog_8cpp.html#a03753120c2767023f9d0d61942b10890">s_sigintreceived</a> = false</td></tr>
+<tr class="memitem:a44f93965ae092cf23ff35997031b2415"><td class="memItemLeft" align="right" valign="top">static string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mujinjog_8cpp.html#a44f93965ae092cf23ff35997031b2415">s_robotname</a></td></tr>
+</table>
+<h2>関数</h2>
+<a class="anchor" id="ae447300c5f038db628252d7d43395d36"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">string ConvertStateToString </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState.html">BinPickingTaskResource::ResultGetBinpickingState</a> &amp;&#160;</td>
+          <td class="paramname"><em>state</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>convert state of bin picking task to string </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">state</td><td>state to convert to string </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>戻り値</dt><dd>state converted to string </dd></dl>
+<dl><dt><b>例: </b></dt><dd><a class="el" href="mujinjog_8cpp-example.html#a10">mujinjog.cpp</a>, と <a class="el" href="mujinmovetool_8cpp-example.html#a8">mujinmovetool.cpp</a>.</dd>
+</dl>
+<p> <a class="el" href="mujinjog_8cpp_source.html">mujinjog.cpp</a> の <a class="el" href="mujinjog_8cpp_source.html#l00176">176</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a4ff756831d636c1b4c750f4260b26904"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void InitializeTask </td>
+          <td>(</td>
+          <td class="paramtype">const bpo::variables_map &amp;&#160;</td>
+          <td class="paramname"><em>opts</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacemujinclient.html#a94060c5e195c463ab3731c0975afd19f">BinPickingTaskResourcePtr</a> &amp;&#160;</td>
+          <td class="paramname"><em>pBinpickingTask</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>initialize BinPickingTask and establish communication with controller </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">opts</td><td>options parsed from command line </td></tr>
+    <tr><td class="paramname">pBinPickingTask</td><td>bin picking task to be initialized </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl><dt><b>例: </b></dt><dd><a class="el" href="mujinjog_8cpp-example.html#a4">mujinjog.cpp</a>, と <a class="el" href="mujinmovetool_8cpp-example.html#a2">mujinmovetool.cpp</a>.</dd>
+</dl>
+<p> <a class="el" href="mujinjog_8cpp_source.html">mujinjog.cpp</a> の <a class="el" href="mujinjog_8cpp_source.html#l00090">90</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a3c04138a5bfe5d72780bb7e82a18e627"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int main </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>argc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char **&#160;</td>
+          <td class="paramname"><em>argv</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="mujinjog_8cpp_source.html">mujinjog.cpp</a> の <a class="el" href="mujinjog_8cpp_source.html#l00266">266</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a6f58488a42ca5b7dd063aa3a7641e60e"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool ParseOptions </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>argc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char **&#160;</td>
+          <td class="paramname"><em>argv</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bpo::variables_map &amp;&#160;</td>
+          <td class="paramname"><em>opts</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>parse command line options and store in a map </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">argc</td><td>number of arguments </td></tr>
+    <tr><td class="paramname">argv</td><td>arguments </td></tr>
+    <tr><td class="paramname">opts</td><td>map where parsed options are stored </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>戻り値</dt><dd>true if non-help options are parsed succesfully. </dd></dl>
+<dl><dt><b>例: </b></dt><dd><a class="el" href="mujinjog_8cpp-example.html#a3">mujinjog.cpp</a>, と <a class="el" href="mujinmovetool_8cpp-example.html#a1">mujinmovetool.cpp</a>.</dd>
+</dl>
+<p> <a class="el" href="mujinjog_8cpp_source.html">mujinjog.cpp</a> の <a class="el" href="mujinjog_8cpp_source.html#l00032">32</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a696d5e458ad0e868e9e99de4b8987c45"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Run </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacemujinclient.html#a94060c5e195c463ab3731c0975afd19f">BinPickingTaskResourcePtr</a> &amp;&#160;</td>
+          <td class="paramname"><em>pTask</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const string &amp;&#160;</td>
+          <td class="paramname"><em>mode</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned int&#160;</td>
+          <td class="paramname"><em>axis</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>moveInPositive</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>duration</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>speed</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>acc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const string &amp;&#160;</td>
+          <td class="paramname"><em>robotname</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>timeout</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>jogs robot either in joint space or tool space </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">pTask</td><td>task </td></tr>
+    <tr><td class="paramname">mode</td><td>whether to move in joints or tool </td></tr>
+    <tr><td class="paramname">axis</td><td>axis to jog </td></tr>
+    <tr><td class="paramname">moveInPositive</td><td>if true, moves in increasing direction, otherwise move in decreasing direction </td></tr>
+    <tr><td class="paramname">duration</td><td>time in second to do jogging </td></tr>
+    <tr><td class="paramname">speed</td><td>speed at which to jog </td></tr>
+    <tr><td class="paramname">acc</td><td>acceleration at which to jog </td></tr>
+    <tr><td class="paramname">robotname</td><td>name of robot </td></tr>
+    <tr><td class="paramname">period</td><td>period in ms at which to print current robot state </td></tr>
+    <tr><td class="paramname">timeout</td><td>timeout for controller command </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl><dt><b>例: </b></dt><dd><a class="el" href="mujinjog_8cpp-example.html#a16">mujinjog.cpp</a>, と <a class="el" href="mujinmovetool_8cpp-example.html#a14">mujinmovetool.cpp</a>.</dd>
+</dl>
+<p> <a class="el" href="mujinjog_8cpp_source.html">mujinjog.cpp</a> の <a class="el" href="mujinjog_8cpp_source.html#l00213">213</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a258e3b580e688a0cf46e4258525aeaf1"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void sigint_handler </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>sig</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<dl><dt><b>例: </b></dt><dd><a class="el" href="mujinjog_8cpp-example.html#a0">mujinjog.cpp</a>.</dd>
+</dl>
+<p> <a class="el" href="mujinjog_8cpp_source.html">mujinjog.cpp</a> の <a class="el" href="mujinjog_8cpp_source.html#l00295">295</a> 行で定義されています。</p>
+
+</div>
+</div>
+<h2>変数</h2>
+<a class="anchor" id="a44f93965ae092cf23ff35997031b2415"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">string s_robotname</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl><dt><b>例: </b></dt><dd><a class="el" href="mujinjog_8cpp-example.html#a2">mujinjog.cpp</a>, と <a class="el" href="mujinmovetool_8cpp-example.html#a0">mujinmovetool.cpp</a>.</dd>
+</dl>
+<p> <a class="el" href="mujinjog_8cpp_source.html">mujinjog.cpp</a> の <a class="el" href="mujinjog_8cpp_source.html#l00025">25</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a03753120c2767023f9d0d61942b10890"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool s_sigintreceived = false</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl><dt><b>例: </b></dt><dd><a class="el" href="mujinjog_8cpp-example.html#a1">mujinjog.cpp</a>.</dd>
+</dl>
+<p> <a class="el" href="mujinjog_8cpp_source.html">mujinjog.cpp</a> の <a class="el" href="mujinjog_8cpp_source.html#l00024">24</a> 行で定義されています。</p>
+
+</div>
+</div>
+</div><!-- contents -->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+controllerclientcppに対してThu Jul 21 2016 19:31:11に生成されました。 &#160;<a href="http://www.doxygen.org/index.html">
+<img class="footer" src="doxygen.png" alt="doxygen"/>
+</a> 1.8.1.2
+</small></address>
+</body>
+</html>

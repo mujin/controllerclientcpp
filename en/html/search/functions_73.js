@@ -1,6 +1,7 @@
 var searchData=
 [
   ['sceneresource',['SceneResource',['../classmujinclient_1_1SceneResource.html#ab9966907b0708ddbb4eba5cbe50e9440',1,'mujinclient::SceneResource']]],
+  ['send',['send',['../classzmq_1_1socket__t.html#a1cdcb79c4dd4ef35b2f09861095715a5',1,'zmq::socket_t::send(const void *buf_, size_t len_, int flags_=0)'],['../classzmq_1_1socket__t.html#a3153953150c87d14d4d5167a525c40e3',1,'zmq::socket_t::send(message_t &amp;msg_, int flags_=0)'],['../classmujinzmq_1_1ZmqServer.html#a53b75f97f86fff81006b239db0672600',1,'mujinzmq::ZmqServer::Send(const std::string &amp;message)'],['../classmujinzmq_1_1ZmqServer.html#a53b75f97f86fff81006b239db0672600',1,'mujinzmq::ZmqServer::Send(const std::string &amp;message)']]],
   ['serialize',['Serialize',['../classmujinclient_1_1SceneResource_1_1InstObject_1_1Grab.html#addf166dd84a7ec8ce6a219e5b4ab0021',1,'mujinclient::SceneResource::InstObject::Grab']]],
   ['serializeenvironmentstatetojson',['SerializeEnvironmentStateToJSON',['../namespacemujinclient.html#afa478aeeea339cf6d35a7698d0013280',1,'mujinclient']]],
   ['set',['Set',['../classmujinclient_1_1WebResource.html#af30cb8ab9c94bcc85bd89acdf721c3a7',1,'mujinclient::WebResource']]],
@@ -10,11 +11,16 @@ var searchData=
   ['setdefaulttasktype',['SetDefaultTaskType',['../classmujinclient_1_1ControllerClient.html#a62f87ee08506a8a2a6e8d05650bb364b',1,'mujinclient::ControllerClient']]],
   ['setdofvalues',['SetDOFValues',['../classmujinclient_1_1SceneResource_1_1InstObject.html#a5b084c4776fa8fce199528497e177bd1',1,'mujinclient::SceneResource::InstObject']]],
   ['setinstobjectsstate',['SetInstObjectsState',['../classmujinclient_1_1SceneResource.html#a7694cac5e670a9da2ae2ddc1d66903bf',1,'mujinclient::SceneResource']]],
+  ['setjogmodevelocities',['SetJogModeVelocities',['../classmujinclient_1_1BinPickingTaskResource.html#a308ce80fcb3e132bf46a59b842fbb4f3',1,'mujinclient::BinPickingTaskResource']]],
   ['setlanguage',['SetLanguage',['../classmujinclient_1_1ControllerClient.html#a9e4b0f446f0fda2730c7b58912c405ef',1,'mujinclient::ControllerClient']]],
   ['setoptimizationparameters',['SetOptimizationParameters',['../classmujinclient_1_1OptimizationResource.html#a087962f4814df03f5ba7852a46b0cfa5',1,'mujinclient::OptimizationResource::SetOptimizationParameters(const RobotPlacementOptimizationParameters &amp;optparams)'],['../classmujinclient_1_1OptimizationResource.html#a098bcec5ce1ae12c347f432a10e9cf27',1,'mujinclient::OptimizationResource::SetOptimizationParameters(const PlacementsOptimizationParameters &amp;optparams)']]],
   ['setproxy',['SetProxy',['../classmujinclient_1_1ControllerClient.html#a9637ae76a0c336da7d0574022ca1deb9',1,'mujinclient::ControllerClient']]],
+  ['setsockopt',['setsockopt',['../classzmq_1_1socket__t.html#ad798e45ba61e9d5230a4b6bf4e6f05fb',1,'zmq::socket_t']]],
   ['settaskparameters',['SetTaskParameters',['../classmujinclient_1_1HandEyeCalibrationTaskResource.html#ad762c6037a19da6484ed39078bacb96d',1,'mujinclient::HandEyeCalibrationTaskResource::SetTaskParameters()'],['../classmujinclient_1_1TaskResource.html#a5a458b8ba87cb9c61eb20c069f989ee5',1,'mujinclient::TaskResource::SetTaskParameters()']]],
   ['settransform',['SetTransform',['../classmujinclient_1_1BinPickingTaskResource.html#a15e2ce48d6edcc031d6b39aec7992f0b',1,'mujinclient::BinPickingTaskResource::SetTransform()'],['../classmujinclient_1_1SceneResource_1_1InstObject.html#a5f48744dfbb008008b70ca8f2530ca19',1,'mujinclient::SceneResource::InstObject::SetTransform()']]],
+  ['sigint_5fhandler',['sigint_handler',['../mujinjog_8cpp.html#a258e3b580e688a0cf46e4258525aeaf1',1,'mujinjog.cpp']]],
+  ['size',['size',['../classzmq_1_1message__t.html#a2a3d34bc815449fe5b9d5285a39f0f57',1,'zmq::message_t']]],
+  ['socket_5ft',['socket_t',['../classzmq_1_1socket__t.html#a40e7d9f2ab962d051b4fe6831d923a58',1,'zmq::socket_t']]],
   ['syncupload_5futf16',['SyncUpload_UTF16',['../classmujinclient_1_1ControllerClient.html#a36778dd53e41eaa8f3d62856cfe53a7a',1,'mujinclient::ControllerClient::SyncUpload_UTF16(const std::wstring &amp;sourcefilename, const std::wstring &amp;destinationdir, const std::string &amp;scenetype)=0'],['../classmujinclient_1_1ControllerClient.html#a9c1e12d0db1880e363a31b5b6bf0e2ba',1,'mujinclient::ControllerClient::SyncUpload_UTF16(const std::wstring &amp;sourcefilename, const std::wstring &amp;destinationdir)']]],
   ['syncupload_5futf8',['SyncUpload_UTF8',['../classmujinclient_1_1ControllerClient.html#a87bb48d73fead10f8d9b88cfe1aaf39b',1,'mujinclient::ControllerClient::SyncUpload_UTF8(const std::string &amp;sourcefilename, const std::string &amp;destinationdir, const std::string &amp;scenetype)=0'],['../classmujinclient_1_1ControllerClient.html#ac34f18effd3eb738e3cfeb6516a8cbd6',1,'mujinclient::ControllerClient::SyncUpload_UTF8(const std::string &amp;sourcefilename, const std::string &amp;destinationdir)']]]
 ];

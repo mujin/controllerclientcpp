@@ -1,0 +1,534 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<title>controllerclientcpp: 構造体 mujinclient::BinPickingTaskResource::ResultGetBinpickingState</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td style="padding-left: 0.5em;">
+   <div id="projectname">controllerclientcpp
+   &#160;<span id="projectnumber">0.5.1</span>
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 作成： Doxygen 1.8.1.2 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search",false,'検索');
+</script>
+  <div id="navrow1" class="tabs">
+    <ul class="tablist">
+      <li><a href="index.html"><span>メインページ</span></a></li>
+      <li><a href="pages.html"><span>関連ページ</span></a></li>
+      <li><a href="namespaces.html"><span>ネームスペース</span></a></li>
+      <li class="current"><a href="annotated.html"><span>クラス</span></a></li>
+      <li><a href="files.html"><span>ファイル</span></a></li>
+      <li><a href="examples.html"><span>例</span></a></li>
+      <li>
+        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="検索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.png" alt=""/></a>
+          </span>
+        </div>
+      </li>
+    </ul>
+  </div>
+  <div id="navrow2" class="tabs2">
+    <ul class="tablist">
+      <li><a href="annotated.html"><span>構成</span></a></li>
+      <li><a href="inherits.html"><span>クラス階層</span></a></li>
+      <li><a href="functions.html"><span>構成メンバ</span></a></li>
+    </ul>
+  </div>
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全て</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>クラス</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>ネームスペース</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>ファイル</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>関数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>変数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>型定義</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>列挙型</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>列挙型の値</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(9)"><span class="SelectionMark">&#160;</span>マクロ定義</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(10)"><span class="SelectionMark">&#160;</span>ページ</a></div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div id="nav-path" class="navpath">
+  <ul>
+<li class="navelem"><a class="el" href="namespacemujinclient.html">mujinclient</a></li><li class="navelem"><a class="el" href="classmujinclient_1_1BinPickingTaskResource.html">BinPickingTaskResource</a></li><li class="navelem"><a class="el" href="structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState.html">ResultGetBinpickingState</a></li>  </ul>
+</div>
+</div><!-- top -->
+<div class="header">
+  <div class="summary">
+<a href="#pub-methods">Public メソッド</a> &#124;
+<a href="#pub-attribs">Public 変数</a> &#124;
+<a href="structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState-members.html">すべてのメンバ一覧</a>  </div>
+  <div class="headertitle">
+<div class="title">構造体 mujinclient::BinPickingTaskResource::ResultGetBinpickingState</div>  </div>
+</div><!--header-->
+<div class="contents">
+
+<p><code>#include &lt;<a class="el" href="binpickingtask_8h_source.html">binpickingtask.h</a>&gt;</code></p>
+<div class="dynheader">
+mujinclient::BinPickingTaskResource::ResultGetBinpickingStateに対する継承グラフ</div>
+<div class="dyncontent">
+<div class="center"><img src="structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState__inherit__graph.png" border="0" usemap="#mujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState_inherit__map" alt="Inheritance graph"/></div>
+<map name="mujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState_inherit__map" id="mujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState_inherit__map">
+</map>
+<center><span class="legend">[<a href="graph_legend.html">凡例</a>]</span></center></div>
+<div class="dynheader">
+mujinclient::BinPickingTaskResource::ResultGetBinpickingStateのコラボレーション図</div>
+<div class="dyncontent">
+<div class="center"><img src="structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState__coll__graph.png" border="0" usemap="#mujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState_coll__map" alt="Collaboration graph"/></div>
+<map name="mujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState_coll__map" id="mujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState_coll__map">
+</map>
+<center><span class="legend">[<a href="graph_legend.html">凡例</a>]</span></center></div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2><a name="pub-methods"></a>
+Public メソッド</h2></td></tr>
+<tr class="memitem:a5d8cccd523478396654afef9e6d3a52e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState.html#a5d8cccd523478396654afef9e6d3a52e">ResultGetBinpickingState</a> ()</td></tr>
+<tr class="memitem:a03b4df0568ca754eecc651d26d7a1060"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState.html#a03b4df0568ca754eecc651d26d7a1060">~ResultGetBinpickingState</a> ()</td></tr>
+<tr class="memitem:aa3a9312665913437e48b1cd60a30fd34"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState.html#aa3a9312665913437e48b1cd60a30fd34">Parse</a> (const boost::property_tree::ptree &amp;pt)</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2><a name="pub-attribs"></a>
+Public 変数</h2></td></tr>
+<tr class="memitem:a346f936417a73971e341433392bdf65a"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState.html#a346f936417a73971e341433392bdf65a">statusPickPlace</a></td></tr>
+<tr class="memitem:ae0c8019b6948a958cd32bee80575907b"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState.html#ae0c8019b6948a958cd32bee80575907b">statusDescPickPlace</a></td></tr>
+<tr class="memitem:a6772ac3c6a505e3dbd810352e492120c"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState.html#a6772ac3c6a505e3dbd810352e492120c">statusPhysics</a></td></tr>
+<tr class="memitem:af5922938871456444a49fceb37e4b4ae"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState.html#af5922938871456444a49fceb37e4b4ae">isDynamicEnvironmentStateEmpty</a></td></tr>
+<tr class="memitem:a829aa790f078852b4ac1500e6d65fc31"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState.html#a829aa790f078852b4ac1500e6d65fc31">isSourceContainerEmpty</a></td></tr>
+<tr class="memitem:a8743c037c4a3b14f116869072bbe5da0"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState.html#a8743c037c4a3b14f116869072bbe5da0">pickAttemptFromSourceId</a></td></tr>
+<tr class="memitem:ac4783eae0ea120569d0fbc0ac58e4add"><td class="memItemLeft" align="right" valign="top">unsigned long long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState.html#ac4783eae0ea120569d0fbc0ac58e4add">timestamp</a></td></tr>
+<tr class="memdesc:ac4783eae0ea120569d0fbc0ac58e4add"><td class="mdescLeft">&#160;</td><td class="mdescRight">ms  <a href="#ac4783eae0ea120569d0fbc0ac58e4add"></a><br/></td></tr>
+<tr class="memitem:a042dfbccb374229a2ea845ecdf093109"><td class="memItemLeft" align="right" valign="top">unsigned long long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState.html#a042dfbccb374229a2ea845ecdf093109">lastGrabbedTargetTimeStamp</a></td></tr>
+<tr class="memdesc:a042dfbccb374229a2ea845ecdf093109"><td class="mdescLeft">&#160;</td><td class="mdescRight">ms  <a href="#a042dfbccb374229a2ea845ecdf093109"></a><br/></td></tr>
+<tr class="memitem:afb6b4a02a61a8f41e237fd53a03fa8ab"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState.html#afb6b4a02a61a8f41e237fd53a03fa8ab">isRobotOccludingSourceContainer</a></td></tr>
+<tr class="memitem:a9c7b3174aec84dbafd028a031b8112e9"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState.html#a9c7b3174aec84dbafd028a031b8112e9">forceRequestDetectionResults</a></td></tr>
+<tr class="memitem:af44fc6e670f63655a27f670a804a735f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState.html#af44fc6e670f63655a27f670a804a735f">isGrabbingTarget</a></td></tr>
+<tr class="memitem:a3623f195ac5aee6010b19d70550566d5"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState.html#a3623f195ac5aee6010b19d70550566d5">isGrabbingLastTarget</a></td></tr>
+<tr class="memitem:ae15b71baad0b1e5f1012c115b18f9377"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState.html#ae15b71baad0b1e5f1012c115b18f9377">orderNumber</a></td></tr>
+<tr class="memitem:a68cbab788f60c65cae699dc0aa1b3071"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState.html#a68cbab788f60c65cae699dc0aa1b3071">numLeftInOrder</a></td></tr>
+<tr class="memitem:ac78d7868f2fc1c5484dccbde4570ce16"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState.html#ac78d7868f2fc1c5484dccbde4570ce16">numLeftInSupply</a></td></tr>
+<tr class="memitem:ac21f75e99188ac9636839a2e1bd9a703"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState.html#ac21f75e99188ac9636839a2e1bd9a703">placedInDest</a></td></tr>
+<tr class="memitem:a549366a57b8067953c7cbc55b078eeb7"><td class="memItemLeft" align="right" valign="top">std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState.html#a549366a57b8067953c7cbc55b078eeb7">currentJointValues</a></td></tr>
+<tr class="memitem:a54f36496a978cd38e8420eff474f632d"><td class="memItemLeft" align="right" valign="top">std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState.html#a54f36496a978cd38e8420eff474f632d">currentToolValues</a></td></tr>
+<tr class="memitem:a02e0eb3c474685d952f4f9e14cca7ac3"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState.html#a02e0eb3c474685d952f4f9e14cca7ac3">jointNames</a></td></tr>
+<tr class="memitem:a5fc6954437db748120ee076ff73244f0"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState.html#a5fc6954437db748120ee076ff73244f0">isControllerInError</a></td></tr>
+<tr class="memitem:accb5bd573f3b4c83cf5ec479f13e78d0"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState.html#accb5bd573f3b4c83cf5ec479f13e78d0">robotbridgestatus</a></td></tr>
+<tr class="inherit_header pub_attribs_structmujinclient_1_1BinPickingTaskResource_1_1ResultBase"><td colspan="2" onclick="javascript:toggleInherit('pub_attribs_structmujinclient_1_1BinPickingTaskResource_1_1ResultBase')"><img src="closed.png" alt="-"/>&nbsp;Public 変数 inherited from <a class="el" href="structmujinclient_1_1BinPickingTaskResource_1_1ResultBase.html">mujinclient::BinPickingTaskResource::ResultBase</a></td></tr>
+<tr class="memitem:aaa05841aadac618f532df1b26d933e0f inherit pub_attribs_structmujinclient_1_1BinPickingTaskResource_1_1ResultBase"><td class="memItemLeft" align="right" valign="top">boost::property_tree::ptree&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmujinclient_1_1BinPickingTaskResource_1_1ResultBase.html#aaa05841aadac618f532df1b26d933e0f">_pt</a></td></tr>
+<tr class="memdesc:aaa05841aadac618f532df1b26d933e0f inherit pub_attribs_structmujinclient_1_1BinPickingTaskResource_1_1ResultBase"><td class="mdescLeft">&#160;</td><td class="mdescRight">property tree of result, if user ever wants it for logging purposes  <a href="#aaa05841aadac618f532df1b26d933e0f"></a><br/></td></tr>
+</table>
+<a name="details" id="details"></a><h2>説明</h2>
+<div class="textblock"><dl><dt><b>例: </b></dt><dd><a class="el" href="mujinjog_8cpp-example.html#_a11">mujinjog.cpp</a>, と <a class="el" href="mujinmovetool_8cpp-example.html#_a9">mujinmovetool.cpp</a>.</dd>
+</dl>
+<p> <a class="el" href="binpickingtask_8h_source.html">binpickingtask.h</a> の <a class="el" href="binpickingtask_8h_source.html#l00105">105</a> 行で定義されています。</p>
+</div><h2>コンストラクタとデストラクタ</h2>
+<a class="anchor" id="a5d8cccd523478396654afef9e6d3a52e"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">mujinclient::BinPickingTaskResource::ResultGetBinpickingState::ResultGetBinpickingState </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a03b4df0568ca754eecc651d26d7a1060"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual mujinclient::BinPickingTaskResource::ResultGetBinpickingState::~ResultGetBinpickingState </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2>関数</h2>
+<a class="anchor" id="aa3a9312665913437e48b1cd60a30fd34"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void mujinclient::BinPickingTaskResource::ResultGetBinpickingState::Parse </td>
+          <td>(</td>
+          <td class="paramtype">const boost::property_tree::ptree &amp;&#160;</td>
+          <td class="paramname"><em>pt</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p><a class="el" href="structmujinclient_1_1BinPickingTaskResource_1_1ResultBase.html#af14ac0832fa092d489ae26312221be0e">mujinclient::BinPickingTaskResource::ResultBase</a>を実装しています。</p>
+
+</div>
+</div>
+<h2>変数</h2>
+<a class="anchor" id="a549366a57b8067953c7cbc55b078eeb7"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;double&gt; mujinclient::BinPickingTaskResource::ResultGetBinpickingState::currentJointValues</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<dl><dt><b>例: </b></dt><dd><a class="el" href="mujinjog_8cpp-example.html#a12">mujinjog.cpp</a>, と <a class="el" href="mujinmovetool_8cpp-example.html#a10">mujinmovetool.cpp</a>.</dd>
+</dl>
+<p> <a class="el" href="binpickingtask_8h_source.html">binpickingtask.h</a> の <a class="el" href="binpickingtask_8h_source.html#l00126">126</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a54f36496a978cd38e8420eff474f632d"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;double&gt; mujinclient::BinPickingTaskResource::ResultGetBinpickingState::currentToolValues</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<dl><dt><b>例: </b></dt><dd><a class="el" href="mujinjog_8cpp-example.html#a13">mujinjog.cpp</a>, と <a class="el" href="mujinmovetool_8cpp-example.html#a11">mujinmovetool.cpp</a>.</dd>
+</dl>
+<p> <a class="el" href="binpickingtask_8h_source.html">binpickingtask.h</a> の <a class="el" href="binpickingtask_8h_source.html#l00127">127</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a9c7b3174aec84dbafd028a031b8112e9"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool mujinclient::BinPickingTaskResource::ResultGetBinpickingState::forceRequestDetectionResults</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="binpickingtask_8h_source.html">binpickingtask.h</a> の <a class="el" href="binpickingtask_8h_source.html#l00119">119</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a5fc6954437db748120ee076ff73244f0"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool mujinclient::BinPickingTaskResource::ResultGetBinpickingState::isControllerInError</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="binpickingtask_8h_source.html">binpickingtask.h</a> の <a class="el" href="binpickingtask_8h_source.html#l00129">129</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="af5922938871456444a49fceb37e4b4ae"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool mujinclient::BinPickingTaskResource::ResultGetBinpickingState::isDynamicEnvironmentStateEmpty</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="binpickingtask_8h_source.html">binpickingtask.h</a> の <a class="el" href="binpickingtask_8h_source.html#l00113">113</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a3623f195ac5aee6010b19d70550566d5"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool mujinclient::BinPickingTaskResource::ResultGetBinpickingState::isGrabbingLastTarget</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="binpickingtask_8h_source.html">binpickingtask.h</a> の <a class="el" href="binpickingtask_8h_source.html#l00121">121</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="af44fc6e670f63655a27f670a804a735f"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool mujinclient::BinPickingTaskResource::ResultGetBinpickingState::isGrabbingTarget</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="binpickingtask_8h_source.html">binpickingtask.h</a> の <a class="el" href="binpickingtask_8h_source.html#l00120">120</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="afb6b4a02a61a8f41e237fd53a03fa8ab"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool mujinclient::BinPickingTaskResource::ResultGetBinpickingState::isRobotOccludingSourceContainer</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="binpickingtask_8h_source.html">binpickingtask.h</a> の <a class="el" href="binpickingtask_8h_source.html#l00118">118</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a829aa790f078852b4ac1500e6d65fc31"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool mujinclient::BinPickingTaskResource::ResultGetBinpickingState::isSourceContainerEmpty</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="binpickingtask_8h_source.html">binpickingtask.h</a> の <a class="el" href="binpickingtask_8h_source.html#l00114">114</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a02e0eb3c474685d952f4f9e14cca7ac3"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;std::string&gt; mujinclient::BinPickingTaskResource::ResultGetBinpickingState::jointNames</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<dl><dt><b>例: </b></dt><dd><a class="el" href="mujinjog_8cpp-example.html#a15">mujinjog.cpp</a>, と <a class="el" href="mujinmovetool_8cpp-example.html#a13">mujinmovetool.cpp</a>.</dd>
+</dl>
+<p> <a class="el" href="binpickingtask_8h_source.html">binpickingtask.h</a> の <a class="el" href="binpickingtask_8h_source.html#l00128">128</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a042dfbccb374229a2ea845ecdf093109"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">unsigned long long mujinclient::BinPickingTaskResource::ResultGetBinpickingState::lastGrabbedTargetTimeStamp</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>ms </p>
+
+<p> <a class="el" href="binpickingtask_8h_source.html">binpickingtask.h</a> の <a class="el" href="binpickingtask_8h_source.html#l00117">117</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a68cbab788f60c65cae699dc0aa1b3071"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int mujinclient::BinPickingTaskResource::ResultGetBinpickingState::numLeftInOrder</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="binpickingtask_8h_source.html">binpickingtask.h</a> の <a class="el" href="binpickingtask_8h_source.html#l00123">123</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="ac78d7868f2fc1c5484dccbde4570ce16"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int mujinclient::BinPickingTaskResource::ResultGetBinpickingState::numLeftInSupply</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="binpickingtask_8h_source.html">binpickingtask.h</a> の <a class="el" href="binpickingtask_8h_source.html#l00124">124</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="ae15b71baad0b1e5f1012c115b18f9377"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int mujinclient::BinPickingTaskResource::ResultGetBinpickingState::orderNumber</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="binpickingtask_8h_source.html">binpickingtask.h</a> の <a class="el" href="binpickingtask_8h_source.html#l00122">122</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a8743c037c4a3b14f116869072bbe5da0"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int mujinclient::BinPickingTaskResource::ResultGetBinpickingState::pickAttemptFromSourceId</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="binpickingtask_8h_source.html">binpickingtask.h</a> の <a class="el" href="binpickingtask_8h_source.html#l00115">115</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="ac21f75e99188ac9636839a2e1bd9a703"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int mujinclient::BinPickingTaskResource::ResultGetBinpickingState::placedInDest</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="binpickingtask_8h_source.html">binpickingtask.h</a> の <a class="el" href="binpickingtask_8h_source.html#l00125">125</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="accb5bd573f3b4c83cf5ec479f13e78d0"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string mujinclient::BinPickingTaskResource::ResultGetBinpickingState::robotbridgestatus</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="binpickingtask_8h_source.html">binpickingtask.h</a> の <a class="el" href="binpickingtask_8h_source.html#l00130">130</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="ae0c8019b6948a958cd32bee80575907b"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string mujinclient::BinPickingTaskResource::ResultGetBinpickingState::statusDescPickPlace</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="binpickingtask_8h_source.html">binpickingtask.h</a> の <a class="el" href="binpickingtask_8h_source.html#l00111">111</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a6772ac3c6a505e3dbd810352e492120c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string mujinclient::BinPickingTaskResource::ResultGetBinpickingState::statusPhysics</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="binpickingtask_8h_source.html">binpickingtask.h</a> の <a class="el" href="binpickingtask_8h_source.html#l00112">112</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a346f936417a73971e341433392bdf65a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string mujinclient::BinPickingTaskResource::ResultGetBinpickingState::statusPickPlace</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="binpickingtask_8h_source.html">binpickingtask.h</a> の <a class="el" href="binpickingtask_8h_source.html#l00110">110</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="ac4783eae0ea120569d0fbc0ac58e4add"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">unsigned long long mujinclient::BinPickingTaskResource::ResultGetBinpickingState::timestamp</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>ms </p>
+<dl><dt><b>例: </b></dt><dd><a class="el" href="mujinjog_8cpp-example.html#a14">mujinjog.cpp</a>, と <a class="el" href="mujinmovetool_8cpp-example.html#a12">mujinmovetool.cpp</a>.</dd>
+</dl>
+<p> <a class="el" href="binpickingtask_8h_source.html">binpickingtask.h</a> の <a class="el" href="binpickingtask_8h_source.html#l00116">116</a> 行で定義されています。</p>
+
+</div>
+</div>
+<hr/>この構造体の説明は次のファイルから生成されました:<ul>
+<li>/home/mujin/mujin/checkoutroot/controllerclientcpp/include/mujincontrollerclient/<a class="el" href="binpickingtask_8h_source.html">binpickingtask.h (2014-10-13 18:26:34 +0900, commit:12272dd)</a></li>
+</ul>
+</div><!-- contents -->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+controllerclientcppに対してThu Jul 21 2016 19:31:11に生成されました。 &#160;<a href="http://www.doxygen.org/index.html">
+<img class="footer" src="doxygen.png" alt="doxygen"/>
+</a> 1.8.1.2
+</small></address>
+</body>
+</html>

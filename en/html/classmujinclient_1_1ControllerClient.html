@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">controllerclientcpp
-   &#160;<span id="projectnumber">0.5.0</span>
+   &#160;<span id="projectnumber">0.5.1</span>
    </div>
   </td>
  </tr>
@@ -148,6 +148,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:afe437fa856fc99eb164ebde4536823b9"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1ControllerClient.html#afe437fa856fc99eb164ebde4536823b9">UploadDirectoryToController_UTF16</a> (const std::wstring &amp;copydir, const std::wstring &amp;desturi)=0</td></tr>
 <tr class="memitem:a484b7c8057be392703652b8794ef38a8"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1ControllerClient.html#a484b7c8057be392703652b8794ef38a8">DownloadFileFromController_UTF8</a> (const std::string &amp;desturi, std::vector&lt; unsigned char &gt; &amp;vdata)=0</td></tr>
 <tr class="memitem:a1a67f11496f5c003bbf35f4498b1207a"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1ControllerClient.html#a1a67f11496f5c003bbf35f4498b1207a">DownloadFileFromController_UTF16</a> (const std::wstring &amp;desturi, std::vector&lt; unsigned char &gt; &amp;vdata)=0</td></tr>
+<tr class="memitem:a8c4cdcd5e69395c17a838adee5a244aa"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1ControllerClient.html#a8c4cdcd5e69395c17a838adee5a244aa">DownloadFileFromControllerIfModifiedSince_UTF8</a> (const std::string &amp;desturi, long localtimeval, long &amp;remotetimeval, std::vector&lt; unsigned char &gt; &amp;vdata)=0</td></tr>
+<tr class="memitem:ae618f15026fa081f0fa5812ebf04fd0d"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1ControllerClient.html#ae618f15026fa081f0fa5812ebf04fd0d">DownloadFileFromControllerIfModifiedSince_UTF16</a> (const std::wstring &amp;desturi, long localtimeval, long &amp;remotetimeval, std::vector&lt; unsigned char &gt; &amp;vdata)=0</td></tr>
 <tr class="memitem:aabc40055533ff8bdc663769d4aa79f6b"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1ControllerClient.html#aabc40055533ff8bdc663769d4aa79f6b">DeleteFileOnController_UTF8</a> (const std::string &amp;uri)=0</td></tr>
 <tr class="memdesc:aabc40055533ff8bdc663769d4aa79f6b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deletes a file on the controller network filesystem.  <a href="#aabc40055533ff8bdc663769d4aa79f6b"></a><br/></td></tr>
 <tr class="memitem:a69bb15947d092b23ee8c15cc07357fdb"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmujinclient_1_1ControllerClient.html#a69bb15947d092b23ee8c15cc07357fdb">DeleteFileOnController_UTF16</a> (const std::wstring &amp;uri)=0</td></tr>
@@ -175,7 +177,7 @@ Public Member Functions</h2></td></tr>
 <div class="textblock"><p>Creates on MUJIN Controller instance. </p>
 <p>Only one call can be made at a time. In order to make multiple calls simultaneously, create another instance. </p>
 
-<p>Definition at line <a class="el" href="mujincontrollerclient_8h_source.html#l00355">355</a> of file <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a>.</p>
+<p>Definition at line <a class="el" href="mujincontrollerclient_8h_source.html#l00356">356</a> of file <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a>.</p>
 </div><h2>Constructor &amp; Destructor Documentation</h2>
 <a class="anchor" id="aed474739b50d254eabd381256a69fe6b"></a>
 <div class="memitem">
@@ -198,7 +200,7 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="mujincontrollerclient_8h_source.html#l00358">358</a> of file <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a>.</p>
+<p>Definition at line <a class="el" href="mujincontrollerclient_8h_source.html#l00359">359</a> of file <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a>.</p>
 
 </div>
 </div>
@@ -428,6 +430,114 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
+    <tr><td class="paramname">vdata</td><td>filled with the contents of the file on the controller filesystem </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ae618f15026fa081f0fa5812ebf04fd0d"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void mujinclient::ControllerClient::DownloadFileFromControllerIfModifiedSince_UTF16 </td>
+          <td>(</td>
+          <td class="paramtype">const std::wstring &amp;&#160;</td>
+          <td class="paramname"><em>desturi</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">long&#160;</td>
+          <td class="paramname"><em>localtimeval</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">long &amp;&#160;</td>
+          <td class="paramname"><em>remotetimeval</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; unsigned char &gt; &amp;&#160;</td>
+          <td class="paramname"><em>vdata</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">localtimeval</td><td>seconds since epoch, will use input as If-Modified-Since header </td></tr>
+    <tr><td class="paramname">remotetimeval</td><td>will output the modified date in response </td></tr>
+    <tr><td class="paramname">vdata</td><td>filled with the contents of the file on the controller filesystem </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a8c4cdcd5e69395c17a838adee5a244aa"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void mujinclient::ControllerClient::DownloadFileFromControllerIfModifiedSince_UTF8 </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>desturi</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">long&#160;</td>
+          <td class="paramname"><em>localtimeval</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">long &amp;&#160;</td>
+          <td class="paramname"><em>remotetimeval</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; unsigned char &gt; &amp;&#160;</td>
+          <td class="paramname"><em>vdata</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">localtimeval</td><td>seconds since epoch, will use input as If-Modified-Since header </td></tr>
+    <tr><td class="paramname">remotetimeval</td><td>will output the modified date in response </td></tr>
     <tr><td class="paramname">vdata</td><td>filled with the contents of the file on the controller filesystem </td></tr>
   </table>
   </dd>
@@ -972,7 +1082,7 @@ Public Member Functions</h2></td></tr>
 
 <p>registers scene with default scene type </p>
 
-<p>Definition at line <a class="el" href="mujincontrollerclient_8h_source.html#l00446">446</a> of file <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a>.</p>
+<p>Definition at line <a class="el" href="mujincontrollerclient_8h_source.html#l00447">447</a> of file <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a>.</p>
 
 </div>
 </div>
@@ -1052,7 +1162,7 @@ Public Member Functions</h2></td></tr>
 
 <p>registers scene with default scene type </p>
 
-<p>Definition at line <a class="el" href="mujincontrollerclient_8h_source.html#l00435">435</a> of file <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a>.</p>
+<p>Definition at line <a class="el" href="mujincontrollerclient_8h_source.html#l00436">436</a> of file <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a>.</p>
 
 </div>
 </div>
@@ -1309,7 +1419,7 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <dl class="section see"><dt>See Also</dt><dd>SyncUpload </dd></dl>
 
-<p>Definition at line <a class="el" href="mujincontrollerclient_8h_source.html#l00497">497</a> of file <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a>.</p>
+<p>Definition at line <a class="el" href="mujincontrollerclient_8h_source.html#l00498">498</a> of file <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a>.</p>
 
 </div>
 </div>
@@ -1403,7 +1513,7 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <dl class="section see"><dt>See Also</dt><dd><a class="el" href="classmujinclient_1_1ControllerClient.html#a87bb48d73fead10f8d9b88cfe1aaf39b" title="Recommended way of uploading a scene&#39;s files into the network filesystem.">SyncUpload_UTF8</a> </dd></dl>
 
-<p>Definition at line <a class="el" href="mujincontrollerclient_8h_source.html#l00484">484</a> of file <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a>.</p>
+<p>Definition at line <a class="el" href="mujincontrollerclient_8h_source.html#l00485">485</a> of file <a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h</a>.</p>
 
 </div>
 </div>
@@ -1650,12 +1760,12 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li>/home/rdiankov/mujin/controllerclientcpp/include/mujincontrollerclient/<a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h (2014-10-13 17:52:48 +0900, commit:55ddd03)</a></li>
+<li>/home/mujin/mujin/checkoutroot/controllerclientcpp/include/mujincontrollerclient/<a class="el" href="mujincontrollerclient_8h_source.html">mujincontrollerclient.h (2014-10-13 18:26:34 +0900, commit:12272dd)</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Oct 13 2014 18:01:51 for controllerclientcpp by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Jul 21 2016 19:31:11 for controllerclientcpp by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.1.2
 </small></address>

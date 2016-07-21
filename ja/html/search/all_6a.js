@@ -4,7 +4,7 @@ var searchData=
   ['jobstatus',['JobStatus',['../structmujinclient_1_1JobStatus.html#aa604c08dd0531c5905eec520897b597d',1,'mujinclient::JobStatus']]],
   ['jobstatuscode',['JobStatusCode',['../namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829',1,'mujinclient']]],
   ['jointindices',['jointindices',['../classmujinclient_1_1HandEyeCalibrationResultResource_1_1CalibrationResult.html#ae9c8bc9c45a8f5ff652990e16f06934d',1,'mujinclient::HandEyeCalibrationResultResource::CalibrationResult']]],
-  ['jointnames',['jointnames',['../structmujinclient_1_1BinPickingTaskResource_1_1ResultGetJointValues.html#a1462d3053268ffe76ad4b3d5bfa86e29',1,'mujinclient::BinPickingTaskResource::ResultGetJointValues']]],
+  ['jointnames',['jointnames',['../structmujinclient_1_1BinPickingTaskResource_1_1ResultGetJointValues.html#a1462d3053268ffe76ad4b3d5bfa86e29',1,'mujinclient::BinPickingTaskResource::ResultGetJointValues::jointnames()'],['../structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState.html#a02e0eb3c474685d952f4f9e14cca7ac3',1,'mujinclient::BinPickingTaskResource::ResultGetBinpickingState::jointNames()']]],
   ['jsc_5faborted',['JSC_Aborted',['../namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829a60383becc8377fd2dbdb3614c8857e85',1,'mujinclient']]],
   ['jsc_5factive',['JSC_Active',['../namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829a550479d7f5cc60cf6e7e0b9ea899001a',1,'mujinclient']]],
   ['jsc_5flost',['JSC_Lost',['../namespacemujinclient.html#ab875ea1c5742a8ec032f72ea939c8829aeadf2965ab3b79b4232980a4c6869901',1,'mujinclient']]],

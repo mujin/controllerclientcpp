@@ -1,0 +1,647 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<title>controllerclientcpp: クラス zmq::monitor_t</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td style="padding-left: 0.5em;">
+   <div id="projectname">controllerclientcpp
+   &#160;<span id="projectnumber">0.5.1</span>
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 作成： Doxygen 1.8.1.2 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search",false,'検索');
+</script>
+  <div id="navrow1" class="tabs">
+    <ul class="tablist">
+      <li><a href="index.html"><span>メインページ</span></a></li>
+      <li><a href="pages.html"><span>関連ページ</span></a></li>
+      <li><a href="namespaces.html"><span>ネームスペース</span></a></li>
+      <li class="current"><a href="annotated.html"><span>クラス</span></a></li>
+      <li><a href="files.html"><span>ファイル</span></a></li>
+      <li><a href="examples.html"><span>例</span></a></li>
+      <li>
+        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="検索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.png" alt=""/></a>
+          </span>
+        </div>
+      </li>
+    </ul>
+  </div>
+  <div id="navrow2" class="tabs2">
+    <ul class="tablist">
+      <li><a href="annotated.html"><span>構成</span></a></li>
+      <li><a href="inherits.html"><span>クラス階層</span></a></li>
+      <li><a href="functions.html"><span>構成メンバ</span></a></li>
+    </ul>
+  </div>
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全て</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>クラス</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>ネームスペース</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>ファイル</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>関数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>変数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>型定義</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>列挙型</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>列挙型の値</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(9)"><span class="SelectionMark">&#160;</span>マクロ定義</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(10)"><span class="SelectionMark">&#160;</span>ページ</a></div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div id="nav-path" class="navpath">
+  <ul>
+<li class="navelem"><a class="el" href="namespacezmq.html">zmq</a></li><li class="navelem"><a class="el" href="classzmq_1_1monitor__t.html">monitor_t</a></li>  </ul>
+</div>
+</div><!-- top -->
+<div class="header">
+  <div class="summary">
+<a href="#pub-methods">Public メソッド</a> &#124;
+<a href="classzmq_1_1monitor__t-members.html">すべてのメンバ一覧</a>  </div>
+  <div class="headertitle">
+<div class="title">クラス zmq::monitor_t</div>  </div>
+</div><!--header-->
+<div class="contents">
+
+<p><code>#include &lt;<a class="el" href="zmq_8hpp_source.html">zmq.hpp</a>&gt;</code></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2><a name="pub-methods"></a>
+Public メソッド</h2></td></tr>
+<tr class="memitem:a95d361f58af33e00c19168a1670b7e90"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzmq_1_1monitor__t.html#a95d361f58af33e00c19168a1670b7e90">monitor_t</a> ()</td></tr>
+<tr class="memitem:a51f636aa1e80e6e29f3cd623169c7acb"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzmq_1_1monitor__t.html#a51f636aa1e80e6e29f3cd623169c7acb">~monitor_t</a> ()</td></tr>
+<tr class="memitem:a1a4ef654948954440313fca07d12c2d7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzmq_1_1monitor__t.html#a1a4ef654948954440313fca07d12c2d7">monitor</a> (<a class="el" href="classzmq_1_1socket__t.html">socket_t</a> &amp;socket, const char *addr_, int events=ZMQ_EVENT_ALL)</td></tr>
+<tr class="memitem:aa1d8e99de259708c0cb489b199405648"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzmq_1_1monitor__t.html#aa1d8e99de259708c0cb489b199405648">on_monitor_started</a> ()</td></tr>
+<tr class="memitem:a386a369b907c577e37718880d3f9fa64"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzmq_1_1monitor__t.html#a386a369b907c577e37718880d3f9fa64">on_event_connected</a> (const zmq_event_t &amp;event_, const char *addr_)</td></tr>
+<tr class="memitem:a70438a7986e72d98024997f4f2573047"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzmq_1_1monitor__t.html#a70438a7986e72d98024997f4f2573047">on_event_connect_delayed</a> (const zmq_event_t &amp;event_, const char *addr_)</td></tr>
+<tr class="memitem:ac865cafcd211cf70da6134de7ccd4057"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzmq_1_1monitor__t.html#ac865cafcd211cf70da6134de7ccd4057">on_event_connect_retried</a> (const zmq_event_t &amp;event_, const char *addr_)</td></tr>
+<tr class="memitem:a1461e4d075e9edf590a62adb311f5cc2"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzmq_1_1monitor__t.html#a1461e4d075e9edf590a62adb311f5cc2">on_event_listening</a> (const zmq_event_t &amp;event_, const char *addr_)</td></tr>
+<tr class="memitem:a644f4dcc164c4320b20b59174cda6e29"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzmq_1_1monitor__t.html#a644f4dcc164c4320b20b59174cda6e29">on_event_bind_failed</a> (const zmq_event_t &amp;event_, const char *addr_)</td></tr>
+<tr class="memitem:af33e9e7a47623c8414422ab9789b52a9"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzmq_1_1monitor__t.html#af33e9e7a47623c8414422ab9789b52a9">on_event_accepted</a> (const zmq_event_t &amp;event_, const char *addr_)</td></tr>
+<tr class="memitem:a542b526887b641a421cbdd5d9a80acb9"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzmq_1_1monitor__t.html#a542b526887b641a421cbdd5d9a80acb9">on_event_accept_failed</a> (const zmq_event_t &amp;event_, const char *addr_)</td></tr>
+<tr class="memitem:aaab9ff58fcdd4c65b2134a98a18e8f2b"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzmq_1_1monitor__t.html#aaab9ff58fcdd4c65b2134a98a18e8f2b">on_event_closed</a> (const zmq_event_t &amp;event_, const char *addr_)</td></tr>
+<tr class="memitem:a8be94a20f50536dca6d6414b33136c89"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzmq_1_1monitor__t.html#a8be94a20f50536dca6d6414b33136c89">on_event_close_failed</a> (const zmq_event_t &amp;event_, const char *addr_)</td></tr>
+<tr class="memitem:ad959d1cc557290a6984fde2e7ae8f3a6"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzmq_1_1monitor__t.html#ad959d1cc557290a6984fde2e7ae8f3a6">on_event_disconnected</a> (const zmq_event_t &amp;event_, const char *addr_)</td></tr>
+<tr class="memitem:ac03905bb3a84d2f0f07861e1cc81f482"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classzmq_1_1monitor__t.html#ac03905bb3a84d2f0f07861e1cc81f482">on_event_unknown</a> (const zmq_event_t &amp;event_, const char *addr_)</td></tr>
+</table>
+<a name="details" id="details"></a><h2>説明</h2>
+<div class="textblock">
+<p> <a class="el" href="zmq_8hpp_source.html">zmq.hpp</a> の <a class="el" href="zmq_8hpp_source.html#l00460">460</a> 行で定義されています。</p>
+</div><h2>コンストラクタとデストラクタ</h2>
+<a class="anchor" id="a95d361f58af33e00c19168a1670b7e90"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">zmq::monitor_t::monitor_t </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="zmq_8hpp_source.html">zmq.hpp</a> の <a class="el" href="zmq_8hpp_source.html#l00463">463</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a51f636aa1e80e6e29f3cd623169c7acb"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual zmq::monitor_t::~monitor_t </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="zmq_8hpp_source.html">zmq.hpp</a> の <a class="el" href="zmq_8hpp_source.html#l00464">464</a> 行で定義されています。</p>
+
+</div>
+</div>
+<h2>関数</h2>
+<a class="anchor" id="a1a4ef654948954440313fca07d12c2d7"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void zmq::monitor_t::monitor </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classzmq_1_1socket__t.html">socket_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>socket</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>addr_</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>events</em> = <code>ZMQ_EVENT_ALL</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="zmq_8hpp_source.html">zmq.hpp</a> の <a class="el" href="zmq_8hpp_source.html#l00466">466</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a542b526887b641a421cbdd5d9a80acb9"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void zmq::monitor_t::on_event_accept_failed </td>
+          <td>(</td>
+          <td class="paramtype">const zmq_event_t &amp;&#160;</td>
+          <td class="paramname"><em>event_</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>addr_</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="zmq_8hpp_source.html">zmq.hpp</a> の <a class="el" href="zmq_8hpp_source.html#l00565">565</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="af33e9e7a47623c8414422ab9789b52a9"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void zmq::monitor_t::on_event_accepted </td>
+          <td>(</td>
+          <td class="paramtype">const zmq_event_t &amp;&#160;</td>
+          <td class="paramname"><em>event_</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>addr_</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="zmq_8hpp_source.html">zmq.hpp</a> の <a class="el" href="zmq_8hpp_source.html#l00564">564</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a644f4dcc164c4320b20b59174cda6e29"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void zmq::monitor_t::on_event_bind_failed </td>
+          <td>(</td>
+          <td class="paramtype">const zmq_event_t &amp;&#160;</td>
+          <td class="paramname"><em>event_</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>addr_</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="zmq_8hpp_source.html">zmq.hpp</a> の <a class="el" href="zmq_8hpp_source.html#l00563">563</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a8be94a20f50536dca6d6414b33136c89"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void zmq::monitor_t::on_event_close_failed </td>
+          <td>(</td>
+          <td class="paramtype">const zmq_event_t &amp;&#160;</td>
+          <td class="paramname"><em>event_</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>addr_</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="zmq_8hpp_source.html">zmq.hpp</a> の <a class="el" href="zmq_8hpp_source.html#l00567">567</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="aaab9ff58fcdd4c65b2134a98a18e8f2b"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void zmq::monitor_t::on_event_closed </td>
+          <td>(</td>
+          <td class="paramtype">const zmq_event_t &amp;&#160;</td>
+          <td class="paramname"><em>event_</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>addr_</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="zmq_8hpp_source.html">zmq.hpp</a> の <a class="el" href="zmq_8hpp_source.html#l00566">566</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a70438a7986e72d98024997f4f2573047"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void zmq::monitor_t::on_event_connect_delayed </td>
+          <td>(</td>
+          <td class="paramtype">const zmq_event_t &amp;&#160;</td>
+          <td class="paramname"><em>event_</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>addr_</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="zmq_8hpp_source.html">zmq.hpp</a> の <a class="el" href="zmq_8hpp_source.html#l00560">560</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="ac865cafcd211cf70da6134de7ccd4057"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void zmq::monitor_t::on_event_connect_retried </td>
+          <td>(</td>
+          <td class="paramtype">const zmq_event_t &amp;&#160;</td>
+          <td class="paramname"><em>event_</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>addr_</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="zmq_8hpp_source.html">zmq.hpp</a> の <a class="el" href="zmq_8hpp_source.html#l00561">561</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a386a369b907c577e37718880d3f9fa64"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void zmq::monitor_t::on_event_connected </td>
+          <td>(</td>
+          <td class="paramtype">const zmq_event_t &amp;&#160;</td>
+          <td class="paramname"><em>event_</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>addr_</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="zmq_8hpp_source.html">zmq.hpp</a> の <a class="el" href="zmq_8hpp_source.html#l00559">559</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="ad959d1cc557290a6984fde2e7ae8f3a6"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void zmq::monitor_t::on_event_disconnected </td>
+          <td>(</td>
+          <td class="paramtype">const zmq_event_t &amp;&#160;</td>
+          <td class="paramname"><em>event_</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>addr_</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="zmq_8hpp_source.html">zmq.hpp</a> の <a class="el" href="zmq_8hpp_source.html#l00568">568</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a1461e4d075e9edf590a62adb311f5cc2"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void zmq::monitor_t::on_event_listening </td>
+          <td>(</td>
+          <td class="paramtype">const zmq_event_t &amp;&#160;</td>
+          <td class="paramname"><em>event_</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>addr_</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="zmq_8hpp_source.html">zmq.hpp</a> の <a class="el" href="zmq_8hpp_source.html#l00562">562</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="ac03905bb3a84d2f0f07861e1cc81f482"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void zmq::monitor_t::on_event_unknown </td>
+          <td>(</td>
+          <td class="paramtype">const zmq_event_t &amp;&#160;</td>
+          <td class="paramname"><em>event_</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>addr_</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="zmq_8hpp_source.html">zmq.hpp</a> の <a class="el" href="zmq_8hpp_source.html#l00569">569</a> 行で定義されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="aa1d8e99de259708c0cb489b199405648"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void zmq::monitor_t::on_monitor_started </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p> <a class="el" href="zmq_8hpp_source.html">zmq.hpp</a> の <a class="el" href="zmq_8hpp_source.html#l00558">558</a> 行で定義されています。</p>
+
+</div>
+</div>
+<hr/>このクラスの説明は次のファイルから生成されました:<ul>
+<li>/home/mujin/mujin/checkoutroot/controllerclientcpp/include/mujincontrollerclient/<a class="el" href="zmq_8hpp_source.html">zmq.hpp (2014-10-13 18:26:34 +0900, commit:12272dd)</a></li>
+</ul>
+</div><!-- contents -->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+controllerclientcppに対してThu Jul 21 2016 19:31:11に生成されました。 &#160;<a href="http://www.doxygen.org/index.html">
+<img class="footer" src="doxygen.png" alt="doxygen"/>
+</a> 1.8.1.2
+</small></address>
+</body>
+</html>

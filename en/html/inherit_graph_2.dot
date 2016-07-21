@@ -8,15 +8,21 @@ digraph "Graphical Class Hierarchy"
   Node1 -> Node2 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
   Node2 [label="mujinclient::BinPickingTask\lResource::ResultAABB",height=0.2,width=0.4,color="black",URL="$structmujinclient_1_1BinPickingTaskResource_1_1ResultAABB.html"];
   Node1 -> Node3 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node3 [label="mujinclient::BinPickingTask\lResource::ResultGetJointValues",height=0.2,width=0.4,color="black",URL="$structmujinclient_1_1BinPickingTaskResource_1_1ResultGetJointValues.html"];
+  Node3 [label="mujinclient::BinPickingTask\lResource::ResultGetBinpickingState",height=0.2,width=0.4,color="black",URL="$structmujinclient_1_1BinPickingTaskResource_1_1ResultGetBinpickingState.html"];
   Node1 -> Node4 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node4 [label="mujinclient::BinPickingTask\lResource::ResultGetPickedPositions",height=0.2,width=0.4,color="black",URL="$structmujinclient_1_1BinPickingTaskResource_1_1ResultGetPickedPositions.html"];
+  Node4 [label="mujinclient::BinPickingTask\lResource::ResultGetInstObjectAnd\lSensorInfo",height=0.2,width=0.4,color="black",URL="$structmujinclient_1_1BinPickingTaskResource_1_1ResultGetInstObjectAndSensorInfo.html"];
   Node1 -> Node5 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node5 [label="mujinclient::BinPickingTask\lResource::ResultHeartBeat",height=0.2,width=0.4,color="black",URL="$structmujinclient_1_1BinPickingTaskResource_1_1ResultHeartBeat.html"];
+  Node5 [label="mujinclient::BinPickingTask\lResource::ResultGetJointValues",height=0.2,width=0.4,color="black",URL="$structmujinclient_1_1BinPickingTaskResource_1_1ResultGetJointValues.html"];
   Node1 -> Node6 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node6 [label="mujinclient::BinPickingTask\lResource::ResultIsRobotOccludingBody",height=0.2,width=0.4,color="black",URL="$structmujinclient_1_1BinPickingTaskResource_1_1ResultIsRobotOccludingBody.html"];
+  Node6 [label="mujinclient::BinPickingTask\lResource::ResultGetPickedPositions",height=0.2,width=0.4,color="black",URL="$structmujinclient_1_1BinPickingTaskResource_1_1ResultGetPickedPositions.html"];
   Node1 -> Node7 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node7 [label="mujinclient::BinPickingTask\lResource::ResultMoveJoints",height=0.2,width=0.4,color="black",URL="$structmujinclient_1_1BinPickingTaskResource_1_1ResultMoveJoints.html"];
+  Node7 [label="mujinclient::BinPickingTask\lResource::ResultHeartBeat",height=0.2,width=0.4,color="black",URL="$structmujinclient_1_1BinPickingTaskResource_1_1ResultHeartBeat.html"];
   Node1 -> Node8 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node8 [label="mujinclient::BinPickingTask\lResource::ResultTransform",height=0.2,width=0.4,color="black",URL="$structmujinclient_1_1BinPickingTaskResource_1_1ResultTransform.html"];
+  Node8 [label="mujinclient::BinPickingTask\lResource::ResultIsRobotOccludingBody",height=0.2,width=0.4,color="black",URL="$structmujinclient_1_1BinPickingTaskResource_1_1ResultIsRobotOccludingBody.html"];
+  Node1 -> Node9 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node9 [label="mujinclient::BinPickingTask\lResource::ResultMoveJoints",height=0.2,width=0.4,color="black",URL="$structmujinclient_1_1BinPickingTaskResource_1_1ResultMoveJoints.html"];
+  Node1 -> Node10 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node10 [label="mujinclient::BinPickingTask\lResource::ResultOBB",height=0.2,width=0.4,color="black",URL="$structmujinclient_1_1BinPickingTaskResource_1_1ResultOBB.html"];
+  Node1 -> Node11 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node11 [label="mujinclient::BinPickingTask\lResource::ResultTransform",height=0.2,width=0.4,color="black",URL="$structmujinclient_1_1BinPickingTaskResource_1_1ResultTransform.html"];
 }
