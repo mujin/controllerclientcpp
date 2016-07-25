@@ -597,6 +597,11 @@ BinPickingTaskResource::ResultGetBinpickingState::~ResultGetBinpickingState()
 
 void BinPickingTaskResource::ResultGetBinpickingState::Parse(const boost::property_tree::ptree& pt)
 {
+    return Parse(pt, false);
+}
+
+void BinPickingTaskResource::ResultGetBinpickingState::Parse(const boost::property_tree::ptree& pt, bool robotExpectedInScene)
+{
     _pt = pt.get_child("output");
 
     statusPickPlace = _pt.get<std::string>("statusPickPlace", "unknown");
@@ -629,7 +634,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const boost::proper
                 currentToolValues[idx++] = boost::lexical_cast<Real>(value->second.data());
             }
         }
-        else {
+        else if (robotExpectedInScene) {
             MUJIN_LOG_ERROR("currentToolValues not found in ResultGetBinpickingState result")
         }
     }
@@ -643,8 +648,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const boost::proper
                 currentJointValues[idx++] = boost::lexical_cast<Real>(value->second.data());
             }
         }
-        else
-        {
+        else if (robotExpectedInScene) {
             MUJIN_LOG_ERROR("currentJointValues not found in ResultGetBinpickingState result")
         }
     }
@@ -657,7 +661,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const boost::proper
                 jointNames[idx++] = value->second.data();
             }
         }
-        else {
+        else if (robotExpectedInScene) {
             MUJIN_LOG_ERROR("jointNames not found in ResultGetBinpickingState result")
         }
     }
@@ -1193,7 +1197,7 @@ void BinPickingTaskResource::GetBinpickingState(ResultGetBinpickingState& result
     //    std::cout << "Sending\n" << _ss.str() << " from " << __func__ << std::endl;
 
     boost::property_tree::ptree pt = ExecuteCommand(_ss.str(), timeout);
-    result.Parse(pt);
+    result.Parse(pt, !robotname.empty());
 }
 
 void BinPickingTaskResource::SetJogModeVelocities(const std::string& jogtype, const std::vector<int>& movejointsigns, const std::string& robotname, const std::string& toolname, const double robotspeed, const double robotaccelmult, const double timeout)

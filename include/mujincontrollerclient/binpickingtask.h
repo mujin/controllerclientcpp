@@ -106,6 +106,7 @@ public:
     {
         ResultGetBinpickingState();
         virtual ~ResultGetBinpickingState();
+        void Parse(const boost::property_tree::ptree& pt, bool robotExpectedInScene);
         void Parse(const boost::property_tree::ptree& pt);
         std::string statusPickPlace;
         std::string statusDescPickPlace;
