@@ -186,7 +186,7 @@ public:
         \param userinfo json string user info, such as locale
         \param slaverequestid id of mujincontroller planning slave to connect to
      */
-    virtual void Initialize(const std::string& defaultTaskParameters, const double commandtimeout=0, const std::string& userinfo="{}", const std::string& slaverequestid="");
+    virtual void Initialize(const std::string& defaultTaskParameters, const double commandtimeout=5.0, const std::string& userinfo="{}", const std::string& slaverequestid="");
 
 #ifdef MUJIN_USEZMQ
     /** \brief Initializes binpicking task.
@@ -202,14 +202,14 @@ public:
     virtual void Initialize(const std::string& defaultTaskParameters, const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq=false, const double reinitializetimeout=10, const double commandtimeout=0, const std::string& userinfo="{}", const std::string& slaverequestid="");
 #endif
 
-    virtual boost::property_tree::ptree ExecuteCommand(const std::string& command, const double timeout /* second */=0.0, const bool getresult=true);
+    virtual boost::property_tree::ptree ExecuteCommand(const std::string& command, const double timeout /* second */=5.0, const bool getresult=true);
 
-    virtual void GetJointValues(ResultGetJointValues& result, const double timeout /* second */=0);
-    virtual void MoveJoints(const std::vector<Real>& jointvalues, const std::vector<int>& jointindices, const Real envclearance, const Real speed /* 0.1-1 */, ResultMoveJoints& result, const double timeout /* second */=0);
-    virtual void GetTransform(const std::string& targetname, Transform& result, const std::string& unit="mm", const double timeout /* second */=0);
-    virtual void SetTransform(const std::string& targetname, const Transform& transform, const std::string& unit="mm", const double timeout /* second */=0);
-    virtual void GetManipTransformToRobot(Transform& result, const std::string& unit="mm", const double timeout /* second */=0);
-    virtual void GetManipTransform(Transform& result, const std::string& unit="mm", const double timeout /* second */=0);
+    virtual void GetJointValues(ResultGetJointValues& result, const double timeout /* second */=5.0);
+    virtual void MoveJoints(const std::vector<Real>& jointvalues, const std::vector<int>& jointindices, const Real envclearance, const Real speed /* 0.1-1 */, ResultMoveJoints& result, const double timeout /* second */=5.0);
+    virtual void GetTransform(const std::string& targetname, Transform& result, const std::string& unit="mm", const double timeout /* second */=5.0);
+    virtual void SetTransform(const std::string& targetname, const Transform& transform, const std::string& unit="mm", const double timeout /* second */=5.0);
+    virtual void GetManipTransformToRobot(Transform& result, const std::string& unit="mm", const double timeout /* second */=5.0);
+    virtual void GetManipTransform(Transform& result, const std::string& unit="mm", const double timeout /* second */=5.0);
 
     virtual void GetAABB(const std::string& targetname, ResultAABB& result, const std::string& unit="mm", const double timeout=0);
     virtual void GetOBB(ResultOBB& result, const std::string& targetname, const std::string& linkname="", const std::string& unit="mm", const double timeout=0);
@@ -223,14 +223,14 @@ public:
         \param unit unit of detectedobject info
         \param timeout seconds until this command times out
      */
-    virtual void UpdateObjects(const std::string& basename, const std::vector<Transform>& transformsworld, const std::vector<std::string>& confidence, const std::string& state, const std::string& unit="mm", const double timeout /* second */=0);
+    virtual void UpdateObjects(const std::string& basename, const std::vector<Transform>& transformsworld, const std::vector<std::string>& confidence, const std::string& state, const std::string& unit="mm", const double timeout /* second */=5.0);
 
     /** \brief Establish ZMQ connection to the task
         \param reinitializetimeout seconds to wait before re-initializing the ZMQ server after the heartbeat signal is lost
                if reinitializetimeout is 0, then this does not invoke heartbeat monitoring thread
         \param timeout seconds until this command times out
      */
-    virtual void InitializeZMQ(const double reinitializetimeout = 0,const double timeout /* second */=0);
+    virtual void InitializeZMQ(const double reinitializetimeout = 0,const double timeout /* second */=5.0);
 
     /** \brief Add a point cloud collision obstacle with name to the environment.
         \param vpoints list of x,y,z coordinates in meter
@@ -240,7 +240,7 @@ public:
         \param isoccluded occlusion status of robot with the container: -1 if unknown, 0 if not occluding, 1 if robot is occluding container in camera
         \param timeout seconds until this command times out
      */
-    virtual void AddPointCloudObstacle(const std::vector<Real>& vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp=0, const unsigned long long endtimestamp=0, const bool executionverification=false, const std::string& unit="mm", int isoccluded=-1, const double timeout /* second */=0);
+    virtual void AddPointCloudObstacle(const std::vector<Real>& vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp=0, const unsigned long long endtimestamp=0, const bool executionverification=false, const std::string& unit="mm", int isoccluded=-1, const double timeout /* second */=5.0);
 
     virtual void UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<Real>& vpoints, const std::string& resultstate, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit="mm", const double timeout=0);
 
@@ -251,22 +251,22 @@ public:
         \param unit of points
         \param timeout seconds until this command times out
      */
-    virtual void VisualizePointCloud(const std::vector<std::vector<Real> >& pointslist, const Real pointsize, const std::vector<std::string>& names, const std::string& unit="m", const double timeout /* second */=0);
+    virtual void VisualizePointCloud(const std::vector<std::vector<Real> >& pointslist, const Real pointsize, const std::vector<std::string>& names, const std::string& unit="m", const double timeout /* second */=5.0);
 
     /** \brief Clear visualization made by VisualizePointCloud.
      */
-    virtual void ClearVisualization(const double timeout /* second */=0);
+    virtual void ClearVisualization(const double timeout /* second */=5.0);
 
     /** \brief Check if robot is occluding the object in the view of sensor between starttime and endtime
         \param sensorname name of the sensor to be checked, example names: "sensor_kinbodyname/sensor_name" or "sensor_kinbodyname", in the latter case the first attached sensor will be used
         \param timeout seconds until this command times out
      */
-    virtual void IsRobotOccludingBody(const std::string& bodyname, const std::string& sensorname, const unsigned long long starttime, const unsigned long long endtime, bool& result, const double timeout /* second */=0);
+    virtual void IsRobotOccludingBody(const std::string& bodyname, const std::string& sensorname, const unsigned long long starttime, const unsigned long long endtime, bool& result, const double timeout /* second */=5.0);
 
     /** \brief Get the picked positions with corresponding timestamps
         \param timeout seconds until this command times out
      */
-    virtual void GetPickedPositions(ResultGetPickedPositions& result, const std::string& unit="m", const double timeout /* second */=0);
+    virtual void GetPickedPositions(ResultGetPickedPositions& result, const std::string& unit="m", const double timeout /* second */=5.0);
 
     virtual PlanningResultResourcePtr GetResult();
 
@@ -274,14 +274,14 @@ public:
         \param unit input unit
         \param result unit is always in meter
      */
-    virtual void GetInstObjectAndSensorInfo(const std::vector<std::string>& instobjectnames, const std::vector<std::string>& sensornames, ResultGetInstObjectAndSensorInfo& result, const std::string& unit="m", const double timeout /* second */=0);
+    virtual void GetInstObjectAndSensorInfo(const std::vector<std::string>& instobjectnames, const std::vector<std::string>& sensornames, ResultGetInstObjectAndSensorInfo& result, const std::string& unit="m", const double timeout /* second */=5.0);
 
     /// \brief Get state of bin picking
     /// \param result state of bin picking
     /// \param robotname name of robot
     /// \param unit unit to receive values in, either "m" (indicates radian for angle) or "mm" (indicates degree for angle)
     /// \param timeout timeout of communication
-    virtual void GetBinpickingState(ResultGetBinpickingState& result, const std::string& robotname, const std::string& unit="m", const double timeout /* second */=0);
+    virtual void GetBinpickingState(ResultGetBinpickingState& result, const std::string& robotname, const std::string& unit="m", const double timeout /* second */=5.0);
 
     /// \brief Get published state of bin picking
     /// except for initial call, this returns cached value.
@@ -289,7 +289,7 @@ public:
     /// \param robotname name of robot
     /// \param unit unit to receive values in, either "m" (indicates radian for angle) or "mm" (indicates degree for angle)
     /// \param timeout timeout of communication
-    virtual void GetPublishedTaskState(ResultGetBinpickingState& result, const std::string& robotname, const std::string& unit="m", const double timeout /* second */=0);
+    virtual void GetPublishedTaskState(ResultGetBinpickingState& result, const std::string& robotname, const std::string& unit="m", const double timeout /* second */=5.0);
 
     /// \brief Jogs robot in joint or tool space
     /// \param jogtype type of jogging, either "joints" or "tool"
