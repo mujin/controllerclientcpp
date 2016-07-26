@@ -1530,7 +1530,18 @@ std::string utils::GetHeartbeat(const std::string& endpoint) {
     
     zmq::message_t reply;
     socket.recv(&reply);
-    return std::string((char *) reply.data (), (size_t) reply.size());
+    const std::string received((char *) reply.data (), (size_t) reply.size());
+#ifndef _WIN32
+    return received;
+#else
+    // sometimes buffer can container \n or \\, which windows boost property_tree does not like
+    std::string newbuffer;
+    std::vector< std::pair<std::string, std::string> > serachpairs(2);
+    serachpairs[0].first = "\n"; serachpairs[0].second = "";
+    serachpairs[1].first = "\\"; serachpairs[1].second = "";
+    SearchAndReplace(newbuffer, received, serachpairs);
+    return newbuffer;
+#endif
 }
 
 
@@ -1538,11 +1549,11 @@ namespace {
 std::string FindSmallestSlaveRequestId(const boost::property_tree::ptree& pt) {
     // get all slave request ids
     std::vector<std::string> slavereqids;
-    FOREACH(it1, pt) {
+    FOREACHC(it1, pt) {
         if (it1->first != "slavestates") {
             continue;
         }
-        FOREACH(it2, it1->second) {
+        FOREACHC(it2, it1->second) {
             slavereqids.push_back(it2->first);
         }
         break;
@@ -1598,7 +1609,7 @@ std::string GetValueForSmallestSlaveRequestId(const std::string& heartbeat,
 }
 
     
-std::string utils::GetScenePkFromHeatbeat(const std::string& heartbeat) {
+std::string mujinclient::utils::GetScenePkFromHeatbeat(const std::string& heartbeat) {
     static const std::string prefix("mujin:\/");
     return GetValueForSmallestSlaveRequestId(heartbeat, "currentsceneuri").substr(prefix.length());
 }

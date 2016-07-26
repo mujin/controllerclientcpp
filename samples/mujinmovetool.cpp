@@ -75,6 +75,9 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         badargs = true;
     }
 
+    if (!badargs) {
+        badargs = opts.find("goals") == opts.end() || opts["goals"].as<vector<double> >().size() < 6;
+    }
     if(opts.count("help") || badargs) {
         cout << "Usage: " << argv[0] << " [OPTS]" << endl;
         cout << endl;

@@ -387,12 +387,12 @@ void UpdateObjects(SceneResourcePtr scene, const std::string& basename, const st
 /// \brief get heatbeat
 /// \param endopoint endpoint to get heartbeat from. looks like protocol://hostname:port (ex. tcp://localhost:11001)
 /// \return heartbeat as string
-std::string GetHeartbeat(const std::string& endpoint);
+MUJINCLIENT_API std::string GetHeartbeat(const std::string& endpoint);
 
-std::string GetScenePkFromHeatbeat(const std::string& heartbeat);
-std::string GetSlaveRequestIdFromHeatbeat(const std::string& heartbeat);
+MUJINCLIENT_API std::string GetScenePkFromHeatbeat(const std::string& heartbeat);
+MUJINCLIENT_API std::string GetSlaveRequestIdFromHeatbeat(const std::string& heartbeat);
 #endif
-}; // namespace utils
+} // namespace utils
 
 } // namespace mujinclient
 
