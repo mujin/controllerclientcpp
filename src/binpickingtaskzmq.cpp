@@ -48,7 +48,7 @@ ZmqMujinControllerClient::~ZmqMujinControllerClient()
     // _DestroySocket() is called in  ~ZmqClient()
 }
 
-    BinPickingTaskZmqResource::BinPickingTaskZmqResource(ControllerClientPtr c, const std::string& pk, const std::string& scenepk, const std::string& tasktype) : BinPickingTaskResource(c, pk, scenepk, tasktype)
+BinPickingTaskZmqResource::BinPickingTaskZmqResource(ControllerClientPtr c, const std::string& pk, const std::string& scenepk, const std::string& tasktype) : BinPickingTaskResource(c, pk, scenepk, tasktype)
 {
 }
 
@@ -86,8 +86,14 @@ boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std:
         MUJIN_LOG_ERROR("zmqcontrollerclient is not initialized! initialize");
         _zmqmujincontrollerclient.reset(new ZmqMujinControllerClient(_zmqcontext, _mujinControllerIp, _zmqPort));
     }
+
     std::stringstream ss;
-    ss << "{\"fnname\": \"binpicking.RunCommand\", \"taskparams\": {\"tasktype\": \"binpicking\", ";
+    ss << "{\"fnname\": \"";
+    if (_tasktype == "binpicking") {
+        ss << "binpicking.";
+    }
+    ss << "RunCommand\", \"taskparams\": {\"tasktype\": \"" << _tasktype << "\", ";
+
     ss << "\"taskparameters\": " << taskparameters << ", ";
     ss << "\"sceneparams\": " << _sceneparams_json << "}, ";
     ss << "\"userinfo\": " << _userinfo_json;

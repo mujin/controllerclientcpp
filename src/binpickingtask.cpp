@@ -811,15 +811,28 @@ void BinPickingTaskResource::ResultHeartBeat::Parse(const boost::property_tree::
 
 namespace
 {
-    void SetMapTaskParameters(std::stringstream& ss, const std::map<std::string, std::string>& params)
-    {
-        ss.str(""); ss.clear();
-        ss << "{";
-        FOREACHC(it, params) {
-            ss << "\"" << it->first << "\":" << it->second << ", ";
-        }
+void SetMapTaskParameters(std::stringstream& ss, const std::map<std::string, std::string>& params)
+{
+    ss.str(""); ss.clear();
+    ss << "{";
+    FOREACHC(it, params) {
+        ss << "\"" << it->first << "\":" << it->second << ", ";
     }
+}
 
+void SerializeGetStateCommand(std::stringstream& ss, const std::map<std::string, std::string>& params, const std::string& functionname, const std::string& tasktype, const std::string& robotname, const std::string& unit, const double timeout)
+{
+    SetMapTaskParameters(ss, params);
+
+    ss << GetJsonString("command", functionname) << ", ";
+    ss << GetJsonString("tasktype", tasktype) << ", ";
+    if (!robotname.empty()) {
+        ss << GetJsonString("robotname", robotname) << ", ";
+    }
+    ss << GetJsonString("unit", unit);
+    ss << "}";
+}
+    
 }
 
 void BinPickingTaskResource::GetJointValues(ResultGetJointValues& result, const double timeout)
@@ -1169,8 +1182,13 @@ void BinPickingTaskResource::GetPublishedTaskState(ResultGetBinpickingState& res
     }
 
     if (taskstate.timestamp == 0) {
-        MUJIN_LOG_INFO("have not received published message yet, getting published state from GetBinpickingState()");
-        GetBinpickingState(result, robotname, unit, timeout);
+        MUJIN_LOG_INFO("have not received published message yet, getting published state from GetBinpickingState() or GetITLState()");
+        if (_tasktype == "binpicking") {
+            GetBinpickingState(result, robotname, unit, timeout);
+        }
+        else {
+            GetITLState(result, robotname, unit, timeout);
+        }
         {
             boost::mutex::scoped_lock lock(_mutexTaskState);
             _taskstate = result;
@@ -1179,19 +1197,17 @@ void BinPickingTaskResource::GetPublishedTaskState(ResultGetBinpickingState& res
         result = taskstate;
     }
 }
-
+    
 void BinPickingTaskResource::GetBinpickingState(ResultGetBinpickingState& result, const std::string& robotname, const std::string& unit, const double timeout)
 {
-    SetMapTaskParameters(_ss, _mapTaskParameters);
-    _ss << GetJsonString("command", std::string("GetBinpickingState")) << ", ";
-    _ss << GetJsonString("tasktype", _tasktype) << ", ";
-    if (!robotname.empty()) {
-        _ss << GetJsonString("robotname", robotname) << ", ";
-    }
-    _ss << GetJsonString("unit", unit);
-    _ss << "}";
-    //    std::cout << "Sending\n" << _ss.str() << " from " << __func__ << std::endl;
+    SerializeGetStateCommand(_ss, _mapTaskParameters, "GetBinpickingState", _tasktype, robotname, unit, timeout);
+    boost::property_tree::ptree pt = ExecuteCommand(_ss.str(), timeout);
+    result.Parse(pt);
+}
 
+void BinPickingTaskResource::GetITLState(ResultGetBinpickingState& result, const std::string& robotname, const std::string& unit, const double timeout)
+{
+    SerializeGetStateCommand(_ss, _mapTaskParameters, "GetITLState", _tasktype, robotname, unit, timeout);
     boost::property_tree::ptree pt = ExecuteCommand(_ss.str(), timeout);
     result.Parse(pt);
 }
@@ -1271,7 +1287,7 @@ boost::property_tree::ptree BinPickingTaskResource::ExecuteCommand(const std::st
     GETCONTROLLERIMPL();
 
     std::stringstream ss;
-    ss << "{\"tasktype\": \"binpicking\", \"taskparameters\": " << taskparameters << ", ";
+    ss << "{\"tasktype\": \"" << _tasktype << "\", \"taskparameters\": " << taskparameters << ", ";
     ss << "\"sceneparams\": " << _sceneparams_json << ", ";
     ss << "\"userinfo\": " << _userinfo_json;
     if (_slaverequestid != "") {

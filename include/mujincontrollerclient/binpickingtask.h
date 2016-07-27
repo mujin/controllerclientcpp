@@ -283,6 +283,13 @@ public:
     /// \param timeout timeout of communication
     virtual void GetBinpickingState(ResultGetBinpickingState& result, const std::string& robotname, const std::string& unit="m", const double timeout /* second */=5.0);
 
+    /// \brief Get state of ITL which includes picking status
+    /// \param result state of bin picking
+    /// \param robotname name of robot
+    /// \param unit unit to receive values in, either "m" (indicates radian for angle) or "mm" (indicates degree for angle)
+    /// \param timeout timeout of communication
+    virtual void GetITLState(ResultGetBinpickingState& result, const std::string& robotname, const std::string& unit="m", const double timeout /* second */=5.0);
+    
     /// \brief Get published state of bin picking
     /// except for initial call, this returns cached value.
     /// \param result state of bin picking
