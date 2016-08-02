@@ -9,6 +9,13 @@
 
 MUJIN_LOGGER("mujin.controllerclientcpp.mujinzmq");
 
+
+#if defined(_MSC_VER) && _MSC_VER < 1600
+typedef __int64             int64_t;
+typedef unsigned __int64    uint64_t;
+#endif
+
+
 #ifndef MUJIN_TIME
 #define MUJIN_TIME
 #include <time.h>
