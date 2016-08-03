@@ -180,9 +180,9 @@ boost::property_tree::ptree BinPickingResultResource::GetResultPtree() const
 std::string utils::GetJsonString(const std::string& str)
 {
     std::string newstr = str;
-#if BOOST_VERSION > 106100
+#if BOOST_VERSION >= 106100
     boost::algorithm::replace_all(newstr, "\"", "\\\"");
-#elseif BOOST_VERSION > 104800
+#elif BOOST_VERSION > 104800
     boost::replace_all(newstr, "\"", "\\\"");
 #else
     std::vector< std::pair<std::string, std::string> > serachpairs(1);
@@ -612,7 +612,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const boost::proper
     forceRequestDetectionResults = _pt.get<bool>("forceRequestDetectionResults", true);
     isGrabbingTarget = _pt.get<bool>("isGrabbingTarget", true);
     isGrabbingLastTarget = _pt.get<bool>("isGrabbingLastTarget", true);
-    boost::optional<const boost::property_tree::ptree&> orderstatept(_pt.get_child_optional("orderstate"));
+    boost::optional<boost::property_tree::ptree&> orderstatept(_pt.get_child_optional("orderstate"));
     if (!!orderstatept) {
         orderNumber = orderstatept->get<int>("orderNumber", -1);
         numLeftInOrder = orderstatept->get<int>("numLeftInOrder", -1);

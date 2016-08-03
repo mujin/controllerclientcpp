@@ -11,8 +11,8 @@ MUJIN_LOGGER("mujin.controllerclientcpp.mujinzmq");
 
 
 #if defined(_MSC_VER) && _MSC_VER < 1600
-typedef __int64             int64_t;
-typedef unsigned __int64    uint64_t;
+typedef __int64 int64_t;
+typedef unsigned __int64 uint64_t;
 #endif
 
 
@@ -316,7 +316,11 @@ std::string ZmqClient::Call(const std::string& msg, const double timeout)
                     ss << "Timed out receiving response of command " << msg << " after " << timeout << " seconds";
                 }
                 MUJIN_LOG_ERROR(ss.str());
-#if BOOST_VERSION > 104800
+#if BOOST_VERSION >= 106100
+                std::string errstr = ss.str();
+                boost::algorithm::replace_all(errstr, "\"", ""); // need to remove " in the message so that json parser works
+                boost::algorithm::replace_all(errstr, "\\", ""); // need to remove \ in the message so that json parser works
+#elif BOOST_VERSION > 104800
                 std::string errstr = ss.str();
                 boost::replace_all(errstr, "\"", ""); // need to remove " in the message so that json parser works
                 boost::replace_all(errstr, "\\", ""); // need to remove \ in the message so that json parser works
@@ -414,7 +418,7 @@ unsigned int ZmqServer::Recv(std::string& data, long timeout)
 {
     // wait timeout in millisecond for message
     if (timeout > 0) {
-        zmq::poll(&_pollitem, 1, timeout); 
+        zmq::poll(&_pollitem, 1, timeout);
         if ((_pollitem.revents & ZMQ_POLLIN) == 0)
         {
             // did not receive anything
