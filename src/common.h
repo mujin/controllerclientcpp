@@ -31,6 +31,9 @@
 #include <boost/function.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#if BOOST_VERSION > 106100
+#include <boost/algorithm/string/replace.hpp>
+#endif
 
 #include <sstream>
 #include <fstream>

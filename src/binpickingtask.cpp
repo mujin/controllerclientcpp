@@ -43,7 +43,7 @@ BinPickingResultResource::~BinPickingResultResource()
 {
 }
 
-    BinPickingTaskResource::BinPickingTaskResource(ControllerClientPtr pcontroller, const std::string& pk, const std::string& scenepk, const std::string& tasktype) : TaskResource(pcontroller,pk), _zmqPort(-1), _heartbeatPort(-1), _tasktype(tasktype), _bIsInitialized(false)
+BinPickingTaskResource::BinPickingTaskResource(ControllerClientPtr pcontroller, const std::string& pk, const std::string& scenepk, const std::string& tasktype) : TaskResource(pcontroller,pk), _zmqPort(-1), _heartbeatPort(-1), _tasktype(tasktype), _bIsInitialized(false)
 {
     _scenepk = scenepk;
     // get hostname from uri
@@ -180,7 +180,9 @@ boost::property_tree::ptree BinPickingResultResource::GetResultPtree() const
 std::string utils::GetJsonString(const std::string& str)
 {
     std::string newstr = str;
-#if BOOST_VERSION > 104800
+#if BOOST_VERSION > 106100
+    boost::algorithm::replace_all(newstr, "\"", "\\\"");
+#elseif BOOST_VERSION > 104800
     boost::replace_all(newstr, "\"", "\\\"");
 #else
     std::vector< std::pair<std::string, std::string> > serachpairs(1);
@@ -832,7 +834,7 @@ void SerializeGetStateCommand(std::stringstream& ss, const std::map<std::string,
     ss << GetJsonString("unit", unit);
     ss << "}";
 }
-    
+
 }
 
 void BinPickingTaskResource::GetJointValues(ResultGetJointValues& result, const double timeout)
@@ -1040,7 +1042,7 @@ void BinPickingTaskResource::UpdateEnvironmentState(const std::string& objectnam
     _ss << GetJsonString("tasktype", _tasktype) << ", ";
     _ss << GetJsonString("objectname", objectname) << ", ";
     _ss << GetJsonString("locationIOName", locationIOName) << ", ";
-    
+
     _ss << GetJsonString("envstate") << ": [";
     for (unsigned int i=0; i<detectedobjects.size(); i++) {
         _ss << GetJsonString(detectedobjects[i]);
@@ -1198,7 +1200,7 @@ void BinPickingTaskResource::GetPublishedTaskState(ResultGetBinpickingState& res
         result = taskstate;
     }
 }
-    
+
 void BinPickingTaskResource::GetBinpickingState(ResultGetBinpickingState& result, const std::string& robotname, const std::string& unit, const double timeout)
 {
     SerializeGetStateCommand(_ss, _mapTaskParameters, "GetBinpickingState", _tasktype, robotname, unit, timeout);
@@ -1240,24 +1242,24 @@ void BinPickingTaskResource::SetJogModeVelocities(const std::string& jogtype, co
 
 namespace
 {
-    void GenerateMoveToolCommand(const std::string& movetype, const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname, const std::string& toolname, const double robotspeed, const double timeout, std::stringstream& ss, const std::map<std::string, std::string>& params)
-    {
-        SetMapTaskParameters(ss, params);
-        ss << GetJsonString("command", movetype) << ", ";
-        ss << GetJsonString("goaltype", goaltype) << ", ";
-        if (!robotname.empty()) {
-            ss << GetJsonString("robotname", robotname) << ", ";
-        }
-        if (!toolname.empty()) {
-            ss << GetJsonString("toolname", toolname) << ", ";
-        }
-        if (robotspeed >= 0) {
-            ss << GetJsonString("robotspeed") << ": " << robotspeed << ", ";
-        }
-        ss << GetJsonString("goals") << ": " << GetJsonString(goals);
-        ss << "}";
-
+void GenerateMoveToolCommand(const std::string& movetype, const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname, const std::string& toolname, const double robotspeed, const double timeout, std::stringstream& ss, const std::map<std::string, std::string>& params)
+{
+    SetMapTaskParameters(ss, params);
+    ss << GetJsonString("command", movetype) << ", ";
+    ss << GetJsonString("goaltype", goaltype) << ", ";
+    if (!robotname.empty()) {
+        ss << GetJsonString("robotname", robotname) << ", ";
     }
+    if (!toolname.empty()) {
+        ss << GetJsonString("toolname", toolname) << ", ";
+    }
+    if (robotspeed >= 0) {
+        ss << GetJsonString("robotspeed") << ": " << robotspeed << ", ";
+    }
+    ss << GetJsonString("goals") << ": " << GetJsonString(goals);
+    ss << "}";
+
+}
 }
 
 void BinPickingTaskResource::MoveToolLinear(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname, const std::string& toolname, const double robotspeed, const double timeout)
@@ -1528,7 +1530,7 @@ std::string utils::GetHeartbeat(const std::string& endpoint) {
     if (!(pollitem.revents & ZMQ_POLLIN)) {
         return "";
     }
-    
+
     zmq::message_t reply;
     socket.recv(&reply);
     const std::string received((char *) reply.data (), (size_t) reply.size());
@@ -1581,7 +1583,7 @@ std::string FindSmallestSlaveRequestId(const boost::property_tree::ptree& pt) {
         if (smallest_suffix > suffix) {
             smallest_suffix = suffix;
             smallest_suffix_index = std::distance<std::vector<std::string>::const_iterator>(slavereqids.begin(), it);
-        }                                   
+        }
     }
 
     if (smallest_suffix_index == -1) {
@@ -1589,9 +1591,9 @@ std::string FindSmallestSlaveRequestId(const boost::property_tree::ptree& pt) {
     }
     return slavereqids[smallest_suffix_index];
 }
-    
+
 std::string GetValueForSmallestSlaveRequestId(const std::string& heartbeat,
-                                                     const std::string& key)
+                                              const std::string& key)
 {
     boost::property_tree::ptree pt;
     std::stringstream ss(heartbeat);
@@ -1609,7 +1611,7 @@ std::string GetValueForSmallestSlaveRequestId(const std::string& heartbeat,
 }
 }
 
-    
+
 std::string mujinclient::utils::GetScenePkFromHeatbeat(const std::string& heartbeat) {
     static const std::string prefix("mujin:\/");
     return GetValueForSmallestSlaveRequestId(heartbeat, "currentsceneuri").substr(prefix.length());
@@ -1623,7 +1625,7 @@ std::string utils::GetSlaveRequestIdFromHeatbeat(const std::string& heartbeat) {
     try {
         static const std::string prefix("slaverequestid-");
         return FindSmallestSlaveRequestId(pt).substr(prefix.length());
-;
+        ;
     }
     catch (const MujinException& ex) {
         throw MujinException(boost::str(boost::format("%s from heartbeat:\n%s")%ex.what()%heartbeat));
