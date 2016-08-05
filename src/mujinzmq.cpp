@@ -153,6 +153,8 @@ void ZmqSubscriber::_InitializeSocket(boost::shared_ptr<zmq::context_t> context)
     _socket->setsockopt(ZMQ_SUBSCRIBE, "", 0);
     int val = 2;
     _socket->setsockopt(ZMQ_SNDHWM, &val, sizeof(val));
+    int lingerval = 100; // ms
+    _socket->setsockopt(ZMQ_LINGER, &lingerval, sizeof(lingerval));
     _socket->connect (("tcp://" + _host + ":" + port_stream.str()).c_str());
 }
 
@@ -198,6 +200,8 @@ void ZmqPublisher::_InitializeSocket(boost::shared_ptr<zmq::context_t> context)
     _socket.reset(new zmq::socket_t ((*(zmq::context_t*)_context.get()), ZMQ_PUB));
     int val = 2;
     _socket->setsockopt(ZMQ_SNDHWM, &val, sizeof(val));
+    int lingerval = 100; // ms
+    _socket->setsockopt(ZMQ_LINGER, &lingerval, sizeof(lingerval));
     std::ostringstream port_stream;
     port_stream << _port;
     _socket->bind (("tcp://*:" + port_stream.str()).c_str());
