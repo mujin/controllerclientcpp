@@ -630,7 +630,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const boost::proper
             }
         }
         else {
-            MUJIN_LOG_ERROR("currentToolValues not found in ResultGetBinpickingState result")
+            MUJIN_LOG_VERBOSE("currentToolValues not found in ResultGetBinpickingState result")
         }
     }
     {
@@ -645,7 +645,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const boost::proper
         }
         else
         {
-            MUJIN_LOG_ERROR("currentJointValues not found in ResultGetBinpickingState result")
+            MUJIN_LOG_VERBOSE("currentJointValues not found in ResultGetBinpickingState result")
         }
     }
     {
@@ -658,7 +658,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const boost::proper
             }
         }
         else {
-            MUJIN_LOG_ERROR("jointNames not found in ResultGetBinpickingState result")
+            MUJIN_LOG_VERBOSE("jointNames not found in ResultGetBinpickingState result")
         }
     }
 }
