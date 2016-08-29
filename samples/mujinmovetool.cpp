@@ -170,7 +170,7 @@ void InitializeTask(const bpo::variables_map& opts,
 
     
     boost::shared_ptr<zmq::context_t> zmqcontext(new zmq::context_t(1));
-    pBinpickingTask->Initialize(taskparameters, taskZmqPort, heartbeatPort, zmqcontext, false, 10, controllerCommandTimeout, userinfo, slaverequestid);
+    pBinpickingTask->Initialize(taskparameters, taskZmqPort, heartbeatPort, zmqcontext, false, controllerCommandTimeout, controllerCommandTimeout, userinfo, slaverequestid);
 }
 
 /// \brief convert state of bin picking task to string
@@ -216,7 +216,8 @@ void Run(BinPickingTaskResourcePtr& pTask,
          double speed,
          const string& robotname,
          const string& toolname,
-         bool movelinear)
+         bool movelinear,
+         double timeout)
 {
     // print state
     BinPickingTaskResource::ResultGetBinpickingState result;
@@ -225,10 +226,10 @@ void Run(BinPickingTaskResourcePtr& pTask,
 
     // start moving
     if (movelinear) {
-        pTask->MoveToolLinear(goaltype, goals, robotname, toolname, speed);
+        pTask->MoveToolLinear(goaltype, goals, robotname, toolname, speed, timeout);
     }
     else {
-        pTask->MoveToHandPosition(goaltype, goals, robotname, toolname, speed);
+        pTask->MoveToHandPosition(goaltype, goals, robotname, toolname, speed, timeout);
     }
 
     // print state
@@ -250,13 +251,14 @@ int main(int argc, char ** argv)
     const string goaltype = opts["goaltype"].as<string>();
     const double speed = opts["speed"].as<double>();
     const bool movelinearly = opts["movelinear"].as<bool>();
+    const double timeout = opts["controller_command_timeout"].as<double>();
 
     // initializing
     BinPickingTaskResourcePtr pBinpickingTask;
     InitializeTask(opts, pBinpickingTask);
 
     // do interesting part
-    Run(pBinpickingTask, goaltype, goals, speed, s_robotname, toolname, movelinearly);
+    Run(pBinpickingTask, goaltype, goals, speed, s_robotname, toolname, movelinearly, timeout);
 
     return 0;
 }
