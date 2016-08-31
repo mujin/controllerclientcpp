@@ -344,9 +344,10 @@ void ControllerClientImpl::SetLanguage(const std::string& language)
     _SetHTTPHeaders();
 }
 
-void ControllerClientImpl::RestartServer()
+void ControllerClientImpl::RestartServer(double timeout)
 {
     boost::mutex::scoped_lock lock(_mutex);
+    CurlTimeoutSetter timeoutsetter(_curl, timeout);
     _uri = _baseuri + std::string("ajax/restartserver/");
     curl_easy_setopt(_curl, CURLOPT_URL, _uri.c_str());
     curl_easy_setopt(_curl, CURLOPT_POST, 1);
@@ -656,16 +657,17 @@ void ControllerClientImpl::SyncUpload_UTF16(const std::wstring& _sourcefilename_
 }
 
 /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
-int ControllerClientImpl::CallGet(const std::string& relativeuri, boost::property_tree::ptree& pt, int expectedhttpcode)
+int ControllerClientImpl::CallGet(const std::string& relativeuri, boost::property_tree::ptree& pt, int expectedhttpcode, double timeout)
 {
     boost::mutex::scoped_lock lock(_mutex);
     _uri = _baseapiuri;
     _uri += relativeuri;
-    return _CallGet(_uri, pt, expectedhttpcode);
+    return _CallGet(_uri, pt, expectedhttpcode, timeout);
 }
 
-int ControllerClientImpl::_CallGet(const std::string& desturi, boost::property_tree::ptree& pt, int expectedhttpcode)
+int ControllerClientImpl::_CallGet(const std::string& desturi, boost::property_tree::ptree& pt, int expectedhttpcode, double timeout)
 {
+    CurlTimeoutSetter timeoutsetter(_curl, timeout);
     curl_easy_setopt(_curl, CURLOPT_URL, desturi.c_str());
     _buffer.clear();
     _buffer.str("");
@@ -700,16 +702,17 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, boost::property_t
     return http_code;
 }
 
-int ControllerClientImpl::CallGet(const std::string& relativeuri, std::string& outputdata, int expectedhttpcode)
+int ControllerClientImpl::CallGet(const std::string& relativeuri, std::string& outputdata, int expectedhttpcode, double timeout)
 {
     boost::mutex::scoped_lock lock(_mutex);
     _uri = _baseapiuri;
     _uri += relativeuri;
-    return _CallGet(_uri, outputdata, expectedhttpcode);
+    return _CallGet(_uri, outputdata, expectedhttpcode, timeout);
 }
 
-int ControllerClientImpl::_CallGet(const std::string& desturi, std::string& outputdata, int expectedhttpcode)
+int ControllerClientImpl::_CallGet(const std::string& desturi, std::string& outputdata, int expectedhttpcode, double timeout)
 {
+    CurlTimeoutSetter timeoutsetter(_curl, timeout);
     curl_easy_setopt(_curl, CURLOPT_URL, desturi.c_str());
     _buffer.clear();
     _buffer.str("");
@@ -736,16 +739,17 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, std::string& outp
     return http_code;
 }
 
-int ControllerClientImpl::CallGet(const std::string& relativeuri, std::vector<unsigned char>& outputdata, int expectedhttpcode)
+int ControllerClientImpl::CallGet(const std::string& relativeuri, std::vector<unsigned char>& outputdata, int expectedhttpcode, double timeout)
 {
     boost::mutex::scoped_lock lock(_mutex);
     _uri = _baseapiuri;
     _uri += relativeuri;
-    return _CallGet(_uri, outputdata, expectedhttpcode);
+    return _CallGet(_uri, outputdata, expectedhttpcode, timeout);
 }
 
-int ControllerClientImpl::_CallGet(const std::string& desturi, std::vector<unsigned char>& outputdata, int expectedhttpcode)
+int ControllerClientImpl::_CallGet(const std::string& desturi, std::vector<unsigned char>& outputdata, int expectedhttpcode, double timeout)
 {
+    CurlTimeoutSetter timeoutsetter(_curl, timeout);
     curl_easy_setopt(_curl, CURLOPT_URL, desturi.c_str());
 
     CURLcode res = curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, _WriteVectorCallback);
@@ -782,8 +786,9 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, std::vector<unsig
 }
 
 /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
-int ControllerClientImpl::CallPost(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode)
+int ControllerClientImpl::CallPost(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode, double timeout)
 {
+    CurlTimeoutSetter timeoutsetter(_curl, timeout);
     boost::mutex::scoped_lock lock(_mutex);
     _uri = _baseapiuri;
     _uri += relativeuri;
@@ -812,19 +817,20 @@ int ControllerClientImpl::CallPost(const std::string& relativeuri, const std::st
     return http_code;
 }
 
-int ControllerClientImpl::CallPost_UTF8(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode)
+int ControllerClientImpl::CallPost_UTF8(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode, double timeout)
 {
-    return CallPost(relativeuri, encoding::ConvertUTF8ToFileSystemEncoding(data), pt, expectedhttpcode);
+    return CallPost(relativeuri, encoding::ConvertUTF8ToFileSystemEncoding(data), pt, expectedhttpcode, timeout);
 }
 
-int ControllerClientImpl::CallPost_UTF16(const std::string& relativeuri, const std::wstring& data, boost::property_tree::ptree& pt, int expectedhttpcode)
+int ControllerClientImpl::CallPost_UTF16(const std::string& relativeuri, const std::wstring& data, boost::property_tree::ptree& pt, int expectedhttpcode, double timeout)
 {
-    return CallPost(relativeuri, encoding::ConvertUTF16ToFileSystemEncoding(data), pt, expectedhttpcode);
+    return CallPost(relativeuri, encoding::ConvertUTF16ToFileSystemEncoding(data), pt, expectedhttpcode, timeout);
 }
 
-int ControllerClientImpl::CallPut(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode)
+int ControllerClientImpl::CallPut(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode, double timeout)
 {
     boost::mutex::scoped_lock lock(_mutex);
+    CurlTimeoutSetter timeoutsetter(_curl, timeout);
     _uri = _baseapiuri;
     _uri += relativeuri;
     curl_easy_setopt(_curl, CURLOPT_URL, _uri.c_str());
@@ -853,9 +859,10 @@ int ControllerClientImpl::CallPut(const std::string& relativeuri, const std::str
     return http_code;
 }
 
-void ControllerClientImpl::CallDelete(const std::string& relativeuri)
+void ControllerClientImpl::CallDelete(const std::string& relativeuri, double timeout)
 {
     boost::mutex::scoped_lock lock(_mutex);
+    CurlTimeoutSetter timeoutsetter(_curl, timeout);
     _uri = _baseapiuri;
     _uri += relativeuri;
     curl_easy_setopt(_curl, CURLOPT_URL, _uri.c_str());
@@ -1036,8 +1043,9 @@ std::string ControllerClientImpl::_EncodeWithoutSeparator(const std::string& raw
     return output;
 }
 
-void ControllerClientImpl::_EnsureWebDAVDirectories(const std::string& relativeuri)
+void ControllerClientImpl::_EnsureWebDAVDirectories(const std::string& relativeuri, double timeout)
 {
+    CurlTimeoutSetter timeoutsetter(_curl, timeout);
     std::list<std::string> listCreateDirs;
     std::string output;
     size_t startindex = 0;

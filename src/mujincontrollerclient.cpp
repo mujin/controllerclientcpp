@@ -108,27 +108,27 @@ WebResource::WebResource(ControllerClientPtr controller, const std::string& reso
     BOOST_ASSERT(__pk.size()>0);
 }
 
-std::string WebResource::Get(const std::string& field)
+std::string WebResource::Get(const std::string& field, double timeout)
 {
     GETCONTROLLERIMPL();
     boost::property_tree::ptree pt;
-    controller->CallGet(str(boost::format("%s/%s/?format=json&fields=%s")%GetResourceName()%GetPrimaryKey()%field), pt);
+    controller->CallGet(str(boost::format("%s/%s/?format=json&fields=%s")%GetResourceName()%GetPrimaryKey()%field), pt, timeout);
     std::string fieldvalue = pt.get<std::string>(field);
     return fieldvalue;
 }
 
-void WebResource::Set(const std::string& field, const std::string& newvalue)
+void WebResource::Set(const std::string& field, const std::string& newvalue, double timeout)
 {
     throw MujinException("not implemented");
 }
 
-void WebResource::Delete()
+void WebResource::Delete(double timeout)
 {
     GETCONTROLLERIMPL();
-    controller->CallDelete(str(boost::format("%s/%s/")%GetResourceName()%GetPrimaryKey()));
+    controller->CallDelete(str(boost::format("%s/%s/")%GetResourceName()%GetPrimaryKey()), timeout);
 }
 
-void WebResource::Copy(const std::string& newname, int options)
+void WebResource::Copy(const std::string& newname, int options, double timeout)
 {
     throw MujinException("not implemented yet");
 }

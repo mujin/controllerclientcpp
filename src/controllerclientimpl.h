@@ -35,7 +35,7 @@ public:
     virtual void SetCharacterEncoding(const std::string& newencoding);
     virtual void SetProxy(const std::string& serverport, const std::string& userpw);
     virtual void SetLanguage(const std::string& language);
-    virtual void RestartServer();
+    virtual void RestartServer(double timeout);
     virtual void Upgrade(const std::vector<unsigned char>& vdata);
     virtual void CancelAllJobs();
     virtual void GetRunTimeStatuses(std::vector<JobStatus>& statuses, int options);
@@ -64,28 +64,28 @@ public:
     virtual void DeleteDirectoryOnController_UTF16(const std::wstring& desturi);
 
     /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
-    int CallGet(const std::string& relativeuri, boost::property_tree::ptree& pt, int expectedhttpcode=200);
+    int CallGet(const std::string& relativeuri, boost::property_tree::ptree& pt, int expectedhttpcode=200, double timeout = 5.0);
 
     /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
-    int CallGet(const std::string& relativeuri, std::string& outputdata, int expectedhttpcode=200);
+    int CallGet(const std::string& relativeuri, std::string& outputdata, int expectedhttpcode=200, double timeout = 5.0);
 
     /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
-    int CallGet(const std::string& relativeuri, std::vector<unsigned char>& outputdata, int expectedhttpcode=200);
+    int CallGet(const std::string& relativeuri, std::vector<unsigned char>& outputdata, int expectedhttpcode=200, double timeout = 5.0);
 
     /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
     ///
     /// \param relativeuri URL-encoded UTF-8 encoded
     /// \param data encoded depending on the character encoding set on the system
-    int CallPost(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode=201);
+    int CallPost(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode=201, double timeout = 5.0);
 
     /// \param data utf-8 encoded
-    int CallPost_UTF8(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode=201);
+    int CallPost_UTF8(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode=201, double timeout = 5.0);
     /// \param data utf-16 encoded
-    int CallPost_UTF16(const std::string& relativeuri, const std::wstring& data, boost::property_tree::ptree& pt, int expectedhttpcode=201);
+    int CallPost_UTF16(const std::string& relativeuri, const std::wstring& data, boost::property_tree::ptree& pt, int expectedhttpcode=201, double timeout = 5.0);
 
-    int CallPut(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode=202);
+    int CallPut(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode=202, double timeout = 5.0);
 
-    void CallDelete(const std::string& relativeuri);
+    void CallDelete(const std::string& relativeuri, double timeout = 5.0);
 
     std::stringstream& GetBuffer();
 
@@ -139,15 +139,15 @@ protected:
     std::string _EncodeWithoutSeparator(const std::string& raw);
 
     /// \param relativeuri utf-8 encoded directory inside the user webdav folder. has a trailing slash. relative to real uri
-    void _EnsureWebDAVDirectories(const std::string& relativeuri);
+    void _EnsureWebDAVDirectories(const std::string& relativeuri, double timeout = 3.0);
 
     /// For all webdav internal functions: mutex is already locked, desturi directories are already created
     //@{
 
     /// \param desturi expects the fully resolved URI to pass to curl
-    int _CallGet(const std::string& desturi, boost::property_tree::ptree& pt, int expectedhttpcode=200);
-    int _CallGet(const std::string& desturi, std::string& outputdata, int expectedhttpcode=200);
-    int _CallGet(const std::string& desturi, std::vector<unsigned char>& outputdata, int expectedhttpcode=200);
+    int _CallGet(const std::string& desturi, boost::property_tree::ptree& pt, int expectedhttpcode=200, double timeout = 5.0);
+    int _CallGet(const std::string& desturi, std::string& outputdata, int expectedhttpcode=200, double timeout = 5.0);
+    int _CallGet(const std::string& desturi, std::vector<unsigned char>& outputdata, int expectedhttpcode=200, double timeout = 5.0);
 
     /// \brief desturi is URL-encoded. Also assume _mutex is locked.
     virtual void _UploadFileToController_UTF8(const std::string& filename, const std::string& desturi);

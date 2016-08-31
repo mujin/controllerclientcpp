@@ -397,7 +397,7 @@ public:
     ///
     /// If the server is not responding, call this method to clear the server state and initialize everything.
     /// The method is blocking, when it returns the MUJIN Controller would have been restarted.
-    virtual void RestartServer() = 0;
+    virtual void RestartServer(double timeout = 5.0) = 0;
 
     /// \brief Upgrade the controller with this data
     virtual void Upgrade(const std::vector<unsigned char>& vdata) = 0;
@@ -641,16 +641,16 @@ public:
     }
 
     /// \brief gets an attribute of this web resource
-    virtual std::string Get(const std::string& field);
+    virtual std::string Get(const std::string& field, double timeout = 5.0);
 
     /// \brief sets an attribute of this web resource
-    virtual void Set(const std::string& field, const std::string& newvalue);
+    virtual void Set(const std::string& field, const std::string& newvalue, double timeout = 5.0);
 
     /// \brief delete the resource and all its child resources
-    virtual void Delete();
+    virtual void Delete(double timeout = 5.0);
 
     /// \brief copy the resource and all its child resources to a new name
-    virtual void Copy(const std::string& newname, int options);
+    virtual void Copy(const std::string& newname, int options, double timeout = 5.0);
 
 private:
     ControllerClientPtr __controller;
