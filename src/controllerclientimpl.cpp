@@ -23,9 +23,22 @@
 
 MUJIN_LOGGER("mujin.controllerclientcpp");
 
-#define CURL_OPTION_SAVER(curlopt, curvalue, curltype) boost::shared_ptr<void> __curloptionsaver ## curlopt((void*)0, boost::bind(boost::function<CURLcode(CURL*, CURLoption, curltype)>(curl_easy_setopt), _curl, curlopt, curvalue));
+#define CURL_OPTION_SAVER(curl, curlopt, curvalue, curltype) boost::shared_ptr<void> __curloptionsaver ## curlopt((void*)0, boost::bind(boost::function<CURLcode(CURL*, CURLoption, curltype)>(curl_easy_setopt), curl, curlopt, curvalue));
 
 namespace mujinclient {
+
+class CurlTimeoutSetter
+{
+public:
+    CurlTimeoutSetter(CURL *curl, double timeout) : _curl(curl) {
+        curl_easy_setopt(_curl, CURLOPT_TIMEOUT_MS, (long)(timeout * 1000));
+    }
+    ~CurlTimeoutSetter() {
+        curl_easy_setopt(_curl, CURLOPT_TIMEOUT_MS, 0);
+    }
+protected:
+    CURL* _curl;
+};
 
 class CurlCustomRequestSetter
 {
@@ -120,7 +133,7 @@ std::wstring ParseWincapsWCNPath(const T& sourcefilename, const boost::function<
     return strWCNPath;
 }
 
-ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, const std::string& baseuri, const std::string& proxyserverport, const std::string& proxyuserpw, int options)
+ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, const std::string& baseuri, const std::string& proxyserverport, const std::string& proxyuserpw, int options, double timeout)
 {
     size_t usernameindex = 0;
     usernameindex = usernamepassword.find_first_of(':');
@@ -215,9 +228,14 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
     res = curl_easy_setopt(_curl, CURLOPT_FOLLOWLOCATION, 0); // do not bounce through pages since we need to detect when login sessions expired
     CHECKCURLCODE(res, "failed to set follow location");
     res = curl_easy_setopt(_curl, CURLOPT_MAXREDIRS, 10);
-    CHECKCURLCODE(res, "failed to max redirs");
+    CHECKCURLCODE(res, "failed to set max redirs");
+    res = curl_easy_setopt(_curl, CURLOPT_NOSIGNAL, 1);
+    CHECKCURLCODE(res, "failed to set no signal");
 
     if( !(options & 1) ) {
+        // specify a reasonable timeout for the login calls
+        CurlTimeoutSetter timeoutsetter(_curl, timeout);
+
         // make an initial GET call to get the CSRF token
         std::string loginuri = _baseuri + "login/";
         curl_easy_setopt(_curl, CURLOPT_URL, loginuri.c_str());
@@ -1206,24 +1224,26 @@ void ControllerClientImpl::DownloadFileFromController_UTF16(const std::wstring& 
     _CallGet(_PrepareDestinationURI_UTF16(desturi, false), vdata);
 }
 
-void ControllerClientImpl::DownloadFileFromControllerIfModifiedSince_UTF8(const std::string& desturi, long localtimeval, long& remotetimeval, std::vector<unsigned char>& vdata)
+void ControllerClientImpl::DownloadFileFromControllerIfModifiedSince_UTF8(const std::string& desturi, long localtimeval, long& remotetimeval, std::vector<unsigned char>& vdata, double timeout)
 {
     boost::mutex::scoped_lock lock(_mutex);
-    _DownloadFileFromController(_PrepareDestinationURI_UTF8(desturi, false), localtimeval, remotetimeval, vdata);
+    _DownloadFileFromController(_PrepareDestinationURI_UTF8(desturi, false), localtimeval, remotetimeval, vdata, timeout);
 }
 
-void ControllerClientImpl::DownloadFileFromControllerIfModifiedSince_UTF16(const std::wstring& desturi, long localtimeval, long& remotetimeval, std::vector<unsigned char>& vdata)
+void ControllerClientImpl::DownloadFileFromControllerIfModifiedSince_UTF16(const std::wstring& desturi, long localtimeval, long& remotetimeval, std::vector<unsigned char>& vdata, double timeout)
 {
     boost::mutex::scoped_lock lock(_mutex);
-    _DownloadFileFromController(_PrepareDestinationURI_UTF16(desturi, false), localtimeval, remotetimeval, vdata);
+    _DownloadFileFromController(_PrepareDestinationURI_UTF16(desturi, false), localtimeval, remotetimeval, vdata, timeout);
 }
 
-void ControllerClientImpl::_DownloadFileFromController(const std::string& desturi, long localtimeval, long &remotetimeval, std::vector<unsigned char>& outputdata)
+void ControllerClientImpl::_DownloadFileFromController(const std::string& desturi, long localtimeval, long &remotetimeval, std::vector<unsigned char>& outputdata, double timeout)
 {
+    CurlTimeoutSetter timeoutsetter(_curl, timeout);
+
     // on exit, reset the curl options we are going to set
-    CURL_OPTION_SAVER(CURLOPT_FILETIME, 0, long);
-    CURL_OPTION_SAVER(CURLOPT_TIMECONDITION, CURL_TIMECOND_NONE, curl_TimeCond);
-    CURL_OPTION_SAVER(CURLOPT_TIMEVALUE, 0, long);
+    CURL_OPTION_SAVER(_curl, CURLOPT_FILETIME, 0, long);
+    CURL_OPTION_SAVER(_curl, CURLOPT_TIMECONDITION, CURL_TIMECOND_NONE, curl_TimeCond);
+    CURL_OPTION_SAVER(_curl, CURLOPT_TIMEVALUE, 0, long);
 
     remotetimeval = 0;
 

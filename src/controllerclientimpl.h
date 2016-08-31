@@ -26,7 +26,7 @@ namespace mujinclient {
 class ControllerClientImpl : public ControllerClient, public boost::enable_shared_from_this<ControllerClientImpl>
 {
 public:
-    ControllerClientImpl(const std::string& usernamepassword, const std::string& baseuri, const std::string& proxyserverport, const std::string& proxyuserpw, int options);
+    ControllerClientImpl(const std::string& usernamepassword, const std::string& baseuri, const std::string& proxyserverport, const std::string& proxyuserpw, int options, double timeout);
     virtual ~ControllerClientImpl();
 
     virtual const std::string& GetUserName() const;
@@ -56,8 +56,8 @@ public:
     virtual void UploadDirectoryToController_UTF16(const std::wstring& copydir, const std::wstring& desturi);
     virtual void DownloadFileFromController_UTF8(const std::string& desturi, std::vector<unsigned char>& vdata);
     virtual void DownloadFileFromController_UTF16(const std::wstring& desturi, std::vector<unsigned char>& vdata);
-    virtual void DownloadFileFromControllerIfModifiedSince_UTF8(const std::string& desturi, long localtimeval, long &remotetimeval, std::vector<unsigned char>& vdata);
-    virtual void DownloadFileFromControllerIfModifiedSince_UTF16(const std::wstring& desturi, long localtimeval, long &remotetimeval, std::vector<unsigned char>& vdata);
+    virtual void DownloadFileFromControllerIfModifiedSince_UTF8(const std::string& desturi, long localtimeval, long &remotetimeval, std::vector<unsigned char>& vdata, double timeout);
+    virtual void DownloadFileFromControllerIfModifiedSince_UTF16(const std::wstring& desturi, long localtimeval, long &remotetimeval, std::vector<unsigned char>& vdata, double timeout);
     virtual void DeleteFileOnController_UTF8(const std::string& desturi);
     virtual void DeleteFileOnController_UTF16(const std::wstring& desturi);
     virtual void DeleteDirectoryOnController_UTF8(const std::string& desturi);
@@ -174,7 +174,7 @@ protected:
     virtual void _DeleteDirectoryOnController(const std::string& desturi);
 
     /// \brief desturi is URL-encoded. Also assume _mutex is locked.
-    virtual void _DownloadFileFromController(const std::string& desturi, long localtimeval, long &remotetimeval, std::vector<unsigned char>& vdata);
+    virtual void _DownloadFileFromController(const std::string& desturi, long localtimeval, long &remotetimeval, std::vector<unsigned char>& vdata, double timeout);
 
     //@}
 
