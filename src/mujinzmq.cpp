@@ -431,8 +431,7 @@ unsigned int ZmqServer::Recv(std::string& data, long timeout)
         data.resize(_reply.size());
         std::copy((uint8_t*)_reply.data(), (uint8_t*)_reply.data() + _reply.size(), data.begin());
         return _reply.size();
-    }
-    else {
+    } else {
         return 0;
     }
 }
