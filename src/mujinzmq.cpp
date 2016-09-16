@@ -426,10 +426,14 @@ unsigned int ZmqServer::Recv(std::string& data, long timeout)
         }
     }
 
-    _socket->recv(&_reply, ZMQ_NOBLOCK);
-    data.resize(_reply.size());
-    std::copy((uint8_t*)_reply.data(), (uint8_t*)_reply.data() + _reply.size(), data.begin());
-    return _reply.size();
+    const bool ret = _socket->recv(&_reply, ZMQ_NOBLOCK);
+    if (ret && _reply.size() > 0) {
+        data.resize(_reply.size());
+        std::copy((uint8_t*)_reply.data(), (uint8_t*)_reply.data() + _reply.size(), data.begin());
+        return _reply.size();
+    } else {
+        return 0;
+    }
 }
 
 void ZmqServer::Send(const std::string& message)
