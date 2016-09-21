@@ -13,8 +13,11 @@
 // limitations under the License.
 #include "common.h"
 #include "controllerclientimpl.h"
-#include <boost/thread.hpp> // for sleep
+#if BOOST_VERSION > 104800
+#include <boost/algorithm/string/replace.hpp>
+#endif
 #include <boost/property_tree/ptree.hpp>
+#include <boost/thread.hpp> // for sleep
 #include "mujincontrollerclient/binpickingtask.h"
 
 #ifdef MUJIN_USEZMQ

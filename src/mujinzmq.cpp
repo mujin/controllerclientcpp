@@ -1,6 +1,9 @@
 #include "mujincontrollerclient/mujinzmq.h"
 
 #include <boost/thread.hpp>
+#if BOOST_VERSION > 104800
+#include <boost/algorithm/string/replace.hpp>
+#endif
 #include <sstream>
 #include <iostream>
 
