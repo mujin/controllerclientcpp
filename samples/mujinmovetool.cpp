@@ -91,6 +91,7 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
 /// \param opts options parsed from command line
 /// \param pBinPickingTask bin picking task to be initialized
 void InitializeTask(const bpo::variables_map& opts,
+                    boost::shared_ptr<zmq::context_t>& zmqcontext,
                     BinPickingTaskResourcePtr& pBinpickingTask)
 {
     const string controllerUsernamePass = opts["controller_username_password"].as<string>();
@@ -169,7 +170,18 @@ void InitializeTask(const bpo::variables_map& opts,
     }
 
     
-    boost::shared_ptr<zmq::context_t> zmqcontext(new zmq::context_t(1));
+    pBinpickingTask->Initialize(taskparameters, taskZmqPort, heartbeatPort, zmqcontext, false, controllerCommandTimeout, controllerCommandTimeout, userinfo, slaverequestid);
+}
+
+void ReinitializeTask(boost::shared_ptr<zmq::context_t>& zmqcontext,
+                      BinPickingTaskResourcePtr& pBinpickingTask)
+{
+    const string taskparameters("{\"robotname\": \"robot\", \"robots\":{\"robot\": {\"robotControllerUri\": \"\"}}}");
+    const unsigned int taskZmqPort(11000);
+    const double controllerCommandTimeout(10);
+    const string userinfo("");
+    const string slaverequestid("controller71_slave0");
+    const unsigned int heartbeatPort(11001);
     pBinpickingTask->Initialize(taskparameters, taskZmqPort, heartbeatPort, zmqcontext, false, controllerCommandTimeout, controllerCommandTimeout, userinfo, slaverequestid);
 }
 
@@ -255,8 +267,13 @@ int main(int argc, char ** argv)
 
     // initializing
     BinPickingTaskResourcePtr pBinpickingTask;
-    InitializeTask(opts, pBinpickingTask);
+    boost::shared_ptr<zmq::context_t> zmqcontext(new zmq::context_t(1));
+    InitializeTask(opts, zmqcontext, pBinpickingTask);
 
+    // do interesting part
+    Run(pBinpickingTask, goaltype, goals, speed, s_robotname, toolname, movelinearly, timeout);
+
+    ReinitializeTask(zmqcontext, pBinpickingTask);
     // do interesting part
     Run(pBinpickingTask, goaltype, goals, speed, s_robotname, toolname, movelinearly, timeout);
 
