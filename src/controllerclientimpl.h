@@ -83,7 +83,7 @@ public:
     /// \param data utf-16 encoded
     int CallPost_UTF16(const std::string& relativeuri, const std::wstring& data, boost::property_tree::ptree& pt, int expectedhttpcode=201, double timeout = 5.0);
 
-    int CallPut(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode=202, double timeout = 5.0);
+    int CallPut(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode=202, double timeout = 5.0, bool isJson = true);
 
     void CallDelete(const std::string& relativeuri, double timeout = 5.0);
 
@@ -100,6 +100,8 @@ public:
     std::string GetPrimaryKeyFromName_UTF16(const std::wstring& name);
     std::string GetNameFromPrimaryKey_UTF8(const std::string& pk);
     std::wstring GetNameFromPrimaryKey_UTF16(const std::string& pk);
+    std::string CreateObjectGeometry(const std::string& objectPk, const std::string& name, const std::string& linkPk, double timeout);
+    std::string SetObjectGeometryMesh(const std::string& objectPk, const std::string& scenePk, const std::string& data, const std::string& unit = "mm", double timeout = 5);
 
     inline CURL* GetCURL() const
     {
@@ -123,7 +125,8 @@ protected:
     static int _WriteStringStreamCallback(char *data, size_t size, size_t nmemb, std::stringstream *writerData);
     static int _WriteVectorCallback(char *data, size_t size, size_t nmemb, std::vector<unsigned char> *writerData);
 
-    void _SetHTTPHeaders();
+    void _SetHTTPHeadersJSON();
+    void _SetHTTPHeadersBinary();
 
     std::string _GetCSRFFromCookies();
 
@@ -191,7 +194,8 @@ protected:
     std::stringstream _buffer;
     std::string _baseuri, _baseapiuri, _basewebdavuri, _uri, _username;
 
-    curl_slist *_httpheaders;
+    curl_slist *_httpheadersjson;
+    curl_slist *_httpheadersbinary;
     std::string _charset, _language;
     std::string _csrfmiddlewaretoken;
 

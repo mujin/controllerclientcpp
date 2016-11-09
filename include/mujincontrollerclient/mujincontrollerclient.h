@@ -621,6 +621,18 @@ public:
     ///
     /// \return utf-16 encoded name
     virtual std::wstring GetNameFromPrimaryKey_UTF16(const std::string& pk) = 0;
+
+    virtual std::string CreateObjectGeometry(const std::string& objectPk, const std::string& name, const std::string& linkPk, double timeout) = 0;
+
+    /// \brief set geometry mesh to an object
+    /// \param objectPk primary key for the object to set mesh data to
+    /// \param geometryPk primary key for the geometry
+    /// \param data stl format binary mesh data
+    /// \param unit length unit of mesh 
+    /// \param timeout timeout of uploading mesh
+    ///
+    virtual std::string SetObjectGeometryMesh(const std::string& objectPk, const std::string& geometryPk, const std::string& data, const std::string& unit = "mm", double timeout = 5) = 0;
+
 };
 
 class MUJINCLIENT_API WebResource
