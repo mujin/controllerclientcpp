@@ -695,6 +695,7 @@ public:
         std::vector<std::string> attachmentpks;
         std::string name;
         std::string pk;
+        std::string objectpk; // is this necessary?
         //TODO transforms
     };
     typedef boost::shared_ptr<LinkResource> LinkResourcePtr;

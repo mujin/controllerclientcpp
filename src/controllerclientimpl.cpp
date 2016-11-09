@@ -859,14 +859,15 @@ int ControllerClientImpl::_CallPut(const std::string& relativeuri, const void* p
     if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
         std::string error_message = pt.get<std::string>("error_message", std::string());
         std::string traceback = pt.get<std::string>("traceback", std::string());
-        throw MUJIN_EXCEPTION_FORMAT("HTTP POST to '%s' returned HTTP status %s: %s", relativeuri%http_code%error_message, MEC_HTTPServer);
+        throw MUJIN_EXCEPTION_FORMAT("HTTP PUT to '%s' returned HTTP status %s: %s", relativeuri%http_code%error_message, MEC_HTTPServer);
     }
     return http_code;
 }
 
 int ControllerClientImpl::CallPutSTL(const std::string& relativeuri, const std::vector<uint8_t>& data, boost::property_tree::ptree& pt, int expectedhttpcode, double timeout)
 {
-    return _CallPut(relativeuri, static_cast<const void*> (&data[0]), data.size(), pt, _httpheadersjson, expectedhttpcode, timeout);
+    std::cout << "putting " << data.size() << " unsigned chars" << std::endl;
+    return _CallPut(relativeuri, static_cast<const void*> (&data[0]), data.size(), pt, _httpheadersstl, expectedhttpcode, 30);
 }
 
 int ControllerClientImpl::CallPutJSON(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode, double timeout)

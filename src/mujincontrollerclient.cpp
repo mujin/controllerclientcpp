@@ -141,7 +141,7 @@ ObjectResource::ObjectResource(ControllerClientPtr controller, const std::string
 {
 }
 
-ObjectResource::LinkResource::LinkResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk) : WebResource(controller, str(boost::format("object/%s/link")%objectpk), pk)
+ObjectResource::LinkResource::LinkResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk) : WebResource(controller, str(boost::format("object/%s/link")%objectpk), pk), objectpk(objectpk)
 {
 }
 
@@ -153,11 +153,11 @@ ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::AddGeometryFro
 {
     GETCONTROLLERIMPL();
     boost::property_tree::ptree pt;
-    const std::string& objectPk = GetPrimaryKey();
-    const std::string geometryPk = controller->CreateObjectGeometry(GetResourceName(), name, objectPk, timeout);
+    const std::string& linkpk = GetPrimaryKey();
+    const std::string geometryPk = controller->CreateObjectGeometry(this->objectpk, name, linkpk, timeout);
 
-    controller->SetObjectGeometryMesh(objectPk, geometryPk, rawstldata, unit, timeout);
-    return ObjectResource::GeometryResourcePtr(new GeometryResource(controller, objectPk, geometryPk));
+    controller->SetObjectGeometryMesh(linkpk, geometryPk, rawstldata, unit, timeout);
+    return ObjectResource::GeometryResourcePtr(new GeometryResource(controller, linkpk, geometryPk));
 }
 
 ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::GetGeometryFromName(const std::string& name)
