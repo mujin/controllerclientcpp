@@ -294,7 +294,7 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
     ss << "setting character set to " << _charset;
     MUJIN_LOG_INFO(ss.str());
     _SetHTTPHeadersJSON();
-    _SetHTTPHeadersBinary();
+    _SetHTTPHeadersSTL();
     try {
         GetProfile();
     }
@@ -309,8 +309,8 @@ ControllerClientImpl::~ControllerClientImpl()
     if( !!_httpheadersjson ) {
         curl_slist_free_all(_httpheadersjson);
     }
-    if( !!_httpheadersbinary ) {
-        curl_slist_free_all(_httpheadersbinary);
+    if( !!_httpheadersstl ) {
+        curl_slist_free_all(_httpheadersstl);
     }
     curl_easy_cleanup(_curl);
 }
@@ -793,6 +793,7 @@ int ControllerClientImpl::CallPost(const std::string& relativeuri, const std::st
 {
     CurlTimeoutSetter timeoutsetter(_curl, timeout);
     boost::mutex::scoped_lock lock(_mutex);
+    curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, _httpheadersjson);
     _uri = _baseapiuri;
     _uri += relativeuri;
     curl_easy_setopt(_curl, CURLOPT_URL, _uri.c_str());
@@ -830,10 +831,10 @@ int ControllerClientImpl::CallPost_UTF16(const std::string& relativeuri, const s
     return CallPost(relativeuri, encoding::ConvertUTF16ToFileSystemEncoding(data), pt, expectedhttpcode, timeout);
 }
 
-int ControllerClientImpl::CallPut(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode, double timeout, bool isJson)
+int ControllerClientImpl::_CallPut(const std::string& relativeuri, const void* pdata, size_t nDataSize, boost::property_tree::ptree& pt, curl_slist* headers, int expectedhttpcode, double timeout)
 {
     boost::mutex::scoped_lock lock(_mutex);
-    curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, isJson ? _httpheadersjson : _httpheadersbinary);
+    curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, headers);//isJson ? _httpheadersjson : _httpheadersstl);
     CurlTimeoutSetter timeoutsetter(_curl, timeout);
     _uri = _baseapiuri;
     _uri += relativeuri;
@@ -844,8 +845,8 @@ int ControllerClientImpl::CallPut(const std::string& relativeuri, const std::str
     CHECKCURLCODE(res, "failed to set writer");
     CurlWriteDataSetter writedata(_curl, &_buffer);
     curl_easy_setopt(_curl, CURLOPT_CUSTOMREQUEST, "PUT");
-    curl_easy_setopt(_curl, CURLOPT_POSTFIELDSIZE, data.size());
-    curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, data.size() > 0 ? data.c_str() : NULL);
+    curl_easy_setopt(_curl, CURLOPT_POSTFIELDSIZE, nDataSize);//data.size());
+    curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, pdata);//data.size() > 0 ? data.c_str() : NULL);
     res = curl_easy_perform(_curl);
     curl_easy_setopt(_curl, CURLOPT_CUSTOMREQUEST, NULL); // have to restore the default
     CHECKCURLCODE(res, "curl_easy_perform failed");
@@ -861,6 +862,16 @@ int ControllerClientImpl::CallPut(const std::string& relativeuri, const std::str
         throw MUJIN_EXCEPTION_FORMAT("HTTP POST to '%s' returned HTTP status %s: %s", relativeuri%http_code%error_message, MEC_HTTPServer);
     }
     return http_code;
+}
+
+int ControllerClientImpl::CallPutSTL(const std::string& relativeuri, const std::vector<uint8_t>& data, boost::property_tree::ptree& pt, int expectedhttpcode, double timeout)
+{
+    return _CallPut(relativeuri, static_cast<const void*> (&data[0]), data.size(), pt, _httpheadersjson, expectedhttpcode, timeout);
+}
+
+int ControllerClientImpl::CallPutJSON(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode, double timeout)
+{
+    return _CallPut(relativeuri, static_cast<const void*>(&data), data.size(), pt, _httpheadersjson, expectedhttpcode, timeout);
 }
 
 void ControllerClientImpl::CallDelete(const std::string& relativeuri, double timeout)
@@ -969,12 +980,14 @@ std::string ControllerClientImpl::CreateObjectGeometry(const std::string& object
     return pt.get<std::string>("pk");
 }
 
-std::string ControllerClientImpl::SetObjectGeometryMesh(const std::string& objectPk, const std::string& geometryPk, const std::string& data, const std::string& unit, double timeout)
+//controllerclient->GetObject("PK")->GetLink("PK")->CreateGeometry(data);
+    
+std::string ControllerClientImpl::SetObjectGeometryMesh(const std::string& objectPk, const std::string& geometryPk, const std::vector<unsigned char>& data, const std::string& unit, double timeout)
 {
     boost::property_tree::ptree pt;
     const std::string uri(str(boost::format("object\/%s\/geometry\/%s\/")%objectPk%geometryPk));
     std::cout << "uri: " << uri << std::endl;
-    const int status = CallPut(uri, data, pt, 202, timeout, false);
+    const int status = CallPutSTL(uri, data, pt, 202, timeout);
     assert(status == 202);
     return pt.get<std::string>("pk");
 }
@@ -1025,21 +1038,21 @@ void ControllerClientImpl::_SetHTTPHeadersJSON()
     curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, _httpheadersjson);
 }
 
-void ControllerClientImpl::_SetHTTPHeadersBinary()
+void ControllerClientImpl::_SetHTTPHeadersSTL()
 {
     // set the header to only send binary
     std::string s = std::string("Content-Type: application/sla");
-    if( !!_httpheadersbinary ) {
-        curl_slist_free_all(_httpheadersbinary);
+    if( !!_httpheadersstl ) {
+        curl_slist_free_all(_httpheadersstl);
     }
-    _httpheadersbinary = curl_slist_append(NULL, s.c_str());
-    //_httpheadersbinary = curl_slist_append(_httpheadersbinary, "Accept:"); // necessary?
+    _httpheadersstl = curl_slist_append(NULL, s.c_str());
+    //_httpheadersstl = curl_slist_append(_httpheadersstl, "Accept:"); // necessary?
     s = std::string("X-CSRFToken: ")+_csrfmiddlewaretoken;
-    _httpheadersbinary = curl_slist_append(_httpheadersbinary, s.c_str());
-    _httpheadersbinary = curl_slist_append(_httpheadersbinary, "Connection: Keep-Alive");
-    _httpheadersbinary = curl_slist_append(_httpheadersbinary, "Keep-Alive: 20"); // keep alive for 20s?
+    _httpheadersstl = curl_slist_append(_httpheadersstl, s.c_str());
+    _httpheadersstl = curl_slist_append(_httpheadersstl, "Connection: Keep-Alive");
+    _httpheadersstl = curl_slist_append(_httpheadersstl, "Keep-Alive: 20"); // keep alive for 20s?
     // test on windows first
-    //_httpheadersbinary = curl_slist_append(_httpheadersbinary, "Accept-Encoding: gzip, deflate");
+    //_httpheadersstl = curl_slist_append(_httpheadersstl, "Accept-Encoding: gzip, deflate");
 }
 
 std::string ControllerClientImpl::_GetCSRFFromCookies() {

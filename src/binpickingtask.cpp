@@ -1304,7 +1304,7 @@ boost::property_tree::ptree BinPickingTaskResource::ExecuteCommand(const std::st
     ss << "}";
     const std::string taskgoalput = ss.str();
     boost::property_tree::ptree pt;
-    controller->CallPut(str(boost::format("task/%s/?format=json")%GetPrimaryKey()), taskgoalput, pt);
+    controller->CallPutJSON(str(boost::format("task/%s/?format=json")%GetPrimaryKey()), taskgoalput, pt);
     //controller->CallGet(str(boost::format("scene/%s/resultget") % _scenepk), taskgoalput, pt);
     Execute();
 

@@ -172,13 +172,12 @@ void InitializeTask(const bpo::variables_map& opts,
 
     boost::shared_ptr<zmq::context_t> zmqcontext(new zmq::context_t(1));
     pBinpickingTask->Initialize(taskparameters, taskZmqPort, heartbeatPort, zmqcontext, false, 10, controllerCommandTimeout, userinfo, slaverequestid);
-    const string geometryPk = controllerclient->CreateObjectGeometry(objectPk, string("temp"), objectlinks.back()->pk, 5.0);
     ifstream meshStream(opts["filename"].as<string>().c_str(), ios::binary);
-    const string meshString((istreambuf_iterator<char>(meshStream)),
-                            (istreambuf_iterator<char>()));
-
-    controllerclient->SetObjectGeometryMesh(objectPk, geometryPk, meshString, "mm", 5);
-    
+    vector<unsigned char> meshData;
+    meshData.insert(meshData.begin(),
+                    std::istream_iterator<unsigned char>(meshStream),
+                    std::istream_iterator<unsigned char>());
+    objectlinks.back()->AddGeometryFromRawSTL(meshData, "temp", "mm", 5);
 }
 
 int main(int argc, char ** argv)

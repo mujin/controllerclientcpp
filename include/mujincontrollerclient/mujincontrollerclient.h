@@ -631,7 +631,7 @@ public:
     /// \param unit length unit of mesh 
     /// \param timeout timeout of uploading mesh
     ///
-    virtual std::string SetObjectGeometryMesh(const std::string& objectPk, const std::string& geometryPk, const std::string& data, const std::string& unit = "mm", double timeout = 5) = 0;
+    virtual std::string SetObjectGeometryMesh(const std::string& objectPk, const std::string& geometryPk, const std::vector<unsigned char>& data, const std::string& unit = "mm", double timeout = 5) = 0;
 
 };
 
@@ -672,11 +672,25 @@ private:
 class MUJINCLIENT_API ObjectResource : public WebResource
 {
 public:
+    class MUJINCLIENT_API GeometryResource : public WebResource {
+public:
+        GeometryResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk);
+        virtual ~GeometryResource() {
+        }
+        std::string name;
+        std::string pk;
+    };
+    typedef boost::shared_ptr<GeometryResource> GeometryResourcePtr;
+
     class MUJINCLIENT_API LinkResource : public WebResource {
 public:
         LinkResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk);
         virtual ~LinkResource() {
         }
+
+        virtual GeometryResourcePtr AddGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& name, const std::string& unit, double timeout);
+
+        virtual GeometryResourcePtr GetGeometryFromName(const std::string& name);
 
         std::vector<std::string> attachmentpks;
         std::string name;
@@ -685,12 +699,12 @@ public:
     };
     typedef boost::shared_ptr<LinkResource> LinkResourcePtr;
 
+
     ObjectResource(ControllerClientPtr controller, const std::string& pk);
     virtual ~ObjectResource() {
     }
-
     virtual void GetLinks(std::vector<LinkResourcePtr>& links);
-
+    
     std::string name;
     int nundof;
     std::string datemodified;
