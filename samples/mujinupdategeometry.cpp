@@ -178,7 +178,9 @@ void InitializeTask(const bpo::variables_map& opts,
     copy(std::istream_iterator<unsigned char>(meshStream),
          std::istream_iterator<unsigned char>(),
          back_inserter(meshData));
-    objectlinks.back()->AddGeometryFromRawSTL(meshData, "temp", "mm", 5);
+    ObjectResource::GeometryResourcePtr geometryResource = objectlinks.back()->AddGeometryFromRawSTL(meshData, "temp", "mm", 5);
+
+    geometryResource->Delete();
 }
 
 int main(int argc, char ** argv)
