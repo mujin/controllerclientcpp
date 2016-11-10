@@ -1041,7 +1041,7 @@ void ControllerClientImpl::_SetHTTPHeadersJSON()
 
 void ControllerClientImpl::_SetHTTPHeadersSTL()
 {
-    // set the header to only send binary
+    // set the header to only send stl
     std::string s = std::string("Content-Type: application/sla");
     if( !!_httpheadersstl ) {
         curl_slist_free_all(_httpheadersstl);

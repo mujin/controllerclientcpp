@@ -82,7 +82,7 @@ public:
     int CallPost_UTF8(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode=201, double timeout = 5.0);
     /// \param data utf-16 encoded
     int CallPost_UTF16(const std::string& relativeuri, const std::wstring& data, boost::property_tree::ptree& pt, int expectedhttpcode=201, double timeout = 5.0);
-    
+
     int CallPutJSON(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode=202, double timeout = 5.0);
     
     int CallPutSTL(const std::string& relativeuri, const std::vector<uint8_t>& data, boost::property_tree::ptree& pt, int expectedhttpcode=202, double timeout = 5.0);

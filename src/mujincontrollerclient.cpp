@@ -160,9 +160,9 @@ ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::AddGeometryFro
     return ObjectResource::GeometryResourcePtr(new GeometryResource(controller, linkpk, geometryPk));
 }
 
-ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::GetGeometryFromName(const std::string& name)
-{
-}
+// ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::GetGeometryFromName(const std::string& name)
+// {
+// }
 
 void ObjectResource::GetLinks(std::vector<ObjectResource::LinkResourcePtr>& links)
 {

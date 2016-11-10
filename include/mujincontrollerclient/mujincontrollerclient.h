@@ -690,7 +690,7 @@ public:
 
         virtual GeometryResourcePtr AddGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& name, const std::string& unit, double timeout);
 
-        virtual GeometryResourcePtr GetGeometryFromName(const std::string& name);
+        //virtual GeometryResourcePtr GetGeometryFromName(const std::string& name);
 
         std::vector<std::string> attachmentpks;
         std::string name;
