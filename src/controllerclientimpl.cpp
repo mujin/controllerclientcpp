@@ -142,6 +142,7 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
     std::string password = usernamepassword.substr(usernameindex+1);
 
     _httpheadersjson = NULL;
+    _httpheadersstl = NULL;
     if( baseuri.size() > 0 ) {
         _baseuri = baseuri;
         // ensure trailing slash
