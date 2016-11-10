@@ -173,10 +173,11 @@ void InitializeTask(const bpo::variables_map& opts,
     boost::shared_ptr<zmq::context_t> zmqcontext(new zmq::context_t(1));
     pBinpickingTask->Initialize(taskparameters, taskZmqPort, heartbeatPort, zmqcontext, false, 10, controllerCommandTimeout, userinfo, slaverequestid);
     ifstream meshStream(opts["filename"].as<string>().c_str(), ios::binary);
+    meshStream.unsetf(std::ios::skipws); // need this to not skip white space
     vector<unsigned char> meshData;
-    meshData.insert(meshData.begin(),
-                    std::istream_iterator<unsigned char>(meshStream),
-                    std::istream_iterator<unsigned char>());
+    copy(std::istream_iterator<unsigned char>(meshStream),
+         std::istream_iterator<unsigned char>(),
+         back_inserter(meshData));
     objectlinks.back()->AddGeometryFromRawSTL(meshData, "temp", "mm", 5);
 }
 
