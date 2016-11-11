@@ -125,7 +125,18 @@ boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std:
 
         //std::cout << result_ss.str() << std::endl;
         try {
+#ifdef _WIN32
+            // sometimes buffer can container \n or \\, which windows boost property_tree does not like
+            std::string newbuffer;
+            std::vector< std::pair<std::string, std::string> > serachpairs(2);
+            serachpairs[0].first = "\n"; serachpairs[0].second = "";
+            serachpairs[1].first = "\\"; serachpairs[1].second = "";
+            SearchAndReplace(newbuffer, result_ss.str(), serachpairs);
+            std::stringstream newss(newbuffer);
+            boost::property_tree::read_json(newss, pt);
+#else
             boost::property_tree::read_json(result_ss, pt);
+#endif
             boost::property_tree::ptree::const_assoc_iterator iterror = pt.find("error");
             if( iterror != pt.not_found() ) {
                 boost::optional<std::string> erroroptional = iterror->second.get_optional<std::string>("errorcode");
