@@ -157,12 +157,12 @@ ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::AddGeometryFro
     const std::string geometryPk = controller->CreateObjectGeometry(this->objectpk, name, linkpk, timeout);
 
     controller->SetObjectGeometryMesh(this->objectpk, geometryPk, rawstldata, unit, timeout);
-    return ObjectResource::GeometryResourcePtr(new GeometryResource(controller, linkpk, geometryPk));
+    return ObjectResource::GeometryResourcePtr(new GeometryResource(controller, this->objectpk, geometryPk));
 }
 
-// ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::GetGeometryFromName(const std::string& name)
-// {
-// }
+ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::GetGeometryFromName(const std::string& name)
+{
+}
 
 void ObjectResource::GetLinks(std::vector<ObjectResource::LinkResourcePtr>& links)
 {
