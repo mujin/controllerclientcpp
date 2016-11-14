@@ -45,7 +45,7 @@ void ConvertTimestampToFloat(const std::string& in,
         {
             throw mujinclient::MujinException(boost::str(boost::format("error while converting timestamp value format for %s")%in), mujinclient::MEC_Failed);
         }
-        const std::size_t timestampend = timestampbegin + std::min(comma, closingCurly);
+        const std::size_t timestampend = timestampbegin + (comma < closingCurly ? comma : closingCurly);
         if (timestampend == std::string::npos) {
             throw mujinclient::MujinException(boost::str(boost::format("error while converting timestamp value format for %s")%in), mujinclient::MEC_Failed);
         }
