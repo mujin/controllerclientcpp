@@ -25,6 +25,45 @@
 
 MUJIN_LOGGER("mujin.controllerclientcpp.binpickingtask.zmq");
 
+namespace
+{
+void ConvertTimestampToFloat(const std::string& in,
+                             std::stringstream& outss)
+{
+    const std::size_t len = in.size();
+    std::size_t processed = 0;
+    while (processed != std::string::npos && processed < len) {
+        const std::size_t deltabegin = in.substr(processed, len).find("\"timestamp\":");
+        if (deltabegin == std::string::npos) {
+            outss << in.substr(processed, len);
+            return;
+        }
+        const std::size_t timestampbegin = processed + deltabegin;
+        const std::size_t comma = in.substr(timestampbegin, len).find(",");
+        const std::size_t closingCurly = in.substr(timestampbegin, len).find("}");
+        if (comma == std::string::npos && closingCurly == std::string::npos)
+        {
+            throw mujinclient::MujinException(boost::str(boost::format("error while converting timestamp value format for %s")%in), mujinclient::MEC_Failed);
+        }
+        const std::size_t timestampend = timestampbegin + std::min(comma, closingCurly);
+        if (timestampend == std::string::npos) {
+            throw mujinclient::MujinException(boost::str(boost::format("error while converting timestamp value format for %s")%in), mujinclient::MEC_Failed);
+        }
+        const std::size_t period = in.substr(timestampbegin, len).find(".");
+
+        if (period == std::string::npos || timestampbegin + period > timestampend) {
+            // no comma, assume this is in integet format. so add period to make it a float format.
+            outss << in.substr(processed, timestampend - processed) << ".";
+        }
+        else {
+            // already floating format. keep it that way
+            outss << in.substr(processed, timestampend - processed);
+        }
+        processed = timestampend;
+    }
+}
+}
+
 namespace mujinclient {
 using namespace utils;
 
@@ -123,9 +162,13 @@ boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std:
             }
         }
 
-        //std::cout << result_ss.str() << std::endl;
         try {
-            boost::property_tree::read_json(result_ss, pt);
+            // temporary fix until we move on to rapid json
+            std::stringstream result_ss_float_timestamp;
+            ConvertTimestampToFloat(result_ss.str(), result_ss_float_timestamp);
+            std::cout << result_ss.str() << std::endl
+                      << result_ss_float_timestamp.str() << std::endl;
+            boost::property_tree::read_json(result_ss_float_timestamp, pt);
             boost::property_tree::ptree::const_assoc_iterator iterror = pt.find("error");
             if( iterror != pt.not_found() ) {
                 boost::optional<std::string> erroroptional = iterror->second.get_optional<std::string>("errorcode");
