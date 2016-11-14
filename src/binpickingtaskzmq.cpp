@@ -166,9 +166,18 @@ boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std:
             // temporary fix until we move on to rapid json
             std::stringstream result_ss_float_timestamp;
             ConvertTimestampToFloat(result_ss.str(), result_ss_float_timestamp);
-            std::cout << result_ss.str() << std::endl
-                      << result_ss_float_timestamp.str() << std::endl;
+#ifdef _WIN32
+            // sometimes buffer can container \n or \\, which windows boost property_tree does not like
+            std::string newbuffer;
+            std::vector< std::pair<std::string, std::string> > serachpairs(2);
+            serachpairs[0].first = "\n"; serachpairs[0].second = "";
+            serachpairs[1].first = "\\"; serachpairs[1].second = "";
+            SearchAndReplace(newbuffer, result_ss_float_timestamp.str(), serachpairs);
+            std::stringstream newss(newbuffer);
+            boost::property_tree::read_json(newss, pt);
+#else
             boost::property_tree::read_json(result_ss_float_timestamp, pt);
+#endif
             boost::property_tree::ptree::const_assoc_iterator iterror = pt.find("error");
             if( iterror != pt.not_found() ) {
                 boost::optional<std::string> erroroptional = iterror->second.get_optional<std::string>("errorcode");
