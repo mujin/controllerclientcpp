@@ -172,6 +172,7 @@ boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std:
             std::vector< std::pair<std::string, std::string> > serachpairs(2);
             serachpairs[0].first = "\n"; serachpairs[0].second = "";
             serachpairs[1].first = "\\"; serachpairs[1].second = "";
+            serachpairs[1].first = "\/"; serachpairs[1].second = "";
             SearchAndReplace(newbuffer, result_ss_float_timestamp.str(), serachpairs);
             std::stringstream newss(newbuffer);
             boost::property_tree::read_json(newss, pt);
