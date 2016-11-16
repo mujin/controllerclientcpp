@@ -163,21 +163,10 @@ boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std:
         }
 
         try {
-            // temporary fix until we move on to rapid json
-            std::stringstream result_ss_float_timestamp;
-            ConvertTimestampToFloat(result_ss.str(), result_ss_float_timestamp);
-#ifdef _WIN32
-            // sometimes buffer can container \n or \\, which windows boost property_tree does not like
-            std::string newbuffer;
-            std::vector< std::pair<std::string, std::string> > serachpairs(2);
-            serachpairs[0].first = "\n"; serachpairs[0].second = "";
-            serachpairs[1].first = "\\"; serachpairs[1].second = "";
-            serachpairs[1].first = "\/"; serachpairs[1].second = "";
-            SearchAndReplace(newbuffer, result_ss_float_timestamp.str(), serachpairs);
-            std::stringstream newss(newbuffer);
-            boost::property_tree::read_json(newss, pt);
+#if defined(_WIN32) || defined(_WIN64)
+            ParsePropertyTreeWin(result_ss.str(), pt);
 #else
-            boost::property_tree::read_json(result_ss_float_timestamp, pt);
+            boost::property_tree::read_json(result_ss, pt);
 #endif
             boost::property_tree::ptree::const_assoc_iterator iterror = pt.find("error");
             if( iterror != pt.not_found() ) {
@@ -253,18 +242,13 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
                 zmq::message_t reply;
                 socket->recv(&reply);
                 std::string replystring((char *) reply.data (), (size_t) reply.size());                
-#ifdef _WIN32
-                // sometimes buffer can container \n or \\, which windows boost property_tree does not like
-                std::string newbuffer;
-                std::vector< std::pair<std::string, std::string> > serachpairs(1);
-                serachpairs[0].first = "\\"; serachpairs[0].second = "";
-                SearchAndReplace(newbuffer, replystring, serachpairs);
-                std::stringstream replystring_ss(newbuffer);
-#else
-                std::stringstream replystring_ss(replystring);
-#endif
                 try{
+#if defined(_WIN32) || defined(_WIN64)
+                    ParsePropertyTreeWin(replystring, pt);
+#else
+                    std::stringstream replystring_ss(replystring);
                     boost::property_tree::read_json(replystring_ss, pt);
+#endif
                 }
                 catch (std::exception const &e) {
                     MUJIN_LOG_ERROR("HeartBeat reply is not JSON");
