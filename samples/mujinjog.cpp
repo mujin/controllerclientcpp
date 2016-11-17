@@ -44,7 +44,7 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("locale", bpo::value<string>()->default_value("en_US"), "locale to use for the mujin controller client")
         ("task_scenepk", bpo::value<string>()->default_value(""), "scene pk of the binpicking task on the mujin controller, e.g. officeboltpicking.mujin.dae.")
         ("robotname", bpo::value<string>()->default_value(""), "robot name.")
-        ("taskparameters", bpo::value<string>()->default_value("{}"), "binpicking task parameters, e.g. {'robotname': 'robot', 'robots':{'robot': {'externalCollisionIO':{}, 'gripperControlInfo':{}, 'robotControllerUri': '', robotDeviceIOUri': '', 'toolname': 'tool'}}}")
+        ("taskparameters", bpo::value<string>()->default_value("{\"robotname\" : \"Robot\", \"robots\":{\"Robot\" : {\"robotControllerUri\":\"ethercat://0:0/?slaves=0,1,2,3,4,5,6\"}}}"), "binpicking task parameters, e.g. {'robotname': 'robot', 'robots':{'robot': {'externalCollisionIO':{}, 'gripperControlInfo':{}, 'robotControllerUri': '', robotDeviceIOUri': '', 'toolname': 'tool'}}}")
         ("zmq_port", bpo::value<unsigned int>()->default_value(11000), "port of the binpicking task on the mujin controller")
         ("heartbeat_port", bpo::value<unsigned int>()->default_value(11001), "port of the binpicking task's heartbeat signal on the mujin controller")
         ("jointmode", bpo::value<bool>()->default_value(true), "mode to do jogging. true indicates joint mode and tool mode otherwise")
@@ -107,17 +107,17 @@ void InitializeTask(const bpo::variables_map& opts,
     const bool needtoobtainfromheatbeat = taskScenePk.empty() || slaverequestid.empty();
     if (needtoobtainfromheatbeat) {
         stringstream endpoint;
-        endpoint << "tcp:\/\/" << hostname << ":" << heartbeatPort;
+        endpoint << "tcp://" << hostname << ":" << heartbeatPort;
         cout << "connecting to heartbeat at " << endpoint.str() << endl;
         string heartbeat;
-        const size_t num_try_heartbeat(5);
+        const size_t num_try_heartbeat(10);
         for (size_t it_try_heartbeat = 0; it_try_heartbeat < num_try_heartbeat; ++it_try_heartbeat) {
             heartbeat = utils::GetHeartbeat(endpoint.str());
             if (!heartbeat.empty()) {
                 break;
             }
             cout << "Failed to get heart beat " << it_try_heartbeat << "/" << num_try_heartbeat << "\n";
-            boost::this_thread::sleep(boost::posix_time::seconds(1));
+            boost::this_thread::sleep(boost::posix_time::seconds(0.1));
         }
         if (heartbeat.empty()) {
             throw MujinException(boost::str(boost::format("Failed to obtain heartbeat from %s. Is controller running?")%endpoint.str()));
@@ -296,10 +296,4 @@ void sigint_handler(int sig)
 {
     s_sigintreceived = true;
     cout << "Sigint received. Stopping jogging\n";
-    
-#ifndef _WIN32
-    // have to let the default sigint properly shutdown the program
-    signal(SIGINT, SIG_DFL);
-    kill(0 /*getpid()*/, SIGINT);
-#endif
 }
