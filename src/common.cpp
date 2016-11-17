@@ -143,16 +143,16 @@ void ParsePropertyTreeWin(const std::string& originalStr,
     {
         // need to first deal with this case alone. since dealing with "\\\"" and "\\" simultaneously does not give us good result.
         // for example, input string "\\\"", it can be matched by both "\\\"" and "\\" and result is not predictable.
-        std::vector< std::pair<std::string, std::string> > serachpairs_first(1);
-        serachpairs_first[0].first = "\\\""; serachpairs_first[0].second = "";
-        mujinclient::SearchAndReplace(newbuffer1, originalStr, serachpairs_first);
+        std::vector< std::pair<std::string, std::string> > serachpairs(1);
+        serachpairs[0].first = "\\\""; serachpairs[0].second = "";
+        mujinclient::SearchAndReplace(newbuffer1, originalStr, serachpairs);
     }
     {
-        std::vector< std::pair<std::string, std::string> > serachpairs_second(3);
-        serachpairs_second[0].first = "\/"; serachpairs_second[0].second = "";
-        serachpairs_second[1].first = "\\"; serachpairs_second[1].second = "";
-        serachpairs_second[2].first = "\\n"; serachpairs_second[2].second = " ";
-        mujinclient::SearchAndReplace(newbuffer2, newbuffer1, serachpairs_second);
+        std::vector< std::pair<std::string, std::string> > serachpairs(3);
+        serachpairs[0].first = "\\/"; serachpairs[0].second = "";
+        serachpairs[1].first = "\\"; serachpairs[1].second = "";
+        serachpairs[2].first = "\\n"; serachpairs[2].second = " ";
+        mujinclient::SearchAndReplace(newbuffer2, newbuffer1, serachpairs);
     }
 
     std::stringstream newss;
