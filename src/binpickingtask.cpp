@@ -1629,11 +1629,7 @@ std::string GetValueForSmallestSlaveRequestId(const std::string& heartbeat,
 
     
 std::string mujinclient::utils::GetScenePkFromHeatbeat(const std::string& heartbeat) {
-#if defined(_WIN32) || defined(_WIN64)
-    static const std::string prefix("mujin:"); // "slash is replaced with empty string in windows
-#else
     static const std::string prefix("mujin:/");
-#endif
     return GetValueForSmallestSlaveRequestId(heartbeat, "currentsceneuri").substr(prefix.length());
 }
 

@@ -683,7 +683,7 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, boost::property_t
     CHECKCURLCODE(res, "curl_easy_getinfo");
     if( _buffer.rdbuf()->in_avail() > 0 ) {
 #if defined(_WIN32) || defined(_WIN64)
-		ParsePropertyTreeWin(_buffer.str(), pt);
+        ParsePropertyTreeWin(_buffer.str(), pt);
 #else
         boost::property_tree::read_json(_buffer, pt);
 #endif
@@ -724,9 +724,9 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, std::string& outp
         if( outputdata.size() > 0 ) {
             boost::property_tree::ptree pt;
 #if defined(_WIN32) || defined(_WIN64)
-	    	ParsePropertyTreeWin(_buffer.str(), pt);
+            ParsePropertyTreeWin(_buffer.str(), pt);
 #else
-			boost::property_tree::read_json(_buffer, pt);
+            boost::property_tree::read_json(_buffer, pt);
 #endif
             std::string error_message = pt.get<std::string>("error_message", std::string());
             std::string traceback = pt.get<std::string>("traceback", std::string());
@@ -769,7 +769,7 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, std::vector<unsig
             try {
                 boost::property_tree::ptree pt;
 #if defined(_WIN32) || defined(_WIN64)
-        		ParsePropertyTreeWin(ss.str(), pt);
+                ParsePropertyTreeWin(ss.str(), pt);
 #else
                 boost::property_tree::read_json(ss, pt);
 #endif
@@ -810,7 +810,7 @@ int ControllerClientImpl::CallPost(const std::string& relativeuri, const std::st
     CHECKCURLCODE(res, "curl_easy_getinfo failed");
     if( _buffer.rdbuf()->in_avail() > 0 ) {
 #if defined(_WIN32) || defined(_WIN64)
-		ParsePropertyTreeWin(_buffer.str(), pt);
+        ParsePropertyTreeWin(_buffer.str(), pt);
 #else
         boost::property_tree::read_json(_buffer, pt);
 #endif
@@ -856,7 +856,7 @@ int ControllerClientImpl::CallPut(const std::string& relativeuri, const std::str
     CHECKCURLCODE(res, "curl_easy_getinfo failed");
     if( _buffer.rdbuf()->in_avail() > 0 ) {
 #if defined(_WIN32) || defined(_WIN64)
-		ParsePropertyTreeWin(_buffer.str(), pt);
+        ParsePropertyTreeWin(_buffer.str(), pt);
 #else
         boost::property_tree::read_json(_buffer, pt);
 #endif

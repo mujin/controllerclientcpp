@@ -135,9 +135,8 @@ void ConvertTimestampToFloat(const std::string& in,
 
 
 void ParsePropertyTreeWin(const std::string& originalStr,
-		                   boost::property_tree::ptree& pt)
+                          boost::property_tree::ptree& pt)
 {
-
     // sometimes buffer can containe \n, \\ and so on, which windows boost property_tree does not like
     std::string newbuffer1, newbuffer2;
     {
