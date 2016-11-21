@@ -1,9 +1,9 @@
 // -*- coding: utf-8 -*-
 /** \example mujinjog.cpp
 
-    Shows how to jog robot in joint and tool spaces.
+    Shows how to jog robot in joint, robot and tool spaces.
     example1: mujinjog --controller_hostname=yourhost --robotname=yourrobot
-    example2: mujinjog --controller_hostname=yourhost --robotname=yourrobot --task_scenepk=yourscene --jointmode=false --axis=1 --move_in_positive=true --speed=0.2
+    example2: mujinjog --controller_hostname=yourhost --robotname=yourrobot --task_scenepk=yourscene --type=tool --axis=1 --move_in_positive=true --speed=0.2
  */
 
 #include <mujincontrollerclient/binpickingtask.h>
@@ -47,7 +47,7 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("taskparameters", bpo::value<string>()->default_value("{\"robotname\" : \"Robot\", \"robots\":{\"Robot\" : {\"robotControllerUri\":\"ethercat://0:0/?slaves=0,1,2,3,4,5,6\"}}}"), "binpicking task parameters, e.g. {'robotname': 'robot', 'robots':{'robot': {'externalCollisionIO':{}, 'gripperControlInfo':{}, 'robotControllerUri': '', robotDeviceIOUri': '', 'toolname': 'tool'}}}")
         ("zmq_port", bpo::value<unsigned int>()->default_value(11000), "port of the binpicking task on the mujin controller")
         ("heartbeat_port", bpo::value<unsigned int>()->default_value(11001), "port of the binpicking task's heartbeat signal on the mujin controller")
-        ("jointmode", bpo::value<bool>()->default_value(true), "mode to do jogging. true indicates joint mode and tool mode otherwise")
+        ("type", bpo::value<string>()->default_value("joints"), "mode to do jogging. one of \"joints\", \"robot\" or \"tool\"")
         ("axis", bpo::value<unsigned int>()->default_value(0), "axis to do jogging on. For joint mode, 0 indicates J1 and 5 indicates J6. For tool mode, 0 indicates translation in X, 5 indicates rotation in Z")
         ("move_in_positive", bpo::value<bool>()->default_value(true), "whether to move in increasing or decreasing direction")
         ("jog_duration", bpo::value<double>()->default_value(1.0), "duration of jogging")
@@ -277,7 +277,7 @@ int main(int argc, char ** argv)
     const double acc = speed * 0.7;
     const double timeout = opts["controller_command_timeout"].as<double>();
     const double jogduration = opts["jog_duration"].as<double>();
-    const string mode =  opts["jointmode"].as<bool>() ? "joints" : "tool";
+    const string mode =  opts["type"].as<string>();
 
     // initializing
     BinPickingTaskResourcePtr pBinpickingTask;
