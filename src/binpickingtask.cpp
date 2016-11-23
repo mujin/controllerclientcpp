@@ -1289,6 +1289,36 @@ void BinPickingTaskResource::MoveToHandPosition(const std::string& goaltype, con
     ExecuteCommand(_ss.str(), timeout);
 }
 
+void BinPickingTaskResource::Grab(const std::string& targetname, const std::string& robotname, const std::string& toolname, const double timeout)
+{
+    SetMapTaskParameters(_ss, _mapTaskParameters);
+    _ss << GetJsonString("command", "Grab") << ", ";
+    _ss << GetJsonString("targetname", targetname) << ", ";
+    if (!robotname.empty()) {
+        _ss << GetJsonString("robotname", robotname) << ", ";
+    }
+    if (!toolname.empty()) {
+        _ss << GetJsonString("toolname", toolname) << ", ";
+    }
+    _ss << "}";
+    ExecuteCommand(_ss.str(), timeout);
+}
+
+void BinPickingTaskResource::Release(const std::string& targetname, const std::string& robotname, const std::string& toolname, const double timeout)
+{
+    SetMapTaskParameters(_ss, _mapTaskParameters);
+    _ss << GetJsonString("command", "Release") << ", ";
+    _ss << GetJsonString("targetname", targetname) << ", ";
+    if (!robotname.empty()) {
+        _ss << GetJsonString("robotname", robotname) << ", ";
+    }
+    if (!toolname.empty()) {
+        _ss << GetJsonString("toolname", toolname) << ", ";
+    }
+    _ss << "}";
+    ExecuteCommand(_ss.str(), timeout);
+}
+
 const std::string& BinPickingTaskResource::GetSlaveRequestId() const
 {
     return _slaverequestid;

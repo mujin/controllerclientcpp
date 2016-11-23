@@ -183,6 +183,13 @@ enum JobStatusCode {
     JSC_Unknown = 0xffffffff, ///< the job is unknown
 };
 
+
+/// \brief get status code from string representation
+///
+/// \param str string representation of status
+/// \return JobStatusCode equivalent
+JobStatusCode GetStatusCode(const std::string& str);
+
 struct JobStatus
 {
     JobStatus() : code(JSC_Unknown) {

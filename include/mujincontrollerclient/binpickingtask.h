@@ -328,6 +328,20 @@ public:
     /// \param timeout timeout of communication
     virtual void MoveToHandPosition(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname = "", const std::string& toolname = "", const double robotspeed = -1, const double timeout = 10);
 
+    /// \brief grabs object
+    /// \param targetname name of the target to grab
+    /// \param robotname name of the robot to grab with
+    /// \param toolname name of the tool to grab with
+    /// \param timeout timeout of communication
+    virtual void Grab(const std::string& targetname, const std::string& robotname = "", const std::string& toolname = "", const double timeout = 1);
+
+    /// \brief releases object
+    /// \param targetname name of the target to release
+    /// \param robotname name of the robot to release from
+    /// \param toolname name of the tool to release from
+    /// \param timeout timeout of communication
+    virtual void Release(const std::string& targetname, const std::string& robotname = "", const std::string& toolname = "", const double timeout = 1);
+
     /** \brief Monitors heartbeat signals from a running binpicking ZMQ server, and reinitializes the ZMQ server when heartbeat is lost.
         \param reinitializetimeout seconds to wait before re-initializing the ZMQ server after the heartbeat signal is lost
         \param execfn function to use to execute the InitializeZMQ command

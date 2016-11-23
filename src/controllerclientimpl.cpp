@@ -422,7 +422,7 @@ void ControllerClientImpl::GetRunTimeStatuses(std::vector<JobStatus>& statuses, 
     statuses.resize(objects.size());
     FOREACH(v, objects) {
         statuses[i].pk = v->second.get<std::string>("pk");
-        statuses[i].code = static_cast<JobStatusCode>(boost::lexical_cast<int>(v->second.get<std::string>("status")));
+        statuses[i].code = GetStatusCode(v->second.get<std::string>("status"));
         statuses[i].type = v->second.get<std::string>("fnname");
         statuses[i].elapsedtime = v->second.get<double>("elapsedtime");
         if( options & 1 ) {

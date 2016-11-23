@@ -742,6 +742,23 @@ void TaskResource::Cancel()
     BOOST_ASSERT(0);
 }
 
+JobStatusCode GetStatusCode(const std::string& str)
+{
+    MUJIN_LOG_INFO(str);
+    if (str == "pending") return JSC_Pending;
+    if (str == "active") return JSC_Active;
+    if (str == "preempted") return JSC_Preempted;
+    if (str == "succeeded") return JSC_Succeeded;
+    if (str == "aborted") return JSC_Aborted;
+    if (str == "rejected") return JSC_Rejected;
+    if (str == "preempting") return JSC_Preempting;
+    if (str == "recalling") return JSC_Recalling;
+    if (str == "recalled") return JSC_Recalled;
+    if (str == "lost") return JSC_Lost;
+    if (str == "unknown") return JSC_Unknown;
+    throw MUJIN_EXCEPTION_FORMAT("unknown staus %s", str, MEC_InvalidArguments);
+}
+
 void TaskResource::GetRunTimeStatus(JobStatus& status, int options)
 {
     status.code = JSC_Unknown;
@@ -755,7 +772,7 @@ void TaskResource::GetRunTimeStatus(JobStatus& status, int options)
         controller->CallGet(url, pt);
         //pt.get("error_message")
         status.pk = pt.get<std::string>("pk");
-        status.code = static_cast<JobStatusCode>(boost::lexical_cast<int>(pt.get<std::string>("status")));
+        status.code = GetStatusCode(pt.get<std::string>("status"));
         status.type = pt.get<std::string>("fnname");
         status.elapsedtime = pt.get<Real>("elapsedtime");
         if( options & 1 ) {
@@ -941,7 +958,7 @@ void OptimizationResource::GetRunTimeStatus(JobStatus& status, int options)
         controller->CallGet(url, pt);
         //pt.get("error_message")
         status.pk = pt.get<std::string>("pk");
-        status.code = static_cast<JobStatusCode>(boost::lexical_cast<int>(pt.get<std::string>("status")));
+        status.code = GetStatusCode(pt.get<std::string>("status"));
         status.type = pt.get<std::string>("fnname");
         status.elapsedtime = pt.get<Real>("elapsedtime");
         if( options & 1 ) {
