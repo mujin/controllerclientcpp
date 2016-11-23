@@ -141,8 +141,38 @@ ObjectResource::ObjectResource(ControllerClientPtr controller, const std::string
 {
 }
 
-ObjectResource::LinkResource::LinkResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk) : WebResource(controller, str(boost::format("object/%s/link")%objectpk), pk)
+ObjectResource::LinkResource::LinkResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk) : WebResource(controller, str(boost::format("object/%s/link")%objectpk), pk), objectpk(objectpk)
 {
+}
+
+ObjectResource::GeometryResource::GeometryResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk) : WebResource(controller, str(boost::format("object/%s/geometry")%objectpk), pk)
+{
+}
+
+ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::AddGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& name, const std::string& unit, double timeout)
+{
+    GETCONTROLLERIMPL();
+    boost::property_tree::ptree pt;
+    const std::string& linkpk = GetPrimaryKey();
+    const std::string geometryPk = controller->CreateObjectGeometry(this->objectpk, name, linkpk, timeout);
+
+    controller->SetObjectGeometryMesh(this->objectpk, geometryPk, rawstldata, unit, timeout);
+    return ObjectResource::GeometryResourcePtr(new GeometryResource(controller, this->objectpk, geometryPk));
+}
+
+ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::GetGeometryFromName(const std::string& geometryName)
+{
+    GETCONTROLLERIMPL();
+    boost::property_tree::ptree pt;
+    const std::string relativeuri(str(boost::format("object/%s/geometry/?format=json&limit=0&fields=geometries")%this->objectpk));
+    controller->CallGet(relativeuri, pt);
+    boost::property_tree::ptree& objects = pt.get_child("geometries");
+    FOREACH(v, objects) {
+        if (v->second.find("name") != v->second.not_found() && v->second.get<std::string>("name") == geometryName) {
+            return ObjectResource::GeometryResourcePtr(new GeometryResource(controller, this->objectpk, v->second.get<std::string>("pk")));
+        }
+    }
+    throw MUJIN_EXCEPTION_FORMAT("link %s does not have geometry named %s", this->name%geometryName, MEC_InvalidArguments);
 }
 
 void ObjectResource::GetLinks(std::vector<ObjectResource::LinkResourcePtr>& links)
@@ -305,7 +335,7 @@ void SceneResource::InstObject::SetTransform(const Transform& t)
     GETCONTROLLERIMPL();
     boost::property_tree::ptree pt;
     std::string data = str(boost::format("{\"quaternion\":[%.15f, %.15f, %.15f, %.15f], \"translate\":[%.15f, %.15f, %.15f]}")%t.quaternion[0]%t.quaternion[1]%t.quaternion[2]%t.quaternion[3]%t.translate[0]%t.translate[1]%t.translate[2]);
-    controller->CallPut(str(boost::format("%s/%s/?format=json")%GetResourceName()%GetPrimaryKey()), data, pt);
+    controller->CallPutJSON(str(boost::format("%s/%s/?format=json")%GetResourceName()%GetPrimaryKey()), data, pt);
 }
 
 void SceneResource::InstObject::SetDOFValues()
@@ -324,7 +354,7 @@ void SceneResource::InstObject::SetDOFValues()
         }
     }
     ss << "]}";
-    controller->CallPut(str(boost::format("%s/%s/?format=json")%GetResourceName()%GetPrimaryKey()), ss.str(), pt);
+    controller->CallPutJSON(str(boost::format("%s/%s/?format=json")%GetResourceName()%GetPrimaryKey()), ss.str(), pt);
 }
 
 
@@ -355,7 +385,7 @@ void SceneResource::InstObject::GrabObject(InstObjectPtr grabbedobject, std::str
     ss << "]}";
     GETCONTROLLERIMPL();
     boost::property_tree::ptree pt;
-    controller->CallPut(str(boost::format("%s/%s/?format=json")%GetResourceName()%GetPrimaryKey()), ss.str(), pt);
+    controller->CallPutJSON(str(boost::format("%s/%s/?format=json")%GetResourceName()%GetPrimaryKey()), ss.str(), pt);
 }
 
 void SceneResource::InstObject::ReleaseObject(InstObjectPtr grabbedobject, std::string& grabbedobjectlinkpk, std::string& grabbinglinkpk)
@@ -381,7 +411,7 @@ void SceneResource::InstObject::ReleaseObject(InstObjectPtr grabbedobject, std::
             ss << "]}";
             GETCONTROLLERIMPL();
             boost::property_tree::ptree pt;
-            controller->CallPut(str(boost::format("%s/%s/?format=json")%GetResourceName()%GetPrimaryKey()), ss.str(), pt);
+            controller->CallPutJSON(str(boost::format("%s/%s/?format=json")%GetResourceName()%GetPrimaryKey()), ss.str(), pt);
         }
     }
     std::stringstream ss;
@@ -481,7 +511,7 @@ void SceneResource::SetInstObjectsState(const std::vector<SceneResource::InstObj
         }
     }
     std::string data = str(boost::format("{\"objects\": [%s]}")%datastring);
-    controller->CallPut(str(boost::format("%s/%s/instobject/?format=json")%GetResourceName()%GetPrimaryKey()), data, pt);
+    controller->CallPutJSON(str(boost::format("%s/%s/instobject/?format=json")%GetResourceName()%GetPrimaryKey()), data, pt);
 }
 
 TaskResourcePtr SceneResource::GetTaskFromName_UTF8(const std::string& taskname, int options)
@@ -911,7 +941,7 @@ void TaskResource::SetTaskParameters(const ITLPlanningTaskParameters& taskparame
     SearchAndReplace(program, taskparameters.program, serachpairs);
     std::string taskgoalput = str(boost::format("{\"tasktype\": \"itlplanning\", \"taskparameters\":{\"optimizationvalue\":%f, \"program\":\"%s\", \"unit\":\"%s\", \"returnmode\":\"%s\", \"startfromcurrent\":\"%s\", \"ignorefigure\":\"%s\", \"vrcruns\":%d %s %s } }")%taskparameters.optimizationvalue%program%taskparameters.unit%taskparameters.returnmode%startfromcurrent%ignorefigure%vrcruns%ssinitial_envstate.str()%ssfinal_envstate.str());
     boost::property_tree::ptree pt;
-    controller->CallPut(str(boost::format("task/%s/?format=json&fields=")%GetPrimaryKey()), taskgoalput, pt);
+    controller->CallPutJSON(str(boost::format("task/%s/?format=json&fields=")%GetPrimaryKey()), taskgoalput, pt);
 }
 
 PlanningResultResourcePtr TaskResource::GetResult()
@@ -973,7 +1003,7 @@ void OptimizationResource::SetOptimizationParameters(const RobotPlacementOptimiz
     std::string ignorebasecollision = optparams.ignorebasecollision ? "True" : "False";
     std::string optimizationgoalput = str(boost::format("{\"optimizationtype\":\"robotplacement\", \"optimizationparameters\":{\"targetname\":\"%s\", \"frame\":\"%s\", \"ignorebasecollision\":\"%s\", \"unit\":\"%s\", \"maxrange_\":[ %.15f, %.15f, %.15f, %.15f],  \"minrange_\":[ %.15f, %.15f, %.15f, %.15f], \"stepsize_\":[ %.15f, %.15f, %.15f, %.15f], \"topstorecandidates\":%d} }")%optparams.targetname%optparams.framename%ignorebasecollision%optparams.unit%optparams.maxrange[0]%optparams.maxrange[1]%optparams.maxrange[2]%optparams.maxrange[3]%optparams.minrange[0]%optparams.minrange[1]%optparams.minrange[2]%optparams.minrange[3]%optparams.stepsize[0]%optparams.stepsize[1]%optparams.stepsize[2]%optparams.stepsize[3]%optparams.topstorecandidates);
     boost::property_tree::ptree pt;
-    controller->CallPut(str(boost::format("optimization/%s/?format=json&fields=")%GetPrimaryKey()), optimizationgoalput, pt);
+    controller->CallPutJSON(str(boost::format("optimization/%s/?format=json&fields=")%GetPrimaryKey()), optimizationgoalput, pt);
 }
 
 void OptimizationResource::SetOptimizationParameters(const PlacementsOptimizationParameters& optparams)
@@ -991,7 +1021,7 @@ void OptimizationResource::SetOptimizationParameters(const PlacementsOptimizatio
     }
     optimizationgoalput << "} }";
     boost::property_tree::ptree pt;
-    controller->CallPut(str(boost::format("optimization/%s/?format=json&fields=")%GetPrimaryKey()), optimizationgoalput.str(), pt);
+    controller->CallPutJSON(str(boost::format("optimization/%s/?format=json&fields=")%GetPrimaryKey()), optimizationgoalput.str(), pt);
 }
 
 void OptimizationResource::GetResults(std::vector<PlanningResultResourcePtr>& results, int startoffset, int num)

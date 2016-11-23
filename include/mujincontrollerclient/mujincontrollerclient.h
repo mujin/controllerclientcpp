@@ -628,6 +628,18 @@ public:
     ///
     /// \return utf-16 encoded name
     virtual std::wstring GetNameFromPrimaryKey_UTF16(const std::string& pk) = 0;
+
+    virtual std::string CreateObjectGeometry(const std::string& objectPk, const std::string& name, const std::string& linkPk, double timeout) = 0;
+
+    /// \brief set geometry mesh to an object
+    /// \param objectPk primary key for the object to set mesh data to
+    /// \param geometryPk primary key for the geometry
+    /// \param data stl format binary mesh data
+    /// \param unit length unit of mesh 
+    /// \param timeout timeout of uploading mesh
+    ///
+    virtual std::string SetObjectGeometryMesh(const std::string& objectPk, const std::string& geometryPk, const std::vector<unsigned char>& data, const std::string& unit = "mm", double timeout = 5) = 0;
+
 };
 
 class MUJINCLIENT_API WebResource
@@ -667,25 +679,40 @@ private:
 class MUJINCLIENT_API ObjectResource : public WebResource
 {
 public:
+    class MUJINCLIENT_API GeometryResource : public WebResource {
+public:
+        GeometryResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk);
+        virtual ~GeometryResource() {
+        }
+        std::string name;
+        std::string pk;
+    };
+    typedef boost::shared_ptr<GeometryResource> GeometryResourcePtr;
+
     class MUJINCLIENT_API LinkResource : public WebResource {
 public:
         LinkResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk);
         virtual ~LinkResource() {
         }
 
+        virtual GeometryResourcePtr AddGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& name, const std::string& unit, double timeout);
+
+        virtual GeometryResourcePtr GetGeometryFromName(const std::string& geometryName);
+
         std::vector<std::string> attachmentpks;
         std::string name;
         std::string pk;
+        std::string objectpk; // is this necessary?
         //TODO transforms
     };
     typedef boost::shared_ptr<LinkResource> LinkResourcePtr;
 
+
     ObjectResource(ControllerClientPtr controller, const std::string& pk);
     virtual ~ObjectResource() {
     }
-
     virtual void GetLinks(std::vector<LinkResourcePtr>& links);
-
+    
     std::string name;
     int nundof;
     std::string datemodified;
