@@ -99,7 +99,7 @@ public:
     /// \param expectedhttpcode expected http code
     /// \param timeout timeout of puts
     /// \return http code returned
-    int CallPutSTL(const std::string& relativeuri, const std::vector<uint8_t>& data, boost::property_tree::ptree& pt, int expectedhttpcode=202, double timeout = 5.0);
+    int CallPutSTL(const std::string& relativeuri, const std::vector<unsigned char>& data, boost::property_tree::ptree& pt, int expectedhttpcode=202, double timeout = 5.0);
     
 
     void CallDelete(const std::string& relativeuri, double timeout = 5.0);

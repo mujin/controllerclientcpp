@@ -875,7 +875,7 @@ int ControllerClientImpl::_CallPut(const std::string& relativeuri, const void* p
     return http_code;
 }
 
-int ControllerClientImpl::CallPutSTL(const std::string& relativeuri, const std::vector<uint8_t>& data, boost::property_tree::ptree& pt, int expectedhttpcode, double timeout)
+int ControllerClientImpl::CallPutSTL(const std::string& relativeuri, const std::vector<unsigned char>& data, boost::property_tree::ptree& pt, int expectedhttpcode, double timeout)
 {
     return _CallPut(relativeuri, static_cast<const void*> (&data[0]), data.size(), pt, _httpheadersstl, expectedhttpcode, 30);
 }
