@@ -317,7 +317,7 @@ public:
     /// \param toolname name of the tool to move
     /// \param robotspeed speed at which to move. this is a ratio to maximum speed and thus valid range is 0 to 1.
     /// \param timeout timeout of communication
-    virtual void MoveToolLinear(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname = "", const std::string& toolname = "", const double robotspeed = -1, const double timeout = 10);
+    virtual void MoveToolLinear(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname = "", const std::string& toolname = "", const double robotspeed = -1, const double timeout = 10, bool checkEndeffectorCollision = false);
 
     /// \brief Moves hand to specified posistion
     /// \param goaltype whether to specify goal in full six degrees of freedom (transform6d) or three dimentional position and two dimentional angle (translationdirection5d)

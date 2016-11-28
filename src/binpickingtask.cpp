@@ -1275,8 +1275,12 @@ namespace
     }
 }
 
-void BinPickingTaskResource::MoveToolLinear(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname, const std::string& toolname, const double robotspeed, const double timeout)
+void BinPickingTaskResource::MoveToolLinear(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname, const std::string& toolname, const double robotspeed, const double timeout, bool checkEndeffectorCollision)
 {
+    const std::string ignorethresh = checkEndeffectorCollision ? "0.0" : "1000.0"; // zero to not ignore collision at any time, large number (1000) to ignore collision of end effector for first and last part of trajectory as well as ignore collision of robot at initial part of trajectory
+    _mapTaskParameters["workignorefirstcollisionee"] = ignorethresh;
+    _mapTaskParameters["workignorelastcollisionee"] = ignorethresh;
+    _mapTaskParameters["workignorefirstcollision"] = ignorethresh;
     GenerateMoveToolCommand("MoveToolLinear", goaltype, goals, robotname, toolname, robotspeed, timeout, _ss, _mapTaskParameters);
     //    std::cout << "Sending\n" << _ss.str() << " from " << __func__ << std::endl;
     ExecuteCommand(_ss.str(), timeout);

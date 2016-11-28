@@ -52,6 +52,7 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("goals", bpo::value<vector<double> >()->multitoken(), "goal to move tool to, \'X Y Z RX RY RZ\'. Units are in mm and deg.")
         ("speed", bpo::value<double>()->default_value(0.1), "speed to move at")
         ("movelinear", bpo::value<bool>()->default_value(false), "whether to move tool linearly")
+        ("movelinear_checkcollision", bpo::value<bool>()->default_value(false), "whether to check collision in linear move mode. collision is always checked for non-linear motion")
         ;
 
     try {
@@ -95,7 +96,7 @@ void InitializeTask(const bpo::variables_map& opts,
 {
     const string controllerUsernamePass = opts["controller_username_password"].as<string>();
     const double controllerCommandTimeout = opts["controller_command_timeout"].as<double>();
-    const string taskparameters = opts["taskparameters"].as<string>();
+    string taskparameters = opts["taskparameters"].as<string>();
     const string locale = opts["locale"].as<string>();
     const unsigned int taskZmqPort = opts["zmq_port"].as<unsigned int>();
     const string hostname = opts["controller_hostname"].as<string>();
@@ -209,7 +210,8 @@ string ConvertStateToString(const BinPickingTaskResource::ResultGetBinpickingSta
 /// \param speed speed to move at
 /// \param robotname robot name
 /// \param toolname tool name
-/// \param whether to move in line or not
+/// \param movelinear whether to move in line or not
+/// \param checkcollision whether to move in line or not
 void Run(BinPickingTaskResourcePtr& pTask,
          const string& goaltype,
          const vector<double>& goals,
@@ -217,6 +219,7 @@ void Run(BinPickingTaskResourcePtr& pTask,
          const string& robotname,
          const string& toolname,
          bool movelinear,
+         bool checkcollision,
          double timeout)
 {
     // print state
@@ -226,7 +229,7 @@ void Run(BinPickingTaskResourcePtr& pTask,
 
     // start moving
     if (movelinear) {
-        pTask->MoveToolLinear(goaltype, goals, robotname, toolname, speed, timeout);
+        pTask->MoveToolLinear(goaltype, goals, robotname, toolname, speed, timeout, checkcollision);
     }
     else {
         pTask->MoveToHandPosition(goaltype, goals, robotname, toolname, speed, timeout);
@@ -250,7 +253,8 @@ int main(int argc, char ** argv)
     const vector<double> goals = opts["goals"].as<vector<double> >();
     const string goaltype = opts["goaltype"].as<string>();
     const double speed = opts["speed"].as<double>();
-    const bool movelinearly = opts["movelinear"].as<bool>();
+    const bool movelinearlycheckcollision = opts["movelinear_checkcollision"].as<bool>();
+    const bool movelinearly = movelinearlycheckcollision || opts["movelinear"].as<bool>();
     const double timeout = opts["controller_command_timeout"].as<double>();
 
     // initializing
@@ -258,7 +262,7 @@ int main(int argc, char ** argv)
     InitializeTask(opts, pBinpickingTask);
 
     // do interesting part
-    Run(pBinpickingTask, goaltype, goals, speed, s_robotname, toolname, movelinearly, timeout);
+    Run(pBinpickingTask, goaltype, goals, speed, s_robotname, toolname, movelinearly, movelinearlycheckcollision, timeout);
 
     return 0;
 }
