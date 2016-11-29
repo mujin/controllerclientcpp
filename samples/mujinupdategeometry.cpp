@@ -103,7 +103,7 @@ void InitializeTask(const bpo::variables_map& opts,
     const bool needtoobtainfromheatbeat = taskScenePk.empty() || slaverequestid.empty();
     if (needtoobtainfromheatbeat) {
         stringstream endpoint;
-        endpoint << "tcp:\/\/" << hostname << ":" << heartbeatPort;
+        endpoint << "tcp://" << hostname << ":" << heartbeatPort;
         cout << "connecting to heartbeat at " << endpoint.str() << endl;
         string heartbeat;
         const size_t num_try_heartbeat(5);
@@ -208,8 +208,6 @@ int main(int argc, char ** argv)
         // parsing option failed
         return 1;
     }
-    const double timeout = opts["controller_command_timeout"].as<double>();
-
     // initializing
     BinPickingTaskResourcePtr pBinpickingTask;
     InitializeTask(opts, pBinpickingTask);

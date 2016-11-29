@@ -979,21 +979,21 @@ std::wstring ControllerClientImpl::GetNameFromPrimaryKey_UTF16(const std::string
     return utf16;
 }
 
-std::string ControllerClientImpl::CreateObjectGeometry(const std::string& objectPk, const std::string& name, const std::string& linkPk, double timeout)
+std::string ControllerClientImpl::CreateObjectGeometry(const std::string& objectPk, const std::string& geometryName, const std::string& linkPk, double timeout)
 {
     boost::property_tree::ptree pt;
-    const std::string geometryData("{\"name\":\"" + name + "\", \"linkpk\":\"" + linkPk + "\", \"geomtype\": \"mesh\"}");
-    const std::string uri(str(boost::format("object\/%s\/geometry\/") % objectPk));
+    const std::string geometryData("{\"name\":\"" + geometryName + "\", \"linkpk\":\"" + linkPk + "\", \"geomtype\": \"mesh\"}");
+    const std::string uri(str(boost::format("object/%s/geometry/") % objectPk));
     
     CallPost(uri, geometryData, pt, 201, timeout);
     return pt.get<std::string>("pk");
 }
 
-std::string ControllerClientImpl::SetObjectGeometryMesh(const std::string& objectPk, const std::string& geometryPk, const std::vector<unsigned char>& data, const std::string& unit, double timeout)
+std::string ControllerClientImpl::SetObjectGeometryMesh(const std::string& objectPk, const std::string& geometryPk, const std::vector<unsigned char>& meshData, const std::string& unit, double timeout)
 {
     boost::property_tree::ptree pt;
-    const std::string uri(str(boost::format("object\/%s\/geometry\/%s\/")%objectPk%geometryPk));
-    const int status = CallPutSTL(uri, data, pt, 202, timeout);
+    const std::string uri(str(boost::format("object/%s/geometry/%s/")%objectPk%geometryPk));
+    const int status = CallPutSTL(uri, meshData, pt, 202, timeout);
     assert(status == 202);
     return pt.get<std::string>("pk");
 }

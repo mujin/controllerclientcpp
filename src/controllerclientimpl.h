@@ -117,8 +117,22 @@ public:
     std::string GetPrimaryKeyFromName_UTF16(const std::wstring& name);
     std::string GetNameFromPrimaryKey_UTF8(const std::string& pk);
     std::wstring GetNameFromPrimaryKey_UTF16(const std::string& pk);
-    std::string CreateObjectGeometry(const std::string& objectPk, const std::string& name, const std::string& linkPk, double timeout);
-    std::string SetObjectGeometryMesh(const std::string& objectPk, const std::string& scenePk, const std::vector<unsigned char>& data, const std::string& unit = "mm", double timeout = 5);
+
+    /// \brief create geometry for a link of an object
+    /// \param objectPk primary key for the object
+    /// \param geometryName name of the geometry
+    /// \param linkPk primary key for the link
+    /// \param timeout timeout of creating object geometry
+    /// \return primary key for the geometry created
+    std::string CreateObjectGeometry(const std::string& objectPk, const std::string& geometryName, const std::string& linkPk, double timeout);
+
+    /// \brief set geometry for an object
+    /// \param objectPk primary key for the object
+    /// \param scenePk primary key for the scene
+    /// \param meshData mesh data to be set to the object
+    /// \param timeout timeout of creating object geometry
+    /// \return primary key for the geometry created
+    std::string SetObjectGeometryMesh(const std::string& objectPk, const std::string& scenePk, const std::vector<unsigned char>& meshData, const std::string& unit = "mm", double timeout = 5);
 
     inline CURL* GetCURL() const
     {
