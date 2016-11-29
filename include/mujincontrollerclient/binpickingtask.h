@@ -341,6 +341,8 @@ public:
     /// \param timeout timeout of communication
     /// \param envclearance environment clearance for collision avoidance in mm
     virtual void MoveToHandPosition(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname = "", const std::string& toolname = "", const double robotspeed = -1, const double timeout = 10, Real envclearance = -1.0);
+    
+    virtual void ExecuteTrajectory(const std::string& trajectory, const std::string& taskpk, const double timeout);
 
     /// \brief grabs object
     /// \param targetname name of the target to grab

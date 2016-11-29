@@ -1288,8 +1288,12 @@ void GenerateMoveToolCommand(const std::string& movetype, const std::string& goa
     }
 }
 
-void BinPickingTaskResource::MoveToolLinear(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname, const std::string& toolname, const double workspeedlin, const double workspeedrot, bool checkEndeffectorCollision, const double timeout)
+void BinPickingTaskResource::MoveToolLinear(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname, const std::string& toolname, const double workspeedlin, const double workspeedrot, bool checkEndeffectorCollision, const double timeout, std::string* pTraj)
 {
+    if (!!pTraj) {
+        _mapTaskParameters["execute"] = "0";
+    }
+
     const std::string ignorethresh = checkEndeffectorCollision ? "0.0" : "1000.0"; // zero to not ignore collision at any time, large number (1000) to ignore collision of end effector for first and last part of trajectory as well as ignore collision of robot at initial part of trajectory
     _mapTaskParameters["workignorefirstcollisionee"] = ignorethresh;
     _mapTaskParameters["workignorelastcollisionee"] = ignorethresh;
@@ -1306,10 +1310,38 @@ void BinPickingTaskResource::MoveToolLinear(const std::string& goaltype, const s
 
 void BinPickingTaskResource::MoveToHandPosition(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname, const std::string& toolname, const double robotspeed, const double timeout, Real envclearance)
 {
+    if (!!pTraj) {
+        _mapTaskParameters["execute"] = "0";
+    }
+
     GenerateMoveToolCommand("MoveToHandPosition", goaltype, goals, robotname, toolname, robotspeed, envclearance, _ss, _mapTaskParameters);
     //    std::cout << "Sending\n" << _ss.str() << " from " << __func__ << std::endl;
+    const boost::property_tree::ptree pt = ExecuteCommand(_ss.str(), timeout);
+
+    if (!!pTraj) {
+        const boost::property_tree::ptree output = pt.get_child("output");
+        FOREACH(value, output) {
+            if (value->first == "trajectory") {
+                *pTraj = value->second.data();
+                return;
+            }
+        }
+        throw MujinException("trajectory is not available in output", MEC_Failed);
+    }
+}
+
+void BinPickingTaskResource::ExecuteTrajectory(const std::string& trajectory, const std::string& taskpk, const double timeout)
+{
+    _ss.str(""); _ss.clear();
+    _ss << "{";
+    _ss << GetJsonString("command", "ExecuteTrajectory") << ", "
+        << GetJsonString("identifier", "my identifier") << ", "
+        << GetJsonString("trajectories")
+        << ": [[\"" << taskpk << "\", \"temporary task\", \"" << trajectory << "\"]]}";
+    std::cout << "Sending\n" << _ss.str() << " from " << __func__ << std::endl;
     ExecuteCommand(_ss.str(), timeout);
 }
+
 
 void BinPickingTaskResource::Grab(const std::string& targetname, const std::string& robotname, const std::string& toolname, const double timeout)
 {
