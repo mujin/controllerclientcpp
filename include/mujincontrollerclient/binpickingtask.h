@@ -246,6 +246,10 @@ public:
     /// \param locationIOName the location IO name (1, 2, 3, 4, etc) used to tell mujin controller to notify  the IO signal with detected object info
     virtual void UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<Real>& vpoints, const std::string& resultstate, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit="mm", const double timeout=0, const std::string& locationIOName="1");
 
+    /// \brief removes objects by thier prefix
+    /// \param prefix prefix of the objects to remove
+    virtual void RemoveObjectsWithPrefix(const std::string& prefix, double timeout = 5.0);
+
     /** \brief Visualize point cloud on controller
         \param pointslist vector of x,y,z coordinates vector in meter
         \param pointsize size of each point in meter

@@ -1077,6 +1077,16 @@ void BinPickingTaskResource::UpdateEnvironmentState(const std::string& objectnam
     ExecuteCommand(_ss.str(), timeout); // need to check return code
 }
 
+void BinPickingTaskResource::RemoveObjectsWithPrefix(const std::string& prefix, double timeout)
+{
+    SetMapTaskParameters(_ss, _mapTaskParameters);
+    std::string command = "RemoveObjectsWithPrefix";
+    _ss << GetJsonString("command", command) << ", ";
+    _ss << GetJsonString("prefix", prefix);
+    _ss << "}";
+    ExecuteCommand(_ss.str(), timeout);
+    
+}
 void BinPickingTaskResource::VisualizePointCloud(const std::vector<std::vector<Real> >&pointslist, const Real pointsize, const std::vector<std::string>&names, const std::string& unit, const double timeout)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
