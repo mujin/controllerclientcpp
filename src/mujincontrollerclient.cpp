@@ -733,14 +733,27 @@ bool SceneResource::FindInstObject(const std::string& name, SceneResource::InstO
     return false;
 }
 
-SceneResource::InstObjectPtr SceneResource::CreateInstObject(const std::string& name, const std::string& reference_uri, Real quaternion[4], Real translation[3])
+SceneResource::InstObjectPtr SceneResource::CreateInstObject(const std::string& name, const std::string& referenceUri, const Real quaternion[4], const Real translation[3])
 {
     GETCONTROLLERIMPL();
     boost::property_tree::ptree pt;
-    controller->CallPost(str(boost::format("scene/%s/instobject/?format=json&fields=pk")%GetPrimaryKey()), str(boost::format("{\"name\":\"%s\", \"reference_uri\":\"%s\",\"quaternion\":[%.15f,%.15f,%.15f,%.15f], \"translate\":[%.15f,%.15f,%.15f] }")%name%reference_uri%quaternion[0]%quaternion[1]%quaternion[2]%quaternion[3]%translation[0]%translation[1]%translation[2]), pt);
+    const std::string uri(str(boost::format("scene/%s/instobject/?format=json&fields=pk")%GetPrimaryKey()));
+    std::string data(str(boost::format("{\"name\":\"%s\", \"quaternion\":[%.15f,%.15f,%.15f,%.15f], \"translate\":[%.15f,%.15f,%.15f]")%name%quaternion[0]%quaternion[1]%quaternion[2]%quaternion[3]%translation[0]%translation[1]%translation[2]));
+    if (!referenceUri.empty()) {
+        data += ", \"reference_uri\": \"" + referenceUri + "\"";
+    }
+    data += "}";
+
+    controller->CallPost(uri, data, pt);
     std::string inst_pk = pt.get<std::string>("pk");
     SceneResource::InstObjectPtr instobject(new SceneResource::InstObject(GetController(), GetPrimaryKey(),  inst_pk));
     return instobject;
+}
+
+void SceneResource::DeleteInstObject(const std::string& pk)
+{
+    GETCONTROLLERIMPL();
+    controller->CallDelete(str(boost::format("scene/%s/instobject/%s/")%GetPrimaryKey()%pk));
 }
 
 SceneResourcePtr SceneResource::Copy(const std::string& name)

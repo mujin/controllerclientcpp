@@ -917,7 +917,17 @@ public:
     virtual void GetInstObjects(std::vector<InstObjectPtr>& instobjects);
     virtual bool FindInstObject(const std::string& name, InstObjectPtr& instobject);
 
-    virtual SceneResource::InstObjectPtr CreateInstObject(const std::string& name, const std::string& reference_uri, Real quaternion[4], Real translate[3]);
+    /// \brief creates an inst object in scene
+    /// \param name name of the object to create
+    /// \param referenceUri uri to reference. Leave empty to reference nothing.
+    /// \param quaternion quaternion of the object 
+    /// \param translate translation of the object
+    /// \return pointer to inst object created
+    virtual SceneResource::InstObjectPtr CreateInstObject(const std::string& name, const std::string& referenceUri, const Real quaternion[4], const Real translate[3]);
+
+    /// \brief deletes an inst object in scene
+    /// \param pk primary key of the object to delete
+    virtual void DeleteInstObject(const std::string& pk);
 
     virtual SceneResourcePtr Copy(const std::string& name);
 };
