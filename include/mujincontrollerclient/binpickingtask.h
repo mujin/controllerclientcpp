@@ -330,7 +330,7 @@ public:
     /// \param toolname name of the tool to move
     /// \param robotspeed speed at which to move
     /// \param timeout timeout of communication
-    virtual void MoveToHandPosition(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname = "", const std::string& toolname = "", const double robotspeed = -1, const double timeout = 10);
+    virtual void MoveToHandPosition(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname = "", const std::string& toolname = "", const double robotspeed = -1, const double timeout = 10, Real envclearance = -1.0);
 
     /// \brief grabs object
     /// \param targetname name of the target to grab

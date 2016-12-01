@@ -1265,7 +1265,7 @@ void BinPickingTaskResource::SetJogModeVelocities(const std::string& jogtype, co
 
 namespace
 {
-    void GenerateMoveToolCommand(const std::string& movetype, const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname, const std::string& toolname, const double robotspeed, const double timeout, std::stringstream& ss, const std::map<std::string, std::string>& params)
+void GenerateMoveToolCommand(const std::string& movetype, const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname, const std::string& toolname, const double robotspeed, Real envclearance, std::stringstream& ss, const std::map<std::string, std::string>& params)
     {
         SetMapTaskParameters(ss, params);
         ss << GetJsonString("command", movetype) << ", ";
@@ -1279,6 +1279,9 @@ namespace
         if (robotspeed >= 0) {
             ss << GetJsonString("robotspeed") << ": " << robotspeed << ", ";
         }
+        if (envclearance >= 0) {
+            ss << GetJsonString("envclearance") << ": " << envclearance << ", ";
+        }
         ss << GetJsonString("goals") << ": " << GetJsonString(goals);
         ss << "}";
 
@@ -1291,14 +1294,14 @@ void BinPickingTaskResource::MoveToolLinear(const std::string& goaltype, const s
     _mapTaskParameters["workignorefirstcollisionee"] = ignorethresh;
     _mapTaskParameters["workignorelastcollisionee"] = ignorethresh;
     _mapTaskParameters["workignorefirstcollision"] = ignorethresh;
-    GenerateMoveToolCommand("MoveToolLinear", goaltype, goals, robotname, toolname, robotspeed, timeout, _ss, _mapTaskParameters);
+    GenerateMoveToolCommand("MoveToolLinear", goaltype, goals, robotname, toolname, robotspeed, -1, _ss, _mapTaskParameters);
     //    std::cout << "Sending\n" << _ss.str() << " from " << __func__ << std::endl;
     ExecuteCommand(_ss.str(), timeout);
 }
 
-void BinPickingTaskResource::MoveToHandPosition(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname, const std::string& toolname, const double robotspeed, const double timeout)
+void BinPickingTaskResource::MoveToHandPosition(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname, const std::string& toolname, const double robotspeed, const double timeout, Real envclearance)
 {
-    GenerateMoveToolCommand("MoveToHandPosition", goaltype, goals, robotname, toolname, robotspeed, timeout, _ss, _mapTaskParameters);
+    GenerateMoveToolCommand("MoveToHandPosition", goaltype, goals, robotname, toolname, robotspeed, envclearance, _ss, _mapTaskParameters);
     //    std::cout << "Sending\n" << _ss.str() << " from " << __func__ << std::endl;
     ExecuteCommand(_ss.str(), timeout);
 }

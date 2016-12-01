@@ -53,6 +53,7 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("speed", bpo::value<double>()->default_value(0.1), "speed to move at")
         ("movelinear", bpo::value<bool>()->default_value(false), "whether to move tool linearly")
         ("movelinear_checkcollision", bpo::value<bool>()->default_value(false), "whether to check collision in linear move mode. collision is always checked for non-linear motion")
+        ("envclearance", bpo::value<double>()->default_value(-1), "environment clearcance for collision avoidance")
         ;
 
     try {
@@ -220,6 +221,7 @@ void Run(BinPickingTaskResourcePtr& pTask,
          const string& toolname,
          bool movelinear,
          bool checkcollision,
+         double envclearance,
          double timeout)
 {
     // print state
@@ -232,7 +234,7 @@ void Run(BinPickingTaskResourcePtr& pTask,
         pTask->MoveToolLinear(goaltype, goals, robotname, toolname, speed, timeout, checkcollision);
     }
     else {
-        pTask->MoveToHandPosition(goaltype, goals, robotname, toolname, speed, timeout);
+        pTask->MoveToHandPosition(goaltype, goals, robotname, toolname, speed, timeout, envclearance);
     }
 
     // print state
@@ -256,13 +258,14 @@ int main(int argc, char ** argv)
     const bool movelinearlycheckcollision = opts["movelinear_checkcollision"].as<bool>();
     const bool movelinearly = movelinearlycheckcollision || opts["movelinear"].as<bool>();
     const double timeout = opts["controller_command_timeout"].as<double>();
+    const double envclearance = opts["envclearance"].as<double>();
 
     // initializing
     BinPickingTaskResourcePtr pBinpickingTask;
     InitializeTask(opts, pBinpickingTask);
 
     // do interesting part
-    Run(pBinpickingTask, goaltype, goals, speed, s_robotname, toolname, movelinearly, movelinearlycheckcollision, timeout);
+    Run(pBinpickingTask, goaltype, goals, speed, s_robotname, toolname, movelinearly, movelinearlycheckcollision, envclearance, timeout);
 
     return 0;
 }
