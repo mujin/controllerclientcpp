@@ -1290,9 +1290,7 @@ void GenerateMoveToolCommand(const std::string& movetype, const std::string& goa
 
 void BinPickingTaskResource::MoveToolLinear(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname, const std::string& toolname, const double workspeedlin, const double workspeedrot, bool checkEndeffectorCollision, const double timeout, std::string* pTraj)
 {
-    if (!!pTraj) {
-        _mapTaskParameters["execute"] = "0";
-    }
+    _mapTaskParameters["execute"] = !!pTraj ? "0" : "1";
 
     const std::string ignorethresh = checkEndeffectorCollision ? "0.0" : "1000.0"; // zero to not ignore collision at any time, large number (1000) to ignore collision of end effector for first and last part of trajectory as well as ignore collision of robot at initial part of trajectory
     _mapTaskParameters["workignorefirstcollisionee"] = ignorethresh;
@@ -1308,7 +1306,7 @@ void BinPickingTaskResource::MoveToolLinear(const std::string& goaltype, const s
     ExecuteCommand(_ss.str(), timeout);
 }
 
-void BinPickingTaskResource::MoveToHandPosition(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname, const std::string& toolname, const double robotspeed, const double timeout, Real envclearance)
+void BinPickingTaskResource::MoveToHandPosition(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname, const std::string& toolname, const double robotspeed, const double timeout, Real envclearance, std::string* pTraj)
 {
     if (!!pTraj) {
         _mapTaskParameters["execute"] = "0";
@@ -1330,18 +1328,15 @@ void BinPickingTaskResource::MoveToHandPosition(const std::string& goaltype, con
     }
 }
 
-void BinPickingTaskResource::ExecuteTrajectory(const std::string& trajectory, const std::string& taskpk, const double timeout)
+void BinPickingTaskResource::ExecuteSingleXMLTrajectory(const std::string& trajectory, const double timeout)
 {
     _ss.str(""); _ss.clear();
     _ss << "{";
-    _ss << GetJsonString("command", "ExecuteTrajectory") << ", "
-        << GetJsonString("identifier", "my identifier") << ", "
-        << GetJsonString("trajectories")
-        << ": [[\"" << taskpk << "\", \"temporary task\", \"" << trajectory << "\"]]}";
+    _ss << GetJsonString("command", "ExecuteSingleXMLTrajectory") << ", "
+        << GetJsonString("trajectory", trajectory) << "}";
     std::cout << "Sending\n" << _ss.str() << " from " << __func__ << std::endl;
     ExecuteCommand(_ss.str(), timeout);
 }
-
 
 void BinPickingTaskResource::Grab(const std::string& targetname, const std::string& robotname, const std::string& toolname, const double timeout)
 {

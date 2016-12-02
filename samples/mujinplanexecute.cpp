@@ -1,9 +1,9 @@
 // -*- coding: utf-8 -*-
 /** \example mujinmovetool.cpp
 
-    Shows how to move tool to a specified position and orientation while avoiding obstacles.
-    example1: mujinmovetohandposition --controller_hostname=yourhost --robotname=yourrobot --goals=700 600 500 0 0 180
-    example2: mujinmovetohandposition --controller_hostname=yourhost --robotname=yourrobot --goals=700 600 500 0 0 180 --goaltype=translationdirection5d
+    Shows how to move tool to a specified position and orientation in two ways.
+    example1: mujinmovetool --controller_hostname=yourhost --robotname=yourrobot --goals=700 600 500 0 0 180
+    example2: mujinmovetool --controller_hostname=yourhost --robotname=yourrobot --goals=700 600 500 0 0 180 --goaltype=translationdirection5d --movelinear=true
  */
 
 #include <mujincontrollerclient/binpickingtask.h>
@@ -47,11 +47,10 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("zmq_port", bpo::value<unsigned int>()->default_value(11000), "port of the binpicking task on the mujin controller")
         ("heartbeat_port", bpo::value<unsigned int>()->default_value(11001), "port of the binpicking task's heartbeat signal on the mujin controller")
 
-        ("toolname", bpo::value<string>()->default_value(""), "tool name, e.g. flange")
-        ("goaltype", bpo::value<string>()->default_value("transform6d"), "mode to move tool with. Either transform6d or translationdirection5d")
-        ("goals", bpo::value<vector<double> >()->multitoken(), "goal to move tool to, \'X Y Z RX RY RZ\'. Units are in mm and deg.")
-        ("speed", bpo::value<double>()->default_value(0.1), "speed to move at")
-        ("envclearance", bpo::value<double>()->default_value(-1), "environment clearcance for collision avoidance")
+        ("goals", bpo::value<vector<Real> >()->multitoken(), "joint values in degrees.")
+        ("speed", bpo::value<double>()->default_value(0.1), "speed to move at, a value between 0 and 1.")
+        ("save", bpo::value<string>()->default_value(""), "save trajectory to specified file.")
+        ("load", bpo::value<string>()->default_value(""), "load trajectory from specified file.")
         ;
 
     try {
@@ -76,7 +75,7 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
     }
 
     if (!badargs) {
-        badargs = opts.find("goals") == opts.end() || opts["goals"].as<vector<double> >().size() < 6;
+        badargs = (opts.find("goals") == opts.end() || opts["goals"].as<vector<double> >().size() < 6) && opts["load"].as<string>().empty();
     }
     if(opts.count("help") || badargs) {
         cout << "Usage: " << argv[0] << " [OPTS]" << endl;
@@ -95,7 +94,7 @@ void InitializeTask(const bpo::variables_map& opts,
 {
     const string controllerUsernamePass = opts["controller_username_password"].as<string>();
     const double controllerCommandTimeout = opts["controller_command_timeout"].as<double>();
-    string taskparameters = opts["taskparameters"].as<string>();
+    const string taskparameters = opts["taskparameters"].as<string>();
     const string locale = opts["locale"].as<string>();
     const unsigned int taskZmqPort = opts["zmq_port"].as<unsigned int>();
     const string hostname = opts["controller_hostname"].as<string>();
@@ -181,9 +180,7 @@ string ConvertStateToString(const BinPickingTaskResource::ResultGetBinpickingSta
     if (state.currentJointValues.empty() || state.currentToolValues.size() < 6) {
         stringstream ss;
         ss << "Failed to obtain robot state: joint values have "
-           << state.currentJointValues.size() << " elements and tool values have "
-           << state.currentToolValues.size() << " elements\n";
-
+           << state.currentJointValues.size() << " elements\n";
         throw std::runtime_error(ss.str());
     }
 
@@ -192,13 +189,6 @@ string ConvertStateToString(const BinPickingTaskResource::ResultGetBinpickingSta
     for (size_t i = 0; i < state.currentJointValues.size(); ++i) {
         ss << state.jointNames[i] << "=" << state.currentJointValues[i] << " ";
     }
-
-    ss << "X=" << state.currentToolValues[0] << " ";
-    ss << "Y=" << state.currentToolValues[1] << " ";
-    ss << "Z=" << state.currentToolValues[2] << " ";
-    ss << "RX=" << state.currentToolValues[3] << " ";
-    ss << "RY=" << state.currentToolValues[4] << " ";
-    ss << "RZ=" << state.currentToolValues[5];
     return ss.str();
 }
 
@@ -209,26 +199,46 @@ string ConvertStateToString(const BinPickingTaskResource::ResultGetBinpickingSta
 /// \param speed speed to move at
 /// \param robotname robot name
 /// \param toolname tool name
-/// \param envclearance environment clearance when aboiding obstacles
+/// \param movelinear whether to move in line or not
 /// \param checkcollision whether to move in line or not
 void Run(BinPickingTaskResourcePtr& pTask,
-         const string& goaltype,
-         const vector<double>& goals,
+         const vector<Real>& goals,
          double speed,
          const string& robotname,
-         const string& toolname,
-         double envclearance,
+         const string& trajectoryLoadPath,
+         const string& trajectorySavePath,
          double timeout)
 {
+    std::string traj;
+
+    if (trajectoryLoadPath.empty()) {
+        // print state
+        BinPickingTaskResource::ResultGetBinpickingState result;
+        pTask->GetPublishedTaskState(result, robotname, "mm", 1.0);
+        cout << "Starting:\n" << ConvertStateToString(result) << endl;
+
+        vector<int> jointindices(goals.size());
+        for (size_t i = 0; i < jointindices.size(); ++i) {
+            jointindices[i] = i;
+        }
+        // start moving
+        BinPickingTaskResource::ResultMoveJoints moveresult;
+        pTask->MoveJoints(goals, jointindices, 10, speed, moveresult, timeout, &traj);
+    }
+    else {
+        ifstream ifs(trajectoryLoadPath.c_str());
+        traj = string((std::istreambuf_iterator<char>(ifs)),
+                      std::istreambuf_iterator<char>());
+    }
+
+    if (!trajectorySavePath.empty()) {
+        ofstream ofs(trajectorySavePath.c_str());
+        ofs << traj;
+    }
+
+    pTask->ExecuteSingleXMLTrajectory(traj);
     // print state
     BinPickingTaskResource::ResultGetBinpickingState result;
-    pTask->GetPublishedTaskState(result, robotname, "mm", 1.0);
-    cout << "Starting:\n" << ConvertStateToString(result) << endl;
-
-    // start moving
-    pTask->MoveToHandPosition(goaltype, goals, robotname, toolname, speed, timeout, envclearance);
-
-    // print state
     pTask->GetPublishedTaskState(result, robotname, "mm", 1.0);
     cout << "Finished:\n" << ConvertStateToString(result) << endl;
 }
@@ -242,19 +252,21 @@ int main(int argc, char ** argv)
         return 1;
     }
     const string robotname = opts["robotname"].as<string>();
-    const string toolname = opts["toolname"].as<string>();
-    const vector<double> goals = opts["goals"].as<vector<double> >();
-    const string goaltype = opts["goaltype"].as<string>();
+    vector<Real> goals;
+    if (opts.find("goals") != opts.end()) {
+        goals = opts["goals"].as<vector<Real> >();
+    }
     const double speed = opts["speed"].as<double>();
     const double timeout = opts["controller_command_timeout"].as<double>();
-    const double envclearance = opts["envclearance"].as<double>();
+    const string loadTrajectoryPath = opts["load"].as<string>();
+    const string saveTrajectoryPath = opts["save"].as<string>();
 
     // initializing
     BinPickingTaskResourcePtr pBinpickingTask;
     InitializeTask(opts, pBinpickingTask);
 
     // do interesting part
-    Run(pBinpickingTask, goaltype, goals, speed, s_robotname, toolname, envclearance, timeout);
+    Run(pBinpickingTask, goals, speed, s_robotname, loadTrajectoryPath, saveTrajectoryPath, timeout);
 
     return 0;
 }

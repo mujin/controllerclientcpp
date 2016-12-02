@@ -254,10 +254,6 @@ public:
     /// \param locationIOName the location IO name (1, 2, 3, 4, etc) used to tell mujin controller to notify  the IO signal with detected object info
     virtual void UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<Real>& vpoints, const std::string& resultstate, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit="mm", const double timeout=0, const std::string& locationIOName="1");
 
-    /// \brief removes objects by thier prefix
-    /// \param prefix prefix of the objects to remove
-    virtual void RemoveObjectsWithPrefix(const std::string& prefix, double timeout = 5.0);
-
     /** \brief Visualize point cloud on controller
         \param pointslist vector of x,y,z coordinates vector in meter
         \param pointsize size of each point in meter
@@ -330,7 +326,7 @@ public:
     /// \param workspeedlin linear speed at which to move tool in mm/s.
     /// \param workspeedrot rotational speed at which to move tool in deg/s
     /// \param timeout timeout of communication
-    virtual void MoveToolLinear(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname = "", const std::string& toolname = "", const double workspeedlin = -1, const double workspeedrot = -1, bool checkEndeffectorCollision = false, const double timeout = 10);
+    virtual void MoveToolLinear(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname = "", const std::string& toolname = "", const double workspeedlin = -1, const double workspeedrot = -1, bool checkEndeffectorCollision = false, const double timeout = 10, std::string* pTraj = NULL);
 
     /// \brief Moves hand to specified posistion
     /// \param goaltype whether to specify goal in full six degrees of freedom (transform6d) or three dimentional position and two dimentional angle (translationdirection5d)
@@ -340,9 +336,9 @@ public:
     /// \param robotspeed speed at which to move
     /// \param timeout timeout of communication
     /// \param envclearance environment clearance for collision avoidance in mm
-    virtual void MoveToHandPosition(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname = "", const std::string& toolname = "", const double robotspeed = -1, const double timeout = 10, Real envclearance = -1.0);
+    virtual void MoveToHandPosition(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname = "", const std::string& toolname = "", const double robotspeed = -1, const double timeout = 10, Real envclearance = -1.0, std::string* pTraj = NULL);
     
-    virtual void ExecuteTrajectory(const std::string& trajectory, const std::string& taskpk, const double timeout);
+    virtual void ExecuteSingleXMLTrajectory(const std::string& trajectory, const double timeout = 10);
 
     /// \brief grabs object
     /// \param targetname name of the target to grab
