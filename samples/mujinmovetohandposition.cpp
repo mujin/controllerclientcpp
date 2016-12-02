@@ -1,9 +1,9 @@
 // -*- coding: utf-8 -*-
-/** \example mujinmovetool.cpp
+/** \example mujinmovetohandposition.cpp
 
-    Shows how to move tool to a specified position and orientation in two ways.
-    example1: mujinmovetool --controller_hostname=yourhost --robotname=yourrobot --goals=700 600 500 0 0 180
-    example2: mujinmovetool --controller_hostname=yourhost --robotname=yourrobot --goals=700 600 500 0 0 180 --goaltype=translationdirection5d --movelinear=true
+    Shows how to move tool to a specified position and orientation while avoiding obstacles.
+    example1: mujinmovetohandposition --controller_hostname=yourhost --robotname=yourrobot --goals=700 600 500 0 0 180
+    example2: mujinmovetohandposition --controller_hostname=yourhost --robotname=yourrobot --goals=700 600 500 0 0 180 --goaltype=translationdirection5d
  */
 
 #include <mujincontrollerclient/binpickingtask.h>
@@ -51,8 +51,6 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("goaltype", bpo::value<string>()->default_value("transform6d"), "mode to move tool with. Either transform6d or translationdirection5d")
         ("goals", bpo::value<vector<double> >()->multitoken(), "goal to move tool to, \'X Y Z RX RY RZ\'. Units are in mm and deg.")
         ("speed", bpo::value<double>()->default_value(0.1), "speed to move at")
-        ("movelinear", bpo::value<bool>()->default_value(false), "whether to move tool linearly")
-        ("movelinear_checkcollision", bpo::value<bool>()->default_value(false), "whether to check collision in linear move mode. collision is always checked for non-linear motion")
         ("envclearance", bpo::value<double>()->default_value(-1), "environment clearcance for collision avoidance")
         ;
 
@@ -211,7 +209,7 @@ string ConvertStateToString(const BinPickingTaskResource::ResultGetBinpickingSta
 /// \param speed speed to move at
 /// \param robotname robot name
 /// \param toolname tool name
-/// \param movelinear whether to move in line or not
+/// \param envclearance environment clearance when aboiding obstacles
 /// \param checkcollision whether to move in line or not
 void Run(BinPickingTaskResourcePtr& pTask,
          const string& goaltype,
@@ -219,8 +217,6 @@ void Run(BinPickingTaskResourcePtr& pTask,
          double speed,
          const string& robotname,
          const string& toolname,
-         bool movelinear,
-         bool checkcollision,
          double envclearance,
          double timeout)
 {
@@ -230,12 +226,7 @@ void Run(BinPickingTaskResourcePtr& pTask,
     cout << "Starting:\n" << ConvertStateToString(result) << endl;
 
     // start moving
-    if (movelinear) {
-        pTask->MoveToolLinear(goaltype, goals, robotname, toolname, speed, timeout, checkcollision);
-    }
-    else {
-        pTask->MoveToHandPosition(goaltype, goals, robotname, toolname, speed, timeout, envclearance);
-    }
+    pTask->MoveToHandPosition(goaltype, goals, robotname, toolname, speed, timeout, envclearance);
 
     // print state
     pTask->GetPublishedTaskState(result, robotname, "mm", 1.0);
@@ -255,8 +246,6 @@ int main(int argc, char ** argv)
     const vector<double> goals = opts["goals"].as<vector<double> >();
     const string goaltype = opts["goaltype"].as<string>();
     const double speed = opts["speed"].as<double>();
-    const bool movelinearlycheckcollision = opts["movelinear_checkcollision"].as<bool>();
-    const bool movelinearly = movelinearlycheckcollision || opts["movelinear"].as<bool>();
     const double timeout = opts["controller_command_timeout"].as<double>();
     const double envclearance = opts["envclearance"].as<double>();
 
@@ -265,7 +254,7 @@ int main(int argc, char ** argv)
     InitializeTask(opts, pBinpickingTask);
 
     // do interesting part
-    Run(pBinpickingTask, goaltype, goals, speed, s_robotname, toolname, movelinearly, movelinearlycheckcollision, envclearance, timeout);
+    Run(pBinpickingTask, goaltype, goals, speed, s_robotname, toolname, envclearance, timeout);
 
     return 0;
 }
