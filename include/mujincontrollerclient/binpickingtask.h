@@ -314,14 +314,15 @@ public:
     /// \param timeout timeout of communication
     virtual void SetJogModeVelocities(const std::string& jogtype, const std::vector<int>& movejointsigns, const std::string& robotname = "", const std::string& toolname = "", const double robotspeed = -1, const double robotaccelmult = -1.0, const double timeout=1);
 
-    /// \brief Moves hand to specified posistion linearly
+    /// \brief Moves tool to specified posistion linearly
     /// \param goaltype whether to specify goal in full six degrees of freedom (transform6d) or three dimentional position and two dimentional angle (translationdirection5d)
-    /// \param goals where to move hand to [X, Y, Z, RX, RY, RZ] in mm and deg
+    /// \param goals where to move tool to [X, Y, Z, RX, RY, RZ] in mm and deg
     /// \param robotname name of the robot to move
     /// \param toolname name of the tool to move
-    /// \param robotspeed speed at which to move. this is a ratio to maximum speed and thus valid range is 0 to 1.
+    /// \param workspeedlin linear speed at which to move tool in mm/s.
+    /// \param workspeedrot rotational speed at which to move tool in deg/s
     /// \param timeout timeout of communication
-    virtual void MoveToolLinear(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname = "", const std::string& toolname = "", const double robotspeed = -1, const double timeout = 10, bool checkEndeffectorCollision = false);
+    virtual void MoveToolLinear(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname = "", const std::string& toolname = "", const double workspeedlin = -1, const double workspeedrot = -1, bool checkEndeffectorCollision = false, const double timeout = 10);
 
     /// \brief Moves hand to specified posistion
     /// \param goaltype whether to specify goal in full six degrees of freedom (transform6d) or three dimentional position and two dimentional angle (translationdirection5d)

@@ -50,7 +50,8 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("toolname", bpo::value<string>()->default_value(""), "tool name, e.g. flange")
         ("goaltype", bpo::value<string>()->default_value("transform6d"), "mode to move tool with. Either transform6d or translationdirection5d")
         ("goals", bpo::value<vector<double> >()->multitoken(), "goal to move tool to, \'X Y Z RX RY RZ\'. Units are in mm and deg.")
-        ("speed", bpo::value<double>()->default_value(0.1), "speed with whith to move at")
+        ("speedlin", bpo::value<double>()->default_value(-1), "linear speed with whith to move tool at in mm/s")
+        ("speedrot", bpo::value<double>()->default_value(-1), "rotational speed with whith to move tool at in deg/s")
         ("checkcollision", bpo::value<bool>()->default_value(false), "whether to check collision.")
         ;
 
@@ -206,16 +207,18 @@ string ConvertStateToString(const BinPickingTaskResource::ResultGetBinpickingSta
 /// \param pTask task
 /// \param goaltype whether to specify goal in 6 dimension(transform6d) or 5 dimension(translationdirection5d)
 /// \param goals goal of the hand
-/// \param speed speed to move at
+/// \param speedlin linear speed to move at
+/// \param speedrot rotational speed to move at
 /// \param robotname robot name
 /// \param toolname tool name
 /// \param checkcollision whether to move in line or not
 void Run(BinPickingTaskResourcePtr& pTask,
          const string& goaltype,
          const vector<double>& goals,
-         double speed,
          const string& robotname,
          const string& toolname,
+         double speedlin,
+         double speedrot,
          bool checkcollision,
          double timeout)
 {
@@ -225,7 +228,7 @@ void Run(BinPickingTaskResourcePtr& pTask,
     cout << "Starting:\n" << ConvertStateToString(result) << endl;
 
     // start moving
-    pTask->MoveToolLinear(goaltype, goals, robotname, toolname, speed, timeout, checkcollision);
+    pTask->MoveToolLinear(goaltype, goals, robotname, toolname, speedlin, speedrot, checkcollision, timeout);
 
     // print state
     pTask->GetPublishedTaskState(result, robotname, "mm", 1.0);
@@ -244,7 +247,8 @@ int main(int argc, char ** argv)
     const string toolname = opts["toolname"].as<string>();
     const vector<double> goals = opts["goals"].as<vector<double> >();
     const string goaltype = opts["goaltype"].as<string>();
-    const double speed = opts["speed"].as<double>();
+    const double speedlin = opts["speedlin"].as<double>();
+    const double speedrot = opts["speedrot"].as<double>();
     const bool checkcollision = opts["checkcollision"].as<bool>();
     const double timeout = opts["controller_command_timeout"].as<double>();
 
@@ -253,7 +257,7 @@ int main(int argc, char ** argv)
     InitializeTask(opts, pBinpickingTask);
 
     // do interesting part
-    Run(pBinpickingTask, goaltype, goals, speed, s_robotname, toolname, checkcollision, timeout);
+    Run(pBinpickingTask, goaltype, goals, s_robotname, toolname, speedlin, speedrot, checkcollision, timeout);
 
     return 0;
 }
