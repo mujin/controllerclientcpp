@@ -877,7 +877,7 @@ int ControllerClientImpl::_CallPut(const std::string& relativeuri, const void* p
 
 int ControllerClientImpl::CallPutSTL(const std::string& relativeuri, const std::vector<unsigned char>& data, boost::property_tree::ptree& pt, int expectedhttpcode, double timeout)
 {
-    return _CallPut(relativeuri, static_cast<const void*> (&data[0]), data.size(), pt, _httpheadersstl, expectedhttpcode, 30);
+    return _CallPut(relativeuri, static_cast<const void*> (&data[0]), data.size(), pt, _httpheadersstl, expectedhttpcode, timeout);
 }
 
 int ControllerClientImpl::CallPutJSON(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode, double timeout)
@@ -992,7 +992,8 @@ std::string ControllerClientImpl::CreateObjectGeometry(const std::string& object
 std::string ControllerClientImpl::SetObjectGeometryMesh(const std::string& objectPk, const std::string& geometryPk, const std::vector<unsigned char>& meshData, const std::string& unit, double timeout)
 {
     boost::property_tree::ptree pt;
-    const std::string uri(str(boost::format("object/%s/geometry/%s/")%objectPk%geometryPk));
+    const std::string uri(str(boost::format("object/%s/geometry/%s/?unit=%s")%objectPk%geometryPk%unit));
+    std::cout << uri << std::endl;
     const int status = CallPutSTL(uri, meshData, pt, 202, timeout);
     assert(status == 202);
     return pt.get<std::string>("pk");
