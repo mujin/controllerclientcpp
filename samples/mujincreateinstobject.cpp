@@ -37,7 +37,7 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("controller_username_password", bpo::value<string>()->default_value("testuser:pass"), "username and password to the mujin controller, e.g. username:password")
         ("task_scenepk", bpo::value<string>()->default_value(""), "scene pk of the binpicking task on the mujin controller, e.g. officeboltpicking.mujin.dae.")
         ("heartbeat_port", bpo::value<unsigned int>()->default_value(11001), "port of the binpicking task's heartbeat signal on the mujin controller")
-        ("name", bpo::value<string>()->default_value("new object"), "name of the object to create")
+        ("name", bpo::value<string>()->default_value("new_object"), "name of the object to create")
         ("translate", bpo::value<vector<double> >()->multitoken(), "translation of the object")
         ("quaternion", bpo::value<vector<double> >()->multitoken(), "quaternion of the object")
         ;
