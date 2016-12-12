@@ -205,6 +205,14 @@ public:
     virtual boost::property_tree::ptree ExecuteCommand(const std::string& command, const double timeout /* second */=5.0, const bool getresult=true);
 
     virtual void GetJointValues(ResultGetJointValues& result, const double timeout /* second */=5.0);
+
+    /// \brief Moves joints to specified value
+    /// \param jointvalues goal joint values
+    /// \param jointindices indices of joints to move
+    /// \param envclearance environment clearance for collision avoidance in mm
+    /// \param speed speed to move robot at
+    /// \param result result of moving joints
+    /// \param timeout timeout of communication
     virtual void MoveJoints(const std::vector<Real>& jointvalues, const std::vector<int>& jointindices, const Real envclearance, const Real speed /* 0.1-1 */, ResultMoveJoints& result, const double timeout /* second */=5.0);
     virtual void GetTransform(const std::string& targetname, Transform& result, const std::string& unit="mm", const double timeout /* second */=5.0);
     virtual void SetTransform(const std::string& targetname, const Transform& transform, const std::string& unit="mm", const double timeout /* second */=5.0);
@@ -331,6 +339,7 @@ public:
     /// \param toolname name of the tool to move
     /// \param robotspeed speed at which to move
     /// \param timeout timeout of communication
+    /// \param envclearance environment clearance for collision avoidance in mm
     virtual void MoveToHandPosition(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname = "", const std::string& toolname = "", const double robotspeed = -1, const double timeout = 10, Real envclearance = -1.0);
 
     /// \brief grabs object
