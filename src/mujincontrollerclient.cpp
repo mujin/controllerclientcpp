@@ -733,7 +733,7 @@ bool SceneResource::FindInstObject(const std::string& name, SceneResource::InstO
     return false;
 }
 
-SceneResource::InstObjectPtr SceneResource::CreateInstObject(const std::string& name, const std::string& referenceUri, const Real quaternion[4], const Real translation[3])
+SceneResource::InstObjectPtr SceneResource::CreateInstObject(const std::string& name, const std::string& referenceUri, const Real quaternion[4], const Real translation[3], double timeout)
 {
     GETCONTROLLERIMPL();
     boost::property_tree::ptree pt;
@@ -744,7 +744,7 @@ SceneResource::InstObjectPtr SceneResource::CreateInstObject(const std::string& 
     }
     data += "}";
 
-    controller->CallPost(uri, data, pt);
+    controller->CallPost(uri, data, pt, 201, timeout);
     std::string inst_pk = pt.get<std::string>("pk");
     SceneResource::InstObjectPtr instobject(new SceneResource::InstObject(GetController(), GetPrimaryKey(),  inst_pk));
     return instobject;

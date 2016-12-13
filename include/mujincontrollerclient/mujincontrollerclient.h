@@ -923,7 +923,7 @@ public:
     /// \param quaternion quaternion of the object 
     /// \param translate translation of the object
     /// \return pointer to inst object created
-    virtual SceneResource::InstObjectPtr CreateInstObject(const std::string& name, const std::string& referenceUri, const Real quaternion[4], const Real translate[3]);
+    virtual SceneResource::InstObjectPtr CreateInstObject(const std::string& name, const std::string& referenceUri, const Real quaternion[4], const Real translate[3], double timeout = 300);
 
     /// \brief deletes an inst object in scene
     /// \param pk primary key of the object to delete
