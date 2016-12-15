@@ -128,6 +128,7 @@ inline static uint64_t GetNanoPerformanceTime()
 
 
 using namespace mujinzmq;
+using namespace mujinclient;
 
 ZmqSubscriber::ZmqSubscriber(const std::string& host, const unsigned int port)
 {
@@ -223,10 +224,11 @@ void ZmqPublisher::_DestroySocket()
 }
 
 
-ZmqClient::ZmqClient(const std::string& host, const unsigned int port)
+ZmqClient::ZmqClient(const std::string& host, const unsigned int port, const CheckPreemptFn& preemptfn)
 {
     _host = host;
     _port = port;
+    _preemptfn = preemptfn;
 }
 
 ZmqClient::~ZmqClient()
@@ -234,7 +236,7 @@ ZmqClient::~ZmqClient()
     _DestroySocket();
 }
 
-std::string ZmqClient::Call(const std::string& msg, const double timeout)
+std::string ZmqClient::Call(const std::string& msg, const double timeout, const unsigned int checkpreemptbits)
 {
     //send
     zmq::message_t request (msg.size());
@@ -244,7 +246,7 @@ std::string ZmqClient::Call(const std::string& msg, const double timeout)
 
     uint64_t starttime = GetMilliTime();
     bool recreatedonce = false;
-    while (GetMilliTime() - starttime < timeout*1000.0) {
+    while (GetMilliTime() - starttime < timeout*1000.0 && (!!_preemptfn && !_preemptfn(checkpreemptbits))) {
         try {
             _socket->send(request);
             break;
@@ -273,29 +275,31 @@ std::string ZmqClient::Call(const std::string& msg, const double timeout)
                 recreatedonce = true;
             } else{
                 std::stringstream ss;
-                ss << "failed to send request after re-creating socket";
+                ss << "Failed to send request after re-creating socket.";
                 MUJIN_LOG_ERROR(ss.str());
-                throw std::runtime_error(ss.str());;
+                throw MujinException(ss.str(), MEC_Failed);
             }
         }
     }
+    if (!!_preemptfn && _preemptfn(checkpreemptbits)) {
+        throw UserInterruptException("User requested interrupt");
+    }
     if (GetMilliTime() - starttime > timeout*1000.0) {
         std::stringstream ss;
-        ss << "timed out trying to send request";
+        ss << "Timed out trying to send request.";
         MUJIN_LOG_ERROR(ss.str());
         if (msg.length() > 1000) {
             MUJIN_LOG_INFO(msg.substr(0,1000) << "...");
         } else {
             MUJIN_LOG_INFO(msg);
         }
-        throw std::runtime_error(ss.str());
+        throw MujinException(ss.str(), MEC_Timeout);
     }
-
     //recv
     recreatedonce = false;
     zmq::message_t reply;
     bool receivedonce = false; // receive at least once
-    while (!receivedonce || GetMilliTime() - starttime < timeout * 1000.0) {
+    while (!receivedonce || (GetMilliTime() - starttime < timeout * 1000.0 && (!!_preemptfn && !_preemptfn(checkpreemptbits)))) {
         try {
 
             zmq::pollitem_t pollitem;
@@ -334,7 +338,7 @@ std::string ZmqClient::Call(const std::string& msg, const double timeout)
                 std::string errstr;
                 mujinclient::SearchAndReplace(errstr, ss.str(), serachpairs);
 #endif
-                throw std::runtime_error(errstr);
+                throw MujinException(errstr, MEC_Timeout);
             }
 
         } catch (const zmq::error_t& e) {
@@ -359,11 +363,14 @@ std::string ZmqClient::Call(const std::string& msg, const double timeout)
                 _InitializeSocket(_context);
                 recreatedonce = true;
             } else{
-                std::string errstr = "failed to receive response after re-creating socket";
+                std::string errstr = "Failed to receive response after re-creating socket.";
                 MUJIN_LOG_ERROR(errstr);
-                throw std::runtime_error(errstr);
+                throw MujinException(errstr, MEC_Failed);
             }
         }
+    }
+    if (!!_preemptfn && _preemptfn(checkpreemptbits)) {
+        throw UserInterruptException("User requested interrupt");
     }
     if (GetMilliTime() - starttime > timeout*1000.0) {
         std::stringstream ss;
@@ -374,7 +381,7 @@ std::string ZmqClient::Call(const std::string& msg, const double timeout)
         } else {
             MUJIN_LOG_INFO(msg);
         }
-        throw std::runtime_error(ss.str());
+        throw MujinException(ss.str(), MEC_Failed);
     }
 
     return "";

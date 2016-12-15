@@ -1,5 +1,5 @@
 // -*- coding: utf-8 -*-
-// Copyright (C) 2012-2015 MUJIN Inc.
+// Copyright (C) 2012-2016 MUJIN Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,8 +18,10 @@
 #define MUJIN_ZMQ_H
 
 #include <boost/shared_ptr.hpp>
+#include <boost/function.hpp>
 
-#include "mujincontrollerclient/zmq.hpp"
+#include <mujincontrollerclient/zmq.hpp>
+#include <mujincontrollerclient/mujinexceptions.h>
 
 namespace mujinzmq
 {
@@ -65,15 +67,22 @@ protected:
     bool _sharedcontext;
 };
 
+typedef boost::function<bool (const unsigned int)> CheckPreemptFn;
+
 /** \brief Base class for client
  */
 class MUJINCLIENT_API ZmqClient
 {
 public:
-    ZmqClient(const std::string& host, const unsigned int port);
+    ZmqClient(const std::string& host, const unsigned int port, const CheckPreemptFn& preemptfn=CheckPreemptFn());
     virtual ~ZmqClient();
 
-    std::string Call(const std::string& msg, const double timeout=5.0/*secs*/);
+    /** \brief makes request and receives reply. throws MujinException and UserInterruptException
+        \param msg content of the request
+        \param timeout in seconds
+        \param checkpreemptbits bit number preemptfn would check to interrupt the call
+     */
+    std::string Call(const std::string& msg, const double timeout=5.0/*secs*/, const unsigned int checkpreemptbits=0);
 
 protected:
     void _InitializeSocket(boost::shared_ptr<zmq::context_t> context);
@@ -84,6 +93,7 @@ protected:
     boost::shared_ptr<zmq::context_t> _context;
     boost::shared_ptr<zmq::socket_t>  _socket;
     bool _sharedcontext;
+    CheckPreemptFn _preemptfn;
 };
 
 /** \brief Base class for server

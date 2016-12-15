@@ -58,82 +58,16 @@
 #include <boost/format.hpp>
 #include <boost/array.hpp>
 #include <boost/property_tree/ptree.hpp>
+#include <mujincontrollerclient/mujinexceptions.h>
 
 namespace mujinclient {
 
 #include <mujincontrollerclient/config.h>
 
-enum MujinErrorCode {
-    MEC_Failed=0,
-    MEC_InvalidArguments=1, ///< passed in input arguments are not valid
-    MEC_CommandNotSupported=3, ///< string command could not be parsed or is not supported
-    MEC_Assert=4,
-    MEC_NotInitialized=9, ///< when object is used without it getting fully initialized
-    MEC_InvalidState=10, ///< the state of the object is not consistent with its parameters, or cannot be used. This is usually due to a programming error where a vector is not the correct length, etc.
-    MEC_Timeout=11, ///< process timed out
-    MEC_HTTPClient=12, ///< HTTP client error
-    MEC_HTTPServer=13, ///< HTTP server error
-    MEC_UserAuthentication=14, ///< authentication failed
-    MEC_AlreadyExists=15, ///< the resource already exists and overwriting terminated
-    MEC_BinPickingError=16, ///< BinPicking failed
-    MEC_HandEyeCalibrationError=17, ///< HandEye Calibration failed
-    MEC_ZMQNoResponse=20 ///< No response from the zmq server, using REQ-REP
-};
 
 enum TaskResourceOptions
 {
     TRO_EnableZMQ=1, ///< create a task resource with zeromq client
-};
-
-inline const char* GetErrorCodeString(MujinErrorCode error)
-{
-    switch(error) {
-    case MEC_Failed: return "Failed";
-    case MEC_InvalidArguments: return "InvalidArguments";
-    case MEC_CommandNotSupported: return "CommandNotSupported";
-    case MEC_Assert: return "Assert";
-    case MEC_NotInitialized: return "NotInitialized";
-    case MEC_InvalidState: return "InvalidState";
-    case MEC_Timeout: return "Timeout";
-    case MEC_HTTPClient: return "HTTPClient";
-    case MEC_HTTPServer: return "HTTPServer";
-    case MEC_UserAuthentication: return "UserAuthentication";
-    case MEC_AlreadyExists: return "AlreadyExists";
-    case MEC_BinPickingError: return "BinPickingError";
-    case MEC_HandEyeCalibrationError: return "HandEyeCalibrationError";
-    case MEC_ZMQNoResponse: return "NoResponse";
-    }
-    // should throw an exception?
-    return "";
-}
-
-/// \brief Exception that all Mujin internal methods throw; the error codes are held in \ref MujinErrorCode.
-class MUJINCLIENT_API MujinException : public std::exception
-{
-public:
-    MujinException() : std::exception(), _s("unknown exception"), _error(MEC_Failed) {
-    }
-    MujinException(const std::string& s, MujinErrorCode error=MEC_Failed) : std::exception() {
-        _error = error;
-        _s = "mujin (";
-        _s += GetErrorCodeString(_error);
-        _s += "): ";
-        _s += s;
-    }
-    virtual ~MujinException() throw() {
-    }
-    char const* what() const throw() {
-        return _s.c_str();
-    }
-    const std::string& message() const {
-        return _s;
-    }
-    MujinErrorCode GetCode() const {
-        return _error;
-    }
-private:
-    std::string _s;
-    MujinErrorCode _error;
 };
 
 class ControllerClient;
@@ -1065,7 +999,7 @@ MUJINCLIENT_API void ComputeZXYFromTransform(Real ZXY[3], const Transform &trans
 
 MUJINCLIENT_API void SerializeEnvironmentStateToJSON(const EnvironmentState& envstate, std::ostream& os);
 
-}
+} // namespace mujinclient
 
 #if !defined(MUJINCLIENT_DISABLE_ASSERT_HANDLER) && defined(BOOST_ENABLE_ASSERT_HANDLER)
 /// Modifications controlling %boost library behavior.

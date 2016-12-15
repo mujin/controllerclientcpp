@@ -25,6 +25,8 @@
 
 MUJIN_LOGGER("mujin.controllerclientcpp.binpickingtask.zmq");
 
+using namespace mujinzmq;
+
 namespace mujinclient {
 using namespace utils;
 
