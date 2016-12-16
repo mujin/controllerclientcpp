@@ -246,7 +246,7 @@ std::string ZmqClient::Call(const std::string& msg, const double timeout, const 
 
     uint64_t starttime = GetMilliTime();
     bool recreatedonce = false;
-    while (GetMilliTime() - starttime < timeout*1000.0 && (!!_preemptfn && !_preemptfn(checkpreemptbits))) {
+    while (GetMilliTime() - starttime < timeout*1000.0 && (!_preemptfn || (!!_preemptfn && !_preemptfn(checkpreemptbits)))) {
         try {
             _socket->send(request);
             break;
@@ -299,7 +299,7 @@ std::string ZmqClient::Call(const std::string& msg, const double timeout, const 
     recreatedonce = false;
     zmq::message_t reply;
     bool receivedonce = false; // receive at least once
-    while (!receivedonce || (GetMilliTime() - starttime < timeout * 1000.0 && (!!_preemptfn && !_preemptfn(checkpreemptbits)))) {
+    while (!receivedonce || (GetMilliTime() - starttime < timeout * 1000.0 && (!_preemptfn || (!!_preemptfn && !_preemptfn(checkpreemptbits))))) {
         try {
 
             zmq::pollitem_t pollitem;
