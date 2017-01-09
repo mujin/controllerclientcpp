@@ -548,11 +548,19 @@ void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const boost
                     }
                     else if (v1->first == "image_dimensions") {
                         unsigned int i = 0;
-                        if ( v1->second.size() != 3 ) {
-                            throw MujinException("the length of image_dimensions is invalid", MEC_Failed);
+                        if ( v1->second.size() == 3 ) {
+                            FOREACH(v, v1->second) {
+                                sensordata.image_dimensions[i++] = boost::lexical_cast<int>(v->second.data());
+                            }
                         }
-                        FOREACH(v, v1->second) {
-                            sensordata.image_dimensions[i++] = boost::lexical_cast<int>(v->second.data());
+                        else if ( v1->second.size() == 2 ) {
+                            FOREACH(v, v1->second) {
+                                sensordata.image_dimensions[i++] = boost::lexical_cast<int>(v->second.data());
+                            }
+                            sensordata.image_dimensions[2] = 1; // last dim is 1
+                        }
+                        else {
+                            throw MujinException("the length of image_dimensions is invalid", MEC_Failed);
                         }
                     }
                     else if (v1->first == "extra_parameters") {
