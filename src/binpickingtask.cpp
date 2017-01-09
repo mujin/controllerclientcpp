@@ -843,7 +843,41 @@ void SerializeGetStateCommand(std::stringstream& ss, const std::map<std::string,
     ss << GetJsonString("unit", unit);
     ss << "}";
 }
-    
+
+void GenerateMoveToolCommand(const std::string& movetype, const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname, const std::string& toolname, const double robotspeed, Real envclearance, std::stringstream& ss, const std::map<std::string, std::string>& params)
+    {
+        SetMapTaskParameters(ss, params);
+        ss << GetJsonString("command", movetype) << ", ";
+        ss << GetJsonString("goaltype", goaltype) << ", ";
+        if (!robotname.empty()) {
+            ss << GetJsonString("robotname", robotname) << ", ";
+        }
+        if (!toolname.empty()) {
+            ss << GetJsonString("toolname", toolname) << ", ";
+        }
+        if (robotspeed >= 0) {
+            ss << GetJsonString("robotspeed") << ": " << robotspeed << ", ";
+        }
+        if (envclearance >= 0) {
+            ss << GetJsonString("envclearance") << ": " << envclearance << ", ";
+        }
+        ss << GetJsonString("goals") << ": " << GetJsonString(goals);
+        ss << "}";
+
+    }
+
+void SetTrajectory(const boost::property_tree::ptree pt,
+                   std::string* pTraj)
+{
+    const boost::property_tree::ptree output = pt.get_child("output");
+    FOREACHC(value, output) {
+        if (value->first == "trajectory") {
+            *pTraj = value->second.data();
+            return;
+        }
+    }
+    throw MujinException("trajectory is not available in output", MEC_Failed);
+}
 }
 
 void BinPickingTaskResource::GetJointValues(ResultGetJointValues& result, const double timeout)
@@ -859,9 +893,11 @@ void BinPickingTaskResource::GetJointValues(ResultGetJointValues& result, const 
     result.Parse(ExecuteCommand(_ss.str(), timeout));
 }
 
-void BinPickingTaskResource::MoveJoints(const std::vector<Real>& goaljoints, const std::vector<int>& jointindices, const Real envclearance, const Real speed, ResultMoveJoints& result, const double timeout)
+void BinPickingTaskResource::MoveJoints(const std::vector<Real>& goaljoints, const std::vector<int>& jointindices, const Real envclearance, const Real speed, ResultMoveJoints& result, const double timeout, std::string* pTraj)
 {
+    _mapTaskParameters["execute"] = !!pTraj ? "0" : "1";
     SetMapTaskParameters(_ss, _mapTaskParameters);
+
     std::string command = "MoveJoints";
     std::string robottype = "densowave";
     _ss << GetJsonString("command", command) << ", ";
@@ -872,7 +908,12 @@ void BinPickingTaskResource::MoveJoints(const std::vector<Real>& goaljoints, con
     _ss << GetJsonString("envclearance",envclearance ) << ", ";
     _ss << GetJsonString("speed", speed);
     _ss << "}";
-    result.Parse(ExecuteCommand(_ss.str(), timeout));
+
+    const boost::property_tree::ptree pt = ExecuteCommand(_ss.str(), timeout);
+    result.Parse(pt);
+    if (!!pTraj) {
+        SetTrajectory(pt, pTraj);
+    }
 }
 
 void BinPickingTaskResource::GetTransform(const std::string& targetname, Transform& transform, const std::string& unit, const double timeout)
@@ -1262,32 +1303,6 @@ void BinPickingTaskResource::SetJogModeVelocities(const std::string& jogtype, co
     ExecuteCommand(_ss.str(), timeout);
 }
 
-
-namespace
-{
-void GenerateMoveToolCommand(const std::string& movetype, const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname, const std::string& toolname, const double robotspeed, Real envclearance, std::stringstream& ss, const std::map<std::string, std::string>& params)
-    {
-        SetMapTaskParameters(ss, params);
-        ss << GetJsonString("command", movetype) << ", ";
-        ss << GetJsonString("goaltype", goaltype) << ", ";
-        if (!robotname.empty()) {
-            ss << GetJsonString("robotname", robotname) << ", ";
-        }
-        if (!toolname.empty()) {
-            ss << GetJsonString("toolname", toolname) << ", ";
-        }
-        if (robotspeed >= 0) {
-            ss << GetJsonString("robotspeed") << ": " << robotspeed << ", ";
-        }
-        if (envclearance >= 0) {
-            ss << GetJsonString("envclearance") << ": " << envclearance << ", ";
-        }
-        ss << GetJsonString("goals") << ": " << GetJsonString(goals);
-        ss << "}";
-
-    }
-}
-
 void BinPickingTaskResource::MoveToolLinear(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname, const std::string& toolname, const double workspeedlin, const double workspeedrot, bool checkEndeffectorCollision, const double timeout, std::string* pTraj)
 {
     _mapTaskParameters["execute"] = !!pTraj ? "0" : "1";
@@ -1302,29 +1317,20 @@ void BinPickingTaskResource::MoveToolLinear(const std::string& goaltype, const s
         _mapTaskParameters["workspeed"] = ss.str();
     }
     GenerateMoveToolCommand("MoveToolLinear", goaltype, goals, robotname, toolname, -1, -1, _ss, _mapTaskParameters);
-    //    std::cout << "Sending\n" << _ss.str() << " from " << __func__ << std::endl;
-    ExecuteCommand(_ss.str(), timeout);
+    const boost::property_tree::ptree pt = ExecuteCommand(_ss.str(), timeout);
+    if (!!pTraj) {
+        SetTrajectory(pt, pTraj);
+    }
 }
 
 void BinPickingTaskResource::MoveToHandPosition(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname, const std::string& toolname, const double robotspeed, const double timeout, Real envclearance, std::string* pTraj)
 {
-    if (!!pTraj) {
-        _mapTaskParameters["execute"] = "0";
-    }
+    _mapTaskParameters["execute"] = !!pTraj ? "0" : "1";
 
     GenerateMoveToolCommand("MoveToHandPosition", goaltype, goals, robotname, toolname, robotspeed, envclearance, _ss, _mapTaskParameters);
-    //    std::cout << "Sending\n" << _ss.str() << " from " << __func__ << std::endl;
     const boost::property_tree::ptree pt = ExecuteCommand(_ss.str(), timeout);
-
     if (!!pTraj) {
-        const boost::property_tree::ptree output = pt.get_child("output");
-        FOREACH(value, output) {
-            if (value->first == "trajectory") {
-                *pTraj = value->second.data();
-                return;
-            }
-        }
-        throw MujinException("trajectory is not available in output", MEC_Failed);
+        SetTrajectory(pt, pTraj);
     }
 }
 
@@ -1334,7 +1340,6 @@ void BinPickingTaskResource::ExecuteSingleXMLTrajectory(const std::string& traje
     _ss << "{";
     _ss << GetJsonString("command", "ExecuteSingleXMLTrajectory") << ", "
         << GetJsonString("trajectory", trajectory) << "}";
-    std::cout << "Sending\n" << _ss.str() << " from " << __func__ << std::endl;
     ExecuteCommand(_ss.str(), timeout);
 }
 

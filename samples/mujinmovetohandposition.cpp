@@ -1,5 +1,5 @@
 // -*- coding: utf-8 -*-
-/** \example mujinmovetool.cpp
+/** \example mujinmovetohandposition.cpp
 
     Shows how to move tool to a specified position and orientation while avoiding obstacles.
     example1: mujinmovetohandposition --controller_hostname=yourhost --robotname=yourrobot --goals=700 600 500 0 0 180
