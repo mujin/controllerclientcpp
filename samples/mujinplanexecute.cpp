@@ -215,7 +215,7 @@ void Run(BinPickingTaskResourcePtr& pTask,
         // print state
         BinPickingTaskResource::ResultGetBinpickingState result;
         pTask->GetPublishedTaskState(result, robotname, "mm", 1.0);
-        cout << "Starting:\n" << ConvertStateToString(result) << endl;
+        cout << "initial state:\n" << ConvertStateToString(result) << endl;
 
         vector<int> jointindices(goals.size());
         for (size_t i = 0; i < jointindices.size(); ++i) {
@@ -230,7 +230,7 @@ void Run(BinPickingTaskResourcePtr& pTask,
         traj = string((std::istreambuf_iterator<char>(ifs)),
                       std::istreambuf_iterator<char>());
     }
-
+    cout << "finishied planning trajectory" << endl;
     if (!trajectorySavePath.empty()) {
         ofstream ofs(trajectorySavePath.c_str());
         ofs << traj;
@@ -240,7 +240,7 @@ void Run(BinPickingTaskResourcePtr& pTask,
     // print state
     BinPickingTaskResource::ResultGetBinpickingState result;
     pTask->GetPublishedTaskState(result, robotname, "mm", 1.0);
-    cout << "Finished:\n" << ConvertStateToString(result) << endl;
+    cout << "Finished executing trajectory:\n" << ConvertStateToString(result) << endl;
 }
 
 int main(int argc, char ** argv)
