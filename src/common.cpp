@@ -144,13 +144,14 @@ void ParsePropertyTreeWin(const std::string& originalStr,
         // for example, input string "\\\"", it can be matched by both "\\\"" and "\\" and result is not predictable.
         std::vector< std::pair<std::string, std::string> > serachpairs(1);
         serachpairs[0].first = "\\\""; serachpairs[0].second = "";
-        mujinclient::SearchAndReplace(newbuffer1, originalStr, serachpairs);
+		newbuffer1 = originalStr;
+        //mujinclient::SearchAndReplace(newbuffer1, originalStr, serachpairs);
     }
     {
-        std::vector< std::pair<std::string, std::string> > serachpairs(3);
-        serachpairs[0].first = "\\/"; serachpairs[0].second = "";
-        serachpairs[1].first = "\\"; serachpairs[1].second = "";
-        serachpairs[2].first = "\\n"; serachpairs[2].second = " ";
+        std::vector< std::pair<std::string, std::string> > serachpairs(2);
+        serachpairs[0].first = "\\/"; serachpairs[0].second = "/";
+        //serachpairs[0].first = "\\"; serachpairs[0].second = "";
+        serachpairs[1].first = "\\n"; serachpairs[1].second = " ";
         mujinclient::SearchAndReplace(newbuffer2, newbuffer1, serachpairs);
     }
 
