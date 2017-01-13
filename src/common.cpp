@@ -137,26 +137,18 @@ void ConvertTimestampToFloat(const std::string& in,
 void ParsePropertyTreeWin(const std::string& originalStr,
                           boost::property_tree::ptree& pt)
 {
-    // sometimes buffer can containe \n, \\ and so on, which windows boost property_tree does not like
-    std::string newbuffer1, newbuffer2;
-    {
-        // need to first deal with this case alone. since dealing with "\\\"" and "\\" simultaneously does not give us good result.
-        // for example, input string "\\\"", it can be matched by both "\\\"" and "\\" and result is not predictable.
-        std::vector< std::pair<std::string, std::string> > serachpairs(1);
-        serachpairs[0].first = "\\\""; serachpairs[0].second = "";
-		newbuffer1 = originalStr;
-        //mujinclient::SearchAndReplace(newbuffer1, originalStr, serachpairs);
-    }
+    // sometimes buffer can contain \n and so on, which windows boost property_tree does not like
+    std::string newbuffer;
     {
         std::vector< std::pair<std::string, std::string> > serachpairs(2);
         serachpairs[0].first = "\\/"; serachpairs[0].second = "/";
         //serachpairs[0].first = "\\"; serachpairs[0].second = "";
         serachpairs[1].first = "\\n"; serachpairs[1].second = " ";
-        mujinclient::SearchAndReplace(newbuffer2, newbuffer1, serachpairs);
+        mujinclient::SearchAndReplace(newbuffer, originalStr, serachpairs);
     }
 
     std::stringstream newss;
-    ConvertTimestampToFloat(newbuffer2, newss);
+    ConvertTimestampToFloat(newbuffer, newss);
     boost::property_tree::read_json(newss, pt);
 }
 
