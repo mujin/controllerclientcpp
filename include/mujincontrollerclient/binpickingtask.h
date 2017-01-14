@@ -347,8 +347,9 @@ public:
 
     /// \brief Executes a trajectory
     /// \param trajectory trajectory to execute
+    /// \param filterTraj whether to filter trajectory so that it is smoother. For slow trajectory, filtering is not necessary.
     /// \param timeout timeout of executing trajectory
-    virtual void ExecuteSingleXMLTrajectory(const std::string& trajectory, const double timeout = 10);
+    virtual void ExecuteSingleXMLTrajectory(const std::string& trajectory, bool filterTraj = true, const double timeout = 10);
 
     /// \brief grabs object
     /// \param targetname name of the target to grab

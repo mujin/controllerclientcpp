@@ -1334,11 +1334,12 @@ void BinPickingTaskResource::MoveToHandPosition(const std::string& goaltype, con
     }
 }
 
-void BinPickingTaskResource::ExecuteSingleXMLTrajectory(const std::string& trajectory, const double timeout)
+void BinPickingTaskResource::ExecuteSingleXMLTrajectory(const std::string& trajectory, bool filterTraj, const double timeout)
 {
     _ss.str(""); _ss.clear();
     SetMapTaskParameters(_ss, _mapTaskParameters);
     _ss << GetJsonString("command", "ExecuteSingleXMLTrajectory") << ", "
+        << GetJsonString("filtertraj", filterTraj ? 1 : 0) << ", "
         << GetJsonString("trajectory", trajectory) << "}";
     ExecuteCommand(_ss.str(), timeout);
 }

@@ -49,6 +49,7 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
 
         ("goals", bpo::value<vector<Real> >()->multitoken(), "joint values in degrees.")
         ("speed", bpo::value<double>()->default_value(0.1), "speed to move at, a value between 0 and 1.")
+        ("filtertraj", bpo::value<bool>()->default_value(true), "whether to filter trajectory. filtering takes time for long trajectory. For slow trjectory, this filtering is not necessary.")
         ("save", bpo::value<string>()->default_value(""), "save trajectory to specified file.")
         ("load", bpo::value<string>()->default_value(""), "load trajectory from specified file.")
         ;
@@ -207,6 +208,7 @@ void Run(BinPickingTaskResourcePtr& pTask,
          const string& robotname,
          const string& trajectoryLoadPath,
          const string& trajectorySavePath,
+         bool filtertraj,
          double timeout)
 {
     std::string traj;
@@ -236,7 +238,7 @@ void Run(BinPickingTaskResourcePtr& pTask,
         ofs << traj;
     }
 
-    pTask->ExecuteSingleXMLTrajectory(traj);
+    pTask->ExecuteSingleXMLTrajectory(traj, filtertraj);
     // print state
     BinPickingTaskResource::ResultGetBinpickingState result;
     pTask->GetPublishedTaskState(result, robotname, "mm", 1.0);
@@ -260,13 +262,14 @@ int main(int argc, char ** argv)
     const double timeout = opts["controller_command_timeout"].as<double>();
     const string loadTrajectoryPath = opts["load"].as<string>();
     const string saveTrajectoryPath = opts["save"].as<string>();
-
+    const bool filtertraj = opts["filtertraj"].as<bool>();
+    
     // initializing
     BinPickingTaskResourcePtr pBinpickingTask;
     InitializeTask(opts, pBinpickingTask);
 
     // do interesting part
-    Run(pBinpickingTask, goals, speed, s_robotname, loadTrajectoryPath, saveTrajectoryPath, timeout);
+    Run(pBinpickingTask, goals, speed, s_robotname, loadTrajectoryPath, saveTrajectoryPath, filtertraj, timeout);
 
     return 0;
 }
