@@ -758,6 +758,8 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, std::vector<unsig
     CHECKCURLCODE(res, "failed to set writer");
     outputdata.resize(0);
     CurlWriteDataSetter writedata(_curl, &outputdata);
+    curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, NULL); // necessary?
+    curl_easy_setopt(_curl, CURLOPT_POSTFIELDSIZE, 0); // necessary?
 
     curl_easy_setopt(_curl, CURLOPT_HTTPGET, 1);
     res = curl_easy_perform(_curl);
@@ -859,6 +861,9 @@ int ControllerClientImpl::_CallPut(const std::string& relativeuri, const void* p
     CHECKCURLCODE(res, "curl_easy_perform failed");
     long http_code = 0;
     res = curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
+    curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, NULL);
+    curl_easy_setopt(_curl, CURLOPT_POSTFIELDSIZE, 0);
+    
     CHECKCURLCODE(res, "curl_easy_getinfo failed");
     if( _buffer.rdbuf()->in_avail() > 0 ) {
 #if defined(_WIN32) || defined(_WIN64)
@@ -893,6 +898,8 @@ void ControllerClientImpl::CallDelete(const std::string& relativeuri, double tim
     _uri += relativeuri;
     curl_easy_setopt(_curl, CURLOPT_URL, _uri.c_str());
     curl_easy_setopt(_curl, CURLOPT_CUSTOMREQUEST, "DELETE");
+    curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, NULL);
+    curl_easy_setopt(_curl, CURLOPT_POSTFIELDSIZE, 0);
     CURLcode res = curl_easy_perform(_curl);
     curl_easy_setopt(_curl, CURLOPT_CUSTOMREQUEST, NULL); // have to restore the default
     CHECKCURLCODE(res, "curl_easy_perform failed");
