@@ -40,6 +40,7 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("name", bpo::value<string>()->default_value("new_object"), "name of the object to create")
         ("translate", bpo::value<vector<double> >()->multitoken(), "translation of the object")
         ("quaternion", bpo::value<vector<double> >()->multitoken(), "quaternion of the object")
+        ("filename", bpo::value<string>(), "stl file to import mesh from")
         ;
 
     try {
@@ -140,11 +141,43 @@ int main(int argc, char ** argv)
         }
     }
     const string name(opts["name"].as<string>());
+    cout << "scene->GetPrimaryKey()" <<  scene->GetPrimaryKey() << endl;
     const SceneResource::InstObjectPtr instobj = scene->CreateInstObject(name, "", quaternion, translate);
+    cout << instobj << endl;
+    cout << instobj->object_pk << endl;
 
+    vector<ObjectResource::LinkResourcePtr> objectlinks;
+    vector<SceneResource::InstObjectPtr> instobjects;
+    scene->GetInstObjects(instobjects);
+    for (vector<SceneResource::InstObjectPtr>::const_iterator it = instobjects.begin();
+         it != instobjects.end(); ++it) {
+        if (name == (**it).name) {
+            const string pk((**it).object_pk);
+            cout << "name: " << name << ":" << pk << " is obtained from scene\n";
+            ObjectResourcePtr object(new ObjectResource(controllerclient, pk));
+            object->GetLinks(objectlinks);
+            break;
+        }
+    }
+
+
+    const string filename(opts["filename"].as<string>());
+    ObjectResource::GeometryResourcePtr geometryResource;
+    if (!filename.empty()) {
+        ifstream meshStream(filename.c_str(), ios::binary);
+        meshStream.unsetf(std::ios::skipws); // need this to not skip white space
+        vector<unsigned char> meshData;
+        copy(std::istream_iterator<unsigned char>(meshStream),
+             std::istream_iterator<unsigned char>(),
+             back_inserter(meshData));
+        geometryResource = objectlinks.front()->AddGeometryFromRawSTL(meshData, "MyGeometry", "mm", 5);
+    }
     cout << "added object named \"" << name << "\" and whos pk is " << instobj->GetPrimaryKey() << ". Enjoy before being deleted in 10 seconds!" << endl;
     boost::this_thread::sleep(boost::posix_time::seconds(10));
-    
+
+    if (!filename.empty()) {
+        geometryResource->Delete(10);
+    }
     scene->DeleteInstObject(instobj->GetPrimaryKey());
 
     return 0;
