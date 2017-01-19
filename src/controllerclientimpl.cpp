@@ -25,6 +25,7 @@ MUJIN_LOGGER("mujin.controllerclientcpp");
 
 #define CURL_OPTION_SAVER(curl, curlopt, curvalue, curltype) boost::shared_ptr<void> __curloptionsaver ## curlopt((void*)0, boost::bind(boost::function<CURLcode(CURL*, CURLoption, curltype)>(curl_easy_setopt), curl, curlopt, curvalue));
 
+
 namespace mujinclient {
 
 class CurlTimeoutSetter
@@ -681,15 +682,8 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, boost::property_t
     res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
     CHECKCURLCODE(res, "curl_easy_getinfo");
     if( _buffer.rdbuf()->in_avail() > 0 ) {
-#ifdef _WIN32
-        // sometimes buffer can container \n or \\, which windows boost property_tree does not like
-        std::string newbuffer;
-        std::vector< std::pair<std::string, std::string> > serachpairs(2);
-        serachpairs[0].first = "\n"; serachpairs[0].second = "";
-        serachpairs[1].first = "\\"; serachpairs[1].second = "";
-        SearchAndReplace(newbuffer, _buffer.str(), serachpairs);
-        std::stringstream newss(newbuffer);
-        boost::property_tree::read_json(newss, pt);
+#if defined(_WIN32) || defined(_WIN64)
+        ParsePropertyTreeWin(_buffer.str(), pt);
 #else
         boost::property_tree::read_json(_buffer, pt);
 #endif
@@ -729,7 +723,11 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, std::string& outp
     if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
         if( outputdata.size() > 0 ) {
             boost::property_tree::ptree pt;
+#if defined(_WIN32) || defined(_WIN64)
+            ParsePropertyTreeWin(_buffer.str(), pt);
+#else
             boost::property_tree::read_json(_buffer, pt);
+#endif
             std::string error_message = pt.get<std::string>("error_message", std::string());
             std::string traceback = pt.get<std::string>("traceback", std::string());
             throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s: %s", desturi%http_code%error_message, MEC_HTTPServer);
@@ -770,7 +768,11 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, std::vector<unsig
             std::string error_message, traceback;
             try {
                 boost::property_tree::ptree pt;
+#if defined(_WIN32) || defined(_WIN64)
+                ParsePropertyTreeWin(ss.str(), pt);
+#else
                 boost::property_tree::read_json(ss, pt);
+#endif
                 error_message = pt.get<std::string>("error_message", std::string());
                 traceback = pt.get<std::string>("traceback", std::string());
             }
@@ -807,7 +809,11 @@ int ControllerClientImpl::CallPost(const std::string& relativeuri, const std::st
     res = curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
     CHECKCURLCODE(res, "curl_easy_getinfo failed");
     if( _buffer.rdbuf()->in_avail() > 0 ) {
+#if defined(_WIN32) || defined(_WIN64)
+        ParsePropertyTreeWin(_buffer.str(), pt);
+#else
         boost::property_tree::read_json(_buffer, pt);
+#endif
     }
     if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
         std::string error_message = pt.get<std::string>("error_message", std::string());
@@ -849,7 +855,11 @@ int ControllerClientImpl::CallPut(const std::string& relativeuri, const std::str
     res = curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
     CHECKCURLCODE(res, "curl_easy_getinfo failed");
     if( _buffer.rdbuf()->in_avail() > 0 ) {
+#if defined(_WIN32) || defined(_WIN64)
+        ParsePropertyTreeWin(_buffer.str(), pt);
+#else
         boost::property_tree::read_json(_buffer, pt);
+#endif
     }
     if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
         std::string error_message = pt.get<std::string>("error_message", std::string());

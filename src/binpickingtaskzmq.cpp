@@ -25,6 +25,45 @@
 
 MUJIN_LOGGER("mujin.controllerclientcpp.binpickingtask.zmq");
 
+namespace
+{
+void ConvertTimestampToFloat(const std::string& in,
+                             std::stringstream& outss)
+{
+    const std::size_t len = in.size();
+    std::size_t processed = 0;
+    while (processed != std::string::npos && processed < len) {
+        const std::size_t deltabegin = in.substr(processed, len).find("\"timestamp\":");
+        if (deltabegin == std::string::npos) {
+            outss << in.substr(processed, len);
+            return;
+        }
+        const std::size_t timestampbegin = processed + deltabegin;
+        const std::size_t comma = in.substr(timestampbegin, len).find(",");
+        const std::size_t closingCurly = in.substr(timestampbegin, len).find("}");
+        if (comma == std::string::npos && closingCurly == std::string::npos)
+        {
+            throw mujinclient::MujinException(boost::str(boost::format("error while converting timestamp value format for %s")%in), mujinclient::MEC_Failed);
+        }
+        const std::size_t timestampend = timestampbegin + (comma < closingCurly ? comma : closingCurly);
+        if (timestampend == std::string::npos) {
+            throw mujinclient::MujinException(boost::str(boost::format("error while converting timestamp value format for %s")%in), mujinclient::MEC_Failed);
+        }
+        const std::size_t period = in.substr(timestampbegin, len).find(".");
+
+        if (period == std::string::npos || timestampbegin + period > timestampend) {
+            // no comma, assume this is in integet format. so add period to make it a float format.
+            outss << in.substr(processed, timestampend - processed) << ".";
+        }
+        else {
+            // already floating format. keep it that way
+            outss << in.substr(processed, timestampend - processed);
+        }
+        processed = timestampend;
+    }
+}
+}
+
 namespace mujinclient {
 using namespace utils;
 
@@ -123,9 +162,12 @@ boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std:
             }
         }
 
-        //std::cout << result_ss.str() << std::endl;
         try {
+#if defined(_WIN32) || defined(_WIN64)
+            ParsePropertyTreeWin(result_ss.str(), pt);
+#else
             boost::property_tree::read_json(result_ss, pt);
+#endif
             boost::property_tree::ptree::const_assoc_iterator iterror = pt.find("error");
             if( iterror != pt.not_found() ) {
                 boost::optional<std::string> erroroptional = iterror->second.get_optional<std::string>("errorcode");
@@ -200,18 +242,13 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
                 zmq::message_t reply;
                 socket->recv(&reply);
                 std::string replystring((char *) reply.data (), (size_t) reply.size());                
-#ifdef _WIN32
-                // sometimes buffer can container \n or \\, which windows boost property_tree does not like
-                std::string newbuffer;
-                std::vector< std::pair<std::string, std::string> > serachpairs(1);
-                serachpairs[0].first = "\\"; serachpairs[0].second = "";
-                SearchAndReplace(newbuffer, replystring, serachpairs);
-                std::stringstream replystring_ss(newbuffer);
-#else
-                std::stringstream replystring_ss(replystring);
-#endif
                 try{
+#if defined(_WIN32) || defined(_WIN64)
+                    ParsePropertyTreeWin(replystring, pt);
+#else
+                    std::stringstream replystring_ss(replystring);
                     boost::property_tree::read_json(replystring_ss, pt);
+#endif
                 }
                 catch (std::exception const &e) {
                     MUJIN_LOG_ERROR("HeartBeat reply is not JSON");

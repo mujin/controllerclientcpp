@@ -92,7 +92,71 @@ const std::map<int, std::string>& GetCodePageMap()
     return s_mapCodePageToCharset;
 }
 
+
 #endif
 
 } // namespace encoding
+
+void ConvertTimestampToFloat(const std::string& in,
+                             std::stringstream& outss)
+{
+    const std::size_t len = in.size();
+    std::size_t processed = 0;
+    while (processed != std::string::npos && processed < len) {
+        const std::size_t deltabegin = in.substr(processed, len).find("\"timestamp\":");
+        if (deltabegin == std::string::npos) {
+            outss << in.substr(processed, len);
+            return;
+        }
+        const std::size_t timestampbegin = processed + deltabegin;
+        const std::size_t comma = in.substr(timestampbegin, len).find(",");
+        const std::size_t closingCurly = in.substr(timestampbegin, len).find("}");
+        if (comma == std::string::npos && closingCurly == std::string::npos)
+        {
+            throw mujinclient::MujinException(boost::str(boost::format("error while converting timestamp value format for %s")%in), mujinclient::MEC_Failed);
+        }
+        const std::size_t timestampend = timestampbegin + (comma < closingCurly ? comma : closingCurly);
+        if (timestampend == std::string::npos) {
+            throw mujinclient::MujinException(boost::str(boost::format("error while converting timestamp value format for %s")%in), mujinclient::MEC_Failed);
+        }
+        const std::size_t period = in.substr(timestampbegin, len).find(".");
+
+        if (period == std::string::npos || timestampbegin + period > timestampend) {
+            // no comma, assume this is in integet format. so add period to make it a float format.
+            outss << in.substr(processed, timestampend - processed) << ".";
+        }
+        else {
+            // already floating format. keep it that way
+            outss << in.substr(processed, timestampend - processed);
+        }
+        processed = timestampend;
+    }
+}
+
+
+void ParsePropertyTreeWin(const std::string& originalStr,
+                          boost::property_tree::ptree& pt)
+{
+    // sometimes buffer can containe \n, \\ and so on, which windows boost property_tree does not like
+    std::string newbuffer1, newbuffer2;
+    {
+        // need to first deal with this case alone. since dealing with "\\\"" and "\\" simultaneously does not give us good result.
+        // for example, input string "\\\"", it can be matched by both "\\\"" and "\\" and result is not predictable.
+        std::vector< std::pair<std::string, std::string> > serachpairs(1);
+        serachpairs[0].first = "\\\""; serachpairs[0].second = "";
+        mujinclient::SearchAndReplace(newbuffer1, originalStr, serachpairs);
+    }
+    {
+        std::vector< std::pair<std::string, std::string> > serachpairs(3);
+        serachpairs[0].first = "\\/"; serachpairs[0].second = "";
+        serachpairs[1].first = "\\"; serachpairs[1].second = "";
+        serachpairs[2].first = "\\n"; serachpairs[2].second = " ";
+        mujinclient::SearchAndReplace(newbuffer2, newbuffer1, serachpairs);
+    }
+
+    std::stringstream newss;
+    ConvertTimestampToFloat(newbuffer2, newss);
+    boost::property_tree::read_json(newss, pt);
+}
+
 } // namespace mujinclient

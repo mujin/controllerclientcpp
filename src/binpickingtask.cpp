@@ -112,7 +112,11 @@ void BinPickingTaskResource::Initialize(const std::string& defaultTaskParameters
     if( defaultTaskParameters.size() > 0 ) {
         boost::property_tree::ptree pt;
         std::stringstream ss(defaultTaskParameters);
+#if defined(_WIN32) || defined(_WIN64)
+        ParsePropertyTreeWin(ss.str(), pt);
+#else
         boost::property_tree::read_json(ss, pt);
+#endif
         FOREACH(itchild, pt) {
             std::string value = itchild->second.data();
             // hack?!
@@ -143,7 +147,11 @@ void BinPickingTaskResource::Initialize(const std::string& defaultTaskParameters
     if( defaultTaskParameters.size() > 0 ) {
         boost::property_tree::ptree pt;
         std::stringstream ss(defaultTaskParameters);
+#if defined(_WIN32) || defined(_WIN64)
+        ParsePropertyTreeWin(ss.str(), pt);
+#else
         boost::property_tree::read_json(ss, pt);
+#endif
         FOREACH(itchild, pt) {
             const std::string value = itchild->second.data();
             // hack?!
@@ -1611,8 +1619,11 @@ std::string GetValueForSmallestSlaveRequestId(const std::string& heartbeat,
 {
     boost::property_tree::ptree pt;
     std::stringstream ss(heartbeat);
+#if defined(_WIN32) || defined(_WIN64)
+    ParsePropertyTreeWin(ss.str(), pt);
+#else
     boost::property_tree::read_json(ss, pt);
-
+#endif
     try {
         const std::string slavereqid = FindSmallestSlaveRequestId(pt);
 
@@ -1627,19 +1638,21 @@ std::string GetValueForSmallestSlaveRequestId(const std::string& heartbeat,
 
     
 std::string mujinclient::utils::GetScenePkFromHeatbeat(const std::string& heartbeat) {
-    static const std::string prefix("mujin:\/");
+    static const std::string prefix("mujin:/");
     return GetValueForSmallestSlaveRequestId(heartbeat, "currentsceneuri").substr(prefix.length());
 }
 
 std::string utils::GetSlaveRequestIdFromHeatbeat(const std::string& heartbeat) {
     boost::property_tree::ptree pt;
     std::stringstream ss(heartbeat);
+#if defined(_WIN32) || defined(_WIN64)
+    ParsePropertyTreeWin(ss.str(), pt);
+#else
     boost::property_tree::read_json(ss, pt);
-
+#endif
     try {
         static const std::string prefix("slaverequestid-");
         return FindSmallestSlaveRequestId(pt).substr(prefix.length());
-;
     }
     catch (const MujinException& ex) {
         throw MujinException(boost::str(boost::format("%s from heartbeat:\n%s")%ex.what()%heartbeat));
