@@ -548,11 +548,19 @@ void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const boost
                     }
                     else if (v1->first == "image_dimensions") {
                         unsigned int i = 0;
-                        if ( v1->second.size() != 3 ) {
-                            throw MujinException("the length of image_dimensions is invalid", MEC_Failed);
+                        if ( v1->second.size() == 3 ) {
+                            FOREACH(v, v1->second) {
+                                sensordata.image_dimensions[i++] = boost::lexical_cast<int>(v->second.data());
+                            }
                         }
-                        FOREACH(v, v1->second) {
-                            sensordata.image_dimensions[i++] = boost::lexical_cast<int>(v->second.data());
+                        else if ( v1->second.size() == 2 ) {
+                            FOREACH(v, v1->second) {
+                                sensordata.image_dimensions[i++] = boost::lexical_cast<int>(v->second.data());
+                            }
+                            sensordata.image_dimensions[2] = 1; // last dim is 1
+                        }
+                        else {
+                            throw MujinException("the length of image_dimensions is invalid", MEC_Failed);
                         }
                     }
                     else if (v1->first == "extra_parameters") {
@@ -1036,13 +1044,14 @@ void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<Real>&vpoin
     ExecuteCommand(_ss.str(), timeout); // need to check return code
 }
 
-void BinPickingTaskResource::UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<Real>& vpoints, const std::string& state, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit, const double timeout, const std::string& locationIOName)
+void BinPickingTaskResource::UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<Real>& vpoints, const std::string& state, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit, const double timeout, const std::string& regionname, const std::string& locationIOName)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "UpdateEnvironmentState";
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("tasktype", _tasktype) << ", ";
     _ss << GetJsonString("objectname", objectname) << ", ";
+    _ss << GetJsonString("regionname", regionname) << ", ";
     _ss << GetJsonString("locationIOName", locationIOName) << ", ";
     
     _ss << GetJsonString("envstate") << ": [";
