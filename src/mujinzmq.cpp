@@ -246,7 +246,7 @@ std::string ZmqClient::Call(const std::string& msg, const double timeout, const 
 
     uint64_t starttime = GetMilliTime();
     bool recreatedonce = false;
-    while (GetMilliTime() - starttime < timeout*1000.0 && (!_preemptfn || (!!_preemptfn && !_preemptfn(checkpreemptbits)))) {
+    while (GetMilliTime() - starttime < timeout*1000.0) {
         try {
             _socket->send(request);
             break;
@@ -280,9 +280,10 @@ std::string ZmqClient::Call(const std::string& msg, const double timeout, const 
                 throw MujinException(ss.str(), MEC_Failed);
             }
         }
-    }
-    if (!!_preemptfn && _preemptfn(checkpreemptbits)) {
-        throw UserInterruptException("User requested interrupt");
+        if( !!_preemptfn ) {
+            _preemptfn(checkpreemptbits);
+        }
+
     }
     if (GetMilliTime() - starttime > timeout*1000.0) {
         std::stringstream ss;
@@ -299,7 +300,11 @@ std::string ZmqClient::Call(const std::string& msg, const double timeout, const 
     recreatedonce = false;
     zmq::message_t reply;
     bool receivedonce = false; // receive at least once
-    while (!receivedonce || (GetMilliTime() - starttime < timeout * 1000.0 && (!_preemptfn || (!!_preemptfn && !_preemptfn(checkpreemptbits))))) {
+    while (!receivedonce || (GetMilliTime() - starttime < timeout * 1000.0)) {
+        if( !!_preemptfn ) {
+            _preemptfn(checkpreemptbits);
+        }
+
         try {
 
             zmq::pollitem_t pollitem;
@@ -368,9 +373,6 @@ std::string ZmqClient::Call(const std::string& msg, const double timeout, const 
                 throw MujinException(errstr, MEC_Failed);
             }
         }
-    }
-    if (!!_preemptfn && _preemptfn(checkpreemptbits)) {
-        throw UserInterruptException("User requested interrupt");
     }
     if (GetMilliTime() - starttime > timeout*1000.0) {
         std::stringstream ss;

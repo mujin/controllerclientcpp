@@ -67,7 +67,7 @@ protected:
     bool _sharedcontext;
 };
 
-typedef boost::function<bool (const unsigned int)> CheckPreemptFn;
+typedef boost::function<void (const unsigned int)> CheckPreemptFn;
 
 /** \brief Base class for client
  */
