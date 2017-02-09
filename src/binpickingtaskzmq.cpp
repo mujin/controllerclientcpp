@@ -122,6 +122,14 @@ boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std:
                 if (!_zmqmujincontrollerclient) {
                     throw MujinException(boost::str(boost::format("Failed to establish ZMQ connection to mujin controller at %s:%d")%_mujinControllerIp%_zmqPort), MEC_Failed);
                 }
+            } else if (e.GetCode() == MEC_Timeout) {
+                std::string errstr;
+                if (taskparameters.size()>1000) {
+                    errstr = taskparameters.substr(0, 1000);
+                } else {
+                    errstr = taskparameters;
+                }
+                throw MujinException(boost::str(boost::format("Timed out receiving response of command with taskparameters=%s...")%errstr));
             }
         }
 
@@ -164,6 +172,14 @@ boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std:
                 if (!_zmqmujincontrollerclient) {
                     throw MujinException(boost::str(boost::format("Failed to establish ZMQ connection to mujin controller at %s:%d")%_mujinControllerIp%_zmqPort), MEC_Failed);
                 }
+            } else if (e.GetCode() == MEC_Timeout) {
+                std::string errstr;
+                if (command.size()>1000) {
+                    errstr = command.substr(0, 1000);
+                } else {
+                    errstr = command;
+                }
+                throw MujinException(boost::str(boost::format("Timed out receiving response of command with taskparameters=%s...")%errstr));
             }
         }
     }
