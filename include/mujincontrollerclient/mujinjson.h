@@ -26,6 +26,8 @@
 
 namespace mujinjson {
 
+using namespace mujinclient;
+
 /// \brief gets a string of the Value type for debugging purposes 
 inline std::string GetJsonTypeName(const rapidjson::Value& v) {
     int type = v.GetType();
@@ -65,15 +67,24 @@ inline void ParseJson(rapidjson::Document&d, const std::string& str) {
         } else {
             substr = str;
         }
-        throw MujinException("Json string is invalid: " + substr, MEC_InvalidArgument);
+        throw MujinException("Json string is invalid: " + substr, MEC_InvalidArguments);
     }
 }
 
+class JsonSerializable {
+public:
+    virtual void LoadFromJson(const rapidjson::Value& v) = 0;
+    virtual void SaveToJson(rapidjson::Value& v, rapidjson::Document::AllocatorType& alloc) const = 0;
+    virtual void SaveToJson(rapidjson::Document& d) const {
+        SaveToJson(d, d.GetAllocator());
+    }
+};
+
 //store a json value to local data structures
 //for compatibility with ptree, type conversion is made. will remove them in the future
-
-template<class T> inline void LoadJsonValue(const rapidjson::Value& v, T& t);
-
+inline void LoadJsonValue(const rapidjson::Value& v, JsonSerializable& t) {
+    t.LoadFromJson(v);
+}
 
 inline void LoadJsonValue(const rapidjson::Value& v, std::string& t) {
     if (v.IsString()) {
@@ -81,7 +92,7 @@ inline void LoadJsonValue(const rapidjson::Value& v, std::string& t) {
     } else if (v.IsInt64()) {
         t = boost::lexical_cast<std::string>(v.GetInt64());
     } else {
-        throw MujinException("Cannot convert json type " + GetJsonTypeName(v) + " to String", MEC_InvalidArgument);
+        throw MujinException("Cannot convert json type " + GetJsonTypeName(v) + " to String", MEC_InvalidArguments);
     }
 
 }
@@ -92,7 +103,7 @@ inline void LoadJsonValue(const rapidjson::Value& v, int& t) {
     } else if (v.IsString()) {
         t = boost::lexical_cast<int>(v.GetString());
     } else {
-        throw MujinException("Cannot convert json type " + GetJsonTypeName(v) + " to Int", MEC_InvalidArgument);
+        throw MujinException("Cannot convert json type " + GetJsonTypeName(v) + " to Int", MEC_InvalidArguments);
     }
 }
 
@@ -102,7 +113,7 @@ inline void LoadJsonValue(const rapidjson::Value& v, unsigned int& t) {
     } else if (v.IsString()) {
         t = boost::lexical_cast<unsigned int>(v.GetString());
     } else {
-        throw MujinException("Cannot convert json type " + GetJsonTypeName(v) + " to Int", MEC_InvalidArgument);
+        throw MujinException("Cannot convert json type " + GetJsonTypeName(v) + " to Int", MEC_InvalidArguments);
     }
 }
 
@@ -112,7 +123,7 @@ inline void LoadJsonValue(const rapidjson::Value& v, unsigned long long& t) {
     } else if (v.IsString()) {
         t = boost::lexical_cast<unsigned long long>(v.GetString());
     } else {
-        throw MujinException("Cannot convert json type " + GetJsonTypeName(v) + " to Int64", MEC_InvalidArgument);
+        throw MujinException("Cannot convert json type " + GetJsonTypeName(v) + " to Int64", MEC_InvalidArguments);
     }
 }
 
@@ -122,7 +133,7 @@ inline void LoadJsonValue(const rapidjson::Value& v, uint64_t& t) {
     } else if (v.IsString()) {
         t = boost::lexical_cast<uint64_t>(v.GetString());
     } else {
-        throw MujinException("Cannot convert json type " + GetJsonTypeName(v) + " to Int64", MEC_InvalidArgument);
+        throw MujinException("Cannot convert json type " + GetJsonTypeName(v) + " to Int64", MEC_InvalidArguments);
     }
 }
 
@@ -132,7 +143,7 @@ inline void LoadJsonValue(const rapidjson::Value& v, double& t) {
     } else if (v.IsString()) {
         t = boost::lexical_cast<double>(v.GetString());
     } else {
-        throw MujinException("Cannot convert json type " + GetJsonTypeName(v) + " to Double", MEC_InvalidArgument);
+        throw MujinException("Cannot convert json type " + GetJsonTypeName(v) + " to Double", MEC_InvalidArguments);
     }
 }
 
@@ -142,7 +153,7 @@ inline void LoadJsonValue(const rapidjson::Value& v, bool& t) {
     else if (v.IsString())  {
         t = boost::lexical_cast<bool>(v.GetString());
     } else {
-        throw MujinException("Cannot convert json type " + GetJsonTypeName(v) + " to Bool", MEC_InvalidArgument);
+        throw MujinException("Cannot convert json type " + GetJsonTypeName(v) + " to Bool", MEC_InvalidArguments);
     }
 }
 
@@ -157,7 +168,7 @@ template<class T> inline void LoadJsonValue(const rapidjson::Value& v, boost::sh
 template<class T, size_t N> inline void LoadJsonValue(const rapidjson::Value& v, T (&p)[N]) {
     if (v.IsArray()) {
         if (v.GetArray().Size() != N) {
-            throw MujinException("Json array size doesn't match", MEC_InvalidArgument);
+            throw MujinException("Json array size doesn't match", MEC_InvalidArguments);
         }
         size_t i = 0;
         for (rapidjson::Value::ConstValueIterator it = v.Begin(); it != v.End(); ++it) {
@@ -165,7 +176,7 @@ template<class T, size_t N> inline void LoadJsonValue(const rapidjson::Value& v,
             i++;
         }
     } else {
-        throw MujinException("Cannot convert json type " + GetJsonTypeName(v) + " to Array", MEC_InvalidArgument);
+        throw MujinException("Cannot convert json type " + GetJsonTypeName(v) + " to Array", MEC_InvalidArguments);
     }
 }
 
@@ -179,13 +190,19 @@ template<class T> inline void LoadJsonValue(const rapidjson::Value& v, std::vect
             i++;
         }
     } else {
-        throw MujinException("Cannot convert json type " + GetJsonTypeName(v) + " to Array", MEC_InvalidArgument);
+        throw MujinException("Cannot convert json type " + GetJsonTypeName(v) + " to Array", MEC_InvalidArguments);
     }
 }
 
 //Save a data structure to rapidjson::Value format
 
-template<class T> inline void SaveJsonValue(rapidjson::Value& v, const T& t, rapidjson::Document::AllocatorType& alloc);
+/*template<class T> inline void SaveJsonValue(rapidjson::Value& v, const T& t, rapidjson::Document::AllocatorType& alloc) {*/
+/*JsonWrapper<T>::SaveToJson(v, t, alloc);*/
+/*}*/
+
+inline void SaveJsonValue(rapidjson::Value& v, const JsonSerializable& t, rapidjson::Document::AllocatorType& alloc) {
+    t.SaveToJson(v, alloc);
+}
 
 inline void SaveJsonValue(rapidjson::Value& v, const std::string& t, rapidjson::Document::AllocatorType& alloc) {
     v.SetString(t.c_str(), alloc);
@@ -257,14 +274,7 @@ template<class T> inline void SaveJsonValue(rapidjson::Document& v, const T& t) 
     SaveJsonValue(v, t, v.GetAllocator());
 }
 
-
 template<class T, class U> inline void SetJsonValueByKey(rapidjson::Value& v, const U& key, const T& t, rapidjson::Document::AllocatorType& alloc);
-
-inline void SaveJsonValue(rapidjson::Value& v, const MujinException& e, rapidjson::Document::AllocatorType& alloc) {
-    v.SetObject();
-    SetJsonValueByKey(v, "type", (int)(e.GetCode()), alloc);
-    SetJsonValueByKey(v, "desc", e.GetCodeString(), alloc);
-}
 
 //get one json value by key, and store it in local data structures
 template<class T> void inline LoadJsonValueByKey(const rapidjson::Value& v, const char* key, T& t) {
@@ -349,7 +359,7 @@ inline void SetJsonValueByKey(rapidjson::Document& d, const std::string& key, co
 inline void ValidateJsonString(const std::string& str) {
     rapidjson::Document d;
     if (d.Parse(str.c_str()).HasParseError()) {
-        throw MujinException("json string " + str + " is invalid.", MEC_InvalidArgument);
+        throw MujinException("json string " + str + " is invalid.", MEC_InvalidArguments);
     }
 }
 
