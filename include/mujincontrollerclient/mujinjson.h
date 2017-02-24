@@ -74,7 +74,6 @@ inline void ParseJson(rapidjson::Document&d, const std::string& str) {
 
 template<class T> inline void LoadJsonValue(const rapidjson::Value& v, T& t);
 
-template<class T> inline void SaveJsonValue(rapidjson::Value& v, const T& t, rapidjson::Document::AllocatorType& alloc);
 
 inline void LoadJsonValue(const rapidjson::Value& v, std::string& t) {
     if (v.IsString()) {
@@ -185,6 +184,8 @@ template<class T> inline void LoadJsonValue(const rapidjson::Value& v, std::vect
 }
 
 //Save a data structure to rapidjson::Value format
+
+template<class T> inline void SaveJsonValue(rapidjson::Value& v, const T& t, rapidjson::Document::AllocatorType& alloc);
 
 inline void SaveJsonValue(rapidjson::Value& v, const std::string& t, rapidjson::Document::AllocatorType& alloc) {
     v.SetString(t.c_str(), alloc);
