@@ -119,6 +119,7 @@ public:
         bool forceRequestDetectionResults;
         bool isGrabbingTarget;
         bool isGrabbingLastTarget;
+        bool hasRobotExecutionStarted;
         int orderNumber;
         int numLeftInOrder;
         int numLeftInSupply;
