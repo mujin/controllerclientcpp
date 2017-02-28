@@ -339,11 +339,17 @@ template<class T, class U> inline void SetJsonValueByKey(rapidjson::Value& v, co
 
 //get one json value by key, and store it in local data structures
 template<class T> void inline LoadJsonValueByKey(const rapidjson::Value& v, const char* key, T& t) {
+    if (!v.IsObject()) {
+        throw MujinJSONException("Cannot load value of non-object.", MJE_Failed);
+    }
     if (v.HasMember(key)) {
         LoadJsonValue(v[key], t);
     }
 }
 template<class T, class U> inline void LoadJsonValueByKey(const rapidjson::Value& v, const char* key, T& t, const U& d) {
+    if (!v.IsObject()) {
+        throw MujinJSONException("Cannot load value of non-object.", MJE_Failed);
+    }
     if (v.HasMember(key)) {
         LoadJsonValue(v[key], t);
     }
@@ -354,6 +360,9 @@ template<class T, class U> inline void LoadJsonValueByKey(const rapidjson::Value
 
 //work the same as LoadJsonValueByKey, but the value is returned instead of being passed as reference
 template<class T, class U> T GetJsonValueByKey(const rapidjson::Value& v, const char* key, const U& t) {
+    if (!v.IsObject()) {
+        throw MujinJSONException("Cannot get value of non-object.", MJE_Failed);
+    }
     if (v.HasMember(key)) {
         T r;
         LoadJsonValue(v[key], r);
@@ -364,6 +373,9 @@ template<class T, class U> T GetJsonValueByKey(const rapidjson::Value& v, const 
     }
 }
 template<class T> inline T GetJsonValueByKey(const rapidjson::Value& v, const char* key) {
+    if (!v.IsObject()) {
+        throw MujinJSONException("Cannot load value of non-object.", MJE_Failed);
+    }
     T r = T();
     if (v.HasMember(key)) {
         LoadJsonValue(v[key], r);
@@ -394,6 +406,9 @@ template<class T, class U> T GetJsonValueByPath(const rapidjson::Value& v, const
 
 template<class T, class U> inline void SetJsonValueByKey(rapidjson::Value& v, const U& key, const T& t, rapidjson::Document::AllocatorType& alloc)
 {
+    if (!v.IsObject()) {
+        throw MujinJSONException("Cannot set value for non-object.", MJE_Failed);
+    }
     if (v.HasMember(key)) {
         SaveJsonValue(v[key], t, alloc);
     }
