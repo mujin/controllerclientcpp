@@ -22,6 +22,8 @@
 #include <boost/format.hpp>
 #include <stdint.h>
 #include <string>
+#include <vector>
+#include <map>
 #include <stdexcept>
 
 #include <rapidjson/pointer.h>
@@ -255,6 +257,18 @@ template<class T> inline void LoadJsonValue(const rapidjson::Value& v, std::vect
     }
 }
 
+template<class U> inline void LoadJsonValue(const rapidjson::Value& v, std::map<std::string, U>& t) {
+    if (v.IsObject()) {
+        t.clear();
+        U value;
+        for (rapidjson::Value::ConstMemberIterator it = v.MemberBegin();
+                it != v.MemberEnd(); ++it) {
+            LoadJsonValue(it->value, value);
+            t[it->name.GetString()] = value;
+        }
+    }
+}
+
 //Save a data structure to rapidjson::Value format
 
 /*template<class T> inline void SaveJsonValue(rapidjson::Value& v, const T& t, rapidjson::Document::AllocatorType& alloc) {*/
@@ -328,6 +342,16 @@ template<> inline void SaveJsonValue(rapidjson::Value& v, const std::vector<doub
     v.Reserve(t.size(), alloc);
     for (size_t i = 0; i < t.size(); ++i) {
         v.PushBack(t[i], alloc);
+    }
+}
+
+template<class U> inline void SaveJsonValue(rapidjson::Value& v, const std::map<std::string, U>& t, rapidjson::Document::AllocatorType& alloc) {
+    v.SetObject();
+    for (typename std::map<std::string, U>::const_iterator it = t.begin(); it != t.end(); ++it) {
+        rapidjson::Value name, value;
+        SaveJsonValue(name, it->first, alloc);
+        SaveJsonValue(value, it->second, alloc);
+        v.AddMember(name, value, alloc);
     }
 }
 

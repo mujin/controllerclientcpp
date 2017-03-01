@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 #include "mujincontrollerclient/mujinjson.h"
+#include <iostream> // for debug print
 
 using namespace mujinjson;
 static std::string s = "{\"a\":true,\"b\":1,\"c\":\"string\",\"d\":[null]}";
@@ -113,6 +114,15 @@ std::vector<T> Range(int N) { // generate python-range style list for test
     return v;
 }
 
+template<class U>
+std::map<std::string, U> RangeMap(int N) { // generate  dummpy map for test
+    std::map<std::string, U> p;
+    for (int i = 0; i < N; i ++) {
+        p[std::string(i, 'a')] = U(i);
+    }
+    return p;
+}
+
 TEST(JsonTest, GetVector) {
     rapidjson::Document d;
     d.Parse("{\"a\":[0, 1, 2]}");
@@ -124,6 +134,16 @@ TEST(JsonTest, GetVector) {
     EXPECT_EQ(GetJsonValueByKey<std::vector<double> >(d, "b"), Range<double>(0));
     EXPECT_EQ(GetJsonValueByKey<std::vector<int> >(d, "b", Range<int>(10)), Range<int>(10));
     EXPECT_EQ(GetJsonValueByKey<std::vector<double> >(d, "b", Range<double>(10)), Range<double>(10));
+}
+
+TEST(JsonTest, GetMap) {
+    rapidjson::Document d;
+    d.Parse("{\"a\":{\"a\":\"b\", \"b\":\"a\"}}");
+    std::map<std::string, std::string> p = GetJsonValueByKey<std::map<std::string, std::string> >(d, "a");
+    EXPECT_EQ(p.size(),  2);
+    EXPECT_EQ(p["a"], "b");
+    EXPECT_EQ(p["b"], "a");
+    EXPECT_TRUE((GetJsonValueByKey<std::map<std::string, std::string> >(d, "b").empty()));
 }
 
 TEST(JsonTest, GetArray) {
@@ -160,6 +180,12 @@ TEST(JsonTest, SaveJsonValue) {
     TestSaveJsonValue<std::vector<int> >(Range<int>(0));
     TestSaveJsonValue<std::vector<double> >(Range<double>(1000));
     TestSaveJsonValue<std::vector<double> >(Range<double>(0));
+    TestSaveJsonValue<std::map<std::string, int> >(RangeMap<int>(100));
+    TestSaveJsonValue<std::map<std::string, int> >(RangeMap<int>(0));
+    TestSaveJsonValue<std::map<std::string, double> >(RangeMap<double>(100));
+    TestSaveJsonValue<std::map<std::string, std::vector<int> > >(RangeMap<std::vector<int> >(100));
+    TestSaveJsonValue<std::map<std::string, std::vector<int> > >(RangeMap<std::vector<int> >(100));
+    TestSaveJsonValue<std::map<std::string, std::vector<std::string> > >(RangeMap<std::vector<std::string> >(100));
 }
 
 template<class U, class V>
