@@ -1,22 +1,24 @@
 // -*- coding: utf-8 -*-
-/** \example mujinjog.cpp
+/** \example mujinmoveandcancel.cpp
 
-    Shows how to jog robot in joint, robot and tool spaces.
-    example1: mujinjog --controller_hostname=yourhost --robotname=yourrobot
-    example2: mujinjog --controller_hostname=yourhost --robotname=yourrobot --task_scenepk=yourscene --type=tool --axis=1 --move_in_positive=true --speed=0.2
+    Shows how to cancel move
+    example: mujinmoveandcancel --controller_hostname=yourhost --robotname=yourrobot --goals=0 90 30 40 50 0 # specify joint values
  */
 
 #include <mujincontrollerclient/binpickingtask.h>
-
-#include <boost/program_options.hpp>
-#include <signal.h>
 #include <iostream>
+#include <signal.h>
 
 #if defined(_WIN32) || defined(_WIN64)
 #undef GetUserName // clashes with ControllerClient::GetUserName
 #endif // defined(_WIN32) || defined(_WIN64)
 
+
 using namespace mujinclient;
+
+#include <boost/program_options.hpp>
+#include <boost/thread.hpp>
+
 namespace bpo = boost::program_options;
 using namespace std;
 
@@ -40,18 +42,16 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("controller_port", bpo::value<unsigned int>()->default_value(80), "port of the mujin controller")
         ("slave_request_id", bpo::value<string>()->default_value(""), "request id of the mujin slave, e.g. controller20_slave0. If empty, uses  ")
         ("controller_username_password", bpo::value<string>()->default_value("testuser:pass"), "username and password to the mujin controller, e.g. username:password")
-        ("controller_command_timeout", bpo::value<double>()->default_value(10), "command timeout in seconds, e.g. 10")
+        ("timeout", bpo::value<double>()->default_value(10), "command timeout in seconds, e.g. 10")
         ("locale", bpo::value<string>()->default_value("en_US"), "locale to use for the mujin controller client")
         ("task_scenepk", bpo::value<string>()->default_value(""), "scene pk of the binpicking task on the mujin controller, e.g. officeboltpicking.mujin.dae.")
         ("robotname", bpo::value<string>()->default_value(""), "robot name.")
         ("taskparameters", bpo::value<string>()->default_value("{}"), "binpicking task parameters, e.g. {'robotname': 'robot', 'robots':{'robot': {'externalCollisionIO':{}, 'gripperControlInfo':{}, 'robotControllerUri': '', robotDeviceIOUri': '', 'toolname': 'tool'}}}")
         ("zmq_port", bpo::value<unsigned int>()->default_value(11000), "port of the binpicking task on the mujin controller")
         ("heartbeat_port", bpo::value<unsigned int>()->default_value(11001), "port of the binpicking task's heartbeat signal on the mujin controller")
-        ("type", bpo::value<string>()->default_value("joints"), "mode to do jogging. one of \"joints\", \"robot\" or \"tool\"")
-        ("axis", bpo::value<unsigned int>()->default_value(0), "axis to do jogging on. For joint mode, 0 indicates J1 and 5 indicates J6. For tool mode, 0 indicates translation in X, 5 indicates rotation in Z")
-        ("move_in_positive", bpo::value<bool>()->default_value(true), "whether to move in increasing or decreasing direction")
-        ("jog_duration", bpo::value<double>()->default_value(1.0), "duration of jogging")
-        ("speed", bpo::value<double>()->default_value(0.1), "speed to move at, a value between 0 and 1.")
+
+        ("goals", bpo::value<vector<double> >()->multitoken(), "joint values.")
+        ("speed", bpo::value<double>()->default_value(0.1), "speed to move at")
         ;
 
     try {
@@ -75,6 +75,9 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         badargs = true;
     }
 
+    if (!badargs) {
+        badargs = opts.find("goals") == opts.end() || opts["goals"].as<vector<double> >().size() < 6;
+    }
     if(opts.count("help") || badargs) {
         cout << "Usage: " << argv[0] << " [OPTS]" << endl;
         cout << endl;
@@ -88,10 +91,11 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
 /// \param opts options parsed from command line
 /// \param pBinPickingTask bin picking task to be initialized
 void InitializeTask(const bpo::variables_map& opts,
+                    ControllerClientPtr& controllerclient,
                     BinPickingTaskResourcePtr& pBinpickingTask)
 {
     const string controllerUsernamePass = opts["controller_username_password"].as<string>();
-    const double controllerCommandTimeout = opts["controller_command_timeout"].as<double>();
+    const double controllerCommandTimeout = opts["timeout"].as<double>();
     const string taskparameters = opts["taskparameters"].as<string>();
     const string locale = opts["locale"].as<string>();
     const unsigned int taskZmqPort = opts["zmq_port"].as<unsigned int>();
@@ -137,7 +141,7 @@ void InitializeTask(const bpo::variables_map& opts,
     const string tasktype = "realtimeitlplanning";
 
     // connect to mujin controller
-    ControllerClientPtr controllerclient = CreateControllerClient(controllerUsernamePass, urlss.str());
+    controllerclient = CreateControllerClient(controllerUsernamePass, urlss.str());
 
     cout << "connected to mujin controller at " << urlss.str() << endl;
 
@@ -146,7 +150,7 @@ void InitializeTask(const bpo::variables_map& opts,
     // initialize binpicking task
     pBinpickingTask = scene->GetOrCreateBinPickingTaskFromName_UTF8(tasktype+string("task1"), tasktype, TRO_EnableZMQ);
     const string userinfo = "{\"username\": \"" + controllerclient->GetUserName() + "\", ""\"locale\": \"" + locale + "\"}";
-    cout << "initializing binpickingtask with userinfo=" + userinfo << " taskparameters=" << taskparameters << endl;
+    cout << "initialzing binpickingtask with userinfo=" + userinfo << " taskparameters=" << taskparameters << endl;
 
     s_robotname = opts["robotname"].as<string>();
     if (s_robotname.empty()) {
@@ -167,7 +171,7 @@ void InitializeTask(const bpo::variables_map& opts,
 
     
     boost::shared_ptr<zmq::context_t> zmqcontext(new zmq::context_t(1));
-    pBinpickingTask->Initialize(taskparameters, taskZmqPort, heartbeatPort, zmqcontext, false, 10, controllerCommandTimeout, userinfo, slaverequestid);
+    pBinpickingTask->Initialize(taskparameters, taskZmqPort, heartbeatPort, zmqcontext, false, controllerCommandTimeout, controllerCommandTimeout, userinfo, slaverequestid);
 }
 
 /// \brief convert state of bin picking task to string
@@ -199,67 +203,36 @@ string ConvertStateToString(const BinPickingTaskResource::ResultGetBinpickingSta
     return ss.str();
 }
 
-/// \brief jogs robot either in joint space or tool space
+/// \brief run hand moving task
 /// \param pTask task
-/// \param mode whether to move in joints or tool
-/// \param axis axis to jog
-/// \param moveInPositive if true, moves in increasing direction,  otherwise move in decreasing direction
-/// \param duration time in second to do jogging
-/// \param speed speed at which to jog
-/// \param acc acceleration at which to jog
-/// \param robotname name of robot
-/// \param period period in ms at which to print current robot state
-/// \param timeout timeout for controller command
-void Run(BinPickingTaskResourcePtr& pTask,
-         const string& mode,
-         unsigned int axis,
-         bool moveInPositive,
-         double duration,
-         double speed,
-         double acc,
-         const string& robotname,
-         double timeout)
+/// \param goaltype whether to specify goal in 6 dimension(transform6d) or 5 dimension(translationdirection5d)
+/// \param goals goal of the hand
+/// \param speedlin linear speed to move at
+/// \param speedrot rotational speed to move at
+/// \param robotname robot name
+/// \param toolname tool name
+/// \param checkcollision whether to move in line or not
+void MoveThread(BinPickingTaskResourcePtr& pTask,
+                const vector<double>& goals,
+                const string& robotname,
+                double speed,
+                double timeout)
 {
     // print state
     BinPickingTaskResource::ResultGetBinpickingState result;
-    pTask->GetPublishedTaskState(result, robotname, "mm", timeout);
+    pTask->GetPublishedTaskState(result, robotname, "mm", 1.0);
     cout << "Starting:\n" << ConvertStateToString(result) << endl;
 
-    const size_t dof = mode == "joints" ? result.currentJointValues.size() : 6;
-    // when exiting this function, make sure to send zero velocities
-    const vector<int> stopjoints(dof, 0);  
-    boost::shared_ptr<void> setdisconnectfn((void*)0,
-                                            boost::bind(&BinPickingTaskResource::SetJogModeVelocities, pTask, mode,
-                                                        stopjoints, robotname, "", speed, acc, timeout));
-
-    // start moving
-    vector<int> movejointsigns(dof, 0);
-    movejointsigns[axis] = moveInPositive ? 1 : -1;
-    pTask->SetJogModeVelocities(mode, movejointsigns, robotname, "", speed, acc, timeout);
-    
-    // let it jog for specified duration
-    unsigned long long previoustimestamp = result.timestamp;
-    for (unsigned int it_sleep = 0; it_sleep < duration*1000; it_sleep++) {
-        if (s_sigintreceived) {
-            break;
-        }
-        
-        boost::this_thread::sleep(boost::posix_time::milliseconds(1));
-        pTask->GetPublishedTaskState(result, robotname, "mm", timeout);
-        if (previoustimestamp == result.timestamp) {
-            continue;
-        }
-
-        // value updated, print it
-        cout << ConvertStateToString(result) << endl;
-        previoustimestamp = result.timestamp;
+    vector<int> jointindices(goals.size());
+    for (size_t i = 0; i < jointindices.size(); ++i) {
+        jointindices[i] = i;
     }
+    // start moving
+    BinPickingTaskResource::ResultMoveJoints moveresult;
+    pTask->MoveJoints(goals, jointindices, 10, speed, moveresult, timeout);
 
-    
-    pTask->SetJogModeVelocities(mode, stopjoints, robotname, "", speed, acc, timeout);
-    
     // print state
-    pTask->GetPublishedTaskState(result, robotname, "mm", timeout);
+    pTask->GetPublishedTaskState(result, robotname, "mm", 1.0);
     cout << "Finished:\n" << ConvertStateToString(result) << endl;
 }
 
@@ -271,24 +244,32 @@ int main(int argc, char ** argv)
         // parsing option failed
         return 1;
     }
-    const unsigned int axis = opts["axis"].as<unsigned int>();
-    const bool moveinpositive = opts["move_in_positive"].as<bool>();
+    const vector<double> goals = opts["goals"].as<vector<double> >();
     const double speed = opts["speed"].as<double>();
-    const double acc = speed * 0.7;
-    const double timeout = opts["controller_command_timeout"].as<double>();
-    const double jogduration = opts["jog_duration"].as<double>();
-    const string mode =  opts["type"].as<string>();
+    const double timeout = opts["timeout"].as<double>();
 
     // initializing
     BinPickingTaskResourcePtr pBinpickingTask;
-    InitializeTask(opts, pBinpickingTask);
+    ControllerClientPtr controllerclient;
+    InitializeTask(opts, controllerclient, pBinpickingTask);
 
-    // add a signal handler
+    boost::thread movethread = boost::thread(&MoveThread, pBinpickingTask, goals, s_robotname, speed, timeout);
+
     signal(SIGINT,sigint_handler); // control C
-    cout << "Ctrl-C to stop jogging before jogduration passed.\n";
+    cout << "started to move. Ctrl-C to cancel" << endl;
 
-    // do interesting part
-    Run(pBinpickingTask, mode, axis, moveinpositive, jogduration, speed, acc, s_robotname, timeout);
+    // wait until ctrl-c or trajectory to finish
+    bool movefinished = false;
+    while (!s_sigintreceived && !movefinished) {
+        movefinished = movethread.timed_join(boost::posix_time::milliseconds(1));
+    }
+
+    if (!movefinished) {
+        controllerclient->CancelAllJobs();
+        cout << "Canceled!" << endl;
+        movethread.join();
+    }
+
     return 0;
 }
 

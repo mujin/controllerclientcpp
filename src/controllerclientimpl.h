@@ -83,7 +83,24 @@ public:
     /// \param data utf-16 encoded
     int CallPost_UTF16(const std::string& relativeuri, const std::wstring& data, boost::property_tree::ptree& pt, int expectedhttpcode=201, double timeout = 5.0);
 
-    int CallPut(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode=202, double timeout = 5.0);
+    /// \brief puts json string
+    /// \param relativeuri relative uri to put at
+    /// \param data json string to put
+    /// \param pt reply is stored
+    /// \param expectedhttpcode expected http code
+    /// \param timeout timeout of puts
+    /// \return http code returned
+    int CallPutJSON(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode=202, double timeout = 5.0);
+    
+    /// \brief puts stl data
+    /// \param relativeuri relative uri to put at
+    /// \param data stl raw data
+    /// \param pt reply is stored
+    /// \param expectedhttpcode expected http code
+    /// \param timeout timeout of puts
+    /// \return http code returned
+    int CallPutSTL(const std::string& relativeuri, const std::vector<unsigned char>& data, boost::property_tree::ptree& pt, int expectedhttpcode=202, double timeout = 5.0);
+    
 
     void CallDelete(const std::string& relativeuri, double timeout = 5.0);
 
@@ -100,6 +117,22 @@ public:
     std::string GetPrimaryKeyFromName_UTF16(const std::wstring& name);
     std::string GetNameFromPrimaryKey_UTF8(const std::string& pk);
     std::wstring GetNameFromPrimaryKey_UTF16(const std::string& pk);
+
+    /// \brief create geometry for a link of an object
+    /// \param objectPk primary key for the object
+    /// \param geometryName name of the geometry
+    /// \param linkPk primary key for the link
+    /// \param timeout timeout of creating object geometry
+    /// \return primary key for the geometry created
+    std::string CreateObjectGeometry(const std::string& objectPk, const std::string& geometryName, const std::string& linkPk, double timeout);
+
+    /// \brief set geometry for an object
+    /// \param objectPk primary key for the object
+    /// \param scenePk primary key for the scene
+    /// \param meshData mesh data to be set to the object
+    /// \param timeout timeout of creating object geometry
+    /// \return primary key for the geometry created
+    std::string SetObjectGeometryMesh(const std::string& objectPk, const std::string& scenePk, const std::vector<unsigned char>& meshData, const std::string& unit = "mm", double timeout = 5);
 
     inline CURL* GetCURL() const
     {
@@ -118,12 +151,18 @@ public:
 
 protected:
 
+    int _CallPut(const std::string& relativeuri, const void* pdata, size_t nDataSize, boost::property_tree::ptree& pt, curl_slist* headers, int expectedhttpcode=202, double timeout = 5.0);
+
     void GetProfile();
 
     static int _WriteStringStreamCallback(char *data, size_t size, size_t nmemb, std::stringstream *writerData);
     static int _WriteVectorCallback(char *data, size_t size, size_t nmemb, std::vector<unsigned char> *writerData);
 
-    void _SetHTTPHeaders();
+    /// \brief sets up http header for doing http operation with json data
+    void _SetHTTPHeadersJSON();
+
+    /// \brief sets up http header for doing http operation with stl data
+    void _SetHTTPHeadersSTL();
 
     std::string _GetCSRFFromCookies();
 
@@ -191,7 +230,8 @@ protected:
     std::stringstream _buffer;
     std::string _baseuri, _baseapiuri, _basewebdavuri, _uri, _username;
 
-    curl_slist *_httpheaders;
+    curl_slist *_httpheadersjson;
+    curl_slist *_httpheadersstl;
     std::string _charset, _language;
     std::string _csrfmiddlewaretoken;
 
