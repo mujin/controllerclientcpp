@@ -1113,7 +1113,7 @@ void BinPickingTaskResource::UpdateEnvironmentState(const std::string& objectnam
     }
     _ss << "], ";
     if (state.size() == 0) {
-        _ss << GetJsonString("detectionResultState") << ": \"\", ";
+        _ss << GetJsonString("detectionResultState") << ": {}, ";
     } else {
         _ss << GetJsonString("detectionResultState") << ": " << state << ", ";
     }
