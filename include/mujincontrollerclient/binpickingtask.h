@@ -50,6 +50,7 @@ public:
         std::string confidence;
         unsigned long long timestamp;
         std::string extra;            // (OPTIONAL) "extra": {"type":"randombox", "length":100, "width":100, "height":100}
+        bool ispickable; ///< whether the object is pickable
     };
 
     struct MUJINCLIENT_API PointCloudObstacle
