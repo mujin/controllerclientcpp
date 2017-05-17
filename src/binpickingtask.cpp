@@ -294,7 +294,7 @@ std::string utils::GetJsonString(const BinPickingTaskResource::DetectedObject& o
     ss << "], ";
     ss << GetJsonString("confidence") << ": " << obj.confidence;
     ss << ", " << GetJsonString("sensortimestamp") << ": " << obj.timestamp << ", ";
-    ss << GetJsonString("ispickable") << ": " << obj.ispickable << ", ";
+    ss << GetJsonString("isPickable") << ": " << obj.isPickable << ", ";
     ss << GetJsonString("extra") << ": " << obj.extra;
     ss << "}";
     return ss.str();
