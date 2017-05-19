@@ -112,7 +112,11 @@ void BinPickingTaskResource::Initialize(const std::string& defaultTaskParameters
     if( defaultTaskParameters.size() > 0 ) {
         boost::property_tree::ptree pt;
         std::stringstream ss(defaultTaskParameters);
+#if defined(_WIN32) || defined(_WIN64)
+        ParsePropertyTreeWin(ss.str(), pt);
+#else
         boost::property_tree::read_json(ss, pt);
+#endif
         FOREACH(itchild, pt) {
             std::string value = itchild->second.data();
             // hack?!
@@ -143,7 +147,11 @@ void BinPickingTaskResource::Initialize(const std::string& defaultTaskParameters
     if( defaultTaskParameters.size() > 0 ) {
         boost::property_tree::ptree pt;
         std::stringstream ss(defaultTaskParameters);
+#if defined(_WIN32) || defined(_WIN64)
+        ParsePropertyTreeWin(ss.str(), pt);
+#else
         boost::property_tree::read_json(ss, pt);
+#endif
         FOREACH(itchild, pt) {
             const std::string value = itchild->second.data();
             // hack?!
@@ -285,7 +293,8 @@ std::string utils::GetJsonString(const BinPickingTaskResource::DetectedObject& o
     }
     ss << "], ";
     ss << GetJsonString("confidence") << ": " << obj.confidence;
-    ss << ", " <<GetJsonString("sensortimestamp") << ": " << obj.timestamp << ", ";
+    ss << ", " << GetJsonString("sensortimestamp") << ": " << obj.timestamp << ", ";
+    ss << GetJsonString("isPickable") << ": " << obj.isPickable << ", ";
     ss << GetJsonString("extra") << ": " << obj.extra;
     ss << "}";
     return ss.str();
@@ -844,7 +853,41 @@ void SerializeGetStateCommand(std::stringstream& ss, const std::map<std::string,
     ss << GetJsonString("unit", unit);
     ss << "}";
 }
-    
+
+void GenerateMoveToolCommand(const std::string& movetype, const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname, const std::string& toolname, const double robotspeed, Real envclearance, std::stringstream& ss, const std::map<std::string, std::string>& params)
+    {
+        SetMapTaskParameters(ss, params);
+        ss << GetJsonString("command", movetype) << ", ";
+        ss << GetJsonString("goaltype", goaltype) << ", ";
+        if (!robotname.empty()) {
+            ss << GetJsonString("robotname", robotname) << ", ";
+        }
+        if (!toolname.empty()) {
+            ss << GetJsonString("toolname", toolname) << ", ";
+        }
+        if (robotspeed >= 0) {
+            ss << GetJsonString("robotspeed") << ": " << robotspeed << ", ";
+        }
+        if (envclearance >= 0) {
+            ss << GetJsonString("envclearance") << ": " << envclearance << ", ";
+        }
+        ss << GetJsonString("goals") << ": " << GetJsonString(goals);
+        ss << "}";
+
+    }
+
+void SetTrajectory(const boost::property_tree::ptree pt,
+                   std::string* pTraj)
+{
+    const boost::property_tree::ptree output = pt.get_child("output");
+    FOREACHC(value, output) {
+        if (value->first == "trajectory") {
+            *pTraj = value->second.data();
+            return;
+        }
+    }
+    throw MujinException("trajectory is not available in output", MEC_Failed);
+}
 }
 
 void BinPickingTaskResource::GetJointValues(ResultGetJointValues& result, const double timeout)
@@ -860,9 +903,11 @@ void BinPickingTaskResource::GetJointValues(ResultGetJointValues& result, const 
     result.Parse(ExecuteCommand(_ss.str(), timeout));
 }
 
-void BinPickingTaskResource::MoveJoints(const std::vector<Real>& goaljoints, const std::vector<int>& jointindices, const Real envclearance, const Real speed, ResultMoveJoints& result, const double timeout)
+void BinPickingTaskResource::MoveJoints(const std::vector<Real>& goaljoints, const std::vector<int>& jointindices, const Real envclearance, const Real speed, ResultMoveJoints& result, const double timeout, std::string* pTraj)
 {
+    _mapTaskParameters["execute"] = !!pTraj ? "0" : "1";
     SetMapTaskParameters(_ss, _mapTaskParameters);
+
     std::string command = "MoveJoints";
     std::string robottype = "densowave";
     _ss << GetJsonString("command", command) << ", ";
@@ -873,7 +918,12 @@ void BinPickingTaskResource::MoveJoints(const std::vector<Real>& goaljoints, con
     _ss << GetJsonString("envclearance",envclearance ) << ", ";
     _ss << GetJsonString("speed", speed);
     _ss << "}";
-    result.Parse(ExecuteCommand(_ss.str(), timeout));
+
+    const boost::property_tree::ptree pt = ExecuteCommand(_ss.str(), timeout);
+    result.Parse(pt);
+    if (!!pTraj) {
+        SetTrajectory(pt, pTraj);
+    }
 }
 
 void BinPickingTaskResource::GetTransform(const std::string& targetname, Transform& transform, const std::string& unit, const double timeout)
@@ -1064,7 +1114,7 @@ void BinPickingTaskResource::UpdateEnvironmentState(const std::string& objectnam
     }
     _ss << "], ";
     if (state.size() == 0) {
-        _ss << GetJsonString("detectionResultState") << ": \"\", ";
+        _ss << GetJsonString("detectionResultState") << ": {}, ";
     } else {
         _ss << GetJsonString("detectionResultState") << ": " << state << ", ";
     }
@@ -1079,6 +1129,16 @@ void BinPickingTaskResource::UpdateEnvironmentState(const std::string& objectnam
     ExecuteCommand(_ss.str(), timeout); // need to check return code
 }
 
+void BinPickingTaskResource::RemoveObjectsWithPrefix(const std::string& prefix, double timeout)
+{
+    SetMapTaskParameters(_ss, _mapTaskParameters);
+    std::string command = "RemoveObjectsWithPrefix";
+    _ss << GetJsonString("command", command) << ", ";
+    _ss << GetJsonString("prefix", prefix);
+    _ss << "}";
+    ExecuteCommand(_ss.str(), timeout);
+    
+}
 void BinPickingTaskResource::VisualizePointCloud(const std::vector<std::vector<Real> >&pointslist, const Real pointsize, const std::vector<std::string>&names, const std::string& unit, const double timeout)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
@@ -1254,40 +1314,74 @@ void BinPickingTaskResource::SetJogModeVelocities(const std::string& jogtype, co
     ExecuteCommand(_ss.str(), timeout);
 }
 
-
-namespace
+void BinPickingTaskResource::MoveToolLinear(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname, const std::string& toolname, const double workspeedlin, const double workspeedrot, bool checkEndeffectorCollision, const double timeout, std::string* pTraj)
 {
-    void GenerateMoveToolCommand(const std::string& movetype, const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname, const std::string& toolname, const double robotspeed, const double timeout, std::stringstream& ss, const std::map<std::string, std::string>& params)
-    {
-        SetMapTaskParameters(ss, params);
-        ss << GetJsonString("command", movetype) << ", ";
-        ss << GetJsonString("goaltype", goaltype) << ", ";
-        if (!robotname.empty()) {
-            ss << GetJsonString("robotname", robotname) << ", ";
-        }
-        if (!toolname.empty()) {
-            ss << GetJsonString("toolname", toolname) << ", ";
-        }
-        if (robotspeed >= 0) {
-            ss << GetJsonString("robotspeed") << ": " << robotspeed << ", ";
-        }
-        ss << GetJsonString("goals") << ": " << GetJsonString(goals);
-        ss << "}";
+    _mapTaskParameters["execute"] = !!pTraj ? "0" : "1";
 
+    const std::string ignorethresh = checkEndeffectorCollision ? "0.0" : "1000.0"; // zero to not ignore collision at any time, large number (1000) to ignore collision of end effector for first and last part of trajectory as well as ignore collision of robot at initial part of trajectory
+    _mapTaskParameters["workignorefirstcollisionee"] = ignorethresh;
+    _mapTaskParameters["workignorelastcollisionee"] = ignorethresh;
+    _mapTaskParameters["workignorefirstcollision"] = ignorethresh;
+    if (workspeedlin > 0 && workspeedrot > 0) {
+        std::stringstream ss;
+        ss << "[" << workspeedrot << ", " << workspeedlin << "]";
+        _mapTaskParameters["workspeed"] = ss.str();
+    }
+    GenerateMoveToolCommand("MoveToolLinear", goaltype, goals, robotname, toolname, -1, -1, _ss, _mapTaskParameters);
+    const boost::property_tree::ptree pt = ExecuteCommand(_ss.str(), timeout);
+    if (!!pTraj) {
+        SetTrajectory(pt, pTraj);
     }
 }
 
-void BinPickingTaskResource::MoveToolLinear(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname, const std::string& toolname, const double robotspeed, const double timeout)
+void BinPickingTaskResource::MoveToHandPosition(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname, const std::string& toolname, const double robotspeed, const double timeout, Real envclearance, std::string* pTraj)
 {
-    GenerateMoveToolCommand("MoveToolLinear", goaltype, goals, robotname, toolname, robotspeed, timeout, _ss, _mapTaskParameters);
-    //    std::cout << "Sending\n" << _ss.str() << " from " << __func__ << std::endl;
+    _mapTaskParameters["execute"] = !!pTraj ? "0" : "1";
+
+    GenerateMoveToolCommand("MoveToHandPosition", goaltype, goals, robotname, toolname, robotspeed, envclearance, _ss, _mapTaskParameters);
+    const boost::property_tree::ptree pt = ExecuteCommand(_ss.str(), timeout);
+    if (!!pTraj) {
+        SetTrajectory(pt, pTraj);
+    }
+}
+
+void BinPickingTaskResource::ExecuteSingleXMLTrajectory(const std::string& trajectory, bool filterTraj, const double timeout)
+{
+    _ss.str(""); _ss.clear();
+    SetMapTaskParameters(_ss, _mapTaskParameters);
+    _ss << GetJsonString("command", "ExecuteSingleXMLTrajectory") << ", "
+        << GetJsonString("filtertraj", filterTraj ? 1 : 0) << ", "
+        << GetJsonString("trajectory", trajectory) << "}";
     ExecuteCommand(_ss.str(), timeout);
 }
 
-void BinPickingTaskResource::MoveToHandPosition(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname, const std::string& toolname, const double robotspeed, const double timeout)
+void BinPickingTaskResource::Grab(const std::string& targetname, const std::string& robotname, const std::string& toolname, const double timeout)
 {
-    GenerateMoveToolCommand("MoveToHandPosition", goaltype, goals, robotname, toolname, robotspeed, timeout, _ss, _mapTaskParameters);
-    //    std::cout << "Sending\n" << _ss.str() << " from " << __func__ << std::endl;
+    SetMapTaskParameters(_ss, _mapTaskParameters);
+    _ss << GetJsonString("command", "Grab") << ", ";
+    _ss << GetJsonString("targetname", targetname) << ", ";
+    if (!robotname.empty()) {
+        _ss << GetJsonString("robotname", robotname) << ", ";
+    }
+    if (!toolname.empty()) {
+        _ss << GetJsonString("toolname", toolname) << ", ";
+    }
+    _ss << "}";
+    ExecuteCommand(_ss.str(), timeout);
+}
+
+void BinPickingTaskResource::Release(const std::string& targetname, const std::string& robotname, const std::string& toolname, const double timeout)
+{
+    SetMapTaskParameters(_ss, _mapTaskParameters);
+    _ss << GetJsonString("command", "Release") << ", ";
+    _ss << GetJsonString("targetname", targetname) << ", ";
+    if (!robotname.empty()) {
+        _ss << GetJsonString("robotname", robotname) << ", ";
+    }
+    if (!toolname.empty()) {
+        _ss << GetJsonString("toolname", toolname) << ", ";
+    }
+    _ss << "}";
     ExecuteCommand(_ss.str(), timeout);
 }
 
@@ -1314,7 +1408,7 @@ boost::property_tree::ptree BinPickingTaskResource::ExecuteCommand(const std::st
     ss << "}";
     const std::string taskgoalput = ss.str();
     boost::property_tree::ptree pt;
-    controller->CallPut(str(boost::format("task/%s/?format=json")%GetPrimaryKey()), taskgoalput, pt);
+    controller->CallPutJSON(str(boost::format("task/%s/?format=json")%GetPrimaryKey()), taskgoalput, pt);
     //controller->CallGet(str(boost::format("scene/%s/resultget") % _scenepk), taskgoalput, pt);
     Execute();
 
@@ -1612,8 +1706,11 @@ std::string GetValueForSmallestSlaveRequestId(const std::string& heartbeat,
 {
     boost::property_tree::ptree pt;
     std::stringstream ss(heartbeat);
+#if defined(_WIN32) || defined(_WIN64)
+    ParsePropertyTreeWin(ss.str(), pt);
+#else
     boost::property_tree::read_json(ss, pt);
-
+#endif
     try {
         const std::string slavereqid = FindSmallestSlaveRequestId(pt);
 
@@ -1628,19 +1725,21 @@ std::string GetValueForSmallestSlaveRequestId(const std::string& heartbeat,
 
     
 std::string mujinclient::utils::GetScenePkFromHeatbeat(const std::string& heartbeat) {
-    static const std::string prefix("mujin:\/");
+    static const std::string prefix("mujin:/");
     return GetValueForSmallestSlaveRequestId(heartbeat, "currentsceneuri").substr(prefix.length());
 }
 
 std::string utils::GetSlaveRequestIdFromHeatbeat(const std::string& heartbeat) {
     boost::property_tree::ptree pt;
     std::stringstream ss(heartbeat);
+#if defined(_WIN32) || defined(_WIN64)
+    ParsePropertyTreeWin(ss.str(), pt);
+#else
     boost::property_tree::read_json(ss, pt);
-
+#endif
     try {
         static const std::string prefix("slaverequestid-");
         return FindSmallestSlaveRequestId(pt).substr(prefix.length());
-;
     }
     catch (const MujinException& ex) {
         throw MujinException(boost::str(boost::format("%s from heartbeat:\n%s")%ex.what()%heartbeat));

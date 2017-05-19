@@ -117,6 +117,13 @@ enum JobStatusCode {
     JSC_Unknown = 0xffffffff, ///< the job is unknown
 };
 
+
+/// \brief get status code from string representation
+///
+/// \param str string representation of status
+/// \return JobStatusCode equivalent
+JobStatusCode GetStatusCode(const std::string& str);
+
 struct JobStatus
 {
     JobStatus() : code(JSC_Unknown) {
@@ -555,6 +562,18 @@ public:
     ///
     /// \return utf-16 encoded name
     virtual std::wstring GetNameFromPrimaryKey_UTF16(const std::string& pk) = 0;
+
+    virtual std::string CreateObjectGeometry(const std::string& objectPk, const std::string& name, const std::string& linkPk, double timeout) = 0;
+
+    /// \brief set geometry mesh to an object
+    /// \param objectPk primary key for the object to set mesh data to
+    /// \param geometryPk primary key for the geometry
+    /// \param data stl format binary mesh data
+    /// \param unit length unit of mesh 
+    /// \param timeout timeout of uploading mesh
+    ///
+    virtual std::string SetObjectGeometryMesh(const std::string& objectPk, const std::string& geometryPk, const std::vector<unsigned char>& data, const std::string& unit = "mm", double timeout = 5) = 0;
+
 };
 
 class MUJINCLIENT_API WebResource
@@ -594,25 +613,40 @@ private:
 class MUJINCLIENT_API ObjectResource : public WebResource
 {
 public:
+    class MUJINCLIENT_API GeometryResource : public WebResource {
+public:
+        GeometryResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk);
+        virtual ~GeometryResource() {
+        }
+        std::string name;
+        std::string pk;
+    };
+    typedef boost::shared_ptr<GeometryResource> GeometryResourcePtr;
+
     class MUJINCLIENT_API LinkResource : public WebResource {
 public:
         LinkResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk);
         virtual ~LinkResource() {
         }
 
+        virtual GeometryResourcePtr AddGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& name, const std::string& unit, double timeout);
+
+        virtual GeometryResourcePtr GetGeometryFromName(const std::string& geometryName);
+
         std::vector<std::string> attachmentpks;
         std::string name;
         std::string pk;
+        std::string objectpk; // is this necessary?
         //TODO transforms
     };
     typedef boost::shared_ptr<LinkResource> LinkResourcePtr;
 
+
     ObjectResource(ControllerClientPtr controller, const std::string& pk);
     virtual ~ObjectResource() {
     }
-
     virtual void GetLinks(std::vector<LinkResourcePtr>& links);
-
+    
     std::string name;
     int nundof;
     std::string datemodified;
@@ -817,7 +851,17 @@ public:
     virtual void GetInstObjects(std::vector<InstObjectPtr>& instobjects);
     virtual bool FindInstObject(const std::string& name, InstObjectPtr& instobject);
 
-    virtual SceneResource::InstObjectPtr CreateInstObject(const std::string& name, const std::string& reference_uri, Real quaternion[4], Real translate[3]);
+    /// \brief creates an inst object in scene
+    /// \param name name of the object to create
+    /// \param referenceUri uri to reference. Leave empty to reference nothing.
+    /// \param quaternion quaternion of the object 
+    /// \param translate translation of the object
+    /// \return pointer to inst object created
+    virtual SceneResource::InstObjectPtr CreateInstObject(const std::string& name, const std::string& referenceUri, const Real quaternion[4], const Real translate[3], double timeout = 300);
+
+    /// \brief deletes an inst object in scene
+    /// \param pk primary key of the object to delete
+    virtual void DeleteInstObject(const std::string& pk);
 
     virtual SceneResourcePtr Copy(const std::string& name);
 };

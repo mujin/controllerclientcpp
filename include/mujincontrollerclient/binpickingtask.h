@@ -50,6 +50,7 @@ public:
         std::string confidence;
         unsigned long long timestamp;
         std::string extra;            // (OPTIONAL) "extra": {"type":"randombox", "length":100, "width":100, "height":100}
+        bool isPickable; ///< whether the object is pickable
     };
 
     struct MUJINCLIENT_API PointCloudObstacle
@@ -206,7 +207,16 @@ public:
     virtual boost::property_tree::ptree ExecuteCommand(const std::string& command, const double timeout /* second */=5.0, const bool getresult=true);
 
     virtual void GetJointValues(ResultGetJointValues& result, const double timeout /* second */=5.0);
-    virtual void MoveJoints(const std::vector<Real>& jointvalues, const std::vector<int>& jointindices, const Real envclearance, const Real speed /* 0.1-1 */, ResultMoveJoints& result, const double timeout /* second */=5.0);
+
+    /// \brief Moves joints to specified value
+    /// \param jointvalues goal joint values
+    /// \param jointindices indices of joints to move
+    /// \param envclearance environment clearance for collision avoidance in mm
+    /// \param speed speed to move robot at
+    /// \param result result of moving joints
+    /// \param timeout timeout of communication
+    /// \param pTraj if not NULL, planned trajectory is set but not executed. Otherwise, trajectory is planed and executed but not set.
+    virtual void MoveJoints(const std::vector<Real>& jointvalues, const std::vector<int>& jointindices, const Real envclearance, const Real speed /* 0.1-1 */, ResultMoveJoints& result, const double timeout /* second */=5.0, std::string* pTraj = NULL);
     virtual void GetTransform(const std::string& targetname, Transform& result, const std::string& unit="mm", const double timeout /* second */=5.0);
     virtual void SetTransform(const std::string& targetname, const Transform& transform, const std::string& unit="mm", const double timeout /* second */=5.0);
     virtual void GetManipTransformToRobot(Transform& result, const std::string& unit="mm", const double timeout /* second */=5.0);
@@ -246,6 +256,10 @@ public:
     
     /// \param locationIOName the location IO name (1, 2, 3, 4, etc) used to tell mujin controller to notify  the IO signal with detected object info
     virtual void UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<Real>& vpoints, const std::string& resultstate, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit="mm", const double timeout=0, const std::string& regionname=std::string(), const std::string& locationIOName="1");
+
+    /// \brief removes objects by thier prefix
+    /// \param prefix prefix of the objects to remove
+    virtual void RemoveObjectsWithPrefix(const std::string& prefix, double timeout = 5.0);
 
     /** \brief Visualize point cloud on controller
         \param pointslist vector of x,y,z coordinates vector in meter
@@ -311,14 +325,16 @@ public:
     /// \param timeout timeout of communication
     virtual void SetJogModeVelocities(const std::string& jogtype, const std::vector<int>& movejointsigns, const std::string& robotname = "", const std::string& toolname = "", const double robotspeed = -1, const double robotaccelmult = -1.0, const double timeout=1);
 
-    /// \brief Moves hand to specified posistion linearly
+    /// \brief Moves tool to specified posistion linearly
     /// \param goaltype whether to specify goal in full six degrees of freedom (transform6d) or three dimentional position and two dimentional angle (translationdirection5d)
-    /// \param goals where to move hand to [X, Y, Z, RX, RY, RZ] in mm and deg
+    /// \param goals where to move tool to [X, Y, Z, RX, RY, RZ] in mm and deg
     /// \param robotname name of the robot to move
     /// \param toolname name of the tool to move
-    /// \param robotspeed speed at which to move. this is a ratio to maximum speed and thus valid range is 0 to 1.
+    /// \param workspeedlin linear speed at which to move tool in mm/s.
+    /// \param workspeedrot rotational speed at which to move tool in deg/s
     /// \param timeout timeout of communication
-    virtual void MoveToolLinear(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname = "", const std::string& toolname = "", const double robotspeed = -1, const double timeout = 10);
+    /// \param pTraj if not NULL, planned trajectory is set but not executed. Otherwise, trajectory is planed and executed but not set.
+    virtual void MoveToolLinear(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname = "", const std::string& toolname = "", const double workspeedlin = -1, const double workspeedrot = -1, bool checkEndeffectorCollision = false, const double timeout = 10, std::string* pTraj = NULL);
 
     /// \brief Moves hand to specified posistion
     /// \param goaltype whether to specify goal in full six degrees of freedom (transform6d) or three dimentional position and two dimentional angle (translationdirection5d)
@@ -327,7 +343,29 @@ public:
     /// \param toolname name of the tool to move
     /// \param robotspeed speed at which to move
     /// \param timeout timeout of communication
-    virtual void MoveToHandPosition(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname = "", const std::string& toolname = "", const double robotspeed = -1, const double timeout = 10);
+    /// \param envclearance environment clearance for collision avoidance in mm
+    /// \param pTraj if not NULL, planned trajectory is set but not executed. Otherwise, trajectory is planed and executed but not set.
+    virtual void MoveToHandPosition(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname = "", const std::string& toolname = "", const double robotspeed = -1, const double timeout = 10, Real envclearance = -1.0, std::string* pTraj = NULL);
+
+    /// \brief Executes a trajectory
+    /// \param trajectory trajectory to execute
+    /// \param filterTraj whether to filter trajectory so that it is smoother. For slow trajectory, filtering is not necessary.
+    /// \param timeout timeout of executing trajectory
+    virtual void ExecuteSingleXMLTrajectory(const std::string& trajectory, bool filterTraj = true, const double timeout = 10);
+
+    /// \brief grabs object
+    /// \param targetname name of the target to grab
+    /// \param robotname name of the robot to grab with
+    /// \param toolname name of the tool to grab with
+    /// \param timeout timeout of communication
+    virtual void Grab(const std::string& targetname, const std::string& robotname = "", const std::string& toolname = "", const double timeout = 1);
+
+    /// \brief releases object
+    /// \param targetname name of the target to release
+    /// \param robotname name of the robot to release from
+    /// \param toolname name of the tool to release from
+    /// \param timeout timeout of communication
+    virtual void Release(const std::string& targetname, const std::string& robotname = "", const std::string& toolname = "", const double timeout = 1);
 
     /** \brief Monitors heartbeat signals from a running binpicking ZMQ server, and reinitializes the ZMQ server when heartbeat is lost.
         \param reinitializetimeout seconds to wait before re-initializing the ZMQ server after the heartbeat signal is lost
