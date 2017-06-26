@@ -631,7 +631,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const boost::proper
     isGrabbingTarget = _pt.get<bool>("isGrabbingTarget", true);
     isGrabbingLastTarget = _pt.get<bool>("isGrabbingLastTarget", true);
     hasRobotExecutionStarted = _pt.get<bool>("hasRobotExecutionStarted", false);
-    boost::optional<const boost::property_tree::ptree&> orderstatept(_pt.get_child_optional("orderstate"));
+    const boost::optional<boost::property_tree::ptree&> orderstatept(_pt.get_child_optional("orderstate"));
     if (!!orderstatept) {
         orderNumber = orderstatept->get<int>("orderNumber", -1);
         numLeftInOrder = orderstatept->get<int>("numLeftInOrder", -1);
