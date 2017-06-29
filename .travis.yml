@@ -1,0 +1,56 @@
+language:
+  - cpp  
+compiler:
+  - gcc
+
+env:
+  global:
+    - INSTALL_DIR=~/install
+    - PKG_CONFIG_PATH=$INSTALL_DIR/lib/pkgconfig
+
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -y -qq cmake liblog4cxx10 liblog4cxx10-dev cmake libboost-dev libboost-filesystem-dev libboost-system-dev libboost-python-dev libboost-thread-dev libboost-date-time-dev libboost-program-options-dev
+  - cd ~
+  - mkdir install
+  # install libzmq
+  - cd ~
+  - wget https://github.com/zeromq/zeromq4-x/releases/download/v4.0.8/zeromq-4.0.8.tar.gz
+  - tar -zxvf zeromq-4.0.8.tar.gz
+  - cd zeromq-4.0.8
+  - env CFLAGS="${CFLAGS} -O3" CXXFLAGS="${CXXFLAGS} -O3" ./configure --prefix $INSTALL_DIR  --disable-static --disable-gtk-doc --disable-Werror
+  - make -j2 install
+  # install rapidjson
+  - cd ~
+  - git clone --depth=1 https://github.com/mujin/rapidjson.git
+  - mkdir -p build/rapidjson && cd build/rapidjson
+  - >
+    cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR
+    -DCMAKE_BUILD_TYPE=RelWithDebInfo
+    -DRAPIDJSON_HAS_STDSTRING=ON
+    -DRAPIDJSON_BUILD_DOC=OFF
+    -DRAPIDJSON_BUILD_EXAMPLES=OFF
+    -DRAPIDJSON_BUILD_TESTS=OFF
+    -DCMAKE_CXX_FLAGS="-fno-strict-overflow"
+    ../../rapidjson
+  - make -j2 install
+  # install googletest
+  - cd ~
+  - git clone --depth=1 https://github.com/mujin/googletest.git
+  - mkdir -p build/googletest && cd build/googletest
+  - cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR ../../googletest
+  - make -j2 install
+
+install:
+  - cd $TRAVIS_BUILD_DIR
+  - mkdir build
+  - cd build
+  - cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR -DCMAKE_BUILD_TYPE=RelWithDebInfo -DOPT_SAMPLES=OFF -DOPT_LOG4CXX=ON -DCMAKE_CXX_FLAGS="--coverage" -DOPT_BUILD_TESTS=ON ..
+  - make -j2 install
+
+script:
+  - $INSTALL_DIR/bin/testcontrollerclientcpp
+
+after_success:
+  - pip install --user cpp-coveralls
+  - coveralls -r .. --gcov-options '\-lp' -e test -e samples -e build/CMakeFiles
