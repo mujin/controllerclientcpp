@@ -133,30 +133,6 @@ void BinPickingTaskResource::Initialize(const std::string& defaultTaskParameters
 void BinPickingTaskResource::Initialize(const std::string& defaultTaskParameters, const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq, const double reinitializetimeout, const double timeout, const std::string& userinfo, const std::string& slaverequestid)
 {
     
-#if defined(_WIN32) || defined(_WIN64)
-    if( defaultTaskParameters.size() > 0 ) {
-        boost::property_tree::ptree pt;
-        std::stringstream ss(defaultTaskParameters);
-        ParsePropertyTreeWin(ss.str(), pt);
-        FOREACH(itchild, pt) {
-            const std::string value = itchild->second.data();
-            // hack?!
-            if( value.size() > 0 ) {
-                _mapTaskParameters[itchild->first] = GetJsonString(value);
-            }
-            else {
-                std::stringstream ssvalue;
-#if BOOST_VERSION > 104800
-                write_json(ssvalue, itchild->second, false); // pretty print false
-#else
-                write_json(ssvalue, itchild->second);
-#endif
-                _mapTaskParameters[itchild->first] = ssvalue.str();
-            }
-            //std::cout << "initialize " << std::string(itchild->first) << "=" << _mapTaskParameters[itchild->first] << std::endl;
-        }
-    }
-#else
     if( defaultTaskParameters.size() > 0 ) {
         rapidjson::Document d;
         d.Parse(defaultTaskParameters.c_str());
@@ -167,7 +143,6 @@ void BinPickingTaskResource::Initialize(const std::string& defaultTaskParameters
             _mapTaskParameters[it->name.GetString()] = std::string(stringbuffer.GetString(), stringbuffer.GetSize());
         }
     }
-#endif
 
     _zmqPort = zmqPort;
     _heartbeatPort = heartbeatPort;
