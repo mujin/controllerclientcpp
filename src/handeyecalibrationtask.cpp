@@ -15,8 +15,9 @@
 #include "controllerclientimpl.h"
 #include <boost/thread.hpp> // for sleep
 #include <mujincontrollerclient/handeyecalibrationtask.h>
-
+#include <mujincontrollerclient/mujinjson.h>
 namespace mujinclient {
+using namespace mujinjson;
 
 void HandEyeCalibrationTaskParameters::SetDefaults()
 {
@@ -44,39 +45,12 @@ HandEyeCalibrationResultResource::HandEyeCalibrationResultResource(ControllerCli
 void HandEyeCalibrationResultResource::GetCalibrationPoses(HandEyeCalibrationResultResource::CalibrationResult& result)
 {
     GETCONTROLLERIMPL();
-    boost::property_tree::ptree pt;
+    rapidjson::Document pt(rapidjson::kObjectType);
     controller->CallGet(boost::str(boost::format("%s/%s/?format=json&limit=1")%GetResourceName()%GetPrimaryKey()), pt);
-    boost::property_tree::ptree& output = pt.get_child("output");
-    FOREACH(value, output) {
-        if (value->first == "poses") {
-            result.poses.resize(value->second.size());
-            size_t i = 0;
-            FOREACH(v, value->second) {
-                result.poses[i].resize(7);
-                size_t j = 0;
-                FOREACH(x, v->second) {
-                    result.poses[i][j++] = boost::lexical_cast<Real>(x->second.data());
-                }
-                i++;
-            }
-        }
-        else if (value->first == "configs") {
-            result.configs.resize(0);
-            FOREACH(v, value->second) {
-                std::vector<Real> config;
-                FOREACH(x, v->second) {
-                    config.push_back(boost::lexical_cast<Real>(x->second.data()));
-                }
-                result.configs.push_back(config);
-            }
-        }
-        else if (value->first == "jointindices") {
-            result.jointindices.resize(0);
-            FOREACH(v, value->second) {
-                result.jointindices.push_back(boost::lexical_cast<int>(v->second.data()));
-            }
-        }
-    }
+    rapidjson::Value& output = pt["output"];
+    LoadJsonValueByKey(output, "poses", result.poses);
+    LoadJsonValueByKey(output, "configs", result.configs);
+    LoadJsonValueByKey(output, "jointindices", result.jointindices);
 }
 
 HandEyeCalibrationTaskResource::HandEyeCalibrationTaskResource(const std::string& taskname, ControllerClientPtr controller, SceneResourcePtr scene) : TaskResource(controller,_GetOrCreateTaskAndGetPk(scene, taskname))
@@ -135,23 +109,23 @@ void HandEyeCalibrationTaskResource::SetTaskParameters(const HandEyeCalibrationT
 \"targetarea\": \"%s\",\
 \"samplingmethod\": \"%s\",\
 \"patternposition\": {\"translation\":[%.15f, %.15f, %.15f], \"quaternion\":[%.15f, %.15f, %.15f, %.15f]}}}")%taskparameters.command%taskparameters.cameraname%taskparameters.halconpatternparameters[0]%taskparameters.halconpatternparameters[1]%taskparameters.halconpatternparameters[2]%taskparameters.halconpatternparameters[3]%taskparameters.conedirection[0]%taskparameters.conedirection[1]%taskparameters.conedirection[2]%taskparameters.coneangle%taskparameters.orientationdensity%taskparameters.distances[0]%taskparameters.distances[1]%taskparameters.distances[2]%taskparameters.numsamples%taskparameters.toolname%taskparameters.targetarea%taskparameters.samplingmethod%taskparameters.transform.translate[0]%taskparameters.transform.translate[1]%taskparameters.transform.translate[2]%taskparameters.transform.quaternion[0]%taskparameters.transform.quaternion[1]%taskparameters.transform.quaternion[2]%taskparameters.transform.quaternion[3]);
-    boost::property_tree::ptree pt;
-    controller->CallPutJSON(str(boost::format("task/%s/?format=json")%GetPrimaryKey()), taskgoalput, pt);
+    rapidjson::Document d;
+    controller->CallPutJSON(str(boost::format("task/%s/?format=json")%GetPrimaryKey()), taskgoalput,d);
 }
 
 PlanningResultResourcePtr HandEyeCalibrationTaskResource::GetResult()
 {
     GETCONTROLLERIMPL();
-    boost::property_tree::ptree pt;
+    rapidjson::Document pt(rapidjson::kObjectType);
     controller->CallGet(str(boost::format("task/%s/result/?format=json&limit=1&optimization=None&fields=pk")%GetPrimaryKey()), pt);
-    boost::property_tree::ptree& objects = pt.get_child("objects");
     HandEyeCalibrationResultResourcePtr result;
-    if( objects.size() > 0 ) {
-        std::string pk = objects.begin()->second.get<std::string>("pk");
+    if (pt.IsObject() && pt.HasMember("objects") && pt["objects"].IsArray() && pt["objects"].Size() > 0) {
+        rapidjson::Value& objects = pt["objects"];
+        std::string pk = GetJsonValueByKey<std::string>(objects[0], "pk");
         result.reset(new HandEyeCalibrationResultResource(GetController(), pk));
-        boost::optional<std::string> erroptional = objects.begin()->second.get_optional<std::string>("errormessage");
-        if (!!erroptional && erroptional.get().size() > 0 ) {
-            throw MujinException(erroptional.get(), MEC_HandEyeCalibrationError);
+        std::string erroptional = GetJsonValueByKey<std::string>(objects[0], "errormessage");
+        if (erroptional.size() > 0 ) {
+            throw MujinException(erroptional, MEC_HandEyeCalibrationError);
         }
     }
     return result;

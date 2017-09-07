@@ -22,6 +22,7 @@
 #include <algorithm> // find
 
 #include "logging.h"
+#include "mujincontrollerclient/mujinjson.h"
 
 MUJIN_LOGGER("mujin.controllerclientcpp.binpickingtask.zmq");
 
@@ -29,6 +30,7 @@ using namespace mujinzmq;
 
 namespace mujinclient {
 using namespace utils;
+using namespace mujinjson;
 
 class ZmqMujinControllerClient : public mujinzmq::ZmqClient
 {
@@ -220,14 +222,11 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
             if (pollitem.revents & ZMQ_POLLIN) {
                 zmq::message_t reply;
                 socket->recv(&reply);
-                std::string replystring((char *) reply.data (), (size_t) reply.size());                
+                std::string replystring((char *) reply.data (), (size_t) reply.size());
+                rapidjson::Document pt(rapidjson::kObjectType);
                 try{
-#if defined(_WIN32) || defined(_WIN64)
-                    ParsePropertyTreeWin(replystring, pt);
-#else
                     std::stringstream replystring_ss(replystring);
-                    boost::property_tree::read_json(replystring_ss, pt);
-#endif
+                    ParseJson(pt, replystring_ss.str());
                 }
                 catch (std::exception const &e) {
                     MUJIN_LOG_ERROR("HeartBeat reply is not JSON");

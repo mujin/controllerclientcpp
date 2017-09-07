@@ -28,6 +28,7 @@ MUJIN_LOGGER("mujin.controllerclientcpp");
 
 namespace mujinclient {
 
+using namespace mujinjson;
 class CurlTimeoutSetter
 {
 public:
@@ -319,7 +320,7 @@ ControllerClientImpl::~ControllerClientImpl()
 
 std::string ControllerClientImpl::GetVersion()
 {
-    return _profile.get<std::string>("version");
+    return GetJsonValueByKey<std::string>(_profile, "version");
 }
 
 const std::string& ControllerClientImpl::GetUserName() const
@@ -415,22 +416,23 @@ void ControllerClientImpl::CancelAllJobs()
 
 void ControllerClientImpl::GetRunTimeStatuses(std::vector<JobStatus>& statuses, int options)
 {
-    boost::property_tree::ptree pt;
+    rapidjson::Document pt(rapidjson::kObjectType);
     std::string url = "job/?format=json&fields=pk,status,fnname,elapsedtime";
     if( options & 1 ) {
         url += std::string(",status_text");
     }
     CallGet(url, pt);
-    boost::property_tree::ptree& objects = pt.get_child("objects");
+    rapidjson::Value& objects = pt["objects"];
     size_t i = 0;
-    statuses.resize(objects.size());
-    FOREACH(v, objects) {
-        statuses[i].pk = v->second.get<std::string>("pk");
-        statuses[i].code = GetStatusCode(v->second.get<std::string>("status"));
-        statuses[i].type = v->second.get<std::string>("fnname");
-        statuses[i].elapsedtime = v->second.get<double>("elapsedtime");
+    statuses.resize(objects.Size());
+    for (rapidjson::Document::ValueIterator it=objects.Begin(); it != objects.End(); ++it) {
+
+        statuses[i].pk = GetJsonValueByKey<std::string>(*it, "pk");
+        statuses[i].code = GetStatusCode(GetJsonValueByKey<std::string>(*it, "status"));
+        statuses[i].type = GetJsonValueByKey<std::string>(*it, "fnname");
+        statuses[i].elapsedtime = GetJsonValueByKey<double>(*it, "elapsedtime");
         if( options & 1 ) {
-            statuses[i].message = v->second.get<std::string>("status_text");
+            statuses[i].message = GetJsonValueByKey<std::string>(*it, "status_text");
         }
         i++;
     }
@@ -438,22 +440,23 @@ void ControllerClientImpl::GetRunTimeStatuses(std::vector<JobStatus>& statuses, 
 
 void ControllerClientImpl::GetScenePrimaryKeys(std::vector<std::string>& scenekeys)
 {
-    boost::property_tree::ptree pt;
+    rapidjson::Document pt(rapidjson::kObjectType);
     CallGet("scene/?format=json&limit=0&fields=pk", pt);
-    boost::property_tree::ptree& objects = pt.get_child("objects");
-    scenekeys.resize(objects.size());
+    rapidjson::Value& objects = pt["objects"];
+    //boost::property_tree::ptree& objects = pt.get_child("objects");
+    scenekeys.resize(objects.Size());
     size_t i = 0;
-    FOREACH(v, objects) {
-        scenekeys[i++] = v->second.get<std::string>("pk");
+    for (rapidjson::Document::ValueIterator it=objects.Begin(); it != objects.End(); ++it) {
+        scenekeys[i++] = GetJsonValueByKey<std::string>(*it, "pk");
     }
 }
 
 SceneResourcePtr ControllerClientImpl::RegisterScene_UTF8(const std::string& uri, const std::string& scenetype)
 {
     BOOST_ASSERT(scenetype.size()>0);
-    boost::property_tree::ptree pt;
+    rapidjson::Document pt(rapidjson::kObjectType);
     CallPost_UTF8("scene/?format=json&fields=pk", str(boost::format("{\"uri\":\"%s\", \"scenetype\":\"%s\"}")%uri%scenetype), pt);
-    std::string pk = pt.get<std::string>("pk");
+    std::string pk = GetJsonValueByKey<std::string>(pt, "pk");
     SceneResourcePtr scene(new SceneResource(shared_from_this(), pk));
     return scene;
 }
@@ -461,9 +464,9 @@ SceneResourcePtr ControllerClientImpl::RegisterScene_UTF8(const std::string& uri
 SceneResourcePtr ControllerClientImpl::RegisterScene_UTF16(const std::wstring& uri, const std::string& scenetype)
 {
     BOOST_ASSERT(scenetype.size()>0);
-    boost::property_tree::ptree pt;
+    rapidjson::Document pt(rapidjson::kObjectType);
     CallPost_UTF16("scene/?format=json&fields=pk", str(boost::wformat(L"{\"uri\":\"%s\", \"scenetype\":\"%s\"}")%uri%scenetype.c_str()), pt);
-    std::string pk = pt.get<std::string>("pk");
+    std::string pk = GetJsonValueByKey<std::string>(pt, "pk");
     SceneResourcePtr scene(new SceneResource(shared_from_this(), pk));
     return scene;
 }
@@ -471,9 +474,9 @@ SceneResourcePtr ControllerClientImpl::RegisterScene_UTF16(const std::wstring& u
 SceneResourcePtr ControllerClientImpl::ImportSceneToCOLLADA_UTF8(const std::string& importuri, const std::string& importformat, const std::string& newuri, bool overwrite)
 {
     BOOST_ASSERT(importformat.size()>0);
-    boost::property_tree::ptree pt;
+    rapidjson::Document pt(rapidjson::kObjectType);
     CallPost_UTF8(str(boost::format("scene/?format=json&fields=pk&overwrite=%d")%overwrite), str(boost::format("{\"reference_uri\":\"%s\", \"reference_scenetype\":\"%s\", \"uri\":\"%s\"}")%importuri%importformat%newuri), pt);
-    std::string pk = pt.get<std::string>("pk");
+    std::string pk = GetJsonValueByKey<std::string>(pt, "pk");
     SceneResourcePtr scene(new SceneResource(shared_from_this(), pk));
     return scene;
 }
@@ -481,9 +484,9 @@ SceneResourcePtr ControllerClientImpl::ImportSceneToCOLLADA_UTF8(const std::stri
 SceneResourcePtr ControllerClientImpl::ImportSceneToCOLLADA_UTF16(const std::wstring& importuri, const std::string& importformat, const std::wstring& newuri, bool overwrite)
 {
     BOOST_ASSERT(importformat.size()>0);
-    boost::property_tree::ptree pt;
+    rapidjson::Document pt(rapidjson::kObjectType);
     CallPost_UTF16(str(boost::format("scene/?format=json&fields=pk&overwrite=%d")%overwrite), str(boost::wformat(L"{\"reference_uri\":\"%s\", \"reference_scenetype\":\"%s\", \"uri\":\"%s\"}")%importuri%importformat.c_str()%newuri), pt);
-    std::string pk = pt.get<std::string>("pk");
+    std::string pk = GetJsonValueByKey<std::string>(pt, "pk");
     SceneResourcePtr scene(new SceneResource(shared_from_this(), pk));
     return scene;
 }
@@ -662,7 +665,7 @@ void ControllerClientImpl::SyncUpload_UTF16(const std::wstring& _sourcefilename_
 }
 
 /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
-int ControllerClientImpl::CallGet(const std::string& relativeuri, boost::property_tree::ptree& pt, int expectedhttpcode, double timeout)
+int ControllerClientImpl::CallGet(const std::string& relativeuri, rapidjson::Document& pt, int expectedhttpcode, double timeout)
 {
     boost::mutex::scoped_lock lock(_mutex);
     _uri = _baseapiuri;
@@ -670,7 +673,7 @@ int ControllerClientImpl::CallGet(const std::string& relativeuri, boost::propert
     return _CallGet(_uri, pt, expectedhttpcode, timeout);
 }
 
-int ControllerClientImpl::_CallGet(const std::string& desturi, boost::property_tree::ptree& pt, int expectedhttpcode, double timeout)
+int ControllerClientImpl::_CallGet(const std::string& desturi, rapidjson::Document& pt, int expectedhttpcode, double timeout)
 {
     CurlTimeoutSetter timeoutsetter(_curl, timeout);
     curl_easy_setopt(_curl, CURLOPT_URL, desturi.c_str());
@@ -686,15 +689,11 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, boost::property_t
     res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
     CHECKCURLCODE(res, "curl_easy_getinfo");
     if( _buffer.rdbuf()->in_avail() > 0 ) {
-#if defined(_WIN32) || defined(_WIN64)
-        ParsePropertyTreeWin(_buffer.str(), pt);
-#else
-        boost::property_tree::read_json(_buffer, pt);
-#endif
+        mujinjson::ParseJson(pt, _buffer.str());
     }
     if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
-        std::string error_message = pt.get<std::string>("error_message", std::string());
-        std::string traceback = pt.get<std::string>("traceback", std::string());
+        std::string error_message = GetJsonValueByKey<std::string>(pt, "error_message");
+        std::string traceback = GetJsonValueByKey<std::string>(pt, "traceback");
         throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s: %s", desturi%http_code%error_message, MEC_HTTPServer);
     }
     return http_code;
@@ -726,14 +725,10 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, std::string& outp
     outputdata = _buffer.str();
     if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
         if( outputdata.size() > 0 ) {
-            boost::property_tree::ptree pt;
-#if defined(_WIN32) || defined(_WIN64)
-            ParsePropertyTreeWin(_buffer.str(), pt);
-#else
-            boost::property_tree::read_json(_buffer, pt);
-#endif
-            std::string error_message = pt.get<std::string>("error_message", std::string());
-            std::string traceback = pt.get<std::string>("traceback", std::string());
+            rapidjson::Document d;
+            ParseJson(d, _buffer.str());
+            std::string error_message = GetJsonValueByKey<std::string>(d, "error_message");
+            std::string traceback = GetJsonValueByKey<std::string>(d, "traceback");
             throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s: %s", desturi%http_code%error_message, MEC_HTTPServer);
         }
         throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s", desturi%http_code, MEC_HTTPServer);
@@ -769,23 +764,12 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, std::vector<unsig
     CHECKCURLCODE(res, "curl_easy_getinfo");
     if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
         if( outputdata.size() > 0 ) {
+            rapidjson::Document d;
             std::stringstream ss;
             ss.write((const char*)&outputdata[0], outputdata.size());
-            std::string error_message, traceback;
-            try {
-                boost::property_tree::ptree pt;
-#if defined(_WIN32) || defined(_WIN64)
-                ParsePropertyTreeWin(ss.str(), pt);
-#else
-                boost::property_tree::read_json(ss, pt);
-#endif
-                error_message = pt.get<std::string>("error_message", std::string());
-                traceback = pt.get<std::string>("traceback", std::string());
-            }
-            catch(const std::exception& ex) {
-                // probably failed parsing JSON
-                error_message = str(boost::format("failed to parse json: %s\nerror is %s")%ss.str()%ex.what());
-            }
+            ParseJson(d, ss.str());
+            std::string error_message = GetJsonValueByKey<std::string>(d, "error_message");
+            std::string traceback = GetJsonValueByKey<std::string>(d, "traceback");
             throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s: %s", desturi%http_code%error_message, MEC_HTTPServer);
         }
         throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s", desturi%http_code, MEC_HTTPServer);
@@ -794,7 +778,7 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, std::vector<unsig
 }
 
 /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
-int ControllerClientImpl::CallPost(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode, double timeout)
+int ControllerClientImpl::CallPost(const std::string& relativeuri, const std::string& data, rapidjson::Document& pt, int expectedhttpcode, double timeout)
 {
     CurlTimeoutSetter timeoutsetter(_curl, timeout);
     boost::mutex::scoped_lock lock(_mutex);
@@ -816,31 +800,29 @@ int ControllerClientImpl::CallPost(const std::string& relativeuri, const std::st
     res = curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
     CHECKCURLCODE(res, "curl_easy_getinfo failed");
     if( _buffer.rdbuf()->in_avail() > 0 ) {
-#if defined(_WIN32) || defined(_WIN64)
-        ParsePropertyTreeWin(_buffer.str(), pt);
-#else
-        boost::property_tree::read_json(_buffer, pt);
-#endif
+        ParseJson(pt, _buffer.str());
+    } else {
+        pt.SetObject();
     }
     if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
-        std::string error_message = pt.get<std::string>("error_message", std::string());
-        std::string traceback = pt.get<std::string>("traceback", std::string());
+        std::string error_message = GetJsonValueByKey<std::string>(pt, "error_message");
+        std::string traceback = GetJsonValueByKey<std::string>(pt, "traceback");
         throw MUJIN_EXCEPTION_FORMAT("HTTP POST to '%s' returned HTTP status %s: %s", relativeuri%http_code%error_message, MEC_HTTPServer);
     }
     return http_code;
 }
 
-int ControllerClientImpl::CallPost_UTF8(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode, double timeout)
+int ControllerClientImpl::CallPost_UTF8(const std::string& relativeuri, const std::string& data, rapidjson::Document& pt, int expectedhttpcode, double timeout)
 {
     return CallPost(relativeuri, encoding::ConvertUTF8ToFileSystemEncoding(data), pt, expectedhttpcode, timeout);
 }
 
-int ControllerClientImpl::CallPost_UTF16(const std::string& relativeuri, const std::wstring& data, boost::property_tree::ptree& pt, int expectedhttpcode, double timeout)
+int ControllerClientImpl::CallPost_UTF16(const std::string& relativeuri, const std::wstring& data, rapidjson::Document& pt, int expectedhttpcode, double timeout)
 {
     return CallPost(relativeuri, encoding::ConvertUTF16ToFileSystemEncoding(data), pt, expectedhttpcode, timeout);
 }
 
-int ControllerClientImpl::_CallPut(const std::string& relativeuri, const void* pdata, size_t nDataSize, boost::property_tree::ptree& pt, curl_slist* headers, int expectedhttpcode, double timeout)
+int ControllerClientImpl::_CallPut(const std::string& relativeuri, const void* pdata, size_t nDataSize, rapidjson::Document& pt, curl_slist* headers, int expectedhttpcode, double timeout)
 {
     boost::mutex::scoped_lock lock(_mutex);
     curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, headers);//isJson ? _httpheadersjson : _httpheadersstl);
@@ -866,26 +848,24 @@ int ControllerClientImpl::_CallPut(const std::string& relativeuri, const void* p
     
     CHECKCURLCODE(res, "curl_easy_getinfo failed");
     if( _buffer.rdbuf()->in_avail() > 0 ) {
-#if defined(_WIN32) || defined(_WIN64)
-        ParsePropertyTreeWin(_buffer.str(), pt);
-#else
-        boost::property_tree::read_json(_buffer, pt);
-#endif
+        ParseJson(pt, _buffer.str());
+    } else {
+        pt.SetObject();
     }
     if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
-        std::string error_message = pt.get<std::string>("error_message", std::string());
-        std::string traceback = pt.get<std::string>("traceback", std::string());
+        std::string error_message = GetJsonValueByKey<std::string>(pt, "error_message");
+        std::string traceback = GetJsonValueByKey<std::string>(pt, "traceback");
         throw MUJIN_EXCEPTION_FORMAT("HTTP PUT to '%s' returned HTTP status %s: %s", relativeuri%http_code%error_message, MEC_HTTPServer);
     }
     return http_code;
 }
 
-int ControllerClientImpl::CallPutSTL(const std::string& relativeuri, const std::vector<unsigned char>& data, boost::property_tree::ptree& pt, int expectedhttpcode, double timeout)
+int ControllerClientImpl::CallPutSTL(const std::string& relativeuri, const std::vector<unsigned char>& data, rapidjson::Document& pt, int expectedhttpcode, double timeout)
 {
     return _CallPut(relativeuri, static_cast<const void*> (&data[0]), data.size(), pt, _httpheadersstl, expectedhttpcode, timeout);
 }
 
-int ControllerClientImpl::CallPutJSON(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode, double timeout)
+int ControllerClientImpl::CallPutJSON(const std::string& relativeuri, const std::string& data, rapidjson::Document& pt, int expectedhttpcode, double timeout)
 {
     return _CallPut(relativeuri, static_cast<const void*>(&data), data.size(), pt, _httpheadersjson, expectedhttpcode, timeout);
 }
@@ -988,27 +968,27 @@ std::wstring ControllerClientImpl::GetNameFromPrimaryKey_UTF16(const std::string
 
 std::string ControllerClientImpl::CreateObjectGeometry(const std::string& objectPk, const std::string& geometryName, const std::string& linkPk, double timeout)
 {
-    boost::property_tree::ptree pt;
+    rapidjson::Document pt(rapidjson::kObjectType);
     const std::string geometryData("{\"name\":\"" + geometryName + "\", \"linkpk\":\"" + linkPk + "\", \"geomtype\": \"mesh\"}");
     const std::string uri(str(boost::format("object/%s/geometry/") % objectPk));
-    
+
     CallPost(uri, geometryData, pt, 201, timeout);
-    return pt.get<std::string>("pk");
+    return GetJsonValueByKey<std::string>(pt, "pk");
 }
 
 std::string ControllerClientImpl::SetObjectGeometryMesh(const std::string& objectPk, const std::string& geometryPk, const std::vector<unsigned char>& meshData, const std::string& unit, double timeout)
 {
-    boost::property_tree::ptree pt;
+    rapidjson::Document pt(rapidjson::kObjectType);
     const std::string uri(str(boost::format("object/%s/geometry/%s/?unit=%s")%objectPk%geometryPk%unit));
     std::cout << uri << std::endl;
     const int status = CallPutSTL(uri, meshData, pt, 202, timeout);
     assert(status == 202);
-    return pt.get<std::string>("pk");
+    return GetJsonValueByKey<std::string>(pt, "pk");
 }
 
 void ControllerClientImpl::GetProfile()
 {
-    _profile.clear();
+    _profile.SetObject();
     CallGet("profile/", _profile);
 }
 
