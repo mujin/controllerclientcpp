@@ -423,7 +423,7 @@ void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const rapid
 
         const rapidjson::Value &sensor = it->value["sensordata"];
         LoadJsonValueByKey(sensor, "distortion_coeffs", sensordata.distortion_coeffs);
-        LoadJsonValueByKey(sensor, "intrinsics", sensordata.intrinsic);
+        LoadJsonValueByKey(sensor, "intrinsic", sensordata.intrinsic);
 
         std::vector<int> imagedimensions;
         LoadJsonValueByKey(sensor, "image_dimensions", imagedimensions);
@@ -437,10 +437,10 @@ void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const rapid
             sensordata.image_dimensions[i] = imagedimensions[i];
         }
 
-        LoadJsonValueByKey(it->value, "extra_parameters", sensordata.extra_parameters);
-        LoadJsonValueByKey(it->value, "distortion_model", sensordata.distortion_model);
-        LoadJsonValueByKey(it->value, "focal_length", sensordata.focal_length);
-        LoadJsonValueByKey(it->value, "measurement_time", sensordata.measurement_time);
+        LoadJsonValueByKey(sensor, "extra_parameters", sensordata.extra_parameters);
+        LoadJsonValueByKey(sensor, "distortion_model", sensordata.distortion_model);
+        LoadJsonValueByKey(sensor, "focal_length", sensordata.focal_length);
+        LoadJsonValueByKey(sensor, "measurement_time", sensordata.measurement_time);
 
         msensortransform[sensorname] = transform;
         msensordata[sensorname] = sensordata;
@@ -523,16 +523,16 @@ void BinPickingTaskResource::ResultGetPickedPositions::Parse(const rapidjson::Va
     for (rapidjson::Document::ConstMemberIterator value = v.MemberBegin(); value != v.MemberEnd(); ++value) {
         if (std::string(value->name.GetString()) == "positions" && value->value.IsArray()) {
             for (rapidjson::Document::ConstValueIterator it = value->value.Begin(); it != value->value.End(); ++it) {
-                if (it->IsArray() && it->Size() >= 6) {
+                if (it->IsArray() && it->Size() >= 8) {
                     Transform transform;
                     for (int i = 0; i < 4; i++) {
                         transform.quaternion[i] = (*it)[i].GetDouble();
                     }
                     for (int i = 0; i < 3; i++) {
-                        transform.translate[4 + i] = (*it)[i].GetDouble();
+                        transform.translate[i] = (*it)[i + 4].GetDouble();
                     }
                     transforms.push_back(transform);
-                    timestamps.push_back((*it)[5].GetInt64());
+                    timestamps.push_back((*it)[7].GetInt64());
                 }
             }
         }
@@ -544,7 +544,7 @@ void BinPickingTaskResource::ResultAABB::Parse(const rapidjson::Value& pt)
     BOOST_ASSERT(pt.IsObject() && pt.HasMember("output"));
     const rapidjson::Value& v = pt["output"];
     LoadJsonValueByKey(v, "pos", pos);
-    LoadJsonValueByKey(v, "extens", extents);
+    LoadJsonValueByKey(v, "extents", extents);
     if (pos.size() != 3) {
         throw MujinException("The length of pos is invalid.", MEC_Failed);
     }
@@ -567,7 +567,7 @@ void BinPickingTaskResource::ResultOBB::Parse(const rapidjson::Value& pt)
     if (extents.size() != 3) {
         throw MujinException("The length of extents is invalid.", MEC_Failed);
     }
-    if (rotationmatrix.size() != 3 || rotationmatrix[0].size() != 1 || rotationmatrix[1].size() != 3 || rotationmatrix[2].size() != 3) {
+    if (rotationmatrix.size() != 3 || rotationmatrix[0].size() != 3 || rotationmatrix[1].size() != 3 || rotationmatrix[2].size() != 3) {
         throw MujinException("The row number of rotationmat is invalid.", MEC_Failed);
     }
     for (int i = 0; i < 3; i ++)
@@ -953,7 +953,7 @@ void BinPickingTaskResource::VisualizePointCloud(const std::vector<std::vector<R
     _ss << "]" << ", ";
     _ss << GetJsonString("unit", unit);
     _ss << "}";
-    rapidjson::Document d;
+    rapidjson::Document d(rapidjson::kObjectType);
     ExecuteCommand(_ss.str(),d, timeout); // need to check return code
 }
 
@@ -1012,7 +1012,7 @@ PlanningResultResourcePtr BinPickingTaskResource::GetResult()
         std::string pk = GetJsonValueByKey<std::string>(objects[0], "pk", pk);
         result.reset(new BinPickingResultResource(controller, pk));
         std::string erroptional = GetJsonValueByKey<std::string>(objects[0], "errormessage");
-        if (erroptional.size() > 0 ) {
+        if (erroptional.size() > 0  && erroptional != "succeed") {
             throw MujinException(erroptional, MEC_BinPickingError);
         }
     }

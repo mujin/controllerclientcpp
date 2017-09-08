@@ -246,7 +246,7 @@ void RobotResource::GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& a
         LoadJsonValueByKey(*it, "quaternion", attachedsensor->quaternion);
         LoadJsonValueByKey(*it, "translate", attachedsensor->translate);
         std::vector<double> distortionCoeffs = GetJsonValueByPath<std::vector<double> > (*it, "/sensordata/distortion_coeffs");
-        BOOST_ASSERT(distortionCoeffs.size() < 5);
+        BOOST_ASSERT(distortionCoeffs.size() <= 5);
         for (size_t i = 0; i < distortionCoeffs.size(); i ++) {
             attachedsensor->sensordata.distortion_coeffs[i] = distortionCoeffs[i];
         }
@@ -254,17 +254,17 @@ void RobotResource::GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& a
         attachedsensor->sensordata.focal_length = GetJsonValueByPath<Real>(*it, "/sensordata/focal_length");
         attachedsensor->sensordata.measurement_time= GetJsonValueByPath<Real>(*it, "/sensordata/measurement_time");
         std::vector<double> intrinsics = GetJsonValueByPath<std::vector<double> >(*it, "/sensordata/intrinsic");
-        BOOST_ASSERT(intrinsics.size() < 6);
+        BOOST_ASSERT(intrinsics.size() <= 6);
         for (size_t i = 0; i < intrinsics.size(); i++) {
             attachedsensor->sensordata.intrinsic[i] = intrinsics[i];
         }
         std::vector<int> imgdim = GetJsonValueByPath<std::vector<int> >(*it, "/sensordata/image_dimensions");
-        BOOST_ASSERT(imgdim.size() < 3);
+        BOOST_ASSERT(imgdim.size() <= 3);
         for (size_t i = 0; i < imgdim.size(); i++) {
             attachedsensor->sensordata.image_dimensions[i] = imgdim[i];
         }
 
-        if (rapidjson::Pointer("/sensordata/extra_parameteres").Get(*it)) {
+        if (rapidjson::Pointer("/sensordata/extra_parameters").Get(*it)) {
             std::string parameters_string = GetJsonValueByPath<std::string>(*it, "/sensordata/extra_parameters");
             //std::cout << "extra param " << parameters_string << std::endl;
             std::list<std::string> results;
@@ -585,9 +585,9 @@ void SceneResource::GetInstObjects(std::vector<SceneResource::InstObjectPtr>& in
             size_t ilink = 0;
             for (rapidjson::Document::ValueIterator itlink = jsonlinks.Begin(); itlink != jsonlinks.End(); ++itlink) {
                 InstObject::Link& link = instobject->links[ilink];
-                LoadJsonValueByKey(jsonlinks, "name", link.name);
-                LoadJsonValueByKey(jsonlinks, "quaternion", link.quaternion);
-                LoadJsonValueByKey(jsonlinks, "translate", link.translate);
+                LoadJsonValueByKey(*itlink, "name", link.name);
+                LoadJsonValueByKey(*itlink, "quaternion", link.quaternion);
+                LoadJsonValueByKey(*itlink, "translate", link.translate);
                 ilink++;
             }
         }
