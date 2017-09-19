@@ -17,10 +17,6 @@
 #ifndef MUJIN_CONTROLLERCLIENT_H
 #define MUJIN_CONTROLLERCLIENT_H
 
-#ifndef MUJINCLIENT_DISABLE_ASSERT_HANDLER
-#define BOOST_ENABLE_ASSERT_HANDLER
-#endif
-
 #ifdef _MSC_VER
 
 #pragma warning(disable:4251) // needs to have dll-interface to be used by clients of class
@@ -1044,25 +1040,6 @@ MUJINCLIENT_API void ComputeZXYFromTransform(Real ZXY[3], const Transform &trans
 MUJINCLIENT_API void SerializeEnvironmentStateToJSON(const EnvironmentState& envstate, std::ostream& os);
 
 } // namespace mujinclient
-
-#if !defined(MUJINCLIENT_DISABLE_ASSERT_HANDLER) && defined(BOOST_ENABLE_ASSERT_HANDLER)
-/// Modifications controlling %boost library behavior.
-namespace boost
-{
-inline void assertion_failed(char const * expr, char const * function, char const * file, long line)
-{
-    throw mujinclient::MujinException(boost::str(boost::format("[%s:%d] -> %s, expr: %s")%file%line%function%expr),mujinclient::MEC_Assert);
-}
-
-#if BOOST_VERSION>104600
-inline void assertion_failed_msg(char const * expr, char const * msg, char const * function, char const * file, long line)
-{
-    throw mujinclient::MujinException(boost::str(boost::format("[%s:%d] -> %s, expr: %s, msg: %s")%file%line%function%expr%msg),mujinclient::MEC_Assert);
-}
-#endif
-
-}
-#endif
 
 BOOST_STATIC_ASSERT(MUJINCLIENT_VERSION_MAJOR>=0&&MUJINCLIENT_VERSION_MAJOR<=255);
 BOOST_STATIC_ASSERT(MUJINCLIENT_VERSION_MINOR>=0&&MUJINCLIENT_VERSION_MINOR<=255);
