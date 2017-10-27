@@ -123,7 +123,7 @@ public:
         bool hasRobotExecutionStarted;
         int orderNumber;
         int numLeftInOrder;
-        int numLeftInSupply;
+        int numDetectionResults;
         int placedInDest;
         std::vector<double> currentJointValues;
         std::vector<double> currentToolValues;

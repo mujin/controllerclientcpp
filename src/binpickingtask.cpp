@@ -578,7 +578,7 @@ BinPickingTaskResource::ResultGetBinpickingState::ResultGetBinpickingState()
     isGrabbingLastTarget = true;
     orderNumber = -1;
     numLeftInOrder = -1;
-    numLeftInSupply = -1;
+    numDetectionResults = -1;
     placedInDest = -1;
     isControllerInError = false;
     robotbridgestatus= "";
@@ -608,7 +608,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const boost::proper
     if (!!orderstatept) {
         orderNumber = orderstatept->get<int>("orderNumber", -1);
         numLeftInOrder = orderstatept->get<int>("numLeftInOrder", -1);
-        numLeftInSupply = orderstatept->get<int>("numLeftInSupply", -1);
+        numDetectionResults = orderstatept->get<int>("numDetectionResults", -1);
         placedInDest = orderstatept->get<int>("placedInDest", -1);
     }
     isControllerInError = _pt.get<bool>("isControllerInError", false);
