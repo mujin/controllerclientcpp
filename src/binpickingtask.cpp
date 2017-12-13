@@ -33,6 +33,10 @@
 
 #include "logging.h"
 
+#include <rapidjson/document.h>
+#include <rapidjson/writer.h>
+#include <rapidjson/stringbuffer.h>
+
 MUJIN_LOGGER("mujin.controllerclientcpp.binpickingtask");
 
 namespace mujinclient {
@@ -110,29 +114,13 @@ BinPickingTaskResource::~BinPickingTaskResource()
 void BinPickingTaskResource::Initialize(const std::string& defaultTaskParameters, const double timeout, const std::string& userinfo, const std::string& slaverequestid)
 {
     if( defaultTaskParameters.size() > 0 ) {
-        boost::property_tree::ptree pt;
-        std::stringstream ss(defaultTaskParameters);
-#if defined(_WIN32) || defined(_WIN64)
-        ParsePropertyTreeWin(ss.str(), pt);
-#else
-        boost::property_tree::read_json(ss, pt);
-#endif
-        FOREACH(itchild, pt) {
-            std::string value = itchild->second.data();
-            // hack?!
-            if( value.size() > 0 ) {
-                _mapTaskParameters[itchild->first] = GetJsonString(value);
-            }
-            else {
-                std::stringstream ssvalue;
-#if BOOST_VERSION > 104800
-                write_json(ssvalue, itchild->second, false); // pretty print false
-#else
-                write_json(ssvalue, itchild->second); // pretty print false
-#endif
-                _mapTaskParameters[itchild->first] = ssvalue.str();
-            }
-            //std::cout << "initialize " << std::string(itchild->first) << "=" << _mapTaskParameters[itchild->first] << std::endl;
+        rapidjson::Document d;
+        d.Parse(defaultTaskParameters.c_str());
+        for (rapidjson::Value::ConstMemberIterator it = d.MemberBegin(); it != d.MemberEnd(); ++it) {
+            rapidjson::StringBuffer stringbuffer;
+            rapidjson::Writer<rapidjson::StringBuffer> writer(stringbuffer);
+            it->value.Accept(writer);
+            _mapTaskParameters[it->name.GetString()] = std::string(stringbuffer.GetString(), stringbuffer.GetSize());
         }
     }
 
@@ -144,30 +132,15 @@ void BinPickingTaskResource::Initialize(const std::string& defaultTaskParameters
 #ifdef MUJIN_USEZMQ
 void BinPickingTaskResource::Initialize(const std::string& defaultTaskParameters, const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq, const double reinitializetimeout, const double timeout, const std::string& userinfo, const std::string& slaverequestid)
 {
+    
     if( defaultTaskParameters.size() > 0 ) {
-        boost::property_tree::ptree pt;
-        std::stringstream ss(defaultTaskParameters);
-#if defined(_WIN32) || defined(_WIN64)
-        ParsePropertyTreeWin(ss.str(), pt);
-#else
-        boost::property_tree::read_json(ss, pt);
-#endif
-        FOREACH(itchild, pt) {
-            const std::string value = itchild->second.data();
-            // hack?!
-            if( value.size() > 0 ) {
-                _mapTaskParameters[itchild->first] = GetJsonString(value);
-            }
-            else {
-                std::stringstream ssvalue;
-#if BOOST_VERSION > 104800
-                write_json(ssvalue, itchild->second, false); // pretty print false
-#else
-                write_json(ssvalue, itchild->second);
-#endif
-                _mapTaskParameters[itchild->first] = ssvalue.str();
-            }
-            //std::cout << "initialize " << std::string(itchild->first) << "=" << _mapTaskParameters[itchild->first] << std::endl;
+        rapidjson::Document d;
+        d.Parse(defaultTaskParameters.c_str());
+        for (rapidjson::Value::ConstMemberIterator it = d.MemberBegin(); it != d.MemberEnd(); ++it) {
+            rapidjson::StringBuffer stringbuffer;
+            rapidjson::Writer<rapidjson::StringBuffer> writer(stringbuffer);
+            it->value.Accept(writer);
+            _mapTaskParameters[it->name.GetString()] = std::string(stringbuffer.GetString(), stringbuffer.GetSize());
         }
     }
 
