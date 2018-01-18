@@ -156,6 +156,11 @@ public:
     struct MUJINCLIENT_API ResultOBB : public ResultBase
     {
         void Parse(const boost::property_tree::ptree& pt);
+        bool operator!=(const ResultOBB& other) const {
+            return translation != other.translation ||
+                   extents != other.extents ||
+                   rotationmat != other.rotationmat;
+        }
         std::vector<Real> translation;
         std::vector<Real> extents;
         std::vector<Real> rotationmat;  // row major
