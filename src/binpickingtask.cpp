@@ -33,6 +33,10 @@
 
 #include "logging.h"
 
+#include <rapidjson/document.h>
+#include <rapidjson/writer.h>
+#include <rapidjson/stringbuffer.h>
+
 MUJIN_LOGGER("mujin.controllerclientcpp.binpickingtask");
 
 namespace mujinclient {
@@ -110,29 +114,13 @@ BinPickingTaskResource::~BinPickingTaskResource()
 void BinPickingTaskResource::Initialize(const std::string& defaultTaskParameters, const double timeout, const std::string& userinfo, const std::string& slaverequestid)
 {
     if( defaultTaskParameters.size() > 0 ) {
-        boost::property_tree::ptree pt;
-        std::stringstream ss(defaultTaskParameters);
-#if defined(_WIN32) || defined(_WIN64)
-        ParsePropertyTreeWin(ss.str(), pt);
-#else
-        boost::property_tree::read_json(ss, pt);
-#endif
-        FOREACH(itchild, pt) {
-            std::string value = itchild->second.data();
-            // hack?!
-            if( value.size() > 0 ) {
-                _mapTaskParameters[itchild->first] = GetJsonString(value);
-            }
-            else {
-                std::stringstream ssvalue;
-#if BOOST_VERSION > 104800
-                write_json(ssvalue, itchild->second, false); // pretty print false
-#else
-                write_json(ssvalue, itchild->second); // pretty print false
-#endif
-                _mapTaskParameters[itchild->first] = ssvalue.str();
-            }
-            //std::cout << "initialize " << std::string(itchild->first) << "=" << _mapTaskParameters[itchild->first] << std::endl;
+        rapidjson::Document d;
+        d.Parse(defaultTaskParameters.c_str());
+        for (rapidjson::Value::ConstMemberIterator it = d.MemberBegin(); it != d.MemberEnd(); ++it) {
+            rapidjson::StringBuffer stringbuffer;
+            rapidjson::Writer<rapidjson::StringBuffer> writer(stringbuffer);
+            it->value.Accept(writer);
+            _mapTaskParameters[it->name.GetString()] = std::string(stringbuffer.GetString(), stringbuffer.GetSize());
         }
     }
 
@@ -144,30 +132,15 @@ void BinPickingTaskResource::Initialize(const std::string& defaultTaskParameters
 #ifdef MUJIN_USEZMQ
 void BinPickingTaskResource::Initialize(const std::string& defaultTaskParameters, const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq, const double reinitializetimeout, const double timeout, const std::string& userinfo, const std::string& slaverequestid)
 {
+    
     if( defaultTaskParameters.size() > 0 ) {
-        boost::property_tree::ptree pt;
-        std::stringstream ss(defaultTaskParameters);
-#if defined(_WIN32) || defined(_WIN64)
-        ParsePropertyTreeWin(ss.str(), pt);
-#else
-        boost::property_tree::read_json(ss, pt);
-#endif
-        FOREACH(itchild, pt) {
-            const std::string value = itchild->second.data();
-            // hack?!
-            if( value.size() > 0 ) {
-                _mapTaskParameters[itchild->first] = GetJsonString(value);
-            }
-            else {
-                std::stringstream ssvalue;
-#if BOOST_VERSION > 104800
-                write_json(ssvalue, itchild->second, false); // pretty print false
-#else
-                write_json(ssvalue, itchild->second);
-#endif
-                _mapTaskParameters[itchild->first] = ssvalue.str();
-            }
-            //std::cout << "initialize " << std::string(itchild->first) << "=" << _mapTaskParameters[itchild->first] << std::endl;
+        rapidjson::Document d;
+        d.Parse(defaultTaskParameters.c_str());
+        for (rapidjson::Value::ConstMemberIterator it = d.MemberBegin(); it != d.MemberEnd(); ++it) {
+            rapidjson::StringBuffer stringbuffer;
+            rapidjson::Writer<rapidjson::StringBuffer> writer(stringbuffer);
+            it->value.Accept(writer);
+            _mapTaskParameters[it->name.GetString()] = std::string(stringbuffer.GetString(), stringbuffer.GetSize());
         }
     }
 
@@ -631,7 +604,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const boost::proper
     isGrabbingTarget = _pt.get<bool>("isGrabbingTarget", true);
     isGrabbingLastTarget = _pt.get<bool>("isGrabbingLastTarget", true);
     hasRobotExecutionStarted = _pt.get<bool>("hasRobotExecutionStarted", false);
-    boost::optional<const boost::property_tree::ptree&> orderstatept(_pt.get_child_optional("orderstate"));
+    boost::optional<boost::property_tree::ptree&> orderstatept(_pt.get_child_optional("orderstate"));
     if (!!orderstatept) {
         orderNumber = orderstatept->get<int>("orderNumber", -1);
         numLeftInOrder = orderstatept->get<int>("numLeftInOrder", -1);
@@ -1095,7 +1068,7 @@ void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<Real>&vpoin
     ExecuteCommand(_ss.str(), timeout); // need to check return code
 }
 
-void BinPickingTaskResource::UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<Real>& vpoints, const std::string& state, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit, const double timeout, const std::string& regionname, const std::string& locationIOName)
+void BinPickingTaskResource::UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<Real>& vpoints, const std::string& state, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit, const double timeout, const std::string& regionname, const std::string& locationIOName, const std::vector<std::string>& cameranames)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "UpdateEnvironmentState";
@@ -1104,7 +1077,7 @@ void BinPickingTaskResource::UpdateEnvironmentState(const std::string& objectnam
     _ss << GetJsonString("objectname", objectname) << ", ";
     _ss << GetJsonString("regionname", regionname) << ", ";
     _ss << GetJsonString("locationIOName", locationIOName) << ", ";
-    
+    _ss << "\"cameranames\":" << GetJsonString(cameranames) << ", ";
     _ss << GetJsonString("envstate") << ": [";
     for (unsigned int i=0; i<detectedobjects.size(); i++) {
         _ss << GetJsonString(detectedobjects[i]);

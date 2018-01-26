@@ -171,6 +171,14 @@ if( NOT MSVC )
   set(EXTRA_LIBRARIES ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY})
 endif()
 
+#ranpidjson
+find_package(RapidJSON QUIET)
+if (NOT RapidJSON_FOUND)
+  message(FATAL_ERROR "could not find RapidJSON")
+else()
+  include_directories(${RAPIDJSON_INCLUDE_DIRS})
+  add_definitions("-DRAPIDJSON_ASSERT=BOOST_ASSERT")
+endif()
 
 if( Boost_FOUND )
   include_directories(${Boost_INCLUDE_DIRS})

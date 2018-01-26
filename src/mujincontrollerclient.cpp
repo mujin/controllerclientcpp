@@ -573,8 +573,8 @@ void SceneResource::GetSensorMapping(std::map<std::string, std::string>& sensorm
     GETCONTROLLERIMPL();
     sensormapping.clear();
     boost::property_tree::ptree pt;
-    controller->CallGet(str(boost::format("scene/%s/instobject/?format=json&limit=0&fields=instobjects")%GetPrimaryKey()), pt);
-    boost::property_tree::ptree& objects = pt.get_child("instobjects");
+    controller->CallGet(str(boost::format("scene/%s/instobject/?format=json&limit=0")%GetPrimaryKey()), pt);
+    boost::property_tree::ptree& objects = pt.get_child("objects");
     FOREACH(v, objects) {
         if ( v->second.find("attachedsensors") != v->second.not_found() ) {
             boost::property_tree::ptree& jsonattachedsensors = v->second.get_child("attachedsensors");
@@ -599,8 +599,8 @@ void SceneResource::GetInstObjects(std::vector<SceneResource::InstObjectPtr>& in
 {
     GETCONTROLLERIMPL();
     boost::property_tree::ptree pt;
-    controller->CallGet(str(boost::format("scene/%s/instobject/?format=json&limit=0&fields=instobjects")%GetPrimaryKey()), pt);
-    boost::property_tree::ptree& objects = pt.get_child("instobjects");
+    controller->CallGet(str(boost::format("scene/%s/instobject/?format=json&limit=0")%GetPrimaryKey()), pt);
+    boost::property_tree::ptree& objects = pt.get_child("objects");
     instobjects.resize(objects.size());
     size_t iobj = 0;
     FOREACH(v, objects) {

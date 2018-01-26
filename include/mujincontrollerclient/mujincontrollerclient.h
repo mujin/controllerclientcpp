@@ -142,6 +142,10 @@ struct Transform
         quaternion[0] = 1; quaternion[1] = 0; quaternion[2] = 0; quaternion[3] = 0;
         translate[0] = 0; translate[1] = 0; translate[2] = 0;
     }
+    bool operator!=(const Transform& other) const {
+        return std::memcmp(quaternion, other.quaternion, 4 * sizeof(Real)) != 0 ||
+               std::memcmp(translate, other.translate, 3 * sizeof(Real)) != 0;
+    }
     Real quaternion[4]; ///< quaternion [cos(ang/2), axis*sin(ang/2)]
     Real translate[3]; ///< translation x,y,z
 };
@@ -696,8 +700,17 @@ public:
         Real translate[3];
         std::string sensortype;
 
-        class SensorData {
+        struct SensorData {
 public:
+            bool operator!=(const SensorData& other) const {
+                return std::memcmp(distortion_coeffs, other.distortion_coeffs, 5 * sizeof(Real)) != 0 ||
+                       distortion_model != other.distortion_model ||
+                       focal_length != other.focal_length ||
+                       std::memcmp(image_dimensions, other.image_dimensions, 3 * sizeof(int)) != 0 ||
+                       std::memcmp(intrinsic, other.intrinsic, 6 * sizeof(Real)) != 0 ||
+                       measurement_time != other.measurement_time ||
+                       extra_parameters != other.extra_parameters;
+            }
             Real distortion_coeffs[5];
             std::string distortion_model;
             Real focal_length;
