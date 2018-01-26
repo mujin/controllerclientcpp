@@ -536,8 +536,8 @@ void SceneResource::GetSensorMapping(std::map<std::string, std::string>& sensorm
     GETCONTROLLERIMPL();
     sensormapping.clear();
     rapidjson::Document pt(rapidjson::kObjectType);
-    controller->CallGet(str(boost::format("scene/%s/instobject/?format=json&limit=0&fields=instobjects")%GetPrimaryKey()), pt);
-    rapidjson::Value& objects = pt["instobjects"];
+    controller->CallGet(str(boost::format("scene/%s/instobject/?format=json&limit=0")%GetPrimaryKey()), pt);
+    rapidjson::Value& objects = pt["objects"];
     for (rapidjson::Document::ValueIterator it = objects.Begin(); it != objects.End(); ++it) {
         if ( it->HasMember("attachedsensors") ) {
             rapidjson::Value& jsonattachedsensors = (*it)["attachedsensors"];
@@ -563,8 +563,8 @@ void SceneResource::GetInstObjects(std::vector<SceneResource::InstObjectPtr>& in
 {
     GETCONTROLLERIMPL();
     rapidjson::Document pt(rapidjson::kObjectType);
-    controller->CallGet(str(boost::format("scene/%s/instobject/?format=json&limit=0&fields=instobjects")%GetPrimaryKey()), pt);
-    rapidjson::Value& objects = pt["instobjects"];
+    controller->CallGet(str(boost::format("scene/%s/instobject/?format=json&limit=0")%GetPrimaryKey()), pt);
+    rapidjson::Value& objects = pt["objects"];
 
     instobjects.resize(objects.Size());
     size_t iobj = 0;
