@@ -1006,39 +1006,27 @@ void BinPickingTaskResource::InitializeZMQ(const double reinitializetimeout, con
 #endif
 }
 
-void BinPickingTaskResource::UpdateObjects(const std::string& basename, const std::vector<Transform>&transformsworld, const std::vector<std::string>&confidence, const std::string& state, const std::string& unit, const double timeout)
+void BinPickingTaskResource::UpdateObjects(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::string& resultstate, const std::string& unit, const double timeout)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
     static const std::string command = "UpdateObjects";
-    const std::string& targetname = basename;
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("tasktype", _tasktype) << ", ";
-    _ss << GetJsonString("objectname", targetname) << ", ";
-    if( targetname.size() > 0 ) {
-        _ss << GetJsonString("object_uri", "mujin:/"+targetname+".mujin.dae") << ", ";
-    }
-    if( transformsworld.size() > 0 ) {
-        std::vector<DetectedObject> detectedobjects;
-        for (unsigned int i=0; i<transformsworld.size(); i++) {
-            DetectedObject detectedobject;
-            std::stringstream name_ss;
-            name_ss << basename << "_" << i;
-            detectedobject.name = name_ss.str();
-            detectedobject.transform = transformsworld[i];
-            detectedobject.confidence = confidence[i];
-            detectedobjects.push_back(detectedobject);
+    _ss << GetJsonString("objectname", objectname) << ", ";
+    _ss << GetJsonString("envstate") << ": [";
+    for (unsigned int i=0; i<detectedobjects.size(); i++) {
+        _ss << GetJsonString(detectedobjects[i]);
+        if (i!=detectedobjects.size()-1) {
+            _ss << ", ";
         }
-
-        _ss << GetJsonString("envstate") << ": [";
-        for (unsigned int i=0; i<detectedobjects.size(); i++) {
-            _ss << GetJsonString(detectedobjects[i]);
-            if (i!=detectedobjects.size()-1) {
-                _ss << ", ";
-            }
-        }
-        _ss << "], ";
     }
-    _ss << GetJsonString("detectionResultState") << ": " << state << ", ";
+    _ss << "], ";
+    if (resultstate.size() == 0) {
+        _ss << GetJsonString("detectionResultState") << ": {}, ";
+    }
+    else {
+        _ss << GetJsonString("detectionResultState") << ": " << resultstate << ", ";
+    }
     _ss << GetJsonString("unit", unit);
     _ss << "}";
     ExecuteCommand(_ss.str(), timeout); // need to check return code
