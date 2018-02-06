@@ -1032,7 +1032,7 @@ void BinPickingTaskResource::UpdateObjects(const std::string& objectname, const 
     ExecuteCommand(_ss.str(), timeout); // need to check return code
 }
 
-void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<Real>&vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp, const unsigned long long endtimestamp, const bool executionverification, const std::string& unit, int isoccluded, const std::string& regionname, const double timeout)
+void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<Real>&vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp, const unsigned long long endtimestamp, const bool executionverification, const std::string& unit, int isoccluded, const std::string& regionname, const double timeout, bool clampToContainer)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "AddPointCloudObstacle";
@@ -1040,6 +1040,7 @@ void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<Real>&vpoin
     _ss << GetJsonString("tasktype", _tasktype) << ", ";
     _ss << GetJsonString("isoccluded", isoccluded) << ", ";
     _ss << GetJsonString("regionname", regionname) << ", ";
+    _ss << GetJsonString("clampToContainer", clampToContainer) << ", ";
     PointCloudObstacle pointcloudobstacle;
     pointcloudobstacle.name = name;
     pointcloudobstacle.pointsize = pointsize;
