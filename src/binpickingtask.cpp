@@ -174,10 +174,25 @@ std::string utils::GetJsonString(const std::string& str)
     return "\""+newstr+"\"";
 }
 
-std::string utils::GetJsonString (const std::vector<Real>& vec)
+std::string utils::GetJsonString (const std::vector<float>& vec)
 {
     std::stringstream ss;
-    ss << std::setprecision(std::numeric_limits<Real>::digits10+1);
+    ss << std::setprecision(std::numeric_limits<float>::digits10+1);
+    ss << "[";
+    for (unsigned int i = 0; i < vec.size(); ++i) {
+        ss << vec[i];
+        if (i != vec.size() - 1) {
+            ss << ", ";
+        }
+    }
+    ss << "]";
+    return ss.str();
+}
+
+std::string utils::GetJsonString (const std::vector<double>& vec)
+{
+    std::stringstream ss;
+    ss << std::setprecision(std::numeric_limits<double>::digits10+1);
     ss << "[";
     for (unsigned int i = 0; i < vec.size(); ++i) {
         ss << vec[i];
@@ -276,7 +291,7 @@ std::string utils::GetJsonString(const BinPickingTaskResource::DetectedObject& o
 std::string utils::GetJsonString(const BinPickingTaskResource::PointCloudObstacle& obj)
 {
     std::stringstream ss;
-    ss << std::setprecision(std::numeric_limits<Real>::digits10+1);
+    ss << std::setprecision(std::numeric_limits<decltype(obj.points)::value_type>::digits10+1);
     // "\"name\": __dynamicobstacle__, \"pointsize\": 0.005, \"points\": []
     ss << GetJsonString("pointcloudid") << ": " << GetJsonString(obj.name) << ", ";
     ss << GetJsonString("pointsize") << ": " << obj.pointsize <<", ";
@@ -1032,7 +1047,7 @@ void BinPickingTaskResource::UpdateObjects(const std::string& objectname, const 
     ExecuteCommand(_ss.str(), timeout); // need to check return code
 }
 
-void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<Real>&vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp, const unsigned long long endtimestamp, const bool executionverification, const std::string& unit, int isoccluded, const std::string& regionname, const double timeout, bool clampToContainer)
+void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<float>&vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp, const unsigned long long endtimestamp, const bool executionverification, const std::string& unit, int isoccluded, const std::string& regionname, const double timeout, bool clampToContainer)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "AddPointCloudObstacle";
@@ -1057,7 +1072,7 @@ void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<Real>&vpoin
     ExecuteCommand(_ss.str(), timeout); // need to check return code
 }
 
-void BinPickingTaskResource::UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<Real>& vpoints, const std::string& state, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit, const double timeout, const std::string& regionname, const std::string& locationIOName, const std::vector<std::string>& cameranames)
+void BinPickingTaskResource::UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<float>& vpoints, const std::string& state, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit, const double timeout, const std::string& regionname, const std::string& locationIOName, const std::vector<std::string>& cameranames)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "UpdateEnvironmentState";
@@ -1101,7 +1116,7 @@ void BinPickingTaskResource::RemoveObjectsWithPrefix(const std::string& prefix, 
     ExecuteCommand(_ss.str(), timeout);
     
 }
-void BinPickingTaskResource::VisualizePointCloud(const std::vector<std::vector<Real> >&pointslist, const Real pointsize, const std::vector<std::string>&names, const std::string& unit, const double timeout)
+void BinPickingTaskResource::VisualizePointCloud(const std::vector<std::vector<float> >&pointslist, const Real pointsize, const std::vector<std::string>&names, const std::string& unit, const double timeout)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "VisualizePointCloud";
