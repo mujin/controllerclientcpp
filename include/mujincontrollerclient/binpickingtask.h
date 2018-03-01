@@ -423,13 +423,13 @@ std::string GetJsonString(const std::string& key, const int value);
 std::string GetJsonString(const std::string& key, const unsigned long long value);
 std::string GetJsonString(const std::string& key, const Real value);
 
-void GetAttachedSensors(ControllerClientPtr controller, SceneResourcePtr scene, const std::string& bodyname, std::vector<RobotResource::AttachedSensorResourcePtr>& result);
-void GetSensorData(ControllerClientPtr controller, SceneResourcePtr scene, const std::string& bodyname, const std::string& sensorname, RobotResource::AttachedSensorResource::SensorData& result);
+void GetAttachedSensors(SceneResource& scene, const std::string& bodyname, std::vector<RobotResource::AttachedSensorResourcePtr>& result);
+void GetSensorData(SceneResource& scene, const std::string& bodyname, const std::string& sensorname, RobotResource::AttachedSensorResource::SensorData& result);
 /** \brief Gets transform of attached sensor in sensor body frame
   */
-void GetSensorTransform(ControllerClientPtr controller, SceneResourcePtr scene, const std::string& bodyname, const std::string& sensorname, Transform& result, const std::string& unit="m");
-void DeleteObject(SceneResourcePtr scene, const std::string& name);
-void UpdateObjects(SceneResourcePtr scene, const std::string& basename, const std::vector<BinPickingTaskResource::DetectedObject>& detectedobjects, const std::string& unit="m");
+void GetSensorTransform(SceneResource& scene, const std::string& bodyname, const std::string& sensorname, Transform& result, const std::string& unit="m");
+void DeleteObject(SceneResource& scene, const std::string& name);
+void UpdateObjects(SceneResource& scene, const std::string& basename, const std::vector<BinPickingTaskResource::DetectedObject>& detectedobjects, const std::string& unit="m");
 
 
 #ifdef MUJIN_USEZMQ

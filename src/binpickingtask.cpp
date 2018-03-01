@@ -1410,25 +1410,25 @@ boost::property_tree::ptree BinPickingTaskResource::ExecuteCommand(const std::st
     }
 }
 
-void utils::GetAttachedSensors(ControllerClientPtr controller, SceneResourcePtr scene, const std::string& bodyname, std::vector<RobotResource::AttachedSensorResourcePtr>& attachedsensors)
+void utils::GetAttachedSensors(SceneResource& scene, const std::string& bodyname, std::vector<RobotResource::AttachedSensorResourcePtr>& attachedsensors)
 {
     SceneResource::InstObjectPtr sensorinstobject;
-    if (!scene->FindInstObject(bodyname, sensorinstobject)) {
+    if (!scene.FindInstObject(bodyname, sensorinstobject)) {
         throw MujinException("Could not find instobject with name: " + bodyname+".", MEC_Failed);
     }
 
     RobotResourcePtr sensorrobot;
-    sensorrobot.reset(new RobotResource(scene->GetController(),sensorinstobject->object_pk));
+    sensorrobot.reset(new RobotResource(scene.GetController(),sensorinstobject->object_pk));
     sensorrobot->GetAttachedSensors(attachedsensors);
     if (attachedsensors.size() == 0) {
         throw MujinException("Could not find attached sensor. Is calibration done for sensor: " + bodyname + "?", MEC_Failed);
     }
 }
 
-void utils::GetSensorData(ControllerClientPtr controller, SceneResourcePtr scene, const std::string& bodyname, const std::string& sensorname, RobotResource::AttachedSensorResource::SensorData& result)
+void utils::GetSensorData(SceneResource& scene, const std::string& bodyname, const std::string& sensorname, RobotResource::AttachedSensorResource::SensorData& result)
 {
     std::vector<RobotResource::AttachedSensorResourcePtr> attachedsensors;
-    utils::GetAttachedSensors(scene->GetController(), scene, bodyname, attachedsensors);
+    utils::GetAttachedSensors(scene, bodyname, attachedsensors);
     for (size_t i=0; i<attachedsensors.size(); ++i) {
         if (attachedsensors.at(i)->name == sensorname) {
             result = attachedsensors.at(i)->sensordata;
@@ -1438,10 +1438,10 @@ void utils::GetSensorData(ControllerClientPtr controller, SceneResourcePtr scene
     throw MujinException("Could not find attached sensor " + sensorname + " on " + bodyname + ".", MEC_Failed);
 }
 
-void utils::GetSensorTransform(ControllerClientPtr controller, SceneResourcePtr scene, const std::string& bodyname, const std::string& sensorname, Transform& result, const std::string& unit)
+void utils::GetSensorTransform(SceneResource& scene, const std::string& bodyname, const std::string& sensorname, Transform& result, const std::string& unit)
 {
     SceneResource::InstObjectPtr cameraobj;
-    if (scene->FindInstObject(bodyname, cameraobj)) {
+    if (scene.FindInstObject(bodyname, cameraobj)) {
         for (size_t i=0; i<cameraobj->attachedsensors.size(); ++i) {
             if (cameraobj->attachedsensors.at(i).name == sensorname) {
                 Transform transform;
@@ -1463,11 +1463,11 @@ void utils::GetSensorTransform(ControllerClientPtr controller, SceneResourcePtr 
     }
 }
 
-void utils::DeleteObject(SceneResourcePtr scene, const std::string& name)
+void utils::DeleteObject(SceneResource& scene, const std::string& name)
 {
     //TODO needs to robot.Release(name)
     std::vector<SceneResource::InstObjectPtr> instobjects;
-    scene->GetInstObjects(instobjects);
+    scene.GetInstObjects(instobjects);
 
     for(unsigned int i = 0; i < instobjects.size(); ++i) {
         const unsigned int found_at = instobjects[i]->name.find(name);
@@ -1478,13 +1478,13 @@ void utils::DeleteObject(SceneResourcePtr scene, const std::string& name)
     }
 }
 
-void utils::UpdateObjects(SceneResourcePtr scene,const std::string& basename, const std::vector<BinPickingTaskResource::DetectedObject>&detectedobjects, const std::string& unit)
+void utils::UpdateObjects(SceneResource& scene,const std::string& basename, const std::vector<BinPickingTaskResource::DetectedObject>&detectedobjects, const std::string& unit)
 {
     std::vector<SceneResource::InstObjectPtr> oldinstobjects;
     std::vector<SceneResource::InstObjectPtr> oldtargets;
 
     // get all instobjects from mujin controller
-    scene->GetInstObjects(oldinstobjects);
+    scene.GetInstObjects(oldinstobjects);
     for(unsigned int i = 0; i < oldinstobjects.size(); ++i) {
         const unsigned int found_at = oldinstobjects[i]->name.find(basename);
         if (found_at != std::string::npos) {
@@ -1546,11 +1546,11 @@ void utils::UpdateObjects(SceneResourcePtr scene,const std::string& basename, co
 
     // update existing objects
     if (instobject_update_pool.size() != 0 ) {
-        scene->SetInstObjectsState(instobject_update_pool, state_update_pool);
+        scene.SetInstObjectsState(instobject_update_pool, state_update_pool);
     }
     // create new objects
     for(unsigned int i = 0; i < name_create_pool.size(); i++) {
-        scene->CreateInstObject(name_create_pool[i], ("mujin:/"+basename+".mujin.dae"), transform_create_pool[i].quaternion, transform_create_pool[i].translate);
+        scene.CreateInstObject(name_create_pool[i], ("mujin:/"+basename+".mujin.dae"), transform_create_pool[i].quaternion, transform_create_pool[i].translate);
     }
 }
 
