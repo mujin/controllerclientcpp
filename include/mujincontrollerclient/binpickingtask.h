@@ -56,7 +56,7 @@ public:
     struct MUJINCLIENT_API PointCloudObstacle
     {
         std::string name;
-        std::vector<Real> points; ///< consecutive x,y,z values in meter
+        std::vector<float> points; ///< consecutive x,y,z values in meter
         Real pointsize; ///< size of each point in meter
     };
 
@@ -258,11 +258,11 @@ public:
         \param timeout seconds until this command times out
         \param clampToContainer if true, then planning will clamp the points to the container walls specified by regionname. Otherwise, will use all the points
      */
-    virtual void AddPointCloudObstacle(const std::vector<Real>& vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp=0, const unsigned long long endtimestamp=0, const bool executionverification=false, const std::string& unit="mm", int isoccluded=-1, const std::string& regionname=std::string(), const double timeout /* second */=5.0, bool clampToContainer=true);
+    virtual void AddPointCloudObstacle(const std::vector<float>& vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp=0, const unsigned long long endtimestamp=0, const bool executionverification=false, const std::string& unit="mm", int isoccluded=-1, const std::string& regionname=std::string(), const double timeout /* second */=5.0, bool clampToContainer=true);
     
     /// \param locationIOName the location IO name (1, 2, 3, 4, etc) used to tell mujin controller to notify  the IO signal with detected object info
     /// \param cameranames the names of the sensors mapped to the current region used for detetion. The sensor information is used to create shadow obstacles per each part, if empty, will not be able to create the correct shadow obstacles.
-    virtual void UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<Real>& vpoints, const std::string& resultstate, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit="mm", const double timeout=0, const std::string& regionname=std::string(), const std::string& locationIOName="1", const std::vector<std::string>& cameranames=std::vector<std::string>());
+    virtual void UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<float>& vpoints, const std::string& resultstate, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit="mm", const double timeout=0, const std::string& regionname=std::string(), const std::string& locationIOName="1", const std::vector<std::string>& cameranames=std::vector<std::string>());
 
     /// \brief removes objects by thier prefix
     /// \param prefix prefix of the objects to remove
@@ -275,7 +275,7 @@ public:
         \param unit of points
         \param timeout seconds until this command times out
      */
-    virtual void VisualizePointCloud(const std::vector<std::vector<Real> >& pointslist, const Real pointsize, const std::vector<std::string>& names, const std::string& unit="m", const double timeout /* second */=5.0);
+    virtual void VisualizePointCloud(const std::vector<std::vector<float> >& pointslist, const Real pointsize, const std::vector<std::string>& names, const std::string& unit="m", const double timeout /* second */=5.0);
 
     /** \brief Clear visualization made by VisualizePointCloud.
      */
@@ -409,7 +409,8 @@ protected:
 
 namespace utils {
 std::string GetJsonString(const std::string& string);
-std::string GetJsonString(const std::vector<Real>& vec);
+std::string GetJsonString(const std::vector<float>& vec);
+std::string GetJsonString(const std::vector<double>& vec);
 std::string GetJsonString(const std::vector<int>& vec);
 std::string GetJsonString(const std::vector<std::string>& vec);
 std::string GetJsonString(const Transform& transform);
