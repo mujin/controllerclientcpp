@@ -1418,7 +1418,7 @@ void utils::GetAttachedSensors(ControllerClientPtr controller, SceneResourcePtr 
     }
 
     RobotResourcePtr sensorrobot;
-    sensorrobot.reset(new RobotResource(controller,sensorinstobject->object_pk));
+    sensorrobot.reset(new RobotResource(scene->GetController(),sensorinstobject->object_pk));
     sensorrobot->GetAttachedSensors(attachedsensors);
     if (attachedsensors.size() == 0) {
         throw MujinException("Could not find attached sensor. Is calibration done for sensor: " + bodyname + "?", MEC_Failed);
@@ -1428,7 +1428,7 @@ void utils::GetAttachedSensors(ControllerClientPtr controller, SceneResourcePtr 
 void utils::GetSensorData(ControllerClientPtr controller, SceneResourcePtr scene, const std::string& bodyname, const std::string& sensorname, RobotResource::AttachedSensorResource::SensorData& result)
 {
     std::vector<RobotResource::AttachedSensorResourcePtr> attachedsensors;
-    utils::GetAttachedSensors(controller, scene, bodyname, attachedsensors);
+    utils::GetAttachedSensors(scene->GetController(), scene, bodyname, attachedsensors);
     for (size_t i=0; i<attachedsensors.size(); ++i) {
         if (attachedsensors.at(i)->name == sensorname) {
             result = attachedsensors.at(i)->sensordata;
