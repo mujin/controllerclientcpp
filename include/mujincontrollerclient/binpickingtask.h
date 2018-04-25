@@ -56,7 +56,7 @@ public:
     struct MUJINCLIENT_API PointCloudObstacle
     {
         std::string name;
-        std::vector<Real> points; ///< consecutive x,y,z values in meter
+        std::vector<float> points; ///< consecutive x,y,z values in meter
         Real pointsize; ///< size of each point in meter
     };
 
@@ -156,6 +156,11 @@ public:
     struct MUJINCLIENT_API ResultOBB : public ResultBase
     {
         void Parse(const boost::property_tree::ptree& pt);
+        bool operator!=(const ResultOBB& other) const {
+            return translation != other.translation ||
+                   extents != other.extents ||
+                   rotationmat != other.rotationmat;
+        }
         std::vector<Real> translation;
         std::vector<Real> extents;
         std::vector<Real> rotationmat;  // row major
@@ -234,7 +239,7 @@ public:
         \param unit unit of detectedobject info
         \param timeout seconds until this command times out
      */
-    virtual void UpdateObjects(const std::string& basename, const std::vector<Transform>& transformsworld, const std::vector<std::string>& confidence, const std::string& state, const std::string& unit="mm", const double timeout /* second */=5.0);
+    virtual void UpdateObjects(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::string& resultstate, const std::string& unit="mm", const double timeout /* second */=5.0);
 
     /** \brief Establish ZMQ connection to the task
         \param reinitializetimeout seconds to wait before re-initializing the ZMQ server after the heartbeat signal is lost
@@ -249,14 +254,15 @@ public:
         \param pointsize size of each point in meter
         \param name name of the obstacle
         \param isoccluded occlusion status of robot with the container: -1 if unknown, 0 if not occluding, 1 if robot is occluding region in camera
-	\param regionname the name of the region for which the point cloud is supposed to be captured of. isoccluded maps to this region
+        \param regionname the name of the region for which the point cloud is supposed to be captured of. isoccluded maps to this region
         \param timeout seconds until this command times out
+        \param clampToContainer if true, then planning will clamp the points to the container walls specified by regionname. Otherwise, will use all the points
      */
-    virtual void AddPointCloudObstacle(const std::vector<Real>& vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp=0, const unsigned long long endtimestamp=0, const bool executionverification=false, const std::string& unit="mm", int isoccluded=-1, const std::string& regionname=std::string(), const double timeout /* second */=5.0);
+    virtual void AddPointCloudObstacle(const std::vector<float>& vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp=0, const unsigned long long endtimestamp=0, const bool executionverification=false, const std::string& unit="mm", int isoccluded=-1, const std::string& regionname=std::string(), const double timeout /* second */=5.0, bool clampToContainer=true);
     
     /// \param locationIOName the location IO name (1, 2, 3, 4, etc) used to tell mujin controller to notify  the IO signal with detected object info
     /// \param cameranames the names of the sensors mapped to the current region used for detetion. The sensor information is used to create shadow obstacles per each part, if empty, will not be able to create the correct shadow obstacles.
-    virtual void UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<Real>& vpoints, const std::string& resultstate, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit="mm", const double timeout=0, const std::string& regionname=std::string(), const std::string& locationIOName="1", const std::vector<std::string>& cameranames=std::vector<std::string>());
+    virtual void UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<float>& vpoints, const std::string& resultstate, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit="mm", const double timeout=0, const std::string& regionname=std::string(), const std::string& locationIOName="1", const std::vector<std::string>& cameranames=std::vector<std::string>());
 
     /// \brief removes objects by thier prefix
     /// \param prefix prefix of the objects to remove
@@ -269,7 +275,7 @@ public:
         \param unit of points
         \param timeout seconds until this command times out
      */
-    virtual void VisualizePointCloud(const std::vector<std::vector<Real> >& pointslist, const Real pointsize, const std::vector<std::string>& names, const std::string& unit="m", const double timeout /* second */=5.0);
+    virtual void VisualizePointCloud(const std::vector<std::vector<float> >& pointslist, const Real pointsize, const std::vector<std::string>& names, const std::string& unit="m", const double timeout /* second */=5.0);
 
     /** \brief Clear visualization made by VisualizePointCloud.
      */
@@ -403,7 +409,8 @@ protected:
 
 namespace utils {
 std::string GetJsonString(const std::string& string);
-std::string GetJsonString(const std::vector<Real>& vec);
+std::string GetJsonString(const std::vector<float>& vec);
+std::string GetJsonString(const std::vector<double>& vec);
 std::string GetJsonString(const std::vector<int>& vec);
 std::string GetJsonString(const std::vector<std::string>& vec);
 std::string GetJsonString(const Transform& transform);
@@ -416,13 +423,13 @@ std::string GetJsonString(const std::string& key, const int value);
 std::string GetJsonString(const std::string& key, const unsigned long long value);
 std::string GetJsonString(const std::string& key, const Real value);
 
-void GetAttachedSensors(ControllerClientPtr controller, SceneResourcePtr scene, const std::string& bodyname, std::vector<RobotResource::AttachedSensorResourcePtr>& result);
-void GetSensorData(ControllerClientPtr controller, SceneResourcePtr scene, const std::string& bodyname, const std::string& sensorname, RobotResource::AttachedSensorResource::SensorData& result);
+void GetAttachedSensors(SceneResource& scene, const std::string& bodyname, std::vector<RobotResource::AttachedSensorResourcePtr>& result);
+void GetSensorData(SceneResource& scene, const std::string& bodyname, const std::string& sensorname, RobotResource::AttachedSensorResource::SensorData& result);
 /** \brief Gets transform of attached sensor in sensor body frame
   */
-void GetSensorTransform(ControllerClientPtr controller, SceneResourcePtr scene, const std::string& bodyname, const std::string& sensorname, Transform& result, const std::string& unit="m");
-void DeleteObject(SceneResourcePtr scene, const std::string& name);
-void UpdateObjects(SceneResourcePtr scene, const std::string& basename, const std::vector<BinPickingTaskResource::DetectedObject>& detectedobjects, const std::string& unit="m");
+void GetSensorTransform(SceneResource& scene, const std::string& bodyname, const std::string& sensorname, Transform& result, const std::string& unit="m");
+void DeleteObject(SceneResource& scene, const std::string& name);
+void UpdateObjects(SceneResource& scene, const std::string& basename, const std::vector<BinPickingTaskResource::DetectedObject>& detectedobjects, const std::string& unit="m");
 
 
 #ifdef MUJIN_USEZMQ
