@@ -179,10 +179,25 @@ std::string utils::GetJsonString(const std::string& str)
     return "\""+newstr+"\"";
 }
 
-std::string utils::GetJsonString (const std::vector<Real>& vec)
+std::string utils::GetJsonString (const std::vector<float>& vec)
 {
     std::stringstream ss;
-    ss << std::setprecision(std::numeric_limits<Real>::digits10+1);
+    ss << std::setprecision(std::numeric_limits<float>::digits10+1);
+    ss << "[";
+    for (unsigned int i = 0; i < vec.size(); ++i) {
+        ss << vec[i];
+        if (i != vec.size() - 1) {
+            ss << ", ";
+        }
+    }
+    ss << "]";
+    return ss.str();
+}
+
+std::string utils::GetJsonString (const std::vector<double>& vec)
+{
+    std::stringstream ss;
+    ss << std::setprecision(std::numeric_limits<double>::digits10+1);
     ss << "[";
     for (unsigned int i = 0; i < vec.size(); ++i) {
         ss << vec[i];
@@ -281,7 +296,7 @@ std::string utils::GetJsonString(const BinPickingTaskResource::DetectedObject& o
 std::string utils::GetJsonString(const BinPickingTaskResource::PointCloudObstacle& obj)
 {
     std::stringstream ss;
-    ss << std::setprecision(std::numeric_limits<Real>::digits10+1);
+    ss << std::setprecision(std::numeric_limits<decltype(obj.points)::value_type>::digits10+1);
     // "\"name\": __dynamicobstacle__, \"pointsize\": 0.005, \"points\": []
     ss << GetJsonString("pointcloudid") << ": " << GetJsonString(obj.name) << ", ";
     ss << GetJsonString("pointsize") << ": " << obj.pointsize <<", ";
@@ -818,46 +833,34 @@ void BinPickingTaskResource::InitializeZMQ(const double reinitializetimeout, con
 #endif
 }
 
-void BinPickingTaskResource::UpdateObjects(const std::string& basename, const std::vector<Transform>&transformsworld, const std::vector<std::string>&confidence, const std::string& state, const std::string& unit, const double timeout)
+void BinPickingTaskResource::UpdateObjects(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::string& resultstate, const std::string& unit, const double timeout)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
     static const std::string command = "UpdateObjects";
-    const std::string& targetname = basename;
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("tasktype", _tasktype) << ", ";
-    _ss << GetJsonString("objectname", targetname) << ", ";
-    if( targetname.size() > 0 ) {
-        _ss << GetJsonString("object_uri", "mujin:/"+targetname+".mujin.dae") << ", ";
-    }
-    if( transformsworld.size() > 0 ) {
-        std::vector<DetectedObject> detectedobjects;
-        for (unsigned int i=0; i<transformsworld.size(); i++) {
-            DetectedObject detectedobject;
-            std::stringstream name_ss;
-            name_ss << basename << "_" << i;
-            detectedobject.name = name_ss.str();
-            detectedobject.transform = transformsworld[i];
-            detectedobject.confidence = confidence[i];
-            detectedobjects.push_back(detectedobject);
+    _ss << GetJsonString("objectname", objectname) << ", ";
+    _ss << GetJsonString("envstate") << ": [";
+    for (unsigned int i=0; i<detectedobjects.size(); i++) {
+        _ss << GetJsonString(detectedobjects[i]);
+        if (i!=detectedobjects.size()-1) {
+            _ss << ", ";
         }
-
-        _ss << GetJsonString("envstate") << ": [";
-        for (unsigned int i=0; i<detectedobjects.size(); i++) {
-            _ss << GetJsonString(detectedobjects[i]);
-            if (i!=detectedobjects.size()-1) {
-                _ss << ", ";
-            }
-        }
-        _ss << "], ";
     }
-    _ss << GetJsonString("detectionResultState") << ": " << state << ", ";
+    _ss << "], ";
+    if (resultstate.size() == 0) {
+        _ss << GetJsonString("detectionResultState") << ": {}, ";
+    }
+    else {
+        _ss << GetJsonString("detectionResultState") << ": " << resultstate << ", ";
+    }
     _ss << GetJsonString("unit", unit);
     _ss << "}";
     rapidjson::Document d;
     ExecuteCommand(_ss.str(), d, timeout); // need to check return code
 }
 
-void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<Real>&vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp, const unsigned long long endtimestamp, const bool executionverification, const std::string& unit, int isoccluded, const std::string& regionname, const double timeout)
+void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<float>&vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp, const unsigned long long endtimestamp, const bool executionverification, const std::string& unit, int isoccluded, const std::string& regionname, const double timeout, bool clampToContainer)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "AddPointCloudObstacle";
@@ -865,6 +868,7 @@ void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<Real>&vpoin
     _ss << GetJsonString("tasktype", _tasktype) << ", ";
     _ss << GetJsonString("isoccluded", isoccluded) << ", ";
     _ss << GetJsonString("regionname", regionname) << ", ";
+    _ss << GetJsonString("clampToContainer", clampToContainer) << ", ";
     PointCloudObstacle pointcloudobstacle;
     pointcloudobstacle.name = name;
     pointcloudobstacle.pointsize = pointsize;
@@ -882,7 +886,7 @@ void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<Real>&vpoin
     ExecuteCommand(_ss.str(), d, timeout); // need to check return code
 }
 
-void BinPickingTaskResource::UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<Real>& vpoints, const std::string& state, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit, const double timeout, const std::string& regionname, const std::string& locationIOName, const std::vector<std::string>& cameranames)
+void BinPickingTaskResource::UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<float>& vpoints, const std::string& state, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit, const double timeout, const std::string& regionname, const std::string& locationIOName, const std::vector<std::string>& cameranames)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "UpdateEnvironmentState";
@@ -928,7 +932,7 @@ void BinPickingTaskResource::RemoveObjectsWithPrefix(const std::string& prefix, 
     ExecuteCommand(_ss.str(),d, timeout);
     
 }
-void BinPickingTaskResource::VisualizePointCloud(const std::vector<std::vector<Real> >&pointslist, const Real pointsize, const std::vector<std::string>&names, const std::string& unit, const double timeout)
+void BinPickingTaskResource::VisualizePointCloud(const std::vector<std::vector<float> >&pointslist, const Real pointsize, const std::vector<std::string>&names, const std::string& unit, const double timeout)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "VisualizePointCloud";
@@ -1232,25 +1236,25 @@ void BinPickingTaskResource::ExecuteCommand(const std::string& taskparameters, r
     }
 }
 
-void utils::GetAttachedSensors(ControllerClientPtr controller, SceneResourcePtr scene, const std::string& bodyname, std::vector<RobotResource::AttachedSensorResourcePtr>& attachedsensors)
+void utils::GetAttachedSensors(SceneResource& scene, const std::string& bodyname, std::vector<RobotResource::AttachedSensorResourcePtr>& attachedsensors)
 {
     SceneResource::InstObjectPtr sensorinstobject;
-    if (!scene->FindInstObject(bodyname, sensorinstobject)) {
+    if (!scene.FindInstObject(bodyname, sensorinstobject)) {
         throw MujinException("Could not find instobject with name: " + bodyname+".", MEC_Failed);
     }
 
     RobotResourcePtr sensorrobot;
-    sensorrobot.reset(new RobotResource(controller,sensorinstobject->object_pk));
+    sensorrobot.reset(new RobotResource(scene.GetController(),sensorinstobject->object_pk));
     sensorrobot->GetAttachedSensors(attachedsensors);
     if (attachedsensors.size() == 0) {
         throw MujinException("Could not find attached sensor. Is calibration done for sensor: " + bodyname + "?", MEC_Failed);
     }
 }
 
-void utils::GetSensorData(ControllerClientPtr controller, SceneResourcePtr scene, const std::string& bodyname, const std::string& sensorname, RobotResource::AttachedSensorResource::SensorData& result)
+void utils::GetSensorData(SceneResource& scene, const std::string& bodyname, const std::string& sensorname, RobotResource::AttachedSensorResource::SensorData& result)
 {
     std::vector<RobotResource::AttachedSensorResourcePtr> attachedsensors;
-    utils::GetAttachedSensors(controller, scene, bodyname, attachedsensors);
+    utils::GetAttachedSensors(scene, bodyname, attachedsensors);
     for (size_t i=0; i<attachedsensors.size(); ++i) {
         if (attachedsensors.at(i)->name == sensorname) {
             result = attachedsensors.at(i)->sensordata;
@@ -1260,10 +1264,10 @@ void utils::GetSensorData(ControllerClientPtr controller, SceneResourcePtr scene
     throw MujinException("Could not find attached sensor " + sensorname + " on " + bodyname + ".", MEC_Failed);
 }
 
-void utils::GetSensorTransform(ControllerClientPtr controller, SceneResourcePtr scene, const std::string& bodyname, const std::string& sensorname, Transform& result, const std::string& unit)
+void utils::GetSensorTransform(SceneResource& scene, const std::string& bodyname, const std::string& sensorname, Transform& result, const std::string& unit)
 {
     SceneResource::InstObjectPtr cameraobj;
-    if (scene->FindInstObject(bodyname, cameraobj)) {
+    if (scene.FindInstObject(bodyname, cameraobj)) {
         for (size_t i=0; i<cameraobj->attachedsensors.size(); ++i) {
             if (cameraobj->attachedsensors.at(i).name == sensorname) {
                 Transform transform;
@@ -1285,11 +1289,11 @@ void utils::GetSensorTransform(ControllerClientPtr controller, SceneResourcePtr 
     }
 }
 
-void utils::DeleteObject(SceneResourcePtr scene, const std::string& name)
+void utils::DeleteObject(SceneResource& scene, const std::string& name)
 {
     //TODO needs to robot.Release(name)
     std::vector<SceneResource::InstObjectPtr> instobjects;
-    scene->GetInstObjects(instobjects);
+    scene.GetInstObjects(instobjects);
 
     for(unsigned int i = 0; i < instobjects.size(); ++i) {
         const unsigned int found_at = instobjects[i]->name.find(name);
@@ -1300,13 +1304,13 @@ void utils::DeleteObject(SceneResourcePtr scene, const std::string& name)
     }
 }
 
-void utils::UpdateObjects(SceneResourcePtr scene,const std::string& basename, const std::vector<BinPickingTaskResource::DetectedObject>&detectedobjects, const std::string& unit)
+void utils::UpdateObjects(SceneResource& scene,const std::string& basename, const std::vector<BinPickingTaskResource::DetectedObject>&detectedobjects, const std::string& unit)
 {
     std::vector<SceneResource::InstObjectPtr> oldinstobjects;
     std::vector<SceneResource::InstObjectPtr> oldtargets;
 
     // get all instobjects from mujin controller
-    scene->GetInstObjects(oldinstobjects);
+    scene.GetInstObjects(oldinstobjects);
     for(unsigned int i = 0; i < oldinstobjects.size(); ++i) {
         const unsigned int found_at = oldinstobjects[i]->name.find(basename);
         if (found_at != std::string::npos) {
@@ -1368,11 +1372,11 @@ void utils::UpdateObjects(SceneResourcePtr scene,const std::string& basename, co
 
     // update existing objects
     if (instobject_update_pool.size() != 0 ) {
-        scene->SetInstObjectsState(instobject_update_pool, state_update_pool);
+        scene.SetInstObjectsState(instobject_update_pool, state_update_pool);
     }
     // create new objects
     for(unsigned int i = 0; i < name_create_pool.size(); i++) {
-        scene->CreateInstObject(name_create_pool[i], ("mujin:/"+basename+".mujin.dae"), transform_create_pool[i].quaternion, transform_create_pool[i].translate);
+        scene.CreateInstObject(name_create_pool[i], ("mujin:/"+basename+".mujin.dae"), transform_create_pool[i].quaternion, transform_create_pool[i].translate);
     }
 }
 
