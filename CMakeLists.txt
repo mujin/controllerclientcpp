@@ -246,7 +246,7 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX OR COMPILER_IS_CLANG )
   set(CMAKE_CXX_FLAGS_DEBUG "-g -D_DEBUG")
 
   add_definitions(-fPIC) # this is a very important switch and some libraries seem now to have it....
-  set(EXTRA_COMPILE_FLAGS "-fPIC")
+  set(EXTRA_COMPILE_FLAGS "-fPIC -fvisibility=hidden")
 else()
   set(EXTRA_COMPILE_FLAGS "")
 endif()
