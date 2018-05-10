@@ -948,9 +948,10 @@ void TaskResource::SetTaskParameters(const ITLPlanningTaskParameters& taskparame
 
     // because program will inside string, encode newlines
     std::string program;
-    std::vector< std::pair<std::string, std::string> > serachpairs(2);
-    serachpairs[0].first = "\n"; serachpairs[0].second = "\\n";
-    serachpairs[1].first = "\r\n"; serachpairs[1].second = "\\n";
+    std::vector< std::pair<std::string, std::string> > serachpairs(3);
+    serachpairs[0].first = "\""; serachpairs[0].second = "\\\"";
+    serachpairs[1].first = "\n"; serachpairs[1].second = "\\n";
+    serachpairs[2].first = "\r\n"; serachpairs[2].second = "\\n";
     SearchAndReplace(program, taskparameters.program, serachpairs);
     std::string taskgoalput = str(boost::format("{\"tasktype\": \"itlplanning\", \"taskparameters\":{\"optimizationvalue\":%f, \"program\":\"%s\", \"unit\":\"%s\", \"returnmode\":\"%s\", \"startfromcurrent\":\"%s\", \"ignorefigure\":\"%s\", \"vrcruns\":%d %s %s } }")%taskparameters.optimizationvalue%program%taskparameters.unit%taskparameters.returnmode%startfromcurrent%ignorefigure%vrcruns%ssinitial_envstate.str()%ssfinal_envstate.str());
     boost::property_tree::ptree pt;
