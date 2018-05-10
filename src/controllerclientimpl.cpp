@@ -887,7 +887,7 @@ int ControllerClientImpl::CallPutSTL(const std::string& relativeuri, const std::
 
 int ControllerClientImpl::CallPutJSON(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode, double timeout)
 {
-    return _CallPut(relativeuri, static_cast<const void*>(&data), data.size(), pt, _httpheadersjson, expectedhttpcode, timeout);
+    return _CallPut(relativeuri, static_cast<const void*>(&data[0]), data.size(), pt, _httpheadersjson, expectedhttpcode, timeout);
 }
 
 void ControllerClientImpl::CallDelete(const std::string& relativeuri, double timeout)
