@@ -112,7 +112,7 @@ std::string WebResource::Get(const std::string& field, double timeout)
 {
     GETCONTROLLERIMPL();
     boost::property_tree::ptree pt;
-    controller->CallGet(str(boost::format("%s/%s/?format=json&fields=%s")%GetResourceName()%GetPrimaryKey()%field), pt, timeout);
+    controller->CallGet(str(boost::format("%s/%s/?format=json&fields=%s")%GetResourceName()%GetPrimaryKey()%field), pt, 200, timeout);
     std::string fieldvalue = pt.get<std::string>(field);
     return fieldvalue;
 }
