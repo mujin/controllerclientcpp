@@ -680,7 +680,9 @@ public:
     virtual void GetLinks(std::vector<LinkResourcePtr>& links);
 
     virtual void GetIkParams(std::vector<IkParamResourcePtr>& ikparams);
-    
+
+    IkParamResourcePtr AddIkParam(const std::string& name, const std::string& iktype, double timeout);
+
     std::string name;
     int nundof;
     std::string datemodified;

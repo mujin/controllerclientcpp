@@ -294,8 +294,16 @@ void ObjectResource::GetLinks(std::vector<ObjectResource::LinkResourcePtr>& link
         }
 
         links[i++] = link;
-
     }
+}
+
+ObjectResource::IkParamResourcePtr ObjectResource::AddIkParam(const std::string& name, const std::string& iktype, double timeout)
+{
+    GETCONTROLLERIMPL();
+    boost::property_tree::ptree pt;
+    const std::string ikparamPk = controller->CreateIkParam(this->pk, name, iktype, timeout);
+
+    return ObjectResource::IkParamResourcePtr(new IkParamResource(controller, this->pk, ikparamPk));
 }
 
 void ObjectResource::GetIkParams(std::vector<ObjectResource::IkParamResourcePtr>& ikparams)
