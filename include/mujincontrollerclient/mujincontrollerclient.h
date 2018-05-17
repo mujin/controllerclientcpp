@@ -40,6 +40,7 @@
 #define MUJINCLIENT_DEPRECATED
 #endif
 
+#include <cmath>
 #include <string>
 #include <vector>
 #include <list>
@@ -100,6 +101,30 @@ typedef boost::shared_ptr<BinPickingResultResource> BinPickingResultResourcePtr;
 typedef boost::weak_ptr<BinPickingResultResource> BinPickingResultResourceWeakPtr;
 typedef double Real;
 
+inline bool FuzzyEquals(Real p, Real q, double epsilon=1e-3) {
+    return fabs(double(p - q)) < epsilon;
+}
+
+template<class T> inline bool FuzzyEquals(const std::vector<T>& p, const std::vector<T>& q, double epsilon=1e-3) {
+    if (p.size() != q.size()) {
+        return false;
+    }
+    for (size_t i = 0; i < p.size(); ++i) {
+        if (!FuzzyEquals(p[i], q[i], epsilon)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+template<class T, size_t N> inline bool FuzzyEquals(const T (&p)[N], const T (&q)[N], double epsilon=1e-3) {
+    for (size_t i = 0; i < N; ++i) {
+        if (!FuzzyEquals(p[i], q[i], epsilon)) {
+            return false;
+        }
+    }
+    return true;
+}
 /// \brief status code for a job
 ///
 /// Definitions are very similar to http://ros.org/doc/api/actionlib_msgs/html/msg/GoalStatus.html
@@ -143,8 +168,7 @@ struct Transform
         translate[0] = 0; translate[1] = 0; translate[2] = 0;
     }
     bool operator!=(const Transform& other) const {
-        return std::memcmp(quaternion, other.quaternion, 4 * sizeof(Real)) != 0 ||
-               std::memcmp(translate, other.translate, 3 * sizeof(Real)) != 0;
+        return !FuzzyEquals(quaternion, other.quaternion) || !FuzzyEquals(translate, other.translate);
     }
     Real quaternion[4]; ///< quaternion [cos(ang/2), axis*sin(ang/2)]
     Real translate[3]; ///< translation x,y,z
@@ -1055,6 +1079,7 @@ MUJINCLIENT_API void ComputeZXYFromMatrix(Real ZXY[3], const Real matrix[12]);
 MUJINCLIENT_API void ComputeZXYFromTransform(Real ZXY[3], const Transform &transform);
 
 MUJINCLIENT_API void SerializeEnvironmentStateToJSON(const EnvironmentState& envstate, std::ostream& os);
+
 
 } // namespace mujinclient
 
