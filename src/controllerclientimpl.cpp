@@ -672,6 +672,7 @@ int ControllerClientImpl::CallGet(const std::string& relativeuri, boost::propert
 
 int ControllerClientImpl::_CallGet(const std::string& desturi, boost::property_tree::ptree& pt, int expectedhttpcode, double timeout)
 {
+    MUJIN_LOG_INFO(str(boost::format("GET %s")%desturi));
     CurlTimeoutSetter timeoutsetter(_curl, timeout);
     curl_easy_setopt(_curl, CURLOPT_URL, desturi.c_str());
     _buffer.clear();
@@ -710,6 +711,7 @@ int ControllerClientImpl::CallGet(const std::string& relativeuri, std::string& o
 
 int ControllerClientImpl::_CallGet(const std::string& desturi, std::string& outputdata, int expectedhttpcode, double timeout)
 {
+    MUJIN_LOG_INFO(str(boost::format("GET %s")%desturi));
     CurlTimeoutSetter timeoutsetter(_curl, timeout);
     curl_easy_setopt(_curl, CURLOPT_URL, desturi.c_str());
     _buffer.clear();
@@ -751,6 +753,7 @@ int ControllerClientImpl::CallGet(const std::string& relativeuri, std::vector<un
 
 int ControllerClientImpl::_CallGet(const std::string& desturi, std::vector<unsigned char>& outputdata, int expectedhttpcode, double timeout)
 {
+    MUJIN_LOG_INFO(str(boost::format("GET %s")%desturi));
     CurlTimeoutSetter timeoutsetter(_curl, timeout);
     curl_easy_setopt(_curl, CURLOPT_URL, desturi.c_str());
 
@@ -796,6 +799,7 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, std::vector<unsig
 /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
 int ControllerClientImpl::CallPost(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode, double timeout)
 {
+    MUJIN_LOG_INFO(str(boost::format("POST %s")%relativeuri));
     CurlTimeoutSetter timeoutsetter(_curl, timeout);
     boost::mutex::scoped_lock lock(_mutex);
     curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, _httpheadersjson);
@@ -842,6 +846,7 @@ int ControllerClientImpl::CallPost_UTF16(const std::string& relativeuri, const s
 
 int ControllerClientImpl::_CallPut(const std::string& relativeuri, const void* pdata, size_t nDataSize, boost::property_tree::ptree& pt, curl_slist* headers, int expectedhttpcode, double timeout)
 {
+    MUJIN_LOG_INFO(str(boost::format("PUT %s")%relativeuri));
     boost::mutex::scoped_lock lock(_mutex);
     curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, headers);//isJson ? _httpheadersjson : _httpheadersstl);
     CurlTimeoutSetter timeoutsetter(_curl, timeout);
@@ -892,6 +897,7 @@ int ControllerClientImpl::CallPutJSON(const std::string& relativeuri, const std:
 
 void ControllerClientImpl::CallDelete(const std::string& relativeuri, double timeout)
 {
+    MUJIN_LOG_INFO(str(boost::format("DELETE %s")%relativeuri));
     boost::mutex::scoped_lock lock(_mutex);
     CurlTimeoutSetter timeoutsetter(_curl, timeout);
     _uri = _baseapiuri;

@@ -122,6 +122,13 @@ void WebResource::Set(const std::string& field, const std::string& newvalue, dou
     throw MujinException("not implemented");
 }
 
+void WebResource::SetJSON(const std::string& json, double timeout)
+{
+    GETCONTROLLERIMPL();
+    boost::property_tree::ptree pt;
+    controller->CallPutJSON(str(boost::format("%s/%s/?format=json")%GetResourceName()%GetPrimaryKey()), json, pt, 202, timeout);
+}
+
 void WebResource::Delete(double timeout)
 {
     GETCONTROLLERIMPL();
@@ -149,6 +156,10 @@ ObjectResource::GeometryResource::GeometryResource(ControllerClientPtr controlle
 {
 }
 
+ObjectResource::IkParamResource::IkParamResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk) : WebResource(controller, str(boost::format("object/%s/ikparam")%objectpk), pk)
+{
+}
+
 ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::AddGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& name, const std::string& unit, double timeout)
 {
     GETCONTROLLERIMPL();
@@ -173,10 +184,77 @@ ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::GetGeometryFro
             ObjectResource::GeometryResourcePtr geometry(ObjectResource::GeometryResourcePtr(new GeometryResource(controller, this->objectpk, v->second.get<std::string>("pk"))));
             geometry->name = name;
             geometry->pk = v->second.get<std::string>("pk");
+            geometry->linkpk = v->second.get<std::string>("linkpk");
+            geometry->visible = v->second.get<bool>("visible");
+            geometry->transparency = v->second.get<Real>("transparency");
+
+            boost::property_tree::ptree& quatjson = v->second.get_child("quaternion");
+            int iquat=0;
+            FOREACH(q, quatjson) {
+                BOOST_ASSERT(iquat<4);
+                geometry->quaternion[iquat++] = boost::lexical_cast<Real>(q->second.data());
+            }
+
+            boost::property_tree::ptree& transjson = v->second.get_child("translate");
+            int itrans=0;
+            FOREACH(t, transjson) {
+                BOOST_ASSERT(itrans<3);
+                geometry->translate[itrans++] = boost::lexical_cast<Real>(t->second.data());
+            }
+
+            boost::property_tree::ptree& colorjson = v->second.get_child("diffusecolor");
+            int icolor=0;
+            FOREACH(c, colorjson) {
+                BOOST_ASSERT(icolor<4);
+                geometry->diffusecolor[icolor++] = boost::lexical_cast<Real>(c->second.data());
+            }
             return geometry;
         }
     }
     throw MUJIN_EXCEPTION_FORMAT("link %s does not have geometry named %s", this->name%geometryName, MEC_InvalidArguments);
+}
+
+void ObjectResource::LinkResource::GetGeometries(std::vector<ObjectResource::GeometryResourcePtr>& geometries)
+{
+    GETCONTROLLERIMPL();
+    boost::property_tree::ptree pt;
+    const std::string relativeuri(str(boost::format("object/%s/geometry/?format=json&limit=0&fields=geometries")%this->objectpk));
+    controller->CallGet(relativeuri, pt);
+    boost::property_tree::ptree& objects = pt.get_child("geometries");
+    geometries.clear();
+    size_t i = 0;
+    FOREACH(v, objects) {
+        if(v->second.get<std::string>("linkpk") == this->pk){
+            ObjectResource::GeometryResourcePtr geometry(ObjectResource::GeometryResourcePtr(new GeometryResource(controller, this->objectpk, v->second.get<std::string>("pk"))));
+            geometry->name = v->second.find("name") != v->second.not_found() ? v->second.get<std::string>("name") : v->second.get<std::string>("pk");
+            geometry->pk = v->second.get<std::string>("pk");
+            geometry->linkpk = v->second.get<std::string>("linkpk");
+            geometry->visible = v->second.get<bool>("visible");
+            geometry->transparency = v->second.get<Real>("transparency");
+
+            boost::property_tree::ptree& quatjson = v->second.get_child("quaternion");
+            int iquat=0;
+            FOREACH(q, quatjson) {
+                BOOST_ASSERT(iquat<4);
+                geometry->quaternion[iquat++] = boost::lexical_cast<Real>(q->second.data());
+            }
+
+            boost::property_tree::ptree& transjson = v->second.get_child("translate");
+            int itrans=0;
+            FOREACH(t, transjson) {
+                BOOST_ASSERT(itrans<3);
+                geometry->translate[itrans++] = boost::lexical_cast<Real>(t->second.data());
+            }
+
+            boost::property_tree::ptree& colorjson = v->second.get_child("diffusecolor");
+            int icolor=0;
+            FOREACH(c, colorjson) {
+                BOOST_ASSERT(icolor<4);
+                geometry->diffusecolor[icolor++] = boost::lexical_cast<Real>(c->second.data());
+            }
+            geometries.push_back(geometry);
+        }
+    }
 }
 
 void ObjectResource::GetLinks(std::vector<ObjectResource::LinkResourcePtr>& links)
@@ -190,9 +268,9 @@ void ObjectResource::GetLinks(std::vector<ObjectResource::LinkResourcePtr>& link
     FOREACH(v, objects) {
         LinkResourcePtr link(new LinkResource(controller, GetPrimaryKey(), v->second.get<std::string>("pk")));
 
-
         link->name = v->second.get<std::string>("name");
         link->pk = v->second.get<std::string>("pk");
+        link->collision = v->second.get<bool>("collision");
 
         boost::property_tree::ptree& jsonattachments = v->second.get_child("attachmentpks");
         link->attachmentpks.resize(jsonattachments.size());
@@ -201,8 +279,64 @@ void ObjectResource::GetLinks(std::vector<ObjectResource::LinkResourcePtr>& link
             link->attachmentpks[iattch++] = att->second.data();
         }
 
-        //TODO transforms
+        boost::property_tree::ptree& quatjson = v->second.get_child("quaternion");
+        int iquat=0;
+        FOREACH(q, quatjson) {
+            BOOST_ASSERT(iquat<4);
+            link->quaternion[iquat++] = boost::lexical_cast<Real>(q->second.data());
+        }
+
+        boost::property_tree::ptree& transjson = v->second.get_child("translate");
+        int itrans=0;
+        FOREACH(t, transjson) {
+            BOOST_ASSERT(itrans<3);
+            link->translate[itrans++] = boost::lexical_cast<Real>(t->second.data());
+        }
+
         links[i++] = link;
+
+    }
+}
+
+void ObjectResource::GetIkParams(std::vector<ObjectResource::IkParamResourcePtr>& ikparams)
+{
+    GETCONTROLLERIMPL();
+    boost::property_tree::ptree pt;
+    controller->CallGet(str(boost::format("object/%s/ikparam/?format=json&limit=0&fields=ikparams")%GetPrimaryKey()), pt);
+    boost::property_tree::ptree& objects = pt.get_child("ikparams");
+    ikparams.resize(objects.size());
+    size_t i = 0;
+    FOREACH(v, objects) {
+        IkParamResourcePtr ikparam(new IkParamResource(controller, GetPrimaryKey(), v->second.get<std::string>("pk")));
+
+        ikparam->name = v->second.get<std::string>("name");
+        ikparam->pk = v->second.get<std::string>("pk");
+        ikparam->iktype = v->second.get<std::string>("iktype");
+
+        ikparam->angle = v->second.get<Real>("angle");
+
+        boost::property_tree::ptree& quatjson = v->second.get_child("quaternion");
+        int iquat=0;
+        FOREACH(q, quatjson) {
+            BOOST_ASSERT(iquat<4);
+            ikparam->quaternion[iquat++] = boost::lexical_cast<Real>(q->second.data());
+        }
+
+        boost::property_tree::ptree& transjson = v->second.get_child("translation");
+        int itrans=0;
+        FOREACH(t, transjson) {
+            BOOST_ASSERT(itrans<3);
+            ikparam->translation[itrans++] = boost::lexical_cast<Real>(t->second.data());
+        }
+
+        boost::property_tree::ptree& directionjson = v->second.get_child("direction");
+        int idirection=0;
+        FOREACH(d, directionjson) {
+            BOOST_ASSERT(idirection<3);
+            ikparam->translation[idirection++] = boost::lexical_cast<Real>(d->second.data());
+        }
+
+        ikparams[i++] = ikparam;
     }
 }
 
