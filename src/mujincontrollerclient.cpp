@@ -184,7 +184,7 @@ void ObjectResource::GetLinks(std::vector<ObjectResource::LinkResourcePtr>& link
         link->name = GetJsonValueByKey<std::string>(*it, "name");
         link->pk = GetJsonValueByKey<std::string>(*it, "pk");
 
-        LoadJsonValueByKey(*it, "attchmentpks", link->attachmentpks);
+        LoadJsonValueByKey(*it, "attachmentpks", link->attachmentpks);
 
         //TODO transforms
         links[i++] = link;
