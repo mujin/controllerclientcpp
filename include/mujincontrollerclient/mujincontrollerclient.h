@@ -59,6 +59,7 @@
 #include <boost/array.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <mujincontrollerclient/mujinexceptions.h>
+#include <mujincontrollerclient/mujinjson.h>
 
 namespace mujinclient {
 

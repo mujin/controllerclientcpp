@@ -33,7 +33,7 @@ public:
 
     ~BinPickingResultResource();
 
-    boost::property_tree::ptree GetResultPtree() const;
+    void GetResultJson(rapidjson::Document& pt) const;
 };
 
 class MUJINCLIENT_API BinPickingTaskResource : public TaskResource
@@ -70,16 +70,16 @@ public:
 
     struct MUJINCLIENT_API ResultBase
     {
-        boost::property_tree::ptree _pt; ///< property tree of result, if user ever wants it for logging purposes
+        //boost::property_tree::ptree _pt; ///< property tree of result, if user ever wants it for logging purposes
 
-        virtual void Parse(const boost::property_tree::ptree& pt) = 0;
+        virtual void Parse(const rapidjson::Value& pt) = 0;
     };
     typedef boost::shared_ptr<ResultBase> ResultBasePtr;
 
     struct MUJINCLIENT_API ResultGetJointValues : public ResultBase
     {
         virtual ~ResultGetJointValues();
-        void Parse(const boost::property_tree::ptree& pt);
+        void Parse(const rapidjson::Value& pt);
         std::string robottype;
         std::vector<std::string> jointnames;
         std::vector<Real> currentjointvalues;
@@ -89,7 +89,7 @@ public:
     struct MUJINCLIENT_API ResultMoveJoints : public ResultBase
     {
         virtual ~ResultMoveJoints();
-        void Parse(const boost::property_tree::ptree& pt);
+        void Parse(const rapidjson::Value& pt);
         std::string robottype;
         int numpoints;
         std::vector<Real>   timedjointvalues;
@@ -99,7 +99,7 @@ public:
     struct MUJINCLIENT_API ResultTransform : public ResultBase
     {
         virtual ~ResultTransform();
-        void Parse(const boost::property_tree::ptree& pt);
+        void Parse(const rapidjson::Value& pt);
         Transform transform;
     };
 
@@ -107,7 +107,7 @@ public:
     {
         ResultGetBinpickingState();
         virtual ~ResultGetBinpickingState();
-        void Parse(const boost::property_tree::ptree& pt);
+        void Parse(const rapidjson::Value& pt);
         std::string statusPickPlace;
         std::string statusDescPickPlace;
         std::string statusPhysics;
@@ -135,27 +135,27 @@ public:
     struct MUJINCLIENT_API ResultIsRobotOccludingBody : public ResultBase
     {
         virtual ~ResultIsRobotOccludingBody();
-        void Parse(const boost::property_tree::ptree& pt);
+        void Parse(const rapidjson::Value& pt);
         bool result;
     };
 
     struct MUJINCLIENT_API ResultGetPickedPositions : public ResultBase
     {
-        void Parse(const boost::property_tree::ptree& pt);
+        void Parse(const rapidjson::Value& pt);
         std::vector<Transform> transforms;
         std::vector<unsigned long long> timestamps; // in millisecond
     };
 
     struct MUJINCLIENT_API ResultAABB : public ResultBase
     {
-        void Parse(const boost::property_tree::ptree& pt);
+        void Parse(const rapidjson::Value& pt);
         std::vector<Real> pos;
         std::vector<Real> extents;
     };
 
     struct MUJINCLIENT_API ResultOBB : public ResultBase
     {
-        void Parse(const boost::property_tree::ptree& pt);
+        void Parse(const rapidjson::Value& pt);
         bool operator!=(const ResultOBB& other) const {
             return translation != other.translation ||
                    extents != other.extents ||
@@ -169,7 +169,7 @@ public:
     struct MUJINCLIENT_API ResultGetInstObjectAndSensorInfo : public ResultBase
     {
         virtual ~ResultGetInstObjectAndSensorInfo();
-        void Parse(const boost::property_tree::ptree& pt);
+        void Parse(const rapidjson::Value& pt);
         std::map<std::string, Transform> minstobjecttransform; ///< unit is m
         std::map<std::string, ResultOBB> minstobjectobb; ///< unit is m
         std::map<std::string, ResultOBB> minstobjectinnerobb; ///< unit is m
@@ -180,7 +180,7 @@ public:
     struct MUJINCLIENT_API ResultHeartBeat : public ResultBase
     {
         virtual ~ResultHeartBeat();
-        void Parse(const boost::property_tree::ptree& pt);
+        void Parse(const rapidjson::Value& pt);
         std::string status;
         ResultGetBinpickingState taskstate;
         Real timestamp;
@@ -209,7 +209,7 @@ public:
     virtual void Initialize(const std::string& defaultTaskParameters, const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq=false, const double reinitializetimeout=10, const double commandtimeout=0, const std::string& userinfo="{}", const std::string& slaverequestid="");
 #endif
 
-    virtual boost::property_tree::ptree ExecuteCommand(const std::string& command, const double timeout /* second */=5.0, const bool getresult=true);
+    virtual void ExecuteCommand(const std::string& command, rapidjson::Document&d, const double timeout /* second */=5.0, const bool getresult=true);
 
     virtual void GetJointValues(ResultGetJointValues& result, const double timeout /* second */=5.0);
 
