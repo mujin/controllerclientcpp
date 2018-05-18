@@ -101,13 +101,10 @@ WebResource::WebResource(ControllerClientPtr controller, const std::string& reso
     BOOST_ASSERT(__pk.size()>0);
 }
 
-std::string WebResource::Get(const std::string& field, double timeout)
+void WebResource::GetWrap(rapidjson::Document& pt, const std::string& field, double timeout)
 {
     GETCONTROLLERIMPL();
-    rapidjson::Document pt(rapidjson::kObjectType);
-    controller->CallGet(str(boost::format("%s/%s/?format=json&fields=%s")%GetResourceName()%GetPrimaryKey()%field), pt, timeout);
-    std::string fieldvalue = GetJsonValueByKey<std::string>(pt, field.c_str());
-    return fieldvalue;
+    controller->CallGet(str(boost::format("%s/%s/?format=json&fields=%s")%GetResourceName()%GetPrimaryKey()%field), pt, 200, timeout);
 }
 
 void WebResource::Set(const std::string& field, const std::string& newvalue, double timeout)
