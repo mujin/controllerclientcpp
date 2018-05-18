@@ -150,34 +150,16 @@ ObjectResource::IkParamResource::IkParamResource(ControllerClientPtr controller,
 {
 }
 
-void ObjectResource::GeometryResource::GetMesh(std::vector<std::vector<Real> >& mesh)
+void ObjectResource::GeometryResource::GetMesh(std::string& primitive, std::vector<std::vector<Real> >& indices, std::vector<std::vector<Real> >& vertices)
 {
     GETCONTROLLERIMPL();
     rapidjson::Document pt(rapidjson::kObjectType);
     const std::string relativeuri(str(boost::format("%s/%s/?format=json&mesh=true")%GetResourceName()%GetPrimaryKey()));
     controller->CallGet(relativeuri, pt);
     rapidjson::Value& objects = pt["mesh"];
-    puts(GetJsonValueByKey<std::string>(objects,"primitive").c_str());
-#if 0
-    if (pt.IsObject() && pt.HasMember("geometries") && pt["geometries"].IsArray()) {
-        rapidjson::Value& objects = pt["geometries"];
-        geometries.clear();
-        for (rapidjson::Document::ConstValueIterator it = objects.Begin(); it != objects.End(); ++it) {
-            if ((*it)["linkpk"].GetString() == this->pk) {
-                ObjectResource::GeometryResourcePtr geometry(new GeometryResource(controller, this->objectpk, GetJsonValueByKey<std::string>(*it, "pk")));
-                geometry->name = it->HasMember("name") ? (*it)["name"].GetString() : (*it)["pk"].GetString();
-                LoadJsonValueByKey(*it,"pk",geometry->pk);
-                LoadJsonValueByKey(*it,"linkpk",geometry->linkpk);
-                LoadJsonValueByKey(*it,"visible",geometry->visible);
-                LoadJsonValueByKey(*it,"transparency",geometry->transparency);
-                LoadJsonValueByKey(*it,"quaternion",geometry->quaternion);
-                LoadJsonValueByKey(*it,"translate",geometry->translate);
-                LoadJsonValueByKey(*it,"diffusecolor",geometry->diffusecolor);
-                geometries.push_back(geometry);
-            }
-        }
-    }
-#endif
+    LoadJsonValueByKey(objects,"primitive",primitive);
+    LoadJsonValueByKey(objects,"indices",indices);
+    LoadJsonValueByKey(objects,"vertices",vertices);
 }
 
 ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::AddGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& name, const std::string& unit, double timeout)

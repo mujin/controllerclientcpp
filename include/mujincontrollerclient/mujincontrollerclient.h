@@ -643,7 +643,7 @@ public:
         Real diffusecolor[4];
         Real transparency;
 
-        virtual void GetMesh(std::vector<std::vector<Real> >& mesh);
+        virtual void GetMesh(std::string& primitive, std::vector<std::vector<Real> >& indices, std::vector<std::vector<Real> >& vertices);
     };
     typedef boost::shared_ptr<GeometryResource> GeometryResourcePtr;
 
