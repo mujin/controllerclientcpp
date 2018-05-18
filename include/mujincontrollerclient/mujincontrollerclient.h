@@ -635,6 +635,7 @@ public:
         }
         std::string name;
         std::string pk;
+        std::string objectpk;
         std::string linkpk;
         std::string geomtype;
         Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
@@ -644,6 +645,7 @@ public:
         Real transparency;
 
         virtual void GetMesh(std::string& primitive, std::vector<std::vector<Real> >& indices, std::vector<std::vector<Real> >& vertices);
+        virtual void SetGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& unit, double timeout);
     };
     typedef boost::shared_ptr<GeometryResource> GeometryResourcePtr;
 

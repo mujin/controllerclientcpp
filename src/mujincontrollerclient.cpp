@@ -142,7 +142,7 @@ ObjectResource::LinkResource::LinkResource(ControllerClientPtr controller, const
 {
 }
 
-ObjectResource::GeometryResource::GeometryResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk) : WebResource(controller, str(boost::format("object/%s/geometry")%objectpk), pk)
+ObjectResource::GeometryResource::GeometryResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk) : WebResource(controller, str(boost::format("object/%s/geometry")%objectpk), pk), objectpk(objectpk)
 {
 }
 
@@ -162,14 +162,22 @@ void ObjectResource::GeometryResource::GetMesh(std::string& primitive, std::vect
     LoadJsonValueByKey(objects,"vertices",vertices);
 }
 
+void ObjectResource::GeometryResource::SetGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& unit, double timeout)
+{
+    GETCONTROLLERIMPL();
+    // todo fail if this->geomtype!="mesh"
+    controller->SetObjectGeometryMesh(this->objectpk, this->pk, rawstldata, unit, timeout);
+}
+
 ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::AddGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& name, const std::string& unit, double timeout)
 {
     GETCONTROLLERIMPL();
     const std::string& linkpk = GetPrimaryKey();
     const std::string geometryPk = controller->CreateObjectGeometry(this->objectpk, name, linkpk, timeout);
 
-    controller->SetObjectGeometryMesh(this->objectpk, geometryPk, rawstldata, unit, timeout);
-    return ObjectResource::GeometryResourcePtr(new GeometryResource(controller, this->objectpk, geometryPk));
+    ObjectResource::GeometryResourcePtr geometry(new GeometryResource(controller, this->objectpk, geometryPk));
+    geometry->SetGeometryFromRawSTL(rawstldata, unit, timeout);
+    return geometry;
 }
 
 ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::GetGeometryFromName(const std::string& geometryName)
