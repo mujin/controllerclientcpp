@@ -408,28 +408,28 @@ protected:
 };
 
 namespace utils {
-std::string GetJsonString(const std::string& string);
-std::string GetJsonString(const std::vector<float>& vec);
-std::string GetJsonString(const std::vector<double>& vec);
-std::string GetJsonString(const std::vector<int>& vec);
-std::string GetJsonString(const std::vector<std::string>& vec);
-std::string GetJsonString(const Transform& transform);
-std::string GetJsonString(const BinPickingTaskResource::DetectedObject& obj);
-std::string GetJsonString(const BinPickingTaskResource::PointCloudObstacle& obj);
-std::string GetJsonString(const BinPickingTaskResource::SensorOcclusionCheck& check);
+MUJINCLIENT_API std::string GetJsonString(const std::string& string);
+MUJINCLIENT_API std::string GetJsonString(const std::vector<float>& vec);
+MUJINCLIENT_API std::string GetJsonString(const std::vector<double>& vec);
+MUJINCLIENT_API std::string GetJsonString(const std::vector<int>& vec);
+MUJINCLIENT_API std::string GetJsonString(const std::vector<std::string>& vec);
+MUJINCLIENT_API std::string GetJsonString(const Transform& transform);
+MUJINCLIENT_API std::string GetJsonString(const BinPickingTaskResource::DetectedObject& obj);
+MUJINCLIENT_API std::string GetJsonString(const BinPickingTaskResource::PointCloudObstacle& obj);
+MUJINCLIENT_API std::string GetJsonString(const BinPickingTaskResource::SensorOcclusionCheck& check);
 
-std::string GetJsonString(const std::string& key, const std::string& value);
-std::string GetJsonString(const std::string& key, const int value);
-std::string GetJsonString(const std::string& key, const unsigned long long value);
-std::string GetJsonString(const std::string& key, const Real value);
+MUJINCLIENT_API std::string GetJsonString(const std::string& key, const std::string& value);
+MUJINCLIENT_API std::string GetJsonString(const std::string& key, const int value);
+MUJINCLIENT_API std::string GetJsonString(const std::string& key, const unsigned long long value);
+MUJINCLIENT_API std::string GetJsonString(const std::string& key, const Real value);
 
-void GetAttachedSensors(SceneResource& scene, const std::string& bodyname, std::vector<RobotResource::AttachedSensorResourcePtr>& result);
-void GetSensorData(SceneResource& scene, const std::string& bodyname, const std::string& sensorname, RobotResource::AttachedSensorResource::SensorData& result);
+MUJINCLIENT_API void GetAttachedSensors(SceneResource& scene, const std::string& bodyname, std::vector<RobotResource::AttachedSensorResourcePtr>& result);
+MUJINCLIENT_API void GetSensorData(SceneResource& scene, const std::string& bodyname, const std::string& sensorname, RobotResource::AttachedSensorResource::SensorData& result);
 /** \brief Gets transform of attached sensor in sensor body frame
   */
-void GetSensorTransform(SceneResource& scene, const std::string& bodyname, const std::string& sensorname, Transform& result, const std::string& unit="m");
-void DeleteObject(SceneResource& scene, const std::string& name);
-void UpdateObjects(SceneResource& scene, const std::string& basename, const std::vector<BinPickingTaskResource::DetectedObject>& detectedobjects, const std::string& unit="m");
+MUJINCLIENT_API void GetSensorTransform(SceneResource& scene, const std::string& bodyname, const std::string& sensorname, Transform& result, const std::string& unit="m");
+MUJINCLIENT_API void DeleteObject(SceneResource& scene, const std::string& name);
+MUJINCLIENT_API void UpdateObjects(SceneResource& scene, const std::string& basename, const std::vector<BinPickingTaskResource::DetectedObject>& detectedobjects, const std::string& unit="m");
 
 
 #ifdef MUJIN_USEZMQ

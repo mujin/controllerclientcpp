@@ -105,7 +105,7 @@ std::string WebResource::Get(const std::string& field, double timeout)
 {
     GETCONTROLLERIMPL();
     rapidjson::Document pt(rapidjson::kObjectType);
-    controller->CallGet(str(boost::format("%s/%s/?format=json&fields=%s")%GetResourceName()%GetPrimaryKey()%field), pt, timeout);
+    controller->CallGet(str(boost::format("%s/%s/?format=json&fields=%s")%GetResourceName()%GetPrimaryKey()%field), pt, 200, timeout);
     std::string fieldvalue = GetJsonValueByKey<std::string>(pt, field.c_str());
     return fieldvalue;
 }
@@ -113,6 +113,13 @@ std::string WebResource::Get(const std::string& field, double timeout)
 void WebResource::Set(const std::string& field, const std::string& newvalue, double timeout)
 {
     throw MujinException("not implemented");
+}
+
+void WebResource::SetJSON(const std::string& json, double timeout)
+{
+    GETCONTROLLERIMPL();
+    rapidjson::Document pt(rapidjson::kObjectType);
+    controller->CallPutJSON(str(boost::format("%s/%s/?format=json")%GetResourceName()%GetPrimaryKey()), json, pt, 202, timeout);
 }
 
 void WebResource::Delete(double timeout)
@@ -142,10 +149,13 @@ ObjectResource::GeometryResource::GeometryResource(ControllerClientPtr controlle
 {
 }
 
+ObjectResource::IkParamResource::IkParamResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk) : WebResource(controller, str(boost::format("object/%s/ikparam")%objectpk), pk)
+{
+}
+
 ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::AddGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& name, const std::string& unit, double timeout)
 {
     GETCONTROLLERIMPL();
-    boost::property_tree::ptree pt;
     const std::string& linkpk = GetPrimaryKey();
     const std::string geometryPk = controller->CreateObjectGeometry(this->objectpk, name, linkpk, timeout);
 
@@ -162,12 +172,47 @@ ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::GetGeometryFro
     if (pt.IsObject() && pt.HasMember("geometries") && pt["geometries"].IsArray()) {
         rapidjson::Value& objects = pt["geometries"];
         for (rapidjson::Document::ConstValueIterator it = objects.Begin(); it != objects.End(); ++it) {
-            if (it->HasMember("name") && (*it)["name"].GetString() == geometryName) {
-                return ObjectResource::GeometryResourcePtr(new GeometryResource(controller, this->objectpk, GetJsonValueByKey<std::string>(*it, "pk")));
+            const std::string name = it->HasMember("name") && (*it)["name"].GetString() : (*it)["pk"].GetString();
+            if (name == geometryName && (*it)["linkpk"].GetString() == this->pk) {
+                ObjectResource::GeometryResourcePtr geometry(new GeometryResource(controller, this->objectpk, GetJsonValueByKey<std::string>(*it, "pk")));
+                geometry->name = name;
+                LoadJsonValueByKey(*it,"pk",geometry->pk);
+                LoadJsonValueByKey(*it,"linkpk",geometry->linkpk);
+                LoadJsonValueByKey(*it,"visible",geometry->visible);
+                LoadJsonValueByKey(*it,"transparency",geometry->transparency);
+                LoadJsonValueByKey(*it,"quaternion",geometry->quaternion);
+                LoadJsonValueByKey(*it,"translate",geometry->translate);
+                LoadJsonValueByKey(*it,"diffusecolor",geometry->diffusecolor);
+                return geometry;
             }
         }
     }
     throw MUJIN_EXCEPTION_FORMAT("link %s does not have geometry named %s", this->name%geometryName, MEC_InvalidArguments);
+}
+
+void ObjectResource::LinkResource::GetGeometries(std::vector<ObjectResource::GeometryResourcePtr>& geometries)
+{
+    GETCONTROLLERIMPL();
+    rapidjson::Document pt(rapidjson::kObjectType);
+    const std::string relativeuri(str(boost::format("object/%s/geometry/?format=json&limit=0&fields=geometries")%this->objectpk));
+    controller->CallGet(relativeuri, pt);
+    if (pt.IsObject() && pt.HasMember("geometries") && pt["geometries"].IsArray()) {
+        rapidjson::Value& objects = pt["geometries"];
+        geometries.clear()
+        for (rapidjson::Document::ConstValueIterator it = objects.Begin(); it != objects.End(); ++it) {
+            if ((*it)["linkpk"].GetString() == this->pk) {
+                ObjectResource::GeometryResourcePtr geometry(new GeometryResource(controller, this->objectpk, GetJsonValueByKey<std::string>(*it, "pk")));
+                geometry->name = it->HasMember("name") && (*it)["name"].GetString() : (*it)["pk"].GetString();
+                LoadJsonValueByKey(*it,"pk",geometry->pk);
+                LoadJsonValueByKey(*it,"linkpk",geometry->linkpk);
+                LoadJsonValueByKey(*it,"visible",geometry->visible);
+                LoadJsonValueByKey(*it,"transparency",geometry->transparency);
+                LoadJsonValueByKey(*it,"quaternion",geometry->quaternion);
+                LoadJsonValueByKey(*it,"translate",geometry->translate);
+                LoadJsonValueByKey(*it,"diffusecolor",geometry->diffusecolor);
+                geometries.push_back(geometry);
+        }
+    }
 }
 
 void ObjectResource::GetLinks(std::vector<ObjectResource::LinkResourcePtr>& links)
@@ -179,15 +224,44 @@ void ObjectResource::GetLinks(std::vector<ObjectResource::LinkResourcePtr>& link
     links.resize(objects.Size());
     size_t i = 0;
     for (rapidjson::Document::ValueIterator it = objects.Begin(); it != objects.End(); ++it) {
-
         LinkResourcePtr link(new LinkResource(controller, GetPrimaryKey(), GetJsonValueByKey<std::string>(*it, "pk")));
-        link->name = GetJsonValueByKey<std::string>(*it, "name");
-        link->pk = GetJsonValueByKey<std::string>(*it, "pk");
-
-        LoadJsonValueByKey(*it, "attchmentpks", link->attachmentpks);
-
-        //TODO transforms
+        LoadJsonValueByKey(*it,"name",link->name);
+        LoadJsonValueByKey(*it,"pk",link->pk);
+        LoadJsonValueByKey(*it,"collision",link->collision);
+        LoadJsonValueByKey(*it,"attchmentpks",link->attachmentpks);
+        LoadJsonValueByKey(*it,"quaternion",link->quaternion);
+        LoadJsonValueByKey(*it,"translate",link->translate);
         links[i++] = link;
+    }
+}
+
+ObjectResource::IkParamResourcePtr ObjectResource::AddIkParam(const std::string& name, const std::string& iktype, double timeout)
+{
+    GETCONTROLLERIMPL();
+    const std::string ikparamPk = controller->CreateIkParam(this->pk, name, iktype, timeout);
+
+    return ObjectResource::IkParamResourcePtr(new IkParamResource(controller, this->pk, ikparamPk));
+}
+
+void ObjectResource::GetIkParams(std::vector<ObjectResource::IkParamResourcePtr>& ikparams)
+{
+    GETCONTROLLERIMPL();
+    rapidjson::Document pt(rapidjson::kObjectType);
+    controller->CallGet(str(boost::format("object/%s/ikparam/?format=json&limit=0&fields=ikparams")%GetPrimaryKey()), pt);
+    rapidjson::Value& objects = pt["ikparams"];
+    ikparams.resize(objects.size());
+    size_t i = 0;
+    for (rapidjson::Document::ValueIterator it = objects.Begin(); it != objects.End(); ++it) {
+        IkParamResourcePtr ikparam(new IkParamResource(controller, GetPrimaryKey(), GetJsonValueByKey<std::string>(*it, "pk")));
+        LoadJsonValueByKey(*it,"name",link->name);
+        LoadJsonValueByKey(*it,"pk",link->pk);
+        LoadJsonValueByKey(*it,"iktype",link->collision);
+        LoadJsonValueByKey(*it,"attchmentpks",link->attachmentpks);
+        LoadJsonValueByKey(*it,"quaternion",link->quaternion);
+        LoadJsonValueByKey(*it,"direction",link->direction);
+        LoadJsonValueByKey(*it,"translate",link->translate);
+        LoadJsonValueByKey(*it,"angle",link->angle);
+        ikparams[i++] = ikparam;
     }
 }
 
@@ -869,9 +943,10 @@ void TaskResource::SetTaskParameters(const ITLPlanningTaskParameters& taskparame
 
     // because program will inside string, encode newlines
     std::string program;
-    std::vector< std::pair<std::string, std::string> > serachpairs(2);
-    serachpairs[0].first = "\n"; serachpairs[0].second = "\\n";
-    serachpairs[1].first = "\r\n"; serachpairs[1].second = "\\n";
+    std::vector< std::pair<std::string, std::string> > serachpairs(3);
+    serachpairs[0].first = "\""; serachpairs[0].second = "\\\"";
+    serachpairs[1].first = "\n"; serachpairs[1].second = "\\n";
+    serachpairs[2].first = "\r\n"; serachpairs[2].second = "\\n";
     SearchAndReplace(program, taskparameters.program, serachpairs);
     std::string taskgoalput = str(boost::format("{\"tasktype\": \"itlplanning\", \"taskparameters\":{\"optimizationvalue\":%f, \"program\":\"%s\", \"unit\":\"%s\", \"returnmode\":\"%s\", \"startfromcurrent\":\"%s\", \"ignorefigure\":\"%s\", \"vrcruns\":%d %s %s } }")%taskparameters.optimizationvalue%program%taskparameters.unit%taskparameters.returnmode%startfromcurrent%ignorefigure%vrcruns%ssinitial_envstate.str()%ssfinal_envstate.str());
     rapidjson::Document pt;

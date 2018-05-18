@@ -126,6 +126,8 @@ public:
     /// \return primary key for the geometry created
     std::string CreateObjectGeometry(const std::string& objectPk, const std::string& geometryName, const std::string& linkPk, double timeout);
 
+    std::string CreateIkParam(const std::string& objectPk, const std::string& name, const std::string& iktype, double timeout);
+
     /// \brief set geometry for an object
     /// \param objectPk primary key for the object
     /// \param scenePk primary key for the scene
