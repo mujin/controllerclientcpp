@@ -629,11 +629,14 @@ public:
         std::string name;
         std::string pk;
         std::string linkpk;
+        std::string geomtype;
         Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
         Real translate[3];
         bool visible;
         Real diffusecolor[4];
         Real transparency;
+
+        virtual void GetMesh(std::vector<std::vector<Real> >& mesh);
     };
     typedef boost::shared_ptr<GeometryResource> GeometryResourcePtr;
 
