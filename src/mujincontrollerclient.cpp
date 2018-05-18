@@ -172,7 +172,7 @@ ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::GetGeometryFro
     if (pt.IsObject() && pt.HasMember("geometries") && pt["geometries"].IsArray()) {
         rapidjson::Value& objects = pt["geometries"];
         for (rapidjson::Document::ConstValueIterator it = objects.Begin(); it != objects.End(); ++it) {
-            const std::string name = it->HasMember("name") && (*it)["name"].GetString() : (*it)["pk"].GetString();
+            const std::string name = it->HasMember("name") ? (*it)["name"].GetString() : (*it)["pk"].GetString();
             if (name == geometryName && (*it)["linkpk"].GetString() == this->pk) {
                 ObjectResource::GeometryResourcePtr geometry(new GeometryResource(controller, this->objectpk, GetJsonValueByKey<std::string>(*it, "pk")));
                 geometry->name = name;
@@ -198,11 +198,11 @@ void ObjectResource::LinkResource::GetGeometries(std::vector<ObjectResource::Geo
     controller->CallGet(relativeuri, pt);
     if (pt.IsObject() && pt.HasMember("geometries") && pt["geometries"].IsArray()) {
         rapidjson::Value& objects = pt["geometries"];
-        geometries.clear()
+        geometries.clear();
         for (rapidjson::Document::ConstValueIterator it = objects.Begin(); it != objects.End(); ++it) {
             if ((*it)["linkpk"].GetString() == this->pk) {
                 ObjectResource::GeometryResourcePtr geometry(new GeometryResource(controller, this->objectpk, GetJsonValueByKey<std::string>(*it, "pk")));
-                geometry->name = it->HasMember("name") && (*it)["name"].GetString() : (*it)["pk"].GetString();
+                geometry->name = it->HasMember("name") ? (*it)["name"].GetString() : (*it)["pk"].GetString();
                 LoadJsonValueByKey(*it,"pk",geometry->pk);
                 LoadJsonValueByKey(*it,"linkpk",geometry->linkpk);
                 LoadJsonValueByKey(*it,"visible",geometry->visible);
@@ -211,6 +211,7 @@ void ObjectResource::LinkResource::GetGeometries(std::vector<ObjectResource::Geo
                 LoadJsonValueByKey(*it,"translate",geometry->translate);
                 LoadJsonValueByKey(*it,"diffusecolor",geometry->diffusecolor);
                 geometries.push_back(geometry);
+            }
         }
     }
 }
@@ -228,7 +229,7 @@ void ObjectResource::GetLinks(std::vector<ObjectResource::LinkResourcePtr>& link
         LoadJsonValueByKey(*it,"name",link->name);
         LoadJsonValueByKey(*it,"pk",link->pk);
         LoadJsonValueByKey(*it,"collision",link->collision);
-        LoadJsonValueByKey(*it,"attchmentpks",link->attachmentpks);
+        LoadJsonValueByKey(*it,"attachmentpks",link->attachmentpks);
         LoadJsonValueByKey(*it,"quaternion",link->quaternion);
         LoadJsonValueByKey(*it,"translate",link->translate);
         links[i++] = link;
@@ -249,18 +250,17 @@ void ObjectResource::GetIkParams(std::vector<ObjectResource::IkParamResourcePtr>
     rapidjson::Document pt(rapidjson::kObjectType);
     controller->CallGet(str(boost::format("object/%s/ikparam/?format=json&limit=0&fields=ikparams")%GetPrimaryKey()), pt);
     rapidjson::Value& objects = pt["ikparams"];
-    ikparams.resize(objects.size());
+    ikparams.resize(objects.Size());
     size_t i = 0;
     for (rapidjson::Document::ValueIterator it = objects.Begin(); it != objects.End(); ++it) {
         IkParamResourcePtr ikparam(new IkParamResource(controller, GetPrimaryKey(), GetJsonValueByKey<std::string>(*it, "pk")));
-        LoadJsonValueByKey(*it,"name",link->name);
-        LoadJsonValueByKey(*it,"pk",link->pk);
-        LoadJsonValueByKey(*it,"iktype",link->collision);
-        LoadJsonValueByKey(*it,"attchmentpks",link->attachmentpks);
-        LoadJsonValueByKey(*it,"quaternion",link->quaternion);
-        LoadJsonValueByKey(*it,"direction",link->direction);
-        LoadJsonValueByKey(*it,"translate",link->translate);
-        LoadJsonValueByKey(*it,"angle",link->angle);
+        LoadJsonValueByKey(*it,"name",ikparam->name);
+        LoadJsonValueByKey(*it,"pk",ikparam->pk);
+        LoadJsonValueByKey(*it,"iktype",ikparam->iktype);
+        LoadJsonValueByKey(*it,"quaternion",ikparam->quaternion);
+        LoadJsonValueByKey(*it,"direction",ikparam->direction);
+        LoadJsonValueByKey(*it,"translation",ikparam->translation);
+        LoadJsonValueByKey(*it,"angle",ikparam->angle);
         ikparams[i++] = ikparam;
     }
 }

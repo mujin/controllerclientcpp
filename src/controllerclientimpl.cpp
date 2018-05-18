@@ -984,12 +984,12 @@ std::string ControllerClientImpl::CreateObjectGeometry(const std::string& object
 
 std::string ControllerClientImpl::CreateIkParam(const std::string& objectPk, const std::string& name, const std::string& iktype, double timeout)
 {
-    boost::property_tree::ptree pt;
+    rapidjson::Document pt(rapidjson::kObjectType);
     const std::string ikparamData("{\"name\":\"" + name + "\", \"iktype\":\"" + iktype + "\"}");
     const std::string uri(str(boost::format("object/%s/ikparam/") % objectPk));
     
     CallPost(uri, ikparamData, pt, 201, timeout);
-    return pt.get<std::string>("pk");
+    return GetJsonValueByKey<std::string>(pt, "pk");
 }
 
 std::string ControllerClientImpl::SetObjectGeometryMesh(const std::string& objectPk, const std::string& geometryPk, const std::vector<unsigned char>& meshData, const std::string& unit, double timeout)
