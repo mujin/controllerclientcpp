@@ -61,7 +61,7 @@ HandEyeCalibrationTaskResource::HandEyeCalibrationTaskResource(const std::string
 std::string HandEyeCalibrationTaskResource::_GetOrCreateTaskAndGetPk(SceneResourcePtr scene, const std::string& taskname)
 {
     TaskResourcePtr task = scene->GetOrCreateTaskFromName_UTF8(taskname,"handeyecalibration");
-    std::string pk = task->Get("pk");
+    std::string pk = task->Get<std::string>("pk");
     return pk;
 }
 
