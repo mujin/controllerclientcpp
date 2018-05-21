@@ -471,6 +471,17 @@ SceneResourcePtr ControllerClientImpl::RegisterScene_UTF16(const std::wstring& u
     return scene;
 }
 
+void ControllerClientImpl::GetScenePKs(std::vector<std::string>& pks)
+{
+    rapidjson::Document pt(rapidjson::kObjectType);
+    CallGet("scene/?format=json&limit=0&fields=pk", pt);
+    rapidjson::Value &objects=pt["objects"];
+    pks.clear();
+    BOOST_FOREACH(const rapidjson::Value &value, std::make_pair(objects.Begin(),objects.End())){
+        pks.push_back(value["pk"].GetString());
+    }
+}
+
 SceneResourcePtr ControllerClientImpl::ImportSceneToCOLLADA_UTF8(const std::string& importuri, const std::string& importformat, const std::string& newuri, bool overwrite)
 {
     BOOST_ASSERT(importformat.size()>0);

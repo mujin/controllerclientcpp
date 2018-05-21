@@ -154,7 +154,7 @@ void ObjectResource::GeometryResource::GetMesh(std::string& primitive, std::vect
 {
     GETCONTROLLERIMPL();
     rapidjson::Document pt(rapidjson::kObjectType);
-    const std::string relativeuri(str(boost::format("%s/%s/?format=json&mesh=true")%GetResourceName()%GetPrimaryKey()));
+    const std::string relativeuri(str(boost::format("%s/%s/?format=json&limit=0&mesh=true")%GetResourceName()%GetPrimaryKey()));
     controller->CallGet(relativeuri, pt);
     rapidjson::Value& objects = pt["mesh"];
     LoadJsonValueByKey(objects,"primitive",primitive);
