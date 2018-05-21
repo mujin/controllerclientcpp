@@ -382,6 +382,24 @@ template<> inline void SaveJsonValue(rapidjson::Value& v, const std::vector<doub
     }
 }
 
+template<class T, size_t N> inline void SaveJsonValue(rapidjson::Value& v, const T (&t)[N], rapidjson::Document::AllocatorType& alloc) {
+    v.SetArray();
+    v.Reserve(N, alloc);
+    for (size_t i = 0; i < N; ++i) {
+        rapidjson::Value tmpv;
+        SaveJsonValue(tmpv, t[i], alloc);
+        v.PushBack(tmpv, alloc);
+    }
+}
+
+template<size_t N> inline void SaveJsonValue(rapidjson::Value& v, const double (&t)[N], rapidjson::Document::AllocatorType& alloc) {
+    v.SetArray();
+    v.Reserve(N, alloc);
+    for (size_t i = 0; i < N; ++i) {
+        v.PushBack(t[i], alloc);
+    }
+}
+
 template<class U> inline void SaveJsonValue(rapidjson::Value& v, const std::map<std::string, U>& t, rapidjson::Document::AllocatorType& alloc) {
     v.SetObject();
     for (typename std::map<std::string, U>::const_iterator it = t.begin(); it != t.end(); ++it) {
@@ -513,7 +531,7 @@ template<class T> inline std::string GetJsonString(const T& t) {
 }
 
 template<class T, class U> inline std::string GetJsonStringByKey(const U& key, const T& t) {
-    rapidjson::Document d;
+    rapidjson::Document d(rapidjson::kObjectType);
     SetJsonValueByKey(d, key, t);
     return DumpJson(d);
 }
