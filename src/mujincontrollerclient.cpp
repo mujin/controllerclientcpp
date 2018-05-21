@@ -329,6 +329,14 @@ void ObjectResource::GetLinks(std::vector<ObjectResource::LinkResourcePtr>& link
     }
 }
 
+ObjectResource::LinkResourcePtr ObjectResource::AddLink(const std::string& name, const Real quaternion[4], const Real translate[3], double timeout)
+{
+    GETCONTROLLERIMPL();
+    const std::string linkPk = controller->CreateLink(this->pk, name,quaternion, translate, timeout);
+
+    return ObjectResource::LinkResourcePtr(new LinkResource(controller, this->pk, linkPk));
+}
+
 ObjectResource::IkParamResourcePtr ObjectResource::AddIkParam(const std::string& name, const std::string& iktype, double timeout)
 {
     GETCONTROLLERIMPL();
@@ -817,11 +825,11 @@ bool SceneResource::FindInstObject(const std::string& name, SceneResource::InstO
     return false;
 }
 
-SceneResource::InstObjectPtr SceneResource::CreateInstObject(const std::string& name, const std::string& referenceUri, const Real quaternion[4], const Real translation[3], double timeout)
+SceneResource::InstObjectPtr SceneResource::CreateInstObject(const std::string& name, const std::string& referenceUri, const Real quaternion[4], const Real translate[3], double timeout)
 {
     GETCONTROLLERIMPL();
     const std::string uri(str(boost::format("scene/%s/instobject/?format=json&fields=pk")%GetPrimaryKey()));
-    std::string data(str(boost::format("{\"name\":\"%s\", \"quaternion\":[%.15f,%.15f,%.15f,%.15f], \"translate\":[%.15f,%.15f,%.15f]")%name%quaternion[0]%quaternion[1]%quaternion[2]%quaternion[3]%translation[0]%translation[1]%translation[2]));
+    std::string data(str(boost::format("{\"name\":\"%s\", \"quaternion\":[%.15f,%.15f,%.15f,%.15f], \"translate\":[%.15f,%.15f,%.15f]")%name%quaternion[0]%quaternion[1]%quaternion[2]%quaternion[3]%translate[0]%translate[1]%translate[2]));
     if (!referenceUri.empty()) {
         data += ", \"reference_uri\": \"" + referenceUri + "\"";
     }
