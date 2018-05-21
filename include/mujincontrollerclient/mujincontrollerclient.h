@@ -646,6 +646,8 @@ public:
 
         virtual void GetMesh(std::string& primitive, std::vector<std::vector<Real> >& indices, std::vector<std::vector<Real> >& vertices);
         virtual void SetGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& unit, double timeout);
+        virtual void SetVisible(bool visible);
+        virtual int GetVisible();
     };
     typedef boost::shared_ptr<GeometryResource> GeometryResourcePtr;
 
@@ -676,6 +678,11 @@ public:
 
         virtual void GetGeometries(std::vector<GeometryResourcePtr>& links);
 
+        virtual void SetCollision(bool collision);
+        virtual int GetCollision();
+        virtual void SetVisible(bool visible);
+        virtual int GetVisible();
+
         std::vector<std::string> attachmentpks;
         std::string name;
         std::string pk;
@@ -695,6 +702,11 @@ public:
     virtual void GetIkParams(std::vector<IkParamResourcePtr>& ikparams);
 
     IkParamResourcePtr AddIkParam(const std::string& name, const std::string& iktype, double timeout);
+
+    virtual void SetCollision(bool collision);
+    virtual int GetCollision();
+    virtual void SetVisible(bool visible);
+    virtual int GetVisible();
 
     std::string name;
     int nundof;

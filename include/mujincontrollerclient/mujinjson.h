@@ -512,5 +512,11 @@ template<class T> inline std::string GetJsonString(const T& t) {
     return DumpJson(d);
 }
 
+template<class T, class U> inline std::string GetJsonStringByKey(const U& key, const T& t) {
+    rapidjson::Document d;
+    SetJsonValueByKey(d, key, t);
+    return DumpJson(d);
+}
+
 } // namespace mujinjson
 #endif

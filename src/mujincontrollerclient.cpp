@@ -165,7 +165,7 @@ void ObjectResource::GeometryResource::GetMesh(std::string& primitive, std::vect
 void ObjectResource::GeometryResource::SetGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& unit, double timeout)
 {
     GETCONTROLLERIMPL();
-    // todo fail if this->geomtype!="mesh"
+    MUJIN_ASSERT_OP_FORMAT(this->geomtype,!=,"mesh", "geomtype is not mesh: %s", this->geomtype, MEC_InvalidArguments);
     controller->SetObjectGeometryMesh(this->objectpk, this->pk, rawstldata, unit, timeout);
 }
 
@@ -233,6 +233,80 @@ void ObjectResource::LinkResource::GetGeometries(std::vector<ObjectResource::Geo
             }
         }
     }
+}
+
+void ObjectResource::LinkResource::SetCollision(bool collision)
+{
+    this->SetJSON(mujinjson::GetJsonStringByKey("collision",collision));
+    this->collision = collision;
+}
+void ObjectResource::SetCollision(bool collision)
+{
+    std::vector<ObjectResource::LinkResourcePtr> links;
+    this->GetLinks(links);
+    BOOST_FOREACH(ObjectResource::LinkResourcePtr &link, links){
+        link->SetCollision(collision);
+    }
+}
+int ObjectResource::LinkResource::GetCollision()
+{
+    return this->collision;
+}
+int ObjectResource::GetCollision()
+{
+    std::vector<ObjectResource::LinkResourcePtr> links;
+    this->GetLinks(links);
+    int ret=0;
+    BOOST_FOREACH(ObjectResource::LinkResourcePtr &link, links){
+        ret|=link->GetCollision()+1;
+    }
+    return ret-1;
+}
+
+void ObjectResource::GeometryResource::SetVisible(bool visible)
+{
+    this->SetJSON(mujinjson::GetJsonStringByKey("visible",visible));
+    this->visible = visible;
+}
+void ObjectResource::LinkResource::SetVisible(bool visible)
+{
+    std::vector<ObjectResource::GeometryResourcePtr> geometries;
+    this->GetGeometries(geometries);
+    BOOST_FOREACH(ObjectResource::GeometryResourcePtr &geometry, geometries){
+        geometry->SetVisible(visible);
+    }
+}
+void ObjectResource::SetVisible(bool visible)
+{
+    std::vector<ObjectResource::LinkResourcePtr> links;
+    this->GetLinks(links);
+    BOOST_FOREACH(ObjectResource::LinkResourcePtr &link, links){
+        link->SetVisible(visible);
+    }
+}
+int ObjectResource::GeometryResource::GetVisible()
+{
+    return this->visible;
+}
+int ObjectResource::LinkResource::GetVisible()
+{
+    std::vector<ObjectResource::GeometryResourcePtr> geometries;
+    this->GetGeometries(geometries);
+    int ret=0;
+    BOOST_FOREACH(ObjectResource::GeometryResourcePtr &geometry, geometries){
+        ret|=geometry->GetVisible()+1;
+    }
+    return ret-1;
+}
+int ObjectResource::GetVisible()
+{
+    std::vector<ObjectResource::LinkResourcePtr> links;
+    this->GetLinks(links);
+    int ret=0;
+    BOOST_FOREACH(ObjectResource::LinkResourcePtr &link, links){
+        ret|=link->GetVisible()+1;
+    }
+    return ret-1;
 }
 
 void ObjectResource::GetLinks(std::vector<ObjectResource::LinkResourcePtr>& links)
