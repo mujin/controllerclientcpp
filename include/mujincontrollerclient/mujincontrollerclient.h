@@ -681,6 +681,7 @@ public:
 
         virtual void GetGeometries(std::vector<GeometryResourcePtr>& links);
 
+        /// 0 -> off, 1 -> on, 2 -> partial
         virtual void SetCollision(bool collision);
         virtual int GetCollision();
         virtual void SetVisible(bool visible);
@@ -706,6 +707,7 @@ public:
 
     IkParamResourcePtr AddIkParam(const std::string& name, const std::string& iktype, double timeout);
 
+    /// 0 -> off, 1 -> on, 2 -> partial
     virtual void SetCollision(bool collision);
     virtual int GetCollision();
     virtual void SetVisible(bool visible);
