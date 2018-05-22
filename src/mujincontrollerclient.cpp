@@ -317,6 +317,7 @@ void ObjectResource::GetLinks(std::vector<ObjectResource::LinkResourcePtr>& link
     size_t i = 0;
     for (rapidjson::Document::ValueIterator it = objects.Begin(); it != objects.End(); ++it) {
         LinkResourcePtr link(new LinkResource(controller, GetPrimaryKey(), GetJsonValueByKey<std::string>(*it, "pk")));
+        link->parentlinkpk = it->HasMember("parentlinkpk") ? (*it)["parentlinkpk"].GetString() : "";
         LoadJsonValueByKey(*it,"name",link->name);
         LoadJsonValueByKey(*it,"collision",link->collision);
         LoadJsonValueByKey(*it,"attachmentpks",link->attachmentpks);

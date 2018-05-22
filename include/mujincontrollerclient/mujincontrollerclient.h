@@ -690,6 +690,7 @@ public:
         std::string name;
         std::string pk;
         std::string objectpk;
+        std::string parentlinkpk;
         Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
         Real translate[3];
         bool collision;
