@@ -1006,7 +1006,6 @@ std::string ControllerClientImpl::SetObjectGeometryMesh(const std::string& objec
 {
     rapidjson::Document pt(rapidjson::kObjectType);
     const std::string uri(str(boost::format("object/%s/geometry/%s/?unit=%s")%objectPk%geometryPk%unit));
-    std::cout << uri << std::endl;
     const int status = CallPutSTL(uri, meshData, pt, 202, timeout);
     assert(status == 202);
     return GetJsonValueByKey<std::string>(pt, "pk");
