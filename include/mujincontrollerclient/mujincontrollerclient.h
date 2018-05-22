@@ -395,9 +395,6 @@ public:
         return RegisterScene_UTF16(uri,GetDefaultSceneType());
     }
 
-    /// \brief returns a vector list of scene pks. use one of the returned elements to construct SceneResource.
-    virtual void GetScenePKs(std::vector<std::string> &pks) = 0;
-
     /** \brief import a scene into COLLADA format using from scene identified by a URI
 
         \param sourceuri URL-encoded UTF-8  original URI to import from. For MUJIN network files use <b>mujin:/mypath/myfile.ext</b>
@@ -923,6 +920,8 @@ public:
 
     /// \brief gets a list of all the scene primary keys currently available to the user
     virtual void GetTaskPrimaryKeys(std::vector<std::string>& taskkeys);
+
+    virtual void GetTaskNames(std::vector<std::string>& names);
 
     /// \brief gets a list of all the instance objects of the scene
     virtual void GetSensorMapping(std::map<std::string, std::string>& sensormapping);

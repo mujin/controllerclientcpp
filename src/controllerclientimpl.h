@@ -42,7 +42,6 @@ public:
     virtual void GetScenePrimaryKeys(std::vector<std::string>& scenekeys);
     virtual SceneResourcePtr RegisterScene_UTF8(const std::string& uri, const std::string& scenetype);
     virtual SceneResourcePtr RegisterScene_UTF16(const std::wstring& uri, const std::string& scenetype);
-    virtual void GetScenePKs(std::vector<std::string> &pks);
     virtual SceneResourcePtr ImportSceneToCOLLADA_UTF8(const std::string& importuri, const std::string& importformat, const std::string& newuri, bool overwrite=false);
     virtual SceneResourcePtr ImportSceneToCOLLADA_UTF16(const std::wstring& importuri, const std::string& importformat, const std::wstring& newuri, bool overwrite=false);
 

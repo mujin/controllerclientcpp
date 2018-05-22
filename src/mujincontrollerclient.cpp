@@ -700,6 +700,19 @@ void SceneResource::GetTaskPrimaryKeys(std::vector<std::string>& taskkeys)
     }
 }
 
+void SceneResource::GetTaskNames(std::vector<std::string>& taskkeys)
+{
+    GETCONTROLLERIMPL();
+    rapidjson::Document pt(rapidjson::kObjectType);
+    controller->CallGet(str(boost::format("scene/%s/task/?format=json&limit=0&fields=name")%GetPrimaryKey()), pt);
+    rapidjson::Value& objects = pt["objects"];
+    taskkeys.resize(objects.Size());
+    size_t i = 0;
+    for (rapidjson::Document::ValueIterator it = objects.Begin(); it != objects.End(); ++it) {
+        taskkeys[i++] = GetJsonValueByKey<std::string>(*it, "name");
+    }
+}
+
 void SceneResource::GetSensorMapping(std::map<std::string, std::string>& sensormapping)
 {
     GETCONTROLLERIMPL();
