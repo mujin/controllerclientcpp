@@ -101,7 +101,7 @@ typedef boost::shared_ptr<BinPickingResultResource> BinPickingResultResourcePtr;
 typedef boost::weak_ptr<BinPickingResultResource> BinPickingResultResourceWeakPtr;
 typedef double Real;
 
-inline bool FuzzyEquals(Real p, Real q, double epsilon=1e-6) {
+inline bool FuzzyEquals(Real p, Real q, double epsilon=1e-3) {
     return fabs(double(p - q)) < epsilon;
 }
 
