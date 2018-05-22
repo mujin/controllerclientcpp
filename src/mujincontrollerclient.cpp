@@ -150,7 +150,7 @@ ObjectResource::IkParamResource::IkParamResource(ControllerClientPtr controller,
 {
 }
 
-void ObjectResource::GeometryResource::GetMesh(std::string& primitive, std::vector<std::vector<Real> >& indices, std::vector<std::vector<Real> >& vertices)
+void ObjectResource::GeometryResource::GetMesh(std::string& primitive, std::vector<std::vector<int> >& indices, std::vector<std::vector<Real> >& vertices)
 {
     GETCONTROLLERIMPL();
     rapidjson::Document pt(rapidjson::kObjectType);
