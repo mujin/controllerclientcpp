@@ -329,9 +329,17 @@ void ObjectResource::GetLinks(std::vector<ObjectResource::LinkResourcePtr>& link
 ObjectResource::LinkResourcePtr ObjectResource::AddLink(const std::string& name, const Real quaternion[4], const Real translate[3])
 {
     GETCONTROLLERIMPL();
-    const std::string linkPk = controller->CreateLink(this->pk, name,quaternion, translate);
+    const std::string linkPk = controller->CreateLink(this->pk, "", name,quaternion, translate);
 
     return ObjectResource::LinkResourcePtr(new LinkResource(controller, this->pk, linkPk));
+}
+
+ObjectResource::LinkResourcePtr ObjectResource::LinkResource::AddChildLink(const std::string& name, const Real quaternion[4], const Real translate[3])
+{
+    GETCONTROLLERIMPL();
+    const std::string linkPk = controller->CreateLink(this->objectpk, this->pk, name,quaternion, translate);
+
+    return ObjectResource::LinkResourcePtr(new LinkResource(controller, this->objectpk, linkPk));
 }
 
 ObjectResource::IkParamResourcePtr ObjectResource::AddIkParam(const std::string& name, const std::string& iktype)

@@ -678,6 +678,8 @@ public:
 
         virtual void GetGeometries(std::vector<GeometryResourcePtr>& links);
 
+        virtual boost::shared_ptr<LinkResource> AddChildLink(const std::string& name, const Real quaternion[4], const Real translate[3]);
+
         /// 0 -> off, 1 -> on, 2 -> partial
         virtual void SetCollision(bool collision);
         virtual int GetCollision();
