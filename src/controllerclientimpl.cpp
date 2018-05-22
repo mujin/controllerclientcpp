@@ -1671,6 +1671,7 @@ void ControllerClientImpl::_UploadFileToController_UTF16(const std::wstring& fil
 
 void ControllerClientImpl::_UploadFileToController(FILE* fd, const std::string& uri)
 {
+    MUJIN_LOG_INFO(str(boost::format("upload %s")%uri))
 #if defined(_WIN32) || defined(_WIN64)
     fseek(fd,0,SEEK_END);
     curl_off_t filesize = ftell(fd);

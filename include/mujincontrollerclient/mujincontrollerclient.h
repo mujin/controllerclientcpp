@@ -705,8 +705,8 @@ public:
 
     virtual void GetIkParams(std::vector<IkParamResourcePtr>& ikparams);
 
-    LinkResourcePtr AddLink(const std::string& name, const Real quaternion[4], const Real translate[3], double timeout);
-    IkParamResourcePtr AddIkParam(const std::string& name, const std::string& iktype, double timeout);
+    virtual LinkResourcePtr AddLink(const std::string& name, const Real quaternion[4], const Real translate[3]);
+    virtual IkParamResourcePtr AddIkParam(const std::string& name, const std::string& iktype);
 
     /// 0 -> off, 1 -> on, 2 -> partial
     virtual void SetCollision(bool collision);
