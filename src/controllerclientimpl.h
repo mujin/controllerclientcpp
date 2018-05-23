@@ -64,7 +64,7 @@ public:
     virtual void DeleteDirectoryOnController_UTF16(const std::wstring& desturi);
 
     /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
-    int CallGet(const std::string& relativeuri, boost::property_tree::ptree& pt, int expectedhttpcode=200, double timeout = 5.0);
+    int CallGet(const std::string& relativeuri, rapidjson::Document& pt, int expectedhttpcode=200, double timeout = 5.0);
 
     /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
     int CallGet(const std::string& relativeuri, std::string& outputdata, int expectedhttpcode=200, double timeout = 5.0);
@@ -76,12 +76,12 @@ public:
     ///
     /// \param relativeuri URL-encoded UTF-8 encoded
     /// \param data encoded depending on the character encoding set on the system
-    int CallPost(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode=201, double timeout = 5.0);
+    int CallPost(const std::string& relativeuri, const std::string& data, rapidjson::Document& pt, int expectedhttpcode=201, double timeout = 5.0);
 
     /// \param data utf-8 encoded
-    int CallPost_UTF8(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode=201, double timeout = 5.0);
+    int CallPost_UTF8(const std::string& relativeuri, const std::string& data, rapidjson::Document& pt, int expectedhttpcode=201, double timeout = 5.0);
     /// \param data utf-16 encoded
-    int CallPost_UTF16(const std::string& relativeuri, const std::wstring& data, boost::property_tree::ptree& pt, int expectedhttpcode=201, double timeout = 5.0);
+    int CallPost_UTF16(const std::string& relativeuri, const std::wstring& data, rapidjson::Document& pt, int expectedhttpcode=201, double timeout = 5.0);
 
     /// \brief puts json string
     /// \param relativeuri relative uri to put at
@@ -90,7 +90,7 @@ public:
     /// \param expectedhttpcode expected http code
     /// \param timeout timeout of puts
     /// \return http code returned
-    int CallPutJSON(const std::string& relativeuri, const std::string& data, boost::property_tree::ptree& pt, int expectedhttpcode=202, double timeout = 5.0);
+    int CallPutJSON(const std::string& relativeuri, const std::string& data, rapidjson::Document& pt, int expectedhttpcode=202, double timeout = 5.0);
     
     /// \brief puts stl data
     /// \param relativeuri relative uri to put at
@@ -99,7 +99,7 @@ public:
     /// \param expectedhttpcode expected http code
     /// \param timeout timeout of puts
     /// \return http code returned
-    int CallPutSTL(const std::string& relativeuri, const std::vector<unsigned char>& data, boost::property_tree::ptree& pt, int expectedhttpcode=202, double timeout = 5.0);
+    int CallPutSTL(const std::string& relativeuri, const std::vector<unsigned char>& data, rapidjson::Document& pt, int expectedhttpcode=202, double timeout = 5.0);
     
 
     void CallDelete(const std::string& relativeuri, double timeout = 5.0);
@@ -124,7 +124,10 @@ public:
     /// \param linkPk primary key for the link
     /// \param timeout timeout of creating object geometry
     /// \return primary key for the geometry created
-    std::string CreateObjectGeometry(const std::string& objectPk, const std::string& geometryName, const std::string& linkPk, double timeout);
+    std::string CreateObjectGeometry(const std::string& objectPk, const std::string& geometryName, const std::string& linkPk, double timeout = 5);
+
+    std::string CreateIkParam(const std::string& objectPk, const std::string& name, const std::string& iktype, double timeout = 5);
+    std::string CreateLink(const std::string& objectPk, const std::string& parentlinkPk, const std::string& name, const Real quaternion[4], const Real translate[3], double timeout = 5);
 
     /// \brief set geometry for an object
     /// \param objectPk primary key for the object
@@ -151,7 +154,7 @@ public:
 
 protected:
 
-    int _CallPut(const std::string& relativeuri, const void* pdata, size_t nDataSize, boost::property_tree::ptree& pt, curl_slist* headers, int expectedhttpcode=202, double timeout = 5.0);
+    int _CallPut(const std::string& relativeuri, const void* pdata, size_t nDataSize, rapidjson::Document& pt, curl_slist* headers, int expectedhttpcode=202, double timeout = 5.0);
 
     void GetProfile();
 
@@ -184,7 +187,7 @@ protected:
     //@{
 
     /// \param desturi expects the fully resolved URI to pass to curl
-    int _CallGet(const std::string& desturi, boost::property_tree::ptree& pt, int expectedhttpcode=200, double timeout = 5.0);
+    int _CallGet(const std::string& desturi, rapidjson::Document& pt, int expectedhttpcode=200, double timeout = 5.0);
     int _CallGet(const std::string& desturi, std::string& outputdata, int expectedhttpcode=200, double timeout = 5.0);
     int _CallGet(const std::string& desturi, std::vector<unsigned char>& outputdata, int expectedhttpcode=200, double timeout = 5.0);
 
@@ -235,7 +238,7 @@ protected:
     std::string _charset, _language;
     std::string _csrfmiddlewaretoken;
 
-    boost::property_tree::ptree _profile; ///< user profile and versioning
+    rapidjson::Document _profile; ///< user profile and versioning
     std::string _errormessage; ///< set when an error occurs in libcurl
 
     std::string _defaultscenetype, _defaulttasktype;

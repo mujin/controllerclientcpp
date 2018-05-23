@@ -59,6 +59,7 @@
 #include <boost/array.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <mujincontrollerclient/mujinexceptions.h>
+#include <mujincontrollerclient/mujinjson.h>
 
 namespace mujinclient {
 
@@ -598,10 +599,18 @@ public:
     }
 
     /// \brief gets an attribute of this web resource
-    virtual std::string Get(const std::string& field, double timeout = 5.0);
+    template<class T>
+    T Get(const std::string& field, double timeout = 5.0) {
+        rapidjson::Document pt(rapidjson::kObjectType);
+        GetWrap(pt, field, timeout);
+        return mujinjson::GetJsonValueByKey<T>(pt, field.c_str());
+    }
 
     /// \brief sets an attribute of this web resource
     virtual void Set(const std::string& field, const std::string& newvalue, double timeout = 5.0);
+
+    /// \brief sets an attribute of this web resource
+    virtual void SetJSON(const std::string& json, double timeout = 5.0);
 
     /// \brief delete the resource and all its child resources
     virtual void Delete(double timeout = 5.0);
@@ -610,6 +619,8 @@ public:
     virtual void Copy(const std::string& newname, int options, double timeout = 5.0);
 
 private:
+    virtual void GetWrap(rapidjson::Document& pt, const std::string& field, double timeout = 5.0);
+
     ControllerClientPtr __controller;
     std::string __resourcename, __pk;
 };
@@ -624,8 +635,36 @@ public:
         }
         std::string name;
         std::string pk;
+        std::string objectpk;
+        std::string linkpk;
+        std::string geomtype;
+        Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        Real translate[3];
+        bool visible;
+        Real diffusecolor[4];
+        Real transparency;
+
+        virtual void GetMesh(std::string& primitive, std::vector<std::vector<int> >& indices, std::vector<std::vector<Real> >& vertices);
+        virtual void SetGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& unit, double timeout);
+        virtual void SetVisible(bool visible);
+        virtual int GetVisible();
     };
     typedef boost::shared_ptr<GeometryResource> GeometryResourcePtr;
+
+    class MUJINCLIENT_API IkParamResource : public WebResource {
+public:
+        IkParamResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk);
+        virtual ~IkParamResource() {
+        }
+        std::string name;
+        std::string pk;
+        std::string iktype;
+        Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        Real translation[3];
+        Real direction[3];
+        Real angle;
+    };
+    typedef boost::shared_ptr<IkParamResource> IkParamResourcePtr;
 
     class MUJINCLIENT_API LinkResource : public WebResource {
 public:
@@ -637,11 +676,24 @@ public:
 
         virtual GeometryResourcePtr GetGeometryFromName(const std::string& geometryName);
 
+        virtual void GetGeometries(std::vector<GeometryResourcePtr>& links);
+
+        virtual boost::shared_ptr<LinkResource> AddChildLink(const std::string& name, const Real quaternion[4], const Real translate[3]);
+
+        /// 0 -> off, 1 -> on, 2 -> partial
+        virtual void SetCollision(bool collision);
+        virtual int GetCollision();
+        virtual void SetVisible(bool visible);
+        virtual int GetVisible();
+
         std::vector<std::string> attachmentpks;
         std::string name;
         std::string pk;
-        std::string objectpk; // is this necessary?
-        //TODO transforms
+        std::string objectpk;
+        std::string parentlinkpk;
+        Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        Real translate[3];
+        bool collision;
     };
     typedef boost::shared_ptr<LinkResource> LinkResourcePtr;
 
@@ -650,7 +702,18 @@ public:
     virtual ~ObjectResource() {
     }
     virtual void GetLinks(std::vector<LinkResourcePtr>& links);
-    
+
+    virtual void GetIkParams(std::vector<IkParamResourcePtr>& ikparams);
+
+    virtual LinkResourcePtr AddLink(const std::string& name, const Real quaternion[4], const Real translate[3]);
+    virtual IkParamResourcePtr AddIkParam(const std::string& name, const std::string& iktype);
+
+    /// 0 -> off, 1 -> on, 2 -> partial
+    virtual void SetCollision(bool collision);
+    virtual int GetCollision();
+    virtual void SetVisible(bool visible);
+    virtual int GetVisible();
+
     std::string name;
     int nundof;
     std::string datemodified;
@@ -661,6 +724,8 @@ public:
     std::string scenepk;
     std::string unit;
     std::string uri;
+    Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+    Real translate[3];
 
 protected:
     ObjectResource(ControllerClientPtr controller, const std::string& resource, const std::string& pk);
@@ -858,6 +923,8 @@ public:
 
     /// \brief gets a list of all the scene primary keys currently available to the user
     virtual void GetTaskPrimaryKeys(std::vector<std::string>& taskkeys);
+
+    virtual void GetTaskNames(std::vector<std::string>& names);
 
     /// \brief gets a list of all the instance objects of the scene
     virtual void GetSensorMapping(std::map<std::string, std::string>& sensormapping);

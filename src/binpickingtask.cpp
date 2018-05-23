@@ -36,11 +36,13 @@
 #include <rapidjson/document.h>
 #include <rapidjson/writer.h>
 #include <rapidjson/stringbuffer.h>
+#include "mujincontrollerclient/mujinjson.h"
 
 MUJIN_LOGGER("mujin.controllerclientcpp.binpickingtask");
 
 namespace mujinclient {
 using namespace utils;
+using namespace mujinjson;
 
 BinPickingResultResource::BinPickingResultResource(ControllerClientPtr controller, const std::string& pk) : PlanningResultResource(controller,"binpickingresult", pk)
 {
@@ -50,7 +52,7 @@ BinPickingResultResource::~BinPickingResultResource()
 {
 }
 
-    BinPickingTaskResource::BinPickingTaskResource(ControllerClientPtr pcontroller, const std::string& pk, const std::string& scenepk, const std::string& tasktype) : TaskResource(pcontroller,pk), _zmqPort(-1), _heartbeatPort(-1), _tasktype(tasktype), _bIsInitialized(false)
+BinPickingTaskResource::BinPickingTaskResource(ControllerClientPtr pcontroller, const std::string& pk, const std::string& scenepk, const std::string& tasktype) : TaskResource(pcontroller,pk), _zmqPort(-1), _heartbeatPort(-1), _tasktype(tasktype), _bIsInitialized(false)
 {
     _scenepk = scenepk;
     // get hostname from uri
@@ -153,12 +155,15 @@ void BinPickingTaskResource::Initialize(const std::string& defaultTaskParameters
 }
 #endif
 
-boost::property_tree::ptree BinPickingResultResource::GetResultPtree() const
+void BinPickingResultResource::GetResultJson(rapidjson::Document& pt) const
 {
     GETCONTROLLERIMPL();
-    boost::property_tree::ptree pt;
+    //rapidjson::Document d(rapidjson::kObjectType);
     controller->CallGet(boost::str(boost::format("%s/%s/?format=json&limit=1")%GetResourceName()%GetPrimaryKey()), pt);
-    return pt.get_child("output");
+    // in this way we don't copy
+    rapidjson::Value v;
+    v.Swap(pt["output"]);
+    v.Swap(pt);
 }
 
 std::string utils::GetJsonString(const std::string& str)
@@ -291,7 +296,7 @@ std::string utils::GetJsonString(const BinPickingTaskResource::DetectedObject& o
 std::string utils::GetJsonString(const BinPickingTaskResource::PointCloudObstacle& obj)
 {
     std::stringstream ss;
-    ss << std::setprecision(std::numeric_limits<decltype(obj.points)::value_type>::digits10+1);
+    ss << std::setprecision(std::numeric_limits<float>::digits10+1);
     // "\"name\": __dynamicobstacle__, \"pointsize\": 0.005, \"points\": []
     ss << GetJsonString("pointcloudid") << ": " << GetJsonString(obj.name) << ", ";
     ss << GetJsonString("pointsize") << ": " << obj.pointsize <<", ";
@@ -353,51 +358,22 @@ BinPickingTaskResource::ResultGetJointValues::~ResultGetJointValues()
 {
 }
 
-void BinPickingTaskResource::ResultGetJointValues::Parse(const boost::property_tree::ptree& pt)
+void BinPickingTaskResource::ResultGetJointValues::Parse(const rapidjson::Value& pt)
 {
-    _pt = pt.get_child("output");
-    FOREACH(value, _pt) {
-        if( value->first == "robottype") {
-            robottype = value->second.data();
-        }
-        else if (value->first == "jointnames") {
-            jointnames.resize(value->second.size());
-            unsigned int i = 0;
-            FOREACH(v, value->second) {
-                jointnames[i++] = boost::lexical_cast<std::string>(v->second.data());
-            }
-        }
-        else if (value->first == "currentjointvalues" ) {
-            currentjointvalues.resize(value->second.size());
-            unsigned int i = 0;
-            FOREACH(v, value->second) {
-                currentjointvalues[i++] = boost::lexical_cast<Real>(v->second.data());
-            }
-        }
-        else if (value->first == "tools") {
-            FOREACH(v, value->second) {
-                std::string first = v->first;
-                FOREACH(value2, _pt) {
-                    if( value2->first == "translate") {
-                        unsigned int i = 0;
-                        if ( value2->second.size() != 3 ) {
-                            throw MujinException("the length of translation is invalid", MEC_Timeout);
-                        }
-                        FOREACH(v, value2->second) {
-                            tools[first].translate[i++] = boost::lexical_cast<Real>(v->second.data());
-                        }
-                    }
-                    else if (value2->first == "quaternion") {
-                        unsigned int i = 0;
-                        if ( value2->second.size() != 4 ) {
-                            throw MujinException("the length of quaternion is invalid", MEC_Timeout);
-                        }
-                        FOREACH(v, value2->second) {
-                            tools[first].quaternion[i++] = boost::lexical_cast<Real>(v->second.data());
-                        }
-                    }
-                }
-            }
+    BOOST_ASSERT(pt.IsObject() && pt.HasMember("output"));
+    const rapidjson::Value& v = pt["output"];
+
+    LoadJsonValueByKey(v, "robottype", robottype);
+    LoadJsonValueByKey(v, "jointnames", jointnames);
+    LoadJsonValueByKey(v, "currentjointvalues", currentjointvalues);
+    tools.clear();
+    if (v.HasMember("tools")) {
+        const rapidjson::Value &toolsjson = v["tools"];
+        for (rapidjson::Document::ConstMemberIterator it = toolsjson.MemberBegin(); it != toolsjson.MemberEnd(); it++) {
+            Transform transform;
+            LoadJsonValueByKey(it->value, "translate", transform.translate);
+            LoadJsonValueByKey(it->value, "quaternion", transform.quaternion);
+            tools[it->name.GetString()] = transform;
         }
     }
 }
@@ -406,172 +382,81 @@ BinPickingTaskResource::ResultMoveJoints::~ResultMoveJoints()
 {
 }
 
-void BinPickingTaskResource::ResultMoveJoints::Parse(const boost::property_tree::ptree& pt)
+void BinPickingTaskResource::ResultMoveJoints::Parse(const rapidjson::Value& pt)
 {
-    _pt = pt.get_child("output");
-    FOREACH(value, _pt) {
-        if (value->first == "robottype" ) {
-            robottype = value->second.data();
-        }
-        else if (value->first == "timedjointvalues") {
-            timedjointvalues.resize(value->second.size());
-            unsigned int i = 0;
-            FOREACH(v, value->second) {
-                timedjointvalues[i++] = boost::lexical_cast<Real>(v->second.data());
-            }
-        }
-        else if (value->first == "numpoints" ) {
-            numpoints = boost::lexical_cast<int>(value->second.data());
-        }
-        /*
-           else if (value.first == "elapsedtime" ) {
-           //TODO lexical_cast doesn't work with such kind of string: "4.99999999999998e-06"
-           elapsedtime = boost::lexical_cast<int>(value.second.data());
-           }
-         */
-    }
+    BOOST_ASSERT(pt.IsObject() && pt.HasMember("output"));
+    const rapidjson::Value& v = pt["output"];
+    LoadJsonValueByKey(v, "robottype", robottype);
+    LoadJsonValueByKey(v, "timedjointvalues", timedjointvalues);
+    LoadJsonValueByKey(v, "numpoints", numpoints);
 }
 
 BinPickingTaskResource::ResultTransform::~ResultTransform()
 {
 }
 
-void BinPickingTaskResource::ResultTransform::Parse(const boost::property_tree::ptree& pt)
+void BinPickingTaskResource::ResultTransform::Parse(const rapidjson::Value& pt)
 {
-    _pt = pt.get_child("output");
-    FOREACH(value, _pt) {
-        if( value->first == "translation") {
-            unsigned int i = 0;
-            if ( value->second.size() != 3 ) {
-                throw MujinException("the length of translation is invalid", MEC_Failed);
-            }
-            FOREACH(v, value->second) {
-                transform.translate[i++] = boost::lexical_cast<Real>(v->second.data());
-            }
-        }
-        else if (value->first == "quaternion") {
-            unsigned int i = 0;
-            if ( value->second.size() != 4 ) {
-                throw MujinException("the length of quaternion is invalid", MEC_Failed);
-            }
-            FOREACH(v, value->second) {
-                transform.quaternion[i++] = boost::lexical_cast<Real>(v->second.data());
-            }
-        }
-    }
+    BOOST_ASSERT(pt.IsObject() && pt.HasMember("output"));
+    const rapidjson::Value& v = pt["output"];
+
+    LoadJsonValueByKey(v, "translation", transform.translate);
+    LoadJsonValueByKey(v, "quaternion", transform.quaternion);
 }
 
 BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::~ResultGetInstObjectAndSensorInfo()
 {
 }
 
-void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const boost::property_tree::ptree& pt)
+void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const rapidjson::Value& pt)
 {
-    _pt = pt.get_child("output");
+    BOOST_ASSERT(pt.IsObject() && pt.HasMember("output"));
+    const rapidjson::Value& output = pt["output"];
 
-    FOREACH(v0, _pt.get_child("instobjects")) {
-        std::string objname = v0->first;
+    const rapidjson::Value& instobjects = output["instobjects"];
+    for (rapidjson::Document::ConstMemberIterator it = instobjects.MemberBegin(); it != instobjects.MemberEnd(); it++) {
+        std::string objname = it->name.GetString();
         Transform transform;
         ResultOBB resultobb, resultinnerobb;
-        FOREACH(value, v0->second) {
-            if( value->first == "translation") {
-                unsigned int i = 0;
-                if ( value->second.size() != 3 ) {
-                    throw MujinException("the length of translation is invalid", MEC_Failed);
-                }
-                FOREACH(v, value->second) {
-                    transform.translate[i++] = boost::lexical_cast<Real>(v->second.data());
-                }
-            } else if (value->first == "quaternion") {
-                unsigned int i = 0;
-                if ( value->second.size() != 4 ) {
-                    throw MujinException("the length of quaternion is invalid", MEC_Failed);
-                }
-                FOREACH(v, value->second) {
-                    transform.quaternion[i++] = boost::lexical_cast<Real>(v->second.data());
-                }
-            } else if (value->first == "obb") {
-                resultobb.Parse(value->second);
-            } else if (value->first == "innerobb") {
-                resultinnerobb.Parse(value->second);
-            }
-        }
+        LoadJsonValueByKey(it->value, "translation", transform.translate);
+        LoadJsonValueByKey(it->value, "quaternion", transform.quaternion);
+        resultobb.Parse(it->value["obb"]);
+        resultinnerobb.Parse(it->value["innerobb"]);
+
         minstobjecttransform[objname] = transform;
         minstobjectobb[objname] = resultobb;
         minstobjectinnerobb[objname] = resultinnerobb;
     }
-    FOREACH(v0, _pt.get_child("sensors")) {
-        std::string sensorname = v0->first;
+
+    const rapidjson::Value& sensors = output["sensors"];
+    for (rapidjson::Document::ConstMemberIterator it = sensors.MemberBegin(); it != sensors.MemberEnd(); it ++) {
+        std::string sensorname = it->name.GetString();
         Transform transform;
         RobotResource::AttachedSensorResource::SensorData sensordata;
-        FOREACH(value, v0->second) {
-            if( value->first == "translation") {
-                unsigned int i = 0;
-                if ( value->second.size() != 3 ) {
-                    throw MujinException("the length of translation is invalid", MEC_Failed);
-                }
-                FOREACH(v, value->second) {
-                    transform.translate[i++] = boost::lexical_cast<Real>(v->second.data());
-                }
-            }
-            else if (value->first == "quaternion") {
-                unsigned int i = 0;
-                if ( value->second.size() != 4 ) {
-                    throw MujinException("the length of quaternion is invalid", MEC_Failed);
-                }
-                FOREACH(v, value->second) {
-                    transform.quaternion[i++] = boost::lexical_cast<Real>(v->second.data());
-                }
-            }
-            else if (value->first == "sensordata") {
-                FOREACH(v1, value->second) {
-                    if (v1->first == "distortion_coeffs") {
-                        unsigned int i = 0;
-                        if ( v1->second.size() != 5 ) {
-                            throw MujinException("the length of distortion_coeffs is invalid", MEC_Failed);
-                        }
-                        FOREACH(v, v1->second) {
-                            sensordata.distortion_coeffs[i++] = boost::lexical_cast<Real>(v->second.data());
-                        }
-                    }
-                    else if (v1->first == "intrinsic") {
-                        unsigned int i = 0;
-                        if ( v1->second.size() != 6 ) {
-                            throw MujinException("the length of intrinsic is invalid", MEC_Failed);
-                        }
-                        FOREACH(v, v1->second) {
-                            sensordata.intrinsic[i++] = boost::lexical_cast<Real>(v->second.data());
-                        }
-                    }
-                    else if (v1->first == "image_dimensions") {
-                        unsigned int i = 0;
-                        if ( v1->second.size() == 3 ) {
-                            FOREACH(v, v1->second) {
-                                sensordata.image_dimensions[i++] = boost::lexical_cast<int>(v->second.data());
-                            }
-                        }
-                        else if ( v1->second.size() == 2 ) {
-                            FOREACH(v, v1->second) {
-                                sensordata.image_dimensions[i++] = boost::lexical_cast<int>(v->second.data());
-                            }
-                            sensordata.image_dimensions[2] = 1; // last dim is 1
-                        }
-                        else {
-                            throw MujinException("the length of image_dimensions is invalid", MEC_Failed);
-                        }
-                    }
-                    else if (v1->first == "extra_parameters") {
-                        unsigned int i = 0;
-                        FOREACH(v, v1->second) {
-                            sensordata.extra_parameters[i++] = boost::lexical_cast<Real>(v->second.data());
-                        }
-                    }
-                }
-                sensordata.distortion_model = value->second.get<std::string>("distortion_model");
-                sensordata.focal_length = value->second.get<Real>("focal_length");
-                sensordata.measurement_time = value->second.get<Real>("measurement_time");
-            }
+        LoadJsonValueByKey(it->value, "translation", transform.translate);
+        LoadJsonValueByKey(it->value, "quaternion", transform.quaternion);
+
+        const rapidjson::Value &sensor = it->value["sensordata"];
+        LoadJsonValueByKey(sensor, "distortion_coeffs", sensordata.distortion_coeffs);
+        LoadJsonValueByKey(sensor, "intrinsic", sensordata.intrinsic);
+
+        std::vector<int> imagedimensions;
+        LoadJsonValueByKey(sensor, "image_dimensions", imagedimensions);
+        if (imagedimensions.size() == 2) {
+            imagedimensions.push_back(1);
         }
+        if (imagedimensions.size() != 3) {
+            throw MujinException("the length of image_dimensions is invalid", MEC_Failed);
+        }
+        for (int i = 0; i < 3; i ++) {
+            sensordata.image_dimensions[i] = imagedimensions[i];
+        }
+
+        LoadJsonValueByKey(sensor, "extra_parameters", sensordata.extra_parameters);
+        LoadJsonValueByKey(sensor, "distortion_model", sensordata.distortion_model);
+        LoadJsonValueByKey(sensor, "focal_length", sensordata.focal_length);
+        LoadJsonValueByKey(sensor, "measurement_time", sensordata.measurement_time);
+
         msensortransform[sensorname] = transform;
         msensordata[sensorname] = sensordata;
     }
@@ -603,247 +488,163 @@ BinPickingTaskResource::ResultGetBinpickingState::~ResultGetBinpickingState()
 {
 }
 
-void BinPickingTaskResource::ResultGetBinpickingState::Parse(const boost::property_tree::ptree& pt)
+void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Value& pt)
 {
-    _pt = pt.get_child("output");
+    BOOST_ASSERT(pt.IsObject() && pt.HasMember("output"));
+    const rapidjson::Value& v = pt["output"];
 
-    statusPickPlace = _pt.get<std::string>("statusPickPlace", "unknown");
-    statusDescPickPlace = _pt.get<std::string>("statusDescPickPlace", "unknown");
-    statusPhysics = _pt.get<std::string>("statusPhysics", "unknown");
-    pickAttemptFromSourceId = _pt.get<int>("pickAttemptFromSourceId", -1);
-    isSourceContainerEmpty = _pt.get<bool>("isSourceContainerEmpty", false);
-    timestamp = (unsigned long long)(_pt.get<double>("timestamp", 0) * 1000.0); // s -> ms
-    lastGrabbedTargetTimeStamp = (unsigned long long)(_pt.get<double>("lastGrabbedTargetTimeStamp", 0) * 1000.0); // s -> ms
-    isRobotOccludingSourceContainer = _pt.get<bool>("isRobotOccludingSourceContainer", true);
-    forceRequestDetectionResults = _pt.get<bool>("forceRequestDetectionResults", true);
-    isGrabbingTarget = _pt.get<bool>("isGrabbingTarget", true);
-    isGrabbingLastTarget = _pt.get<bool>("isGrabbingLastTarget", true);
-    hasRobotExecutionStarted = _pt.get<bool>("hasRobotExecutionStarted", false);
-    boost::optional<boost::property_tree::ptree&> orderstatept(_pt.get_child_optional("orderstate"));
-    if (!!orderstatept) {
-        orderNumber = orderstatept->get<int>("orderNumber", -1);
-        numLeftInOrder = orderstatept->get<int>("numLeftInOrder", -1);
-        numLeftInSupply = orderstatept->get<int>("numLeftInSupply", -1);
-        placedInDest = orderstatept->get<int>("placedInDest", -1);
-    }
-    isControllerInError = _pt.get<bool>("isControllerInError", false);
-    robotbridgestatus = _pt.get<std::string>("robotbridgestatus", "unknown");
+    statusPickPlace = GetJsonValueByKey<std::string>(v, "statusPickPlace", "unknown");
+    statusDescPickPlace = GetJsonValueByKey<std::string>(v, "statusDescPickPlace", "unknown");
+    statusPhysics = GetJsonValueByKey<std::string>(v, "statusPhysics", "unknown");
+    pickAttemptFromSourceId = GetJsonValueByKey<int>(v, "pickAttemptFromSourceId", -1);
+    isSourceContainerEmpty = GetJsonValueByKey<bool>(v, "isSourceContainerEmpty", false);
+    timestamp = (unsigned long long)(GetJsonValueByKey<double>(v, "timestamp", 0) * 1000.0); // s -> ms
+    lastGrabbedTargetTimeStamp = (unsigned long long)(GetJsonValueByKey<double>(v, "lastGrabbedTargetTimeStamp", 0) * 1000.0); // s -> ms
+    isRobotOccludingSourceContainer = GetJsonValueByKey<bool>(v, "isRobotOccludingSourceContainer", true);
+    forceRequestDetectionResults = GetJsonValueByKey<bool>(v, "forceRequestDetectionResults", true);
+    isGrabbingTarget = GetJsonValueByKey<bool>(v, "isGrabbingTarget", true);
+    isGrabbingLastTarget = GetJsonValueByKey<bool>(v, "isGrabbingLastTarget", true);
+    hasRobotExecutionStarted = GetJsonValueByKey<bool>(v, "hasRobotExecutionStarted", false);
+    orderNumber = GetJsonValueByPath<int>(v, "/orderstate/orderNumber", -1);
+    numLeftInOrder = GetJsonValueByKey<int>(v, "/orderstate/numLeftInOrder", -1);
+    numLeftInSupply = GetJsonValueByKey<int>(v, "/orderstate/numLeftInSupply", -1);
+    placedInDest = GetJsonValueByKey<int>(v, "/orderstate/placedInDest", -1);
+    isControllerInError = GetJsonValueByKey<bool>(v, "isControllerInError", false);
+    robotbridgestatus = GetJsonValueByKey<std::string>(v, "robotbridgestatus", "unknown");
 
-    {
-        const boost::property_tree::ptree::const_assoc_iterator tool_val_itr = _pt.find("currentToolValues");
-        if (tool_val_itr != _pt.not_found()) {
-            currentToolValues.resize(tool_val_itr->second.size());
-            size_t idx = 0;
-            FOREACHC(value, tool_val_itr->second) {
-                currentToolValues[idx++] = boost::lexical_cast<Real>(value->second.data());
-            }
-        }
-        else {
-            MUJIN_LOG_VERBOSE("currentToolValues not found in ResultGetBinpickingState result")
-        }
-    }
-    {
-        const boost::property_tree::ptree::const_assoc_iterator joint_val_itr = _pt.find("currentJointValues");
-        if (joint_val_itr != _pt.not_found())
-        {
-            currentJointValues.resize(joint_val_itr->second.size());
-            size_t idx = 0;
-            FOREACHC(value, joint_val_itr->second) {
-                currentJointValues[idx++] = boost::lexical_cast<Real>(value->second.data());
-            }
-        }
-        else
-        {
-            MUJIN_LOG_VERBOSE("currentJointValues not found in ResultGetBinpickingState result")
-        }
-    }
-    {
-        const boost::property_tree::ptree::const_assoc_iterator joint_name_itr = _pt.find("jointNames");
-        if (joint_name_itr != _pt.not_found()) {
-            jointNames.resize(joint_name_itr->second.size());
-            size_t idx = 0;
-            FOREACHC(value, joint_name_itr->second) {
-                jointNames[idx++] = value->second.data();
-            }
-        }
-        else {
-            MUJIN_LOG_VERBOSE("jointNames not found in ResultGetBinpickingState result")
-        }
-    }
+    LoadJsonValueByKey(v, "currentToolValues", currentToolValues);
+    LoadJsonValueByKey(v, "currentJointValues", currentJointValues);
+    LoadJsonValueByKey(v, "jointNames", jointNames);
 }
 
 BinPickingTaskResource::ResultIsRobotOccludingBody::~ResultIsRobotOccludingBody()
 {
 }
 
-void BinPickingTaskResource::ResultIsRobotOccludingBody::Parse(const boost::property_tree::ptree& pt)
+void BinPickingTaskResource::ResultIsRobotOccludingBody::Parse(const rapidjson::Value& pt)
 {
-    _pt = pt.get_child("output");
-    FOREACH(value, _pt) {
-        if( value->first == "occluded") {
-            result = boost::lexical_cast<int>(value->second.data())==1;
-            return;
-        }
+    BOOST_ASSERT(pt.IsObject() && pt.HasMember("output"));
+    const rapidjson::Value& v = pt["output"];
+    if (!v.IsObject() || !v.HasMember("occluded")) {
+        throw MujinException("Output does not have \"occluded\" attribute!", MEC_Failed);
     }
-    std::stringstream ss;
-#if BOOST_VERSION > 104800
-    write_json (ss, pt, false); // pretty print false
-#else
-    write_json (ss, pt);
-#endif
-    MUJIN_LOG_ERROR(ss.str());
-    throw MujinException("Output does not have \"occluded\" attribute!", MEC_Failed);
+    result = GetJsonValueByKey<int>(v, "occluded", 1) == 1;
 }
 
-void BinPickingTaskResource::ResultGetPickedPositions::Parse(const boost::property_tree::ptree& pt)
+void BinPickingTaskResource::ResultGetPickedPositions::Parse(const rapidjson::Value& pt)
 {
-    _pt = pt.get_child("output");
-    FOREACH(value, _pt) {
-        if( value->first == "positions") {
-            FOREACH(v, value->second) {
-                boost::property_tree::ptree::const_iterator iter = v->second.begin();
-                Transform transform;
-                // w,x,y,z
-                for (unsigned int i=0; i<4; i++) {
-                    transform.quaternion[i]= boost::lexical_cast<Real>(iter->second.data());
-                    iter++;
+    BOOST_ASSERT(pt.IsObject() && pt.HasMember("output"));
+    const rapidjson::Value& v = pt["output"];
+    for (rapidjson::Document::ConstMemberIterator value = v.MemberBegin(); value != v.MemberEnd(); ++value) {
+        if (std::string(value->name.GetString()) == "positions" && value->value.IsArray()) {
+            for (rapidjson::Document::ConstValueIterator it = value->value.Begin(); it != value->value.End(); ++it) {
+                if (it->IsArray() && it->Size() >= 8) {
+                    Transform transform;
+                    for (int i = 0; i < 4; i++) {
+                        transform.quaternion[i] = (*it)[i].GetDouble();
+                    }
+                    for (int i = 0; i < 3; i++) {
+                        transform.translate[i] = (*it)[i + 4].GetDouble();
+                    }
+                    transforms.push_back(transform);
+                    timestamps.push_back((*it)[7].GetInt64());
                 }
-                // x,y,z
-                for (unsigned int i=0; i<3; i++) {
-                    //transform.translate[i]= boost::lexical_cast<Real>(iter->second.data())/1000.0f; // convert from milimeter to meter
-                    transform.translate[i]= boost::lexical_cast<Real>(iter->second.data());
-                    iter++;
-                }
-                transforms.push_back(transform);
-                //timestamps.push_back((unsigned long long)(boost::lexical_cast<Real>(iter->second.data())*1000.0f)); // convert from second to milisecond
-                timestamps.push_back((unsigned long long)(boost::lexical_cast<Real>(iter->second.data())));
             }
         }
     }
 }
 
-void BinPickingTaskResource::ResultAABB::Parse(const boost::property_tree::ptree& pt)
+void BinPickingTaskResource::ResultAABB::Parse(const rapidjson::Value& pt)
 {
-    _pt = pt.get_child("output");
-    FOREACH(value, _pt) {
-        if (value->first == "pos") {
-            if (value->second.size() != 3) {
-                throw MujinException("The length of pos is invalid.", MEC_Failed);
-            }
-            FOREACH(v,value->second) {
-                pos.push_back(boost::lexical_cast<Real>(v->second.data()));
-            }
-        }
-        else if (value->first == "extents") {
-            if (value->second.size() != 3) {
-                throw MujinException("The length of extents is invalid.", MEC_Failed);
-            }
-            FOREACH(v,value->second) {
-                extents.push_back(boost::lexical_cast<Real>(v->second.data()));
-            }
-        }
+    BOOST_ASSERT(pt.IsObject() && pt.HasMember("output"));
+    const rapidjson::Value& v = pt["output"];
+    LoadJsonValueByKey(v, "pos", pos);
+    LoadJsonValueByKey(v, "extents", extents);
+    if (pos.size() != 3) {
+        throw MujinException("The length of pos is invalid.", MEC_Failed);
+    }
+    if (extents.size() != 3) {
+        throw MujinException("The length of extents is invalid.", MEC_Failed);
     }
 }
 
-void BinPickingTaskResource::ResultOBB::Parse(const boost::property_tree::ptree& pt)
+void BinPickingTaskResource::ResultOBB::Parse(const rapidjson::Value& pt)
 {
-    if (pt.count("output") > 0) {
-        _pt = pt.get_child("output");
-    } else {
-        _pt = pt;
+    const rapidjson::Value&  v = (pt.IsObject()&&pt.HasMember("output")?pt["output"]:pt);
+
+    LoadJsonValueByKey(v, "translation", translation);
+    LoadJsonValueByKey(v, "extents", extents);
+    std::vector<std::vector<Real> > rotationmatrix;
+    LoadJsonValueByKey(v, "rotationmat", rotationmatrix);
+    if (translation.size() != 3) {
+        throw MujinException("The length of translation is invalid.", MEC_Failed);
     }
-    FOREACH(value, _pt) {
-        if (value->first == "translation") {
-            if (value->second.size() != 3) {
-                throw MujinException("The length of translation is invalid.", MEC_Failed);
-            }
-            FOREACH(v, value->second) {
-                translation.push_back(boost::lexical_cast<Real>(v->second.data()));
-            }
-        }
-        else if (value->first == "extents") {
-            if (value->second.size() != 3) {
-                throw MujinException("The length of extents is invalid.", MEC_Failed);
-            }
-            FOREACH(v,value->second) {
-                extents.push_back(boost::lexical_cast<Real>(v->second.data()));
-            }
-        }
-        else if (value->first == "rotationmat") {
-            if (value->second.size() != 3) {
-                throw MujinException("The row number of rotationmat is invalid.", MEC_Failed);
-            }
-            FOREACH(vr, value->second) {
-                if (vr->second.size() != 3) {
-                    throw MujinException("The column number of rotationmat is invalid.", MEC_Failed);
-                }
-                FOREACH(vc, vr->second) {
-                    rotationmat.push_back(boost::lexical_cast<Real>(vc->second.data()));
-                }
-            }
-        }
+    if (extents.size() != 3) {
+        throw MujinException("The length of extents is invalid.", MEC_Failed);
     }
+    if (rotationmatrix.size() != 3 || rotationmatrix[0].size() != 3 || rotationmatrix[1].size() != 3 || rotationmatrix[2].size() != 3) {
+        throw MujinException("The row number of rotationmat is invalid.", MEC_Failed);
+    }
+    for (int i = 0; i < 3; i ++)
+        for (int j = 0; j < 3; j ++) {
+            rotationmat.push_back(rotationmatrix[i][j]);
+        }
 }
 
 BinPickingTaskResource::ResultHeartBeat::~ResultHeartBeat()
 {
 }
 
-void BinPickingTaskResource::ResultHeartBeat::Parse(const boost::property_tree::ptree& pt)
+void BinPickingTaskResource::ResultHeartBeat::Parse(const rapidjson::Value& pt)
 {
-    _pt = pt;
     status = "";
     msg = "";
     timestamp = 0;
-    FOREACH(value, _pt) {
-        if (value->first == "status") {
-            status = std::string(value->second.data());
-        }
-        else if (value->first == "message") {
-            msg = std::string(value->second.data());
-        }
-        else if (value->first == "timestamp") {
-            timestamp = boost::lexical_cast<Real>(value->second.data());
-        }
-        else if (value->first == "slavestates" &&
-                 _slaverequestid.size() > 0 ) {
-            try {
-                boost::property_tree::ptree t;
-                t.put_child("output", value->second.get_child("slaverequestid-" + _slaverequestid + ".taskstate"));
-                taskstate.Parse(t);
-            } catch (...) {
-                //MUJIN_LOG_ERROR("failed to parse slavestates");
-            }
+    LoadJsonValueByKey(pt, "status", status);
+    LoadJsonValueByKey(pt, "message",msg);
+    LoadJsonValueByKey(pt, "timestamp", timestamp);
+    if (pt.HasMember("slavestates") && _slaverequestid.size() > 0) {
+        rapidjson::Document d(rapidjson::kObjectType), taskstatejson;
+        std::string key = "slaverequestid-" + _slaverequestid;
+        try {
+            taskstatejson.CopyFrom(pt["slavestates"][key.c_str()]["taskstate"], taskstatejson.GetAllocator());
+            SetJsonValueByKey(d, "output", taskstatejson);
+            taskstate.Parse(d);
+        } catch (...){
+
         }
     }
 }
 
-namespace
-{
-void SetMapTaskParameters(std::stringstream& ss, const std::map<std::string, std::string>& params)
-{
-    ss.str(""); ss.clear();
-    ss << "{";
-    FOREACHC(it, params) {
-        ss << "\"" << it->first << "\":" << it->second << ", ";
+namespace {
+    void SetMapTaskParameters(std::stringstream &ss, const std::map<std::string, std::string> &params) {
+        ss.str("");
+        ss.clear();
+        ss << "{";
+                FOREACHC(it, params) {
+            ss << "\"" << it->first << "\":" << it->second << ", ";
+        }
     }
-}
 
-void SerializeGetStateCommand(std::stringstream& ss, const std::map<std::string, std::string>& params, const std::string& functionname, const std::string& tasktype, const std::string& robotname, const std::string& unit, const double timeout)
-{
-    SetMapTaskParameters(ss, params);
+    void SerializeGetStateCommand(std::stringstream &ss, const std::map<std::string, std::string> &params,
+                                  const std::string &functionname, const std::string &tasktype,
+                                  const std::string &robotname, const std::string &unit, const double timeout) {
+        SetMapTaskParameters(ss, params);
 
-    ss << GetJsonString("command", functionname) << ", ";
-    ss << GetJsonString("tasktype", tasktype) << ", ";
-    if (!robotname.empty()) {
-        ss << GetJsonString("robotname", robotname) << ", ";
+        ss << GetJsonString("command", functionname) << ", ";
+        ss << GetJsonString("tasktype", tasktype) << ", ";
+        if (!robotname.empty()) {
+            ss << GetJsonString("robotname", robotname) << ", ";
+        }
+        ss << GetJsonString("unit", unit);
+        ss << "}";
     }
-    ss << GetJsonString("unit", unit);
-    ss << "}";
-}
 
-void GenerateMoveToolCommand(const std::string& movetype, const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname, const std::string& toolname, const double robotspeed, Real envclearance, std::stringstream& ss, const std::map<std::string, std::string>& params)
-    {
+    void
+    GenerateMoveToolCommand(const std::string &movetype, const std::string &goaltype, const std::vector<double> &goals,
+                            const std::string &robotname, const std::string &toolname, const double robotspeed,
+                            Real envclearance, std::stringstream &ss,
+                            const std::map<std::string, std::string> &params) {
         SetMapTaskParameters(ss, params);
         ss << GetJsonString("command", movetype) << ", ";
         ss << GetJsonString("goaltype", goaltype) << ", ";
@@ -864,18 +665,13 @@ void GenerateMoveToolCommand(const std::string& movetype, const std::string& goa
 
     }
 
-void SetTrajectory(const boost::property_tree::ptree pt,
-                   std::string* pTraj)
-{
-    const boost::property_tree::ptree output = pt.get_child("output");
-    FOREACHC(value, output) {
-        if (value->first == "trajectory") {
-            *pTraj = value->second.data();
-            return;
+    void SetTrajectory(const rapidjson::Value &pt,
+                       std::string *pTraj) {
+        if (!(pt.IsObject() && pt.HasMember("output") && pt["output"].HasMember("trajectory"))) {
+            throw MujinException("trajectory is not available in output", MEC_Failed);
         }
+        *pTraj = GetJsonValueByPath<std::string>(pt, "/output/trajectory");
     }
-    throw MujinException("trajectory is not available in output", MEC_Failed);
-}
 }
 
 void BinPickingTaskResource::GetJointValues(ResultGetJointValues& result, const double timeout)
@@ -888,7 +684,9 @@ void BinPickingTaskResource::GetJointValues(ResultGetJointValues& result, const 
     _ss << GetJsonString("tasktype", _tasktype);
     _ss << "}";
 
-    result.Parse(ExecuteCommand(_ss.str(), timeout));
+    rapidjson::Document pt(rapidjson::kObjectType);
+    ExecuteCommand(_ss.str(), pt, timeout);
+    result.Parse(pt);
 }
 
 void BinPickingTaskResource::MoveJoints(const std::vector<Real>& goaljoints, const std::vector<int>& jointindices, const Real envclearance, const Real speed, ResultMoveJoints& result, const double timeout, std::string* pTraj)
@@ -907,7 +705,8 @@ void BinPickingTaskResource::MoveJoints(const std::vector<Real>& goaljoints, con
     _ss << GetJsonString("speed", speed);
     _ss << "}";
 
-    const boost::property_tree::ptree pt = ExecuteCommand(_ss.str(), timeout);
+    rapidjson::Document pt(rapidjson::kObjectType);
+    ExecuteCommand(_ss.str(), pt, timeout);
     result.Parse(pt);
     if (!!pTraj) {
         SetTrajectory(pt, pTraj);
@@ -924,7 +723,9 @@ void BinPickingTaskResource::GetTransform(const std::string& targetname, Transfo
     _ss << GetJsonString("unit", unit);
     _ss << "}";
     ResultTransform result;
-    result.Parse(ExecuteCommand(_ss.str(), timeout));
+    rapidjson::Document pt(rapidjson::kObjectType);
+    ExecuteCommand(_ss.str(), pt, timeout);
+    result.Parse(pt);
     transform = result.transform;
 }
 
@@ -938,7 +739,8 @@ void BinPickingTaskResource::SetTransform(const std::string& targetname, const T
     _ss << GetJsonString(transform) << ", ";
     _ss << GetJsonString("unit", unit);
     _ss << "}";
-    ExecuteCommand(_ss.str(), timeout); // need to check return code
+    rapidjson::Document d;
+    ExecuteCommand(_ss.str(), d, timeout); // need to check return code
 }
 
 void BinPickingTaskResource::GetManipTransformToRobot(Transform& transform, const std::string& unit, const double timeout)
@@ -950,7 +752,9 @@ void BinPickingTaskResource::GetManipTransformToRobot(Transform& transform, cons
     _ss << GetJsonString("unit", unit);
     _ss << "}";
     ResultTransform result;
-    result.Parse(ExecuteCommand(_ss.str(), timeout));
+    rapidjson::Document pt(rapidjson::kObjectType);
+    ExecuteCommand(_ss.str(), pt, timeout);
+    result.Parse(pt);
     transform = result.transform;
 }
 
@@ -963,7 +767,9 @@ void BinPickingTaskResource::GetManipTransform(Transform& transform, const std::
     _ss << GetJsonString("unit", unit);
     _ss << "}";
     ResultTransform result;
-    result.Parse(ExecuteCommand(_ss.str(), timeout));
+    rapidjson::Document pt(rapidjson::kObjectType);
+    ExecuteCommand(_ss.str(), pt, timeout);
+    result.Parse(pt);
     transform = result.transform;
 }
 
@@ -976,7 +782,9 @@ void BinPickingTaskResource::GetAABB(const std::string& targetname, ResultAABB& 
     _ss << GetJsonString("tasktype", _tasktype) << ", ";
     _ss << GetJsonString("unit", unit);
     _ss << "}";
-    result.Parse(ExecuteCommand(_ss.str(), timeout));
+    rapidjson::Document pt(rapidjson::kObjectType);
+    ExecuteCommand(_ss.str(), pt, timeout);
+    result.Parse(pt);
 }
 
 void BinPickingTaskResource::GetInnerEmptyRegionOBB(ResultOBB& result, const std::string& targetname, const std::string& linkname, const std::string& unit, const double timeout)
@@ -991,7 +799,9 @@ void BinPickingTaskResource::GetInnerEmptyRegionOBB(ResultOBB& result, const std
     _ss << GetJsonString("tasktype", _tasktype) << ", ";
     _ss << GetJsonString("unit", unit);
     _ss << "}";
-    result.Parse(ExecuteCommand(_ss.str(), timeout));
+    rapidjson::Document pt(rapidjson::kObjectType);
+    ExecuteCommand(_ss.str(), pt, timeout);
+    result.Parse(pt);
 }
 
 void BinPickingTaskResource::GetOBB(ResultOBB& result, const std::string& targetname, const std::string& linkname, const std::string& unit, const double timeout)
@@ -1006,7 +816,9 @@ void BinPickingTaskResource::GetOBB(ResultOBB& result, const std::string& target
     _ss << GetJsonString("tasktype", _tasktype) << ", ";
     _ss << GetJsonString("unit", unit);
     _ss << "}";
-    result.Parse(ExecuteCommand(_ss.str(), timeout));
+    rapidjson::Document pt(rapidjson::kObjectType);
+    ExecuteCommand(_ss.str(), pt, timeout);
+    result.Parse(pt);
 }
 
 void BinPickingTaskResource::InitializeZMQ(const double reinitializetimeout, const double timeout)
@@ -1044,7 +856,8 @@ void BinPickingTaskResource::UpdateObjects(const std::string& objectname, const 
     }
     _ss << GetJsonString("unit", unit);
     _ss << "}";
-    ExecuteCommand(_ss.str(), timeout); // need to check return code
+    rapidjson::Document d;
+    ExecuteCommand(_ss.str(), d, timeout); // need to check return code
 }
 
 void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<float>&vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp, const unsigned long long endtimestamp, const bool executionverification, const std::string& unit, int isoccluded, const std::string& regionname, const double timeout, bool clampToContainer)
@@ -1069,7 +882,8 @@ void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<float>&vpoi
     }
     _ss << ", " << GetJsonString("unit", unit);
     _ss << "}";
-    ExecuteCommand(_ss.str(), timeout); // need to check return code
+    rapidjson::Document d;
+    ExecuteCommand(_ss.str(), d, timeout); // need to check return code
 }
 
 void BinPickingTaskResource::UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<float>& vpoints, const std::string& state, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit, const double timeout, const std::string& regionname, const std::string& locationIOName, const std::vector<std::string>& cameranames)
@@ -1103,7 +917,8 @@ void BinPickingTaskResource::UpdateEnvironmentState(const std::string& objectnam
     _ss << GetJsonString(pointcloudobstacle);
 
     _ss << "}";
-    ExecuteCommand(_ss.str(), timeout); // need to check return code
+    rapidjson::Document d;
+    ExecuteCommand(_ss.str(),d, timeout); // need to check return code
 }
 
 void BinPickingTaskResource::RemoveObjectsWithPrefix(const std::string& prefix, double timeout)
@@ -1113,7 +928,8 @@ void BinPickingTaskResource::RemoveObjectsWithPrefix(const std::string& prefix, 
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("prefix", prefix);
     _ss << "}";
-    ExecuteCommand(_ss.str(), timeout);
+    rapidjson::Document d;
+    ExecuteCommand(_ss.str(),d, timeout);
     
 }
 void BinPickingTaskResource::VisualizePointCloud(const std::vector<std::vector<float> >&pointslist, const Real pointsize, const std::vector<std::string>&names, const std::string& unit, const double timeout)
@@ -1141,7 +957,8 @@ void BinPickingTaskResource::VisualizePointCloud(const std::vector<std::vector<f
     _ss << "]" << ", ";
     _ss << GetJsonString("unit", unit);
     _ss << "}";
-    ExecuteCommand(_ss.str(), timeout); // need to check return code
+    rapidjson::Document d(rapidjson::kObjectType);
+    ExecuteCommand(_ss.str(),d, timeout); // need to check return code
 }
 
 void BinPickingTaskResource::ClearVisualization(const double timeout)
@@ -1151,7 +968,8 @@ void BinPickingTaskResource::ClearVisualization(const double timeout)
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("tasktype", _tasktype) << ", ";
     _ss << "}";
-    ExecuteCommand(_ss.str(), timeout); // need to check return code
+    rapidjson::Document d;
+    ExecuteCommand(_ss.str(), d, timeout); // need to check return code
 }
 
 void BinPickingTaskResource::GetPickedPositions(ResultGetPickedPositions& r, const std::string& unit, const double timeout)
@@ -1162,7 +980,8 @@ void BinPickingTaskResource::GetPickedPositions(ResultGetPickedPositions& r, con
     _ss << GetJsonString("tasktype", _tasktype) << ", ";
     _ss << GetJsonString("unit", unit);
     _ss << "}";
-    boost::property_tree::ptree pt = ExecuteCommand(_ss.str(), timeout);
+    rapidjson::Document pt(rapidjson::kObjectType);
+    ExecuteCommand(_ss.str(), pt, timeout);
     r.Parse(pt);
 }
 
@@ -1180,23 +999,25 @@ void BinPickingTaskResource::IsRobotOccludingBody(const std::string& bodyname, c
     _ss << GetJsonString(check);
     _ss << "}";
     ResultIsRobotOccludingBody result;
-    result.Parse(ExecuteCommand(_ss.str(), timeout));
+    rapidjson::Document pt(rapidjson::kObjectType);
+    ExecuteCommand(_ss.str(), pt, timeout);
+    result.Parse(pt);
     r = result.result;
 }
 
 PlanningResultResourcePtr BinPickingTaskResource::GetResult()
 {
     GETCONTROLLERIMPL();
-    boost::property_tree::ptree pt;
+    rapidjson::Document pt(rapidjson::kObjectType);
     controller->CallGet(str(boost::format("task/%s/result/?format=json&limit=1&optimization=None&fields=pk,errormessage")%GetPrimaryKey()), pt);
-    boost::property_tree::ptree& objects = pt.get_child("objects");
     BinPickingResultResourcePtr result;
-    if( objects.size() > 0 ) {
-        std::string pk = objects.begin()->second.get<std::string>("pk");
+    if(pt.IsObject() && pt.HasMember("objects") && pt["objects"].IsArray() && pt["objects"].Size() > 0) {
+        rapidjson::Value& objects = pt["objects"];
+        std::string pk = GetJsonValueByKey<std::string>(objects[0], "pk", pk);
         result.reset(new BinPickingResultResource(controller, pk));
-        boost::optional<std::string> erroptional = objects.begin()->second.get_optional<std::string>("errormessage");
-        if (!!erroptional && erroptional.get().size() > 0 ) {
-            throw MujinException(erroptional.get(), MEC_BinPickingError);
+        std::string erroptional = GetJsonValueByKey<std::string>(objects[0], "errormessage");
+        if (erroptional.size() > 0  && erroptional != "succeed") {
+            throw MujinException(erroptional, MEC_BinPickingError);
         }
     }
     return result;
@@ -1212,18 +1033,13 @@ void BinPickingTaskResource::GetInstObjectAndSensorInfo(const std::vector<std::s
     _ss << GetJsonString("sensornames") << ": " << GetJsonString(sensornames) << ", ";
     _ss << GetJsonString("unit", unit);
     _ss << "}";
-    boost::property_tree::ptree pt = ExecuteCommand(_ss.str(), timeout);
+    rapidjson::Document pt(rapidjson::kObjectType);
+    ExecuteCommand(_ss.str(), pt, timeout);
     try {
         result.Parse(pt);
     }
     catch(const std::exception& ex) {
-        std::stringstream sstemp;
-#if BOOST_VERSION > 104800
-        write_json (sstemp, pt, true); // pretty print true
-#else
-        write_json (sstemp, pt);
-#endif
-        MUJIN_LOG_ERROR(str(boost::format("got error when parsing result: %s")%sstemp.str()));
+        MUJIN_LOG_ERROR(str(boost::format("got error when parsing result: %s")%DumpJson(pt)));
         throw;
     }
 }
@@ -1256,14 +1072,16 @@ void BinPickingTaskResource::GetPublishedTaskState(ResultGetBinpickingState& res
 void BinPickingTaskResource::GetBinpickingState(ResultGetBinpickingState& result, const std::string& robotname, const std::string& unit, const double timeout)
 {
     SerializeGetStateCommand(_ss, _mapTaskParameters, "GetBinpickingState", _tasktype, robotname, unit, timeout);
-    boost::property_tree::ptree pt = ExecuteCommand(_ss.str(), timeout);
+    rapidjson::Document pt(rapidjson::kObjectType);
+    ExecuteCommand(_ss.str(), pt, timeout);
     result.Parse(pt);
 }
 
 void BinPickingTaskResource::GetITLState(ResultGetBinpickingState& result, const std::string& robotname, const std::string& unit, const double timeout)
 {
     SerializeGetStateCommand(_ss, _mapTaskParameters, "GetITLState", _tasktype, robotname, unit, timeout);
-    boost::property_tree::ptree pt = ExecuteCommand(_ss.str(), timeout);
+    rapidjson::Document pt(rapidjson::kObjectType);
+    ExecuteCommand(_ss.str(), pt, timeout);
     result.Parse(pt);
 }
 
@@ -1288,7 +1106,8 @@ void BinPickingTaskResource::SetJogModeVelocities(const std::string& jogtype, co
     _ss << GetJsonString("movejointsigns") << ": " << GetJsonString(movejointsigns);
     _ss << "}";
     //std::cout << "Sending\n" << _ss.str() << " from " << __func__ << std::endl;
-    ExecuteCommand(_ss.str(), timeout);
+    rapidjson::Document d;
+    ExecuteCommand(_ss.str(), d, timeout);
 }
 
 void BinPickingTaskResource::MoveToolLinear(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname, const std::string& toolname, const double workspeedlin, const double workspeedrot, bool checkEndeffectorCollision, const double timeout, std::string* pTraj)
@@ -1305,7 +1124,9 @@ void BinPickingTaskResource::MoveToolLinear(const std::string& goaltype, const s
         _mapTaskParameters["workspeed"] = ss.str();
     }
     GenerateMoveToolCommand("MoveToolLinear", goaltype, goals, robotname, toolname, -1, -1, _ss, _mapTaskParameters);
-    const boost::property_tree::ptree pt = ExecuteCommand(_ss.str(), timeout);
+
+    rapidjson::Document pt(rapidjson::kObjectType);
+    ExecuteCommand(_ss.str(), pt, timeout);
     if (!!pTraj) {
         SetTrajectory(pt, pTraj);
     }
@@ -1316,7 +1137,9 @@ void BinPickingTaskResource::MoveToHandPosition(const std::string& goaltype, con
     _mapTaskParameters["execute"] = !!pTraj ? "0" : "1";
 
     GenerateMoveToolCommand("MoveToHandPosition", goaltype, goals, robotname, toolname, robotspeed, envclearance, _ss, _mapTaskParameters);
-    const boost::property_tree::ptree pt = ExecuteCommand(_ss.str(), timeout);
+
+    rapidjson::Document pt(rapidjson::kObjectType);
+    ExecuteCommand(_ss.str(), pt, timeout);
     if (!!pTraj) {
         SetTrajectory(pt, pTraj);
     }
@@ -1329,7 +1152,8 @@ void BinPickingTaskResource::ExecuteSingleXMLTrajectory(const std::string& traje
     _ss << GetJsonString("command", "ExecuteSingleXMLTrajectory") << ", "
         << GetJsonString("filtertraj", filterTraj ? 1 : 0) << ", "
         << GetJsonString("trajectory", trajectory) << "}";
-    ExecuteCommand(_ss.str(), timeout);
+    rapidjson::Document d;
+    ExecuteCommand(_ss.str(), d, timeout);
 }
 
 void BinPickingTaskResource::Grab(const std::string& targetname, const std::string& robotname, const std::string& toolname, const double timeout)
@@ -1344,7 +1168,8 @@ void BinPickingTaskResource::Grab(const std::string& targetname, const std::stri
         _ss << GetJsonString("toolname", toolname) << ", ";
     }
     _ss << "}";
-    ExecuteCommand(_ss.str(), timeout);
+    rapidjson::Document d;
+    ExecuteCommand(_ss.str(), d, timeout);
 }
 
 void BinPickingTaskResource::Release(const std::string& targetname, const std::string& robotname, const std::string& toolname, const double timeout)
@@ -1359,7 +1184,8 @@ void BinPickingTaskResource::Release(const std::string& targetname, const std::s
         _ss << GetJsonString("toolname", toolname) << ", ";
     }
     _ss << "}";
-    ExecuteCommand(_ss.str(), timeout);
+    rapidjson::Document d;
+    ExecuteCommand(_ss.str(), d, timeout);
 }
 
 const std::string& BinPickingTaskResource::GetSlaveRequestId() const
@@ -1367,7 +1193,7 @@ const std::string& BinPickingTaskResource::GetSlaveRequestId() const
     return _slaverequestid;
 }
 
-boost::property_tree::ptree BinPickingTaskResource::ExecuteCommand(const std::string& taskparameters, const double timeout, const bool getresult)
+void BinPickingTaskResource::ExecuteCommand(const std::string& taskparameters, rapidjson::Document& d, const double timeout, const bool getresult)
 {
     if (!_bIsInitialized) {
         throw MujinException("BinPicking task is not initialized, please call Initialzie() first.", MEC_Failed);
@@ -1384,7 +1210,7 @@ boost::property_tree::ptree BinPickingTaskResource::ExecuteCommand(const std::st
     }
     ss << "}";
     const std::string taskgoalput = ss.str();
-    boost::property_tree::ptree pt;
+    rapidjson::Document pt(rapidjson::kObjectType);
     controller->CallPutJSON(str(boost::format("task/%s/?format=json")%GetPrimaryKey()), taskgoalput, pt);
     //controller->CallGet(str(boost::format("scene/%s/resultget") % _scenepk), taskgoalput, pt);
     Execute();
@@ -1395,9 +1221,9 @@ boost::property_tree::ptree BinPickingTaskResource::ExecuteCommand(const std::st
         resultresource = boost::dynamic_pointer_cast<BinPickingResultResource>(GetResult());
         if( !!resultresource ) {
             if (getresult) {
-                return resultresource->GetResultPtree();
+                resultresource->GetResultJson(d);
             }
-            return boost::property_tree::ptree();
+            return;
         }
         boost::this_thread::sleep(boost::posix_time::milliseconds(100));
         secondspassed+=0.1;
@@ -1611,7 +1437,6 @@ std::string utils::GetHeartbeat(const std::string& endpoint) {
     pollitem.socket = socket;
     pollitem.events = ZMQ_POLLIN;
 
-    boost::property_tree::ptree pt;
     zmq::poll(&pollitem,1, 50); // wait 50 ms for message
     if (!(pollitem.revents & ZMQ_POLLIN)) {
         return "";
@@ -1635,17 +1460,14 @@ std::string utils::GetHeartbeat(const std::string& endpoint) {
 
 
 namespace {
-std::string FindSmallestSlaveRequestId(const boost::property_tree::ptree& pt) {
+std::string FindSmallestSlaveRequestId(const rapidjson::Value& pt) {
     // get all slave request ids
     std::vector<std::string> slavereqids;
-    FOREACHC(it1, pt) {
-        if (it1->first != "slavestates") {
-            continue;
+    if (pt.IsObject() && pt.HasMember("slavestates")) {
+        const rapidjson::Value& slavestates = pt["slavestates"];
+        for (rapidjson::Document::ConstMemberIterator it = slavestates.MemberBegin(); it != slavestates.MemberEnd(); ++it) {
+            slavereqids.push_back(it->name.GetString());
         }
-        FOREACHC(it2, it1->second) {
-            slavereqids.push_back(it2->first);
-        }
-        break;
     }
 
     // find numerically smallest suffix (find one with smallest ### in slave request id of form hostname_slave###)
@@ -1681,17 +1503,15 @@ std::string FindSmallestSlaveRequestId(const boost::property_tree::ptree& pt) {
 std::string GetValueForSmallestSlaveRequestId(const std::string& heartbeat,
                                                      const std::string& key)
 {
-    boost::property_tree::ptree pt;
+
+    rapidjson::Document pt(rapidjson::kObjectType);
     std::stringstream ss(heartbeat);
-#if defined(_WIN32) || defined(_WIN64)
-    ParsePropertyTreeWin(ss.str(), pt);
-#else
-    boost::property_tree::read_json(ss, pt);
-#endif
+    ParseJson(pt, ss.str());
     try {
         const std::string slavereqid = FindSmallestSlaveRequestId(pt);
-
-        return pt.get_child("slavestates").get_child(slavereqid).get_child(key).data();
+        std::string result;
+        LoadJsonValue(pt["slavestates"][slavereqid.c_str()][key.c_str()], result);
+        return result;
     }
     catch (const MujinException& ex) {
         throw MujinException(boost::str(boost::format("%s from heartbeat:\n%s")%ex.what()%heartbeat));
@@ -1707,13 +1527,9 @@ std::string mujinclient::utils::GetScenePkFromHeatbeat(const std::string& heartb
 }
 
 std::string utils::GetSlaveRequestIdFromHeatbeat(const std::string& heartbeat) {
-    boost::property_tree::ptree pt;
+    rapidjson::Document pt;
     std::stringstream ss(heartbeat);
-#if defined(_WIN32) || defined(_WIN64)
-    ParsePropertyTreeWin(ss.str(), pt);
-#else
-    boost::property_tree::read_json(ss, pt);
-#endif
+    ParseJson(pt, ss.str());
     try {
         static const std::string prefix("slaverequestid-");
         return FindSmallestSlaveRequestId(pt).substr(prefix.length());

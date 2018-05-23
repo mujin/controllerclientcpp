@@ -35,7 +35,7 @@ public:
 
     ~BinPickingTaskZmqResource();
 
-    boost::property_tree::ptree ExecuteCommand(const std::string& command, const double timeout /* [sec] */=0.0, const bool getresult=true);
+    void ExecuteCommand(const std::string& command, rapidjson::Document&d, const double timeout /* [sec] */=0.0, const bool getresult=true);
 
     void Initialize(const std::string& defaultTaskParameters, const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq=false, const double reinitializetimeout=10, const double timeout=0, const std::string& userinfo="{}", const std::string& slaverequestid="");
 
