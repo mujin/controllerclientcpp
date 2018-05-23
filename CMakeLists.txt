@@ -271,7 +271,7 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 
 find_package(ZeroMQ QUIET)
 if( ZeroMQ_FOUND )
-  set(libzmq_INCLUDE_DIRS "${ZeroMQ_INCLUDE_DIR}")
+  include_directories(${ZeroMQ_INCLUDE_DIR})
   set(libzmq_LIBRARIES "${ZeroMQ_LIBRARY}")
   set(libzmq_FOUND 1)
 else()
