@@ -22,6 +22,7 @@
 #include <algorithm> // find
 
 #include "logging.h"
+#include "mujincontrollerclient/mujinjson.h"
 
 MUJIN_LOGGER("mujin.controllerclientcpp.binpickingtask.zmq");
 
@@ -29,6 +30,7 @@ using namespace mujinzmq;
 
 namespace mujinclient {
 using namespace utils;
+using namespace mujinjson;
 
 class ZmqMujinControllerClient : public mujinzmq::ZmqClient
 {
@@ -78,7 +80,7 @@ void BinPickingTaskZmqResource::Initialize(const std::string& defaultTaskParamet
     }
 }
 
-boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std::string& taskparameters, const double timeout /* [sec] */, const bool getresult)
+void BinPickingTaskZmqResource::ExecuteCommand(const std::string& taskparameters, rapidjson::Document &pt, const double timeout /* [sec] */, const bool getresult)
 {
     if (!_bIsInitialized) {
         throw MujinException("BinPicking task is not initialized, please call Initialzie() first.", MEC_Failed);
@@ -107,7 +109,6 @@ boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std:
     //    std::cout << "Sending " << command << " from " << __func__ << std::endl;
 
     //std::string task = "{\"tasktype\": \"binpicking\", \"taskparameters\": " + command + "}";
-    boost::property_tree::ptree pt;
     if (getresult) {
         std::stringstream result_ss;
 
@@ -133,34 +134,24 @@ boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std:
             }
         }
 
-        try {
-#if defined(_WIN32) || defined(_WIN64)
-            ParsePropertyTreeWin(result_ss.str(), pt);
-#else
-            boost::property_tree::read_json(result_ss, pt);
-#endif
-            boost::property_tree::ptree::const_assoc_iterator iterror = pt.find("error");
-            if( iterror != pt.not_found() ) {
-                boost::optional<std::string> erroroptional = iterror->second.get_optional<std::string>("errorcode");
-                boost::optional<std::string> descriptionoptional = iterror->second.get_optional<std::string>("description");
-                if (!!erroroptional && erroroptional.get().size() > 0 ) {
-                    std::string serror;
-                    if (!!descriptionoptional && descriptionoptional.get().size() > 0 ) {
-                        serror = descriptionoptional.get();
-                    }
-                    else {
-                        serror = erroroptional.get();
-                    }
-                    if( serror.size() > 1000 ) {
-                        MUJIN_LOG_ERROR(str(boost::format("truncated original error message from %d")%serror.size()));
-                        serror = serror.substr(0,1000);
-                    }
-                    
-                    throw MujinException(str(boost::format("Error when calling binpicking.RunCommand: %s")%serror), MEC_BinPickingError);
+        ParseJson(pt, result_ss.str());
+        if( pt.IsObject() && pt.HasMember("error")) {
+            std::string error = GetJsonValueByKey<std::string>(pt["error"], "errorcode");
+            std::string description = GetJsonValueByKey<std::string>(pt["error"], "description");
+            if ( error.size() > 0 ) {
+                std::string serror;
+                if ( description.size() > 0 ) {
+                    serror = description;
                 }
+                else {
+                    serror = error;
+                }
+                if( serror.size() > 1000 ) {
+                    MUJIN_LOG_ERROR(str(boost::format("truncated original error message from %d")%serror.size()));
+                    serror = serror.substr(0,1000);
+                }
+                throw MujinException(str(boost::format("Error when calling binpicking.RunCommand: %s")%serror), MEC_BinPickingError);
             }
-        } catch (boost::property_tree::ptree_error& e) {
-            throw MujinException(boost::str(boost::format("Failed to parse json which is received from mujin controller: \nreceived message: %s \nerror message: %s")%result_ss.str()%e.what()), MEC_Failed);
         }
     } else {
         try{
@@ -186,7 +177,6 @@ boost::property_tree::ptree BinPickingTaskZmqResource::ExecuteCommand(const std:
             }
         }
     }
-    return pt;
 }
 
 void BinPickingTaskZmqResource::InitializeZMQ(const double reinitializetimeout, const double timeout)
@@ -220,14 +210,11 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
             if (pollitem.revents & ZMQ_POLLIN) {
                 zmq::message_t reply;
                 socket->recv(&reply);
-                std::string replystring((char *) reply.data (), (size_t) reply.size());                
+                std::string replystring((char *) reply.data (), (size_t) reply.size());
+                rapidjson::Document pt(rapidjson::kObjectType);
                 try{
-#if defined(_WIN32) || defined(_WIN64)
-                    ParsePropertyTreeWin(replystring, pt);
-#else
                     std::stringstream replystring_ss(replystring);
-                    boost::property_tree::read_json(replystring_ss, pt);
-#endif
+                    ParseJson(pt, replystring_ss.str());
                 }
                 catch (std::exception const &e) {
                     MUJIN_LOG_ERROR("HeartBeat reply is not JSON");
