@@ -1,4 +1,5 @@
 // -*- coding: utf-8 -*-
+//
 // Copyright (C) 2012-2013 MUJIN Inc. <rosen.diankov@mujin.co.jp>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -64,7 +65,6 @@
 namespace mujinclient {
 
 #include <mujincontrollerclient/config.h>
-
 
 enum TaskResourceOptions
 {
@@ -603,7 +603,7 @@ public:
     T Get(const std::string& field, double timeout = 5.0) {
         rapidjson::Document pt(rapidjson::kObjectType);
         GetWrap(pt, field, timeout);
-        return mujinjson::GetJsonValueByKey<T>(pt, field.c_str());
+        return mujinjson_external::GetJsonValueByKey<T>(pt, field.c_str());
     }
 
     /// \brief sets an attribute of this web resource

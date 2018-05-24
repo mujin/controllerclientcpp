@@ -28,6 +28,8 @@
 MUJIN_LOGGER("mujin.controllerclientcpp");
 
 namespace mujinclient {
+
+namespace mujinjson = mujinjson_external;
 using namespace mujinjson;
 
 void ExtractEnvironmentStateFromPTree(const rapidjson::Value& envstatejson, EnvironmentState& envstate)

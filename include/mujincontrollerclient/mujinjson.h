@@ -14,8 +14,8 @@
 /** \file mujinjson.h
     \brief Wrapper for rapidjson.
  */
-#ifndef MUJIN_JSON_H
-#define MUJIN_JSON_H
+#ifndef MUJIN_CONTROLLERCLIENT_JSON_H
+#define MUJIN_CONTROLLERCLIENT_JSON_H
 
 #include <boost/shared_ptr.hpp>
 #include <boost/lexical_cast.hpp>
@@ -31,7 +31,8 @@
 #include <rapidjson/writer.h>
 #include <rapidjson/error/en.h>
 
-namespace mujinjson {
+namespace mujinclient {
+namespace mujinjson_external {
 
 enum MujinJSONErrorCode
 {
@@ -537,4 +538,5 @@ template<class T, class U> inline std::string GetJsonStringByKey(const U& key, c
 }
 
 } // namespace mujinjson
+} // namespace mujinclient
 #endif
