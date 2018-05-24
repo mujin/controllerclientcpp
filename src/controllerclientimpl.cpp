@@ -28,6 +28,7 @@ MUJIN_LOGGER("mujin.controllerclientcpp");
 
 namespace mujinclient {
 
+namespace mujinjson = mujinjson_external;
 using namespace mujinjson;
 class CurlTimeoutSetter
 {

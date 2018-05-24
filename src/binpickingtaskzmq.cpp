@@ -30,6 +30,7 @@ using namespace mujinzmq;
 
 namespace mujinclient {
 using namespace utils;
+namespace mujinjson = mujinjson_external;
 using namespace mujinjson;
 
 class ZmqMujinControllerClient : public mujinzmq::ZmqClient
