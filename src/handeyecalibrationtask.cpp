@@ -17,6 +17,7 @@
 #include <mujincontrollerclient/handeyecalibrationtask.h>
 #include <mujincontrollerclient/mujinjson.h>
 namespace mujinclient {
+namespace mujinjson = mujinjson_external;
 using namespace mujinjson;
 
 void HandEyeCalibrationTaskParameters::SetDefaults()

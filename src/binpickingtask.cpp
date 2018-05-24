@@ -42,6 +42,7 @@ MUJIN_LOGGER("mujin.controllerclientcpp.binpickingtask");
 
 namespace mujinclient {
 using namespace utils;
+namespace mujinjson = mujinjson_external;
 using namespace mujinjson;
 
 BinPickingResultResource::BinPickingResultResource(ControllerClientPtr controller, const std::string& pk) : PlanningResultResource(controller,"binpickingresult", pk)
