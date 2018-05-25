@@ -469,14 +469,15 @@ BinPickingTaskResource::ResultGetBinpickingState::ResultGetBinpickingState()
     statusDescPickPlace = "";
     statusPhysics = "";
     isDynamicEnvironmentStateEmpty = false;
-    pickAttemptFromSourceId = -1;
     isSourceContainerEmpty = false;
+    pickAttemptFromSourceId = -1;
     timestamp = 0;
     lastGrabbedTargetTimeStamp = 0;
     isRobotOccludingSourceContainer = true;
     forceRequestDetectionResults = true;
     isGrabbingTarget = true;
     isGrabbingLastTarget = true;
+    hasRobotExecutionStarted = false;
     orderNumber = -1;
     numLeftInOrder = -1;
     numLeftInSupply = -1;
