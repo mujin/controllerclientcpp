@@ -608,13 +608,14 @@ void BinPickingTaskResource::ResultHeartBeat::Parse(const rapidjson::Value& pt)
     if (pt.HasMember("slavestates") && _slaverequestid.size() > 0) {
         rapidjson::Document d(rapidjson::kObjectType), taskstatejson;
         std::string key = "slaverequestid-" + _slaverequestid;
-        try {
+        //try {
             taskstatejson.CopyFrom(pt["slavestates"][key.c_str()]["taskstate"], taskstatejson.GetAllocator());
             SetJsonValueByKey(d, "output", taskstatejson);
             taskstate.Parse(d);
-        } catch (...){
-
-        }
+//        }
+//        catch (const std::exception& ex){
+//            MUJIN_LOG_WARN("parsing heartbeat at " << timestamp ": " << ex.what());
+//        }
     }
 }
 
