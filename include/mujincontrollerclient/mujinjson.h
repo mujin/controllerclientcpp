@@ -424,19 +424,21 @@ template<class T, class U> inline void LoadJsonValueByKey(const rapidjson::Value
     }
 }
 
+
 //work the same as LoadJsonValueByKey, but the value is returned instead of being passed as reference
 template<class T, class U> T GetJsonValueByKey(const rapidjson::Value& v, const char* key, const U& t) {
     if (!v.IsObject()) {
         throw MujinJSONException("Cannot get value of non-object.", MJE_Failed);
     }
     if (v.HasMember(key)) {
-        T r;
-        LoadJsonValue(v[key], r);
-        return r;
+        const rapidjson::Value& child = v[key];
+        if (!child.IsNull()) {
+            T r;
+            LoadJsonValue(v[key], r);
+            return r;
+        }
     }
-    else {
-        return T(t);
-    }
+    return T(t);
 }
 template<class T> inline T GetJsonValueByKey(const rapidjson::Value& v, const char* key) {
     if (!v.IsObject()) {
@@ -444,7 +446,10 @@ template<class T> inline T GetJsonValueByKey(const rapidjson::Value& v, const ch
     }
     T r = T();
     if (v.HasMember(key)) {
-        LoadJsonValue(v[key], r);
+        const rapidjson::Value& child = v[key];
+        if (!child.IsNull()) {
+            LoadJsonValue(v[key], r);
+        }
     }
     return r;
 }
@@ -452,7 +457,7 @@ template<class T> inline T GetJsonValueByKey(const rapidjson::Value& v, const ch
 template<class T> inline T GetJsonValueByPath(const rapidjson::Value& v, const char* key) {
     T r;
     const rapidjson::Value *child = rapidjson::Pointer(key).Get(v);
-    if (child) {
+    if (child && !child->IsNull()) {
         LoadJsonValue(*child, r);
     }
     return r;
@@ -460,7 +465,7 @@ template<class T> inline T GetJsonValueByPath(const rapidjson::Value& v, const c
 
 template<class T, class U> T GetJsonValueByPath(const rapidjson::Value& v, const char* key, const U& t) {
     const rapidjson::Value *child = rapidjson::Pointer(key).Get(v);
-    if (child) {
+    if (child && !child->IsNull()) {
         T r;
         LoadJsonValue(*child, r);
         return r;
