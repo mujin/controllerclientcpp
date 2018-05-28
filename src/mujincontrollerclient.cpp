@@ -191,7 +191,7 @@ ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::GetGeometryFro
     if (pt.IsObject() && pt.HasMember("geometries") && pt["geometries"].IsArray()) {
         rapidjson::Value& objects = pt["geometries"];
         for (rapidjson::Document::ConstValueIterator it = objects.Begin(); it != objects.End(); ++it) {
-            const std::string name = it->HasMember("name") ? (*it)["name"].GetString() : (*it)["pk"].GetString();
+            const std::string name = it->HasMember("name") ? GetJsonValueByKey<std::string>(*it, "name") : GetJsonValueByKey<std::string>(*it, "pk");
             if (name == geometryName && (*it)["linkpk"].GetString() == this->pk) {
                 ObjectResource::GeometryResourcePtr geometry(new GeometryResource(controller, this->objectpk, GetJsonValueByKey<std::string>(*it, "pk")));
                 geometry->name = name;
@@ -219,10 +219,11 @@ void ObjectResource::LinkResource::GetGeometries(std::vector<ObjectResource::Geo
         rapidjson::Value& objects = pt["geometries"];
         geometries.clear();
         for (rapidjson::Document::ConstValueIterator it = objects.Begin(); it != objects.End(); ++it) {
-            if ((*it)["linkpk"].GetString() == this->pk) {
+            const std::string linkpk = GetJsonValueByKey<std::string>(*it, "linkpk");
+            if (linkpk == this->pk) {
                 ObjectResource::GeometryResourcePtr geometry(new GeometryResource(controller, this->objectpk, GetJsonValueByKey<std::string>(*it, "pk")));
-                geometry->name = it->HasMember("name") ? (*it)["name"].GetString() : (*it)["pk"].GetString();
-                LoadJsonValueByKey(*it,"linkpk",geometry->linkpk);
+                geometry->linkpk = linkpk;
+                LoadJsonValueByKey(*it,"name",geometry->name,geometry->pk);
                 LoadJsonValueByKey(*it,"visible",geometry->visible);
                 LoadJsonValueByKey(*it,"geomtype",geometry->geomtype);
                 LoadJsonValueByKey(*it,"transparency",geometry->transparency);
@@ -319,7 +320,7 @@ void ObjectResource::GetLinks(std::vector<ObjectResource::LinkResourcePtr>& link
     size_t i = 0;
     for (rapidjson::Document::ValueIterator it = objects.Begin(); it != objects.End(); ++it) {
         LinkResourcePtr link(new LinkResource(controller, GetPrimaryKey(), GetJsonValueByKey<std::string>(*it, "pk")));
-        link->parentlinkpk = it->HasMember("parentlinkpk") ? (*it)["parentlinkpk"].GetString() : "";
+        LoadJsonValueByKey(*it,"parentlinkpk",link->parentlinkpk);
         LoadJsonValueByKey(*it,"name",link->name);
         LoadJsonValueByKey(*it,"collision",link->collision);
         LoadJsonValueByKey(*it,"attachmentpks",link->attachmentpks);
