@@ -45,6 +45,8 @@ public:
     virtual SceneResourcePtr ImportSceneToCOLLADA_UTF8(const std::string& importuri, const std::string& importformat, const std::string& newuri, bool overwrite=false);
     virtual SceneResourcePtr ImportSceneToCOLLADA_UTF16(const std::wstring& importuri, const std::string& importformat, const std::wstring& newuri, bool overwrite=false);
 
+    virtual void FileUpload_UTF8(const std::string& sourcefilename);
+    virtual void FileUpload_UTF16(const std::wstring& sourcefilename);
     virtual void SyncUpload_UTF8(const std::string& sourcefilename, const std::string& destinationdir, const std::string& scenetype);
     virtual void SyncUpload_UTF16(const std::wstring& sourcefilename_utf16, const std::wstring& destinationdir_utf16, const std::string& scenetype);
 
@@ -226,6 +228,8 @@ protected:
 
     /// \param stream is std::pair<std::vector<unsigned char>::const_iterator, size_t>*, which gets incremented everytime this function is called.
     static size_t _ReadInMemoryUploadCallback(void *ptr, size_t size, size_t nmemb, void *stream);
+
+    struct curl_slist *GetCURLHeaderForFileUpload();
 
     int _lastmode;
     CURL *_curl;

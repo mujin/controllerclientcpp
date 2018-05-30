@@ -576,6 +576,103 @@ void ControllerClientImpl::SyncUpload_UTF8(const std::string& _sourcefilename, c
      */
 }
 
+struct curl_slist *ControllerClientImpl::GetCURLHeaderForFileUpload(){
+    struct curl_slist *headerlist = NULL;
+    headerlist = curl_slist_append(headerlist, "Content-Type: multipart/form-data");
+    std::string s = str(boost::format("Accept-Language: %s,en-us")%_language);
+    headerlist = curl_slist_append(headerlist, s.c_str()); //,en;q=0.7,ja;q=0.3',")
+    s = str(boost::format("Accept-Charset: %s")%_charset);
+    headerlist = curl_slist_append(headerlist, s.c_str());
+    s = std::string("X-CSRFToken: ")+_csrfmiddlewaretoken;
+    headerlist = curl_slist_append(headerlist, s.c_str());
+    headerlist = curl_slist_append(headerlist, "Connection: Keep-Alive");
+    headerlist = curl_slist_append(headerlist, "Keep-Alive: 20"); // keep alive for 20s?
+    headerlist = curl_slist_append(headerlist, "Expect:");
+    return headerlist;
+}
+
+void ControllerClientImpl::FileUpload_UTF8(const std::string& _sourcefilename)
+{
+    MUJIN_LOG_INFO(str(boost::format("POST %s%s")%_baseuri%"fileupload"));
+    CurlTimeoutSetter timeoutsetter(_curl, 5);
+    boost::mutex::scoped_lock lock(_mutex);
+    CURLcode res = curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, _WriteStringStreamCallback);
+    CHECKCURLCODE(res, "failed to set writer");
+    _buffer.clear();
+    _buffer.str("");
+    CurlWriteDataSetter writedata(_curl, &_buffer);
+    curl_easy_setopt(_curl, CURLOPT_URL, (_baseuri+"fileupload").c_str());
+    /// CHECKCURLCODE is not allowed
+    curl_mime *form = curl_mime_init(_curl);
+    curl_mimepart *field = curl_mime_addpart(form);
+    curl_mime_name(field,"files[]");
+    curl_mime_filedata(field,encoding::ConvertUTF8ToFileSystemEncoding(_sourcefilename).c_str());
+    curl_easy_setopt(_curl, CURLOPT_MIMEPOST, form);
+    struct curl_slist *headerlist = GetCURLHeaderForFileUpload();
+    curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, headerlist);
+    res = curl_easy_perform(_curl);
+    curl_mime_free(form);
+    curl_slist_free_all(headerlist);
+    /// CHECKCURLCODE is allowed
+    CHECKCURLCODE(res, "curl_easy_perform failed");
+    long http_code = 0;
+    res = curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
+    CHECKCURLCODE(res, "curl_easy_getinfo failed");
+    rapidjson::Document pt;
+    if( _buffer.rdbuf()->in_avail() > 0 ) {
+        ParseJson(pt, _buffer.str());
+    } else {
+        pt.SetObject();
+    }
+    int expectedhttpcode = 200;
+    if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
+        std::string error_message = GetJsonValueByKey<std::string>(pt, "error_message");
+        std::string traceback = GetJsonValueByKey<std::string>(pt, "traceback");
+        throw MUJIN_EXCEPTION_FORMAT("HTTP POST to '%s' returned HTTP status %s: %s", "/fileupload"%http_code%error_message, MEC_HTTPServer);
+    }
+}
+
+void ControllerClientImpl::FileUpload_UTF16(const std::wstring& _sourcefilename)
+{
+    MUJIN_LOG_INFO(str(boost::format("POST %s%s")%_baseuri%"fileupload"));
+    CurlTimeoutSetter timeoutsetter(_curl, 5);
+    boost::mutex::scoped_lock lock(_mutex);
+    CURLcode res = curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, _WriteStringStreamCallback);
+    CHECKCURLCODE(res, "failed to set writer");
+    _buffer.clear();
+    _buffer.str("");
+    CurlWriteDataSetter writedata(_curl, &_buffer);
+    curl_easy_setopt(_curl, CURLOPT_URL, (_baseuri+"fileupload").c_str());
+    /// CHECKCURLCODE is not allowed
+    curl_mime *form = curl_mime_init(_curl);
+    curl_mimepart *field = curl_mime_addpart(form);
+    curl_mime_name(field,"files[]");
+    curl_mime_filedata(field,encoding::ConvertUTF16ToFileSystemEncoding(_sourcefilename).c_str());
+    curl_easy_setopt(_curl, CURLOPT_MIMEPOST, form);
+    struct curl_slist *headerlist = GetCURLHeaderForFileUpload();
+    curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, headerlist);
+    res = curl_easy_perform(_curl);
+    curl_mime_free(form);
+    curl_slist_free_all(headerlist);
+    /// CHECKCURLCODE is allowed
+    CHECKCURLCODE(res, "curl_easy_perform failed");
+    long http_code = 0;
+    res = curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
+    CHECKCURLCODE(res, "curl_easy_getinfo failed");
+    rapidjson::Document pt;
+    if( _buffer.rdbuf()->in_avail() > 0 ) {
+        ParseJson(pt, _buffer.str());
+    } else {
+        pt.SetObject();
+    }
+    int expectedhttpcode = 200;
+    if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
+        std::string error_message = GetJsonValueByKey<std::string>(pt, "error_message");
+        std::string traceback = GetJsonValueByKey<std::string>(pt, "traceback");
+        throw MUJIN_EXCEPTION_FORMAT("HTTP POST to '%s' returned HTTP status %s: %s", "/fileupload"%http_code%error_message, MEC_HTTPServer);
+    }
+}
+
 void ControllerClientImpl::SyncUpload_UTF16(const std::wstring& _sourcefilename_utf16, const std::wstring& destinationdir_utf16, const std::string& scenetype)
 {
     // TODO use curl_multi_perform to allow uploading of multiple files simultaneously
@@ -784,7 +881,7 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, std::vector<unsig
 /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
 int ControllerClientImpl::CallPost(const std::string& relativeuri, const std::string& data, rapidjson::Document& pt, int expectedhttpcode, double timeout)
 {
-    MUJIN_LOG_INFO(str(boost::format("POST %s")%relativeuri));
+    MUJIN_LOG_INFO(str(boost::format("POST %s%s")%_baseapiuri%relativeuri));
     CurlTimeoutSetter timeoutsetter(_curl, timeout);
     boost::mutex::scoped_lock lock(_mutex);
     curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, _httpheadersjson);
@@ -829,7 +926,7 @@ int ControllerClientImpl::CallPost_UTF16(const std::string& relativeuri, const s
 
 int ControllerClientImpl::_CallPut(const std::string& relativeuri, const void* pdata, size_t nDataSize, rapidjson::Document& pt, curl_slist* headers, int expectedhttpcode, double timeout)
 {
-    MUJIN_LOG_INFO(str(boost::format("PUT %s")%relativeuri));
+    MUJIN_LOG_INFO(str(boost::format("PUT %s%s")%_baseapiuri%relativeuri));
     boost::mutex::scoped_lock lock(_mutex);
     curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, headers);//isJson ? _httpheadersjson : _httpheadersstl);
     CurlTimeoutSetter timeoutsetter(_curl, timeout);
@@ -878,7 +975,7 @@ int ControllerClientImpl::CallPutJSON(const std::string& relativeuri, const std:
 
 void ControllerClientImpl::CallDelete(const std::string& relativeuri, double timeout)
 {
-    MUJIN_LOG_INFO(str(boost::format("DELETE %s")%relativeuri));
+    MUJIN_LOG_INFO(str(boost::format("DELETE %s%s")%_baseapiuri%relativeuri));
     boost::mutex::scoped_lock lock(_mutex);
     CurlTimeoutSetter timeoutsetter(_curl, timeout);
     _uri = _baseapiuri;

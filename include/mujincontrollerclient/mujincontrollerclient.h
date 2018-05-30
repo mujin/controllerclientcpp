@@ -417,7 +417,16 @@ public:
     /// \param newuri utf-16 encoded
     virtual SceneResourcePtr ImportSceneToCOLLADA_UTF16(const std::wstring& sourceuri, const std::string& sourcescenetype, const std::wstring& newuri, bool overwrite=false) = 0;
 
-    /** \brief Recommended way of uploading a scene's files into the network filesystem.
+    /** \brief Upload a scene file using fileupload API.
+        \param sourcefilename UTF-8 encoded local filesystem location of the top-level file.
+        \throw mujin_exception if the upload fails, will throw an exception
+     */
+    virtual void FileUpload_UTF8(const std::string& sourcefilename) = 0;
+
+    /// \see FileUpload_UTF8
+    virtual void FileUpload_UTF16(const std::wstring& sourcefilename) = 0;
+
+    /** \brief Upload a scene's files into the network filesystem.
 
         Depending on the scenetype, can upload entire directory trees.
         \param sourcefilename UTF-8 encoded local filesystem location of the top-level file. If the scenetype requires many files, will upload all of them. For Windows systems, the \ path separator has to be used. For Unix systems, the / path separator has to be used.
