@@ -15,6 +15,7 @@
 #include "controllerclientimpl.h"
 
 #include <boost/algorithm/string.hpp>
+#include <curl/curlver.h>
 
 #define SKIP_PEER_VERIFICATION // temporary
 //#define SKIP_HOSTNAME_VERIFICATION
@@ -593,6 +594,9 @@ struct curl_slist *ControllerClientImpl::GetCURLHeaderForFileUpload(){
 
 void ControllerClientImpl::FileUpload_UTF8(const std::string& _sourcefilename)
 {
+#if LIBCURL_VERSION_NUM<0x073C00
+    throw MUJIN_EXCEPTION_FORMAT0("mujincontrollerclientcpp was linked to old libcurl and FileUpload method is not available.", MEC_HTTPServer);
+#else
     MUJIN_LOG_INFO(str(boost::format("POST %s%s")%_baseuri%"fileupload"));
     CurlTimeoutSetter timeoutsetter(_curl, 5);
     boost::mutex::scoped_lock lock(_mutex);
@@ -630,10 +634,14 @@ void ControllerClientImpl::FileUpload_UTF8(const std::string& _sourcefilename)
         std::string traceback = GetJsonValueByKey<std::string>(pt, "traceback");
         throw MUJIN_EXCEPTION_FORMAT("HTTP POST to '%s' returned HTTP status %s: %s", "/fileupload"%http_code%error_message, MEC_HTTPServer);
     }
+#endif
 }
 
 void ControllerClientImpl::FileUpload_UTF16(const std::wstring& _sourcefilename)
 {
+#if LIBCURL_VERSION_NUM<0x073C00
+    throw MUJIN_EXCEPTION_FORMAT0("mujincontrollerclientcpp was linked to old libcurl and FileUpload method is not available.", MEC_HTTPServer);
+#else
     MUJIN_LOG_INFO(str(boost::format("POST %s%s")%_baseuri%"fileupload"));
     CurlTimeoutSetter timeoutsetter(_curl, 5);
     boost::mutex::scoped_lock lock(_mutex);
@@ -671,6 +679,7 @@ void ControllerClientImpl::FileUpload_UTF16(const std::wstring& _sourcefilename)
         std::string traceback = GetJsonValueByKey<std::string>(pt, "traceback");
         throw MUJIN_EXCEPTION_FORMAT("HTTP POST to '%s' returned HTTP status %s: %s", "/fileupload"%http_code%error_message, MEC_HTTPServer);
     }
+#endif
 }
 
 void ControllerClientImpl::SyncUpload_UTF16(const std::wstring& _sourcefilename_utf16, const std::wstring& destinationdir_utf16, const std::string& scenetype)
