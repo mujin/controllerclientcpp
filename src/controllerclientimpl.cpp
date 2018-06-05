@@ -603,15 +603,38 @@ void ControllerClientImpl::FileUpload_UTF8(const std::string& _sourcefilename)
     CurlWriteDataSetter writedata(_curl, &_buffer);
     curl_easy_setopt(_curl, CURLOPT_URL, (_baseuri+"fileupload").c_str());
     /// CHECKCURLCODE is not allowed
+    struct curl_slist *headerlist = GetCURLHeaderForFileUpload();
+    curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, headerlist);
+#if 0
     curl_mime *form = curl_mime_init(_curl);
     curl_mimepart *field = curl_mime_addpart(form);
     curl_mime_name(field,"files[]");
     curl_mime_filedata(field,encoding::ConvertUTF8ToFileSystemEncoding(_sourcefilename).c_str());
     curl_easy_setopt(_curl, CURLOPT_MIMEPOST, form);
-    struct curl_slist *headerlist = GetCURLHeaderForFileUpload();
-    curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, headerlist);
     res = curl_easy_perform(_curl);
     curl_mime_free(form);
+#else
+    //https://stackoverflow.com/questions/37082651/libcurl-post-multipart-upload-with-buffered-image-returning-http-400
+    const std::string fname = encoding::ConvertUTF8ToFileSystemEncoding(_sourcefilename);
+    std::vector<unsigned char>content;
+    std::ifstream fin(fname.c_str(), std::ios::in | std::ios::binary);
+    fin.seekg(0, std::ios::end);
+    content.resize(fin.tellg());
+    fin.seekg(0, std::ios::beg);
+    fin.read((char*)&content[0], content.size());
+    struct curl_httppost *formpost = NULL;
+    struct curl_httppost *lastptr = NULL;
+    curl_formadd(&formpost,
+                 &lastptr,
+                 CURLFORM_COPYNAME, "files[]",
+                 CURLFORM_BUFFER, fname.c_str(),
+                 CURLFORM_BUFFERPTR, (char*)&content[0],
+                 CURLFORM_BUFFERLENGTH, content.size(),
+                 CURLFORM_END);
+    curl_easy_setopt(_curl, CURLOPT_HTTPPOST, formpost);
+    res = curl_easy_perform(_curl);
+    curl_formfree(formpost);
+#endif
     curl_slist_free_all(headerlist);
     /// CHECKCURLCODE is allowed
     CHECKCURLCODE(res, "curl_easy_perform failed");
@@ -644,15 +667,38 @@ void ControllerClientImpl::FileUpload_UTF16(const std::wstring& _sourcefilename)
     CurlWriteDataSetter writedata(_curl, &_buffer);
     curl_easy_setopt(_curl, CURLOPT_URL, (_baseuri+"fileupload").c_str());
     /// CHECKCURLCODE is not allowed
+    struct curl_slist *headerlist = GetCURLHeaderForFileUpload();
+    curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, headerlist);
+#if 0
     curl_mime *form = curl_mime_init(_curl);
     curl_mimepart *field = curl_mime_addpart(form);
     curl_mime_name(field,"files[]");
     curl_mime_filedata(field,encoding::ConvertUTF16ToFileSystemEncoding(_sourcefilename).c_str());
     curl_easy_setopt(_curl, CURLOPT_MIMEPOST, form);
-    struct curl_slist *headerlist = GetCURLHeaderForFileUpload();
-    curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, headerlist);
     res = curl_easy_perform(_curl);
     curl_mime_free(form);
+#else
+    //https://stackoverflow.com/questions/37082651/libcurl-post-multipart-upload-with-buffered-image-returning-http-400
+    const std::string fname = encoding::ConvertUTF16ToFileSystemEncoding(_sourcefilename);
+    std::vector<unsigned char>content;
+    std::ifstream fin(fname.c_str(), std::ios::in | std::ios::binary);
+    fin.seekg(0, std::ios::end);
+    content.resize(fin.tellg());
+    fin.seekg(0, std::ios::beg);
+    fin.read((char*)&content[0], content.size());
+    struct curl_httppost *formpost = NULL;
+    struct curl_httppost *lastptr = NULL;
+    curl_formadd(&formpost,
+                 &lastptr,
+                 CURLFORM_COPYNAME, "files[]",
+                 CURLFORM_BUFFER, fname.c_str(),
+                 CURLFORM_BUFFERPTR, (char*)&content[0],
+                 CURLFORM_BUFFERLENGTH, content.size(),
+                 CURLFORM_END);
+    curl_easy_setopt(_curl, CURLOPT_HTTPPOST, formpost);
+    res = curl_easy_perform(_curl);
+    curl_formfree(formpost);
+#endif
     curl_slist_free_all(headerlist);
     /// CHECKCURLCODE is allowed
     CHECKCURLCODE(res, "curl_easy_perform failed");
