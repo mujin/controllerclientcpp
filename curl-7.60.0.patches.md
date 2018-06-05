@@ -1,0 +1,4 @@
+- `curl-7.60.0/lib/CMakeLists.txt`
+    - Patch line 100
+    - before: `set_target_properties(${LIB_NAME} PROPERTIES IMPORT_SUFFIX "_imp.lib")`
+    - after: `set_target_properties(${LIB_NAME} PROPERTIES IMPORT_SUFFIX "_imp.lib" OUTPUT_NAME "libcurl-vc100-mt")`
