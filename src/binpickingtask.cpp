@@ -1057,7 +1057,7 @@ void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<float>&vpoi
     _ss << GetJsonString("regionname", regionname) << ", ";
     _ss << GetJsonString("clampToContainer", clampToContainer) << ", ";
     if( !!pCropContainerMargins ) {
-        _ss << "\"pCropContainerMargins\":[" << pCropContainerMargins->minMargins[0] << ", " << pCropContainerMargins->minMargins[1] << ", " << pCropContainerMargins->minMargins[2] << ", " << pCropContainerMargins->maxMargins[0] << ", " << pCropContainerMargins->maxMargins[1] << ", " << pCropContainerMargins->maxMargins[2] << "], ";
+        _ss << "\"cropContainerMarginsXYZXYZ\":[" << pCropContainerMargins->minMargins[0] << ", " << pCropContainerMargins->minMargins[1] << ", " << pCropContainerMargins->minMargins[2] << ", " << pCropContainerMargins->maxMargins[0] << ", " << pCropContainerMargins->maxMargins[1] << ", " << pCropContainerMargins->maxMargins[2] << "], ";
     }
     PointCloudObstacle pointcloudobstacle;
     pointcloudobstacle.name = name;
