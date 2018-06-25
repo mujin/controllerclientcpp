@@ -141,7 +141,7 @@ int main(int argc, char ** argv)
 
         // populate dummy data
         std::vector<BinPickingTaskResource::DetectedObject> detectedobjects;
-        std::vector<Real> points;
+        std::vector<float> points;
         std::string resultstate;
 
         // create object
