@@ -170,6 +170,9 @@ public:
                    extents != other.extents ||
                    rotationmat != other.rotationmat;
         }
+        bool operator==(const ResultOBB& other) const {
+            return !operator!=(other);
+        }
         std::vector<Real> translation;
         std::vector<Real> extents;
         std::vector<Real> rotationmat;  // row major
