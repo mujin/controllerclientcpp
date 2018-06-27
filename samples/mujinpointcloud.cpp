@@ -154,7 +154,7 @@ int main(int argc, char ** argv)
     InitializeTask(opts, pBinpickingTask);
 
     const size_t numpoints(1000);
-    std::vector<Real> pointcloud(3*numpoints);
+    std::vector<float> pointcloud(3*numpoints);
     for (size_t i = 0; i < numpoints; ++i) {
         pointcloud[3*i] = i;
         pointcloud[3*i+1] = i / 10 * 10;
