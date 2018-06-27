@@ -147,6 +147,9 @@ struct Transform
         return std::memcmp(quaternion, other.quaternion, 4 * sizeof(Real)) != 0 ||
                std::memcmp(translate, other.translate, 3 * sizeof(Real)) != 0;
     }
+    bool operator==(const Transform& other) const {
+        return !operator!=(other);
+    }
     Real quaternion[4]; ///< quaternion [cos(ang/2), axis*sin(ang/2)]
     Real translate[3]; ///< translation x,y,z
 };
@@ -775,6 +778,9 @@ public:
                        std::memcmp(intrinsic, other.intrinsic, 6 * sizeof(Real)) != 0 ||
                        measurement_time != other.measurement_time ||
                        extra_parameters != other.extra_parameters;
+            }
+            bool operator==(const SensorData& other) const {
+                return !operator!=(other);
             }
             Real distortion_coeffs[5];
             std::string distortion_model;
