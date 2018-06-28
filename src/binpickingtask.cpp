@@ -439,6 +439,7 @@ BinPickingTaskResource::ResultTransform::~ResultTransform()
 void BinPickingTaskResource::ResultTransform::Parse(const boost::property_tree::ptree& pt)
 {
     _pt = pt.get_child("output");
+    bool transformSet=false, quaternionSet=false;
     FOREACH(value, _pt) {
         if( value->first == "translation") {
             unsigned int i = 0;
@@ -448,6 +449,7 @@ void BinPickingTaskResource::ResultTransform::Parse(const boost::property_tree::
             FOREACH(v, value->second) {
                 transform.translate[i++] = boost::lexical_cast<Real>(v->second.data());
             }
+            transformSet = true;
         }
         else if (value->first == "quaternion") {
             unsigned int i = 0;
@@ -457,7 +459,11 @@ void BinPickingTaskResource::ResultTransform::Parse(const boost::property_tree::
             FOREACH(v, value->second) {
                 transform.quaternion[i++] = boost::lexical_cast<Real>(v->second.data());
             }
+            quaternionSet = true;
         }
+    }
+    if (!transformSet || !quaternionSet) {
+        throw MujinException("JSON is incomplete", MEC_Failed);
     }
 }
 
@@ -743,6 +749,9 @@ void BinPickingTaskResource::ResultAABB::Parse(const boost::property_tree::ptree
             }
         }
     }
+    if (pos.empty() || extents.empty()) {
+        throw MujinException("JSON is incomplete", MEC_Failed);
+    }
 }
 
 void BinPickingTaskResource::ResultOBB::Parse(const boost::property_tree::ptree& pt)
@@ -782,6 +791,9 @@ void BinPickingTaskResource::ResultOBB::Parse(const boost::property_tree::ptree&
                 }
             }
         }
+    }
+    if (translation.empty() || extents.empty() || rotationmat.empty()) {
+        throw MujinException("JSON is incomplete", MEC_Failed);
     }
 }
 
