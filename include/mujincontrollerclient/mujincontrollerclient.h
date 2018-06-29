@@ -18,10 +18,6 @@
 #ifndef MUJIN_CONTROLLERCLIENT_H
 #define MUJIN_CONTROLLERCLIENT_H
 
-#ifndef MUJINCLIENT_DISABLE_ASSERT_HANDLER
-#define BOOST_ENABLE_ASSERT_HANDLER
-#endif
-
 #ifdef _MSC_VER
 
 #pragma warning(disable:4251) // needs to have dll-interface to be used by clients of class
@@ -170,6 +166,9 @@ struct Transform
     }
     bool operator!=(const Transform& other) const {
         return !FuzzyEquals(quaternion, other.quaternion) || !FuzzyEquals(translate, other.translate);
+    }
+    bool operator==(const Transform& other) const {
+        return !operator!=(other);
     }
     Real quaternion[4]; ///< quaternion [cos(ang/2), axis*sin(ang/2)]
     Real translate[3]; ///< translation x,y,z
@@ -800,6 +799,9 @@ public:
                        measurement_time != other.measurement_time ||
                        extra_parameters != other.extra_parameters;
             }
+            bool operator==(const SensorData& other) const {
+                return !operator!=(other);
+            }
             Real distortion_coeffs[5];
             std::string distortion_model;
             Real focal_length;
@@ -1149,25 +1151,6 @@ MUJINCLIENT_API void SerializeEnvironmentStateToJSON(const EnvironmentState& env
 
 
 } // namespace mujinclient
-
-#if !defined(MUJINCLIENT_DISABLE_ASSERT_HANDLER) && defined(BOOST_ENABLE_ASSERT_HANDLER)
-/// Modifications controlling %boost library behavior.
-namespace boost
-{
-inline void assertion_failed(char const * expr, char const * function, char const * file, long line)
-{
-    throw mujinclient::MujinException(boost::str(boost::format("[%s:%d] -> %s, expr: %s")%file%line%function%expr),mujinclient::MEC_Assert);
-}
-
-#if BOOST_VERSION>104600
-inline void assertion_failed_msg(char const * expr, char const * msg, char const * function, char const * file, long line)
-{
-    throw mujinclient::MujinException(boost::str(boost::format("[%s:%d] -> %s, expr: %s, msg: %s")%file%line%function%expr%msg),mujinclient::MEC_Assert);
-}
-#endif
-
-}
-#endif
 
 BOOST_STATIC_ASSERT(MUJINCLIENT_VERSION_MAJOR>=0&&MUJINCLIENT_VERSION_MAJOR<=255);
 BOOST_STATIC_ASSERT(MUJINCLIENT_VERSION_MINOR>=0&&MUJINCLIENT_VERSION_MINOR<=255);

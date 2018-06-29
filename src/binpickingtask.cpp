@@ -297,7 +297,7 @@ std::string utils::GetJsonString(const BinPickingTaskResource::DetectedObject& o
 std::string utils::GetJsonString(const BinPickingTaskResource::PointCloudObstacle& obj)
 {
     std::stringstream ss;
-    ss << std::setprecision(std::numeric_limits<float>::digits10+1);
+    ss << std::setprecision(std::numeric_limits<float>::digits10+1); // want to control the size of the JSON file outputted
     // "\"name\": __dynamicobstacle__, \"pointsize\": 0.005, \"points\": []
     ss << GetJsonString("pointcloudid") << ": " << GetJsonString(obj.name) << ", ";
     ss << GetJsonString("pointsize") << ": " << obj.pointsize <<", ";
