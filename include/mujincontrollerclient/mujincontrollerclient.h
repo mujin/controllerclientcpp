@@ -623,7 +623,7 @@ public:
 
     /// \brief gets an attribute of this web resource
     template<class T>
-    T Get(const std::string& field, double timeout = 5.0) {
+    inline T Get(const std::string& field, double timeout = 5.0) {
         rapidjson::Document pt(rapidjson::kObjectType);
         GetWrap(pt, field, timeout);
         return mujinjson_external::GetJsonValueByKey<T>(pt, field.c_str());
