@@ -28,6 +28,8 @@
 MUJIN_LOGGER("mujin.controllerclientcpp");
 
 namespace mujinclient {
+
+namespace mujinjson = mujinjson_external;
 using namespace mujinjson;
 
 void ExtractEnvironmentStateFromPTree(const rapidjson::Value& envstatejson, EnvironmentState& envstate)
@@ -40,7 +42,7 @@ void ExtractEnvironmentStateFromPTree(const rapidjson::Value& envstatejson, Envi
         std::vector<Real> quat = GetJsonValueByKey<std::vector<Real> >(*it, "quat_");
         BOOST_ASSERT(quat.size() == 4);
         Real dist2 = 0;
-        for (int i = 0; i < 4; i ++ ) {
+        for (int i = 0; i < 4; i++ ) {
             Real f = quat[i] * quat[i];
             dist2 += f;
             objstate.transform.quaternion[i] = f;
@@ -112,6 +114,13 @@ void WebResource::Set(const std::string& field, const std::string& newvalue, dou
     throw MujinException("not implemented");
 }
 
+void WebResource::SetJSON(const std::string& json, double timeout)
+{
+    GETCONTROLLERIMPL();
+    rapidjson::Document pt(rapidjson::kObjectType);
+    controller->CallPutJSON(str(boost::format("%s/%s/?format=json")%GetResourceName()%GetPrimaryKey()), json, pt, 202, timeout);
+}
+
 void WebResource::Delete(double timeout)
 {
     GETCONTROLLERIMPL();
@@ -123,31 +132,54 @@ void WebResource::Copy(const std::string& newname, int options, double timeout)
     throw MujinException("not implemented yet");
 }
 
-ObjectResource::ObjectResource(ControllerClientPtr controller, const std::string& pk) : WebResource(controller, "object", pk)
+ObjectResource::ObjectResource(ControllerClientPtr controller, const std::string& pk) : WebResource(controller, "object", pk), pk(pk)
 {
 }
 
-ObjectResource::ObjectResource(ControllerClientPtr controller, const std::string& resource, const std::string& pk) : WebResource(controller, resource, pk)
+ObjectResource::ObjectResource(ControllerClientPtr controller, const std::string& resource, const std::string& pk) : WebResource(controller, resource, pk), pk(pk)
 {
 }
 
-ObjectResource::LinkResource::LinkResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk) : WebResource(controller, str(boost::format("object/%s/link")%objectpk), pk), objectpk(objectpk)
+ObjectResource::LinkResource::LinkResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk) : WebResource(controller, str(boost::format("object/%s/link")%objectpk), pk), pk(pk), objectpk(objectpk)
 {
 }
 
-ObjectResource::GeometryResource::GeometryResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk) : WebResource(controller, str(boost::format("object/%s/geometry")%objectpk), pk)
+ObjectResource::GeometryResource::GeometryResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk) : WebResource(controller, str(boost::format("object/%s/geometry")%objectpk), pk), objectpk(objectpk), pk(pk)
 {
+}
+
+ObjectResource::IkParamResource::IkParamResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk) : WebResource(controller, str(boost::format("object/%s/ikparam")%objectpk), pk), pk(pk)
+{
+}
+
+void ObjectResource::GeometryResource::GetMesh(std::string& primitive, std::vector<std::vector<int> >& indices, std::vector<std::vector<Real> >& vertices)
+{
+    GETCONTROLLERIMPL();
+    rapidjson::Document pt(rapidjson::kObjectType);
+    const std::string relativeuri(str(boost::format("%s/%s/?format=json&limit=0&mesh=true")%GetResourceName()%GetPrimaryKey()));
+    controller->CallGet(relativeuri, pt);
+    rapidjson::Value& objects = pt["mesh"];
+    LoadJsonValueByKey(objects,"primitive",primitive);
+    LoadJsonValueByKey(objects,"indices",indices);
+    LoadJsonValueByKey(objects,"vertices",vertices);
+}
+
+void ObjectResource::GeometryResource::SetGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& unit, double timeout)
+{
+    GETCONTROLLERIMPL();
+    MUJIN_ASSERT_OP_FORMAT(this->geomtype,!=,"mesh", "geomtype is not mesh: %s", this->geomtype, MEC_InvalidArguments);
+    controller->SetObjectGeometryMesh(this->objectpk, this->pk, rawstldata, unit, timeout);
 }
 
 ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::AddGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& name, const std::string& unit, double timeout)
 {
     GETCONTROLLERIMPL();
-    boost::property_tree::ptree pt;
     const std::string& linkpk = GetPrimaryKey();
     const std::string geometryPk = controller->CreateObjectGeometry(this->objectpk, name, linkpk, timeout);
 
-    controller->SetObjectGeometryMesh(this->objectpk, geometryPk, rawstldata, unit, timeout);
-    return ObjectResource::GeometryResourcePtr(new GeometryResource(controller, this->objectpk, geometryPk));
+    ObjectResource::GeometryResourcePtr geometry(new GeometryResource(controller, this->objectpk, geometryPk));
+    geometry->SetGeometryFromRawSTL(rawstldata, unit, timeout);
+    return geometry;
 }
 
 ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::GetGeometryFromName(const std::string& geometryName)
@@ -159,12 +191,122 @@ ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::GetGeometryFro
     if (pt.IsObject() && pt.HasMember("geometries") && pt["geometries"].IsArray()) {
         rapidjson::Value& objects = pt["geometries"];
         for (rapidjson::Document::ConstValueIterator it = objects.Begin(); it != objects.End(); ++it) {
-            if (it->HasMember("name") && (*it)["name"].GetString() == geometryName) {
-                return ObjectResource::GeometryResourcePtr(new GeometryResource(controller, this->objectpk, GetJsonValueByKey<std::string>(*it, "pk")));
+            const std::string name = it->HasMember("name") ? (*it)["name"].GetString() : (*it)["pk"].GetString();
+            if (name == geometryName && (*it)["linkpk"].GetString() == this->pk) {
+                ObjectResource::GeometryResourcePtr geometry(new GeometryResource(controller, this->objectpk, GetJsonValueByKey<std::string>(*it, "pk")));
+                geometry->name = name;
+                LoadJsonValueByKey(*it,"linkpk",geometry->linkpk);
+                LoadJsonValueByKey(*it,"visible",geometry->visible);
+                LoadJsonValueByKey(*it,"geomtype",geometry->geomtype);
+                LoadJsonValueByKey(*it,"transparency",geometry->transparency);
+                LoadJsonValueByKey(*it,"quaternion",geometry->quaternion);
+                LoadJsonValueByKey(*it,"translate",geometry->translate);
+                LoadJsonValueByKey(*it,"diffusecolor",geometry->diffusecolor);
+                return geometry;
             }
         }
     }
     throw MUJIN_EXCEPTION_FORMAT("link %s does not have geometry named %s", this->name%geometryName, MEC_InvalidArguments);
+}
+
+void ObjectResource::LinkResource::GetGeometries(std::vector<ObjectResource::GeometryResourcePtr>& geometries)
+{
+    GETCONTROLLERIMPL();
+    rapidjson::Document pt(rapidjson::kObjectType);
+    const std::string relativeuri(str(boost::format("object/%s/geometry/?format=json&limit=0&fields=geometries")%this->objectpk));
+    controller->CallGet(relativeuri, pt);
+    if (pt.IsObject() && pt.HasMember("geometries") && pt["geometries"].IsArray()) {
+        rapidjson::Value& objects = pt["geometries"];
+        geometries.clear();
+        for (rapidjson::Document::ConstValueIterator it = objects.Begin(); it != objects.End(); ++it) {
+            if ((*it)["linkpk"].GetString() == this->pk) {
+                ObjectResource::GeometryResourcePtr geometry(new GeometryResource(controller, this->objectpk, GetJsonValueByKey<std::string>(*it, "pk")));
+                geometry->name = it->HasMember("name") ? (*it)["name"].GetString() : (*it)["pk"].GetString();
+                LoadJsonValueByKey(*it,"linkpk",geometry->linkpk);
+                LoadJsonValueByKey(*it,"visible",geometry->visible);
+                LoadJsonValueByKey(*it,"geomtype",geometry->geomtype);
+                LoadJsonValueByKey(*it,"transparency",geometry->transparency);
+                LoadJsonValueByKey(*it,"quaternion",geometry->quaternion);
+                LoadJsonValueByKey(*it,"translate",geometry->translate);
+                LoadJsonValueByKey(*it,"diffusecolor",geometry->diffusecolor);
+                geometries.push_back(geometry);
+            }
+        }
+    }
+}
+
+void ObjectResource::LinkResource::SetCollision(bool collision)
+{
+    this->SetJSON(mujinjson::GetJsonStringByKey("collision",collision));
+    this->collision = collision;
+}
+void ObjectResource::SetCollision(bool collision)
+{
+    std::vector<ObjectResource::LinkResourcePtr> links;
+    this->GetLinks(links);
+    BOOST_FOREACH(ObjectResource::LinkResourcePtr &link, links){
+        link->SetCollision(collision);
+    }
+}
+int ObjectResource::LinkResource::GetCollision()
+{
+    return this->collision;
+}
+int ObjectResource::GetCollision()
+{
+    std::vector<ObjectResource::LinkResourcePtr> links;
+    this->GetLinks(links);
+    int ret=0;
+    BOOST_FOREACH(ObjectResource::LinkResourcePtr &link, links){
+        ret|=link->GetCollision()+1;
+    }
+    return ret-1;
+}
+
+void ObjectResource::GeometryResource::SetVisible(bool visible)
+{
+    this->SetJSON(mujinjson::GetJsonStringByKey("visible",visible));
+    this->visible = visible;
+}
+void ObjectResource::LinkResource::SetVisible(bool visible)
+{
+    std::vector<ObjectResource::GeometryResourcePtr> geometries;
+    this->GetGeometries(geometries);
+    BOOST_FOREACH(ObjectResource::GeometryResourcePtr &geometry, geometries){
+        geometry->SetVisible(visible);
+    }
+}
+void ObjectResource::SetVisible(bool visible)
+{
+    std::vector<ObjectResource::LinkResourcePtr> links;
+    this->GetLinks(links);
+    BOOST_FOREACH(ObjectResource::LinkResourcePtr &link, links){
+        link->SetVisible(visible);
+    }
+}
+int ObjectResource::GeometryResource::GetVisible()
+{
+    return this->visible;
+}
+int ObjectResource::LinkResource::GetVisible()
+{
+    std::vector<ObjectResource::GeometryResourcePtr> geometries;
+    this->GetGeometries(geometries);
+    int ret=0;
+    BOOST_FOREACH(ObjectResource::GeometryResourcePtr &geometry, geometries){
+        ret|=geometry->GetVisible()+1;
+    }
+    return ret-1;
+}
+int ObjectResource::GetVisible()
+{
+    std::vector<ObjectResource::LinkResourcePtr> links;
+    this->GetLinks(links);
+    int ret=0;
+    BOOST_FOREACH(ObjectResource::LinkResourcePtr &link, links){
+        ret|=link->GetVisible()+1;
+    }
+    return ret-1;
 }
 
 void ObjectResource::GetLinks(std::vector<ObjectResource::LinkResourcePtr>& links)
@@ -176,15 +318,58 @@ void ObjectResource::GetLinks(std::vector<ObjectResource::LinkResourcePtr>& link
     links.resize(objects.Size());
     size_t i = 0;
     for (rapidjson::Document::ValueIterator it = objects.Begin(); it != objects.End(); ++it) {
-
         LinkResourcePtr link(new LinkResource(controller, GetPrimaryKey(), GetJsonValueByKey<std::string>(*it, "pk")));
-        link->name = GetJsonValueByKey<std::string>(*it, "name");
-        link->pk = GetJsonValueByKey<std::string>(*it, "pk");
-
-        LoadJsonValueByKey(*it, "attachmentpks", link->attachmentpks);
-
-        //TODO transforms
+        link->parentlinkpk = it->HasMember("parentlinkpk") ? (*it)["parentlinkpk"].GetString() : "";
+        LoadJsonValueByKey(*it,"name",link->name);
+        LoadJsonValueByKey(*it,"collision",link->collision);
+        LoadJsonValueByKey(*it,"attachmentpks",link->attachmentpks);
+        LoadJsonValueByKey(*it,"quaternion",link->quaternion);
+        LoadJsonValueByKey(*it,"translate",link->translate);
         links[i++] = link;
+    }
+}
+
+ObjectResource::LinkResourcePtr ObjectResource::AddLink(const std::string& name, const Real quaternion[4], const Real translate[3])
+{
+    GETCONTROLLERIMPL();
+    const std::string linkPk = controller->CreateLink(this->pk, "", name,quaternion, translate);
+
+    return ObjectResource::LinkResourcePtr(new LinkResource(controller, this->pk, linkPk));
+}
+
+ObjectResource::LinkResourcePtr ObjectResource::LinkResource::AddChildLink(const std::string& name, const Real quaternion[4], const Real translate[3])
+{
+    GETCONTROLLERIMPL();
+    const std::string linkPk = controller->CreateLink(this->objectpk, this->pk, name,quaternion, translate);
+
+    return ObjectResource::LinkResourcePtr(new LinkResource(controller, this->objectpk, linkPk));
+}
+
+ObjectResource::IkParamResourcePtr ObjectResource::AddIkParam(const std::string& name, const std::string& iktype)
+{
+    GETCONTROLLERIMPL();
+    const std::string ikparamPk = controller->CreateIkParam(this->pk, name, iktype);
+
+    return ObjectResource::IkParamResourcePtr(new IkParamResource(controller, this->pk, ikparamPk));
+}
+
+void ObjectResource::GetIkParams(std::vector<ObjectResource::IkParamResourcePtr>& ikparams)
+{
+    GETCONTROLLERIMPL();
+    rapidjson::Document pt(rapidjson::kObjectType);
+    controller->CallGet(str(boost::format("object/%s/ikparam/?format=json&limit=0&fields=ikparams")%GetPrimaryKey()), pt);
+    rapidjson::Value& objects = pt["ikparams"];
+    ikparams.resize(objects.Size());
+    size_t i = 0;
+    for (rapidjson::Document::ValueIterator it = objects.Begin(); it != objects.End(); ++it) {
+        IkParamResourcePtr ikparam(new IkParamResource(controller, GetPrimaryKey(), GetJsonValueByKey<std::string>(*it, "pk")));
+        LoadJsonValueByKey(*it,"name",ikparam->name);
+        LoadJsonValueByKey(*it,"iktype",ikparam->iktype);
+        LoadJsonValueByKey(*it,"quaternion",ikparam->quaternion);
+        LoadJsonValueByKey(*it,"direction",ikparam->direction);
+        LoadJsonValueByKey(*it,"translation",ikparam->translation);
+        LoadJsonValueByKey(*it,"angle",ikparam->angle);
+        ikparams[i++] = ikparam;
     }
 }
 
@@ -192,7 +377,7 @@ RobotResource::RobotResource(ControllerClientPtr controller, const std::string& 
 {
 }
 
-RobotResource::ToolResource::ToolResource(ControllerClientPtr controller, const std::string& robotobjectpk, const std::string& pk) : WebResource(controller, str(boost::format("robot/%s/tool")%robotobjectpk), pk)
+RobotResource::ToolResource::ToolResource(ControllerClientPtr controller, const std::string& robotobjectpk, const std::string& pk) : WebResource(controller, str(boost::format("robot/%s/tool")%robotobjectpk), pk), pk(pk)
 {
 }
 
@@ -209,7 +394,6 @@ void RobotResource::GetTools(std::vector<RobotResource::ToolResourcePtr>& tools)
         ToolResourcePtr tool(new ToolResource(controller, GetPrimaryKey(), GetJsonValueByKey<std::string>(*it, "pk")));
 
         LoadJsonValueByKey(*it, "name", tool->name);
-        LoadJsonValueByKey(*it, "pk", tool->pk);
         LoadJsonValueByKey(*it, "frame_orgin", tool->frame_origin);
         LoadJsonValueByKey(*it, "frame_tip", tool->frame_tip);
         LoadJsonValueByKey(*it, "direction", tool->direction);
@@ -220,7 +404,7 @@ void RobotResource::GetTools(std::vector<RobotResource::ToolResourcePtr>& tools)
     }
 }
 
-RobotResource::AttachedSensorResource::AttachedSensorResource(ControllerClientPtr controller, const std::string& robotobjectpk, const std::string& pk) : WebResource(controller, str(boost::format("robot/%s/attachedsensor")%robotobjectpk), pk)
+RobotResource::AttachedSensorResource::AttachedSensorResource(ControllerClientPtr controller, const std::string& robotobjectpk, const std::string& pk) : WebResource(controller, str(boost::format("robot/%s/attachedsensor")%robotobjectpk), pk), pk(pk)
 {
 }
 
@@ -237,14 +421,13 @@ void RobotResource::GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& a
         AttachedSensorResourcePtr attachedsensor(new AttachedSensorResource(controller, GetPrimaryKey(), GetJsonValueByKey<std::string>(*it, "pk")));
 
         LoadJsonValueByKey(*it, "name", attachedsensor->name);
-        LoadJsonValueByKey(*it, "pk", attachedsensor->pk);
         LoadJsonValueByKey(*it, "frame_origin", attachedsensor->frame_origin);
         LoadJsonValueByKey(*it, "sensortype", attachedsensor->sensortype);
         LoadJsonValueByKey(*it, "quaternion", attachedsensor->quaternion);
         LoadJsonValueByKey(*it, "translate", attachedsensor->translate);
         std::vector<double> distortionCoeffs = GetJsonValueByPath<std::vector<double> > (*it, "/sensordata/distortion_coeffs");
         BOOST_ASSERT(distortionCoeffs.size() <= 5);
-        for (size_t i = 0; i < distortionCoeffs.size(); i ++) {
+        for (size_t i = 0; i < distortionCoeffs.size(); i++) {
             attachedsensor->sensordata.distortion_coeffs[i] = distortionCoeffs[i];
         }
         attachedsensor->sensordata.distortion_model = GetJsonValueByPath<std::string>(*it, "/sensordata/distortion_model");
@@ -285,7 +468,7 @@ void RobotResource::GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& a
     }
 }
 
-SceneResource::InstObject::InstObject(ControllerClientPtr controller, const std::string& scenepk, const std::string& pk) : WebResource(controller, str(boost::format("scene/%s/instobject")%scenepk), pk)
+SceneResource::InstObject::InstObject(ControllerClientPtr controller, const std::string& scenepk, const std::string& pk) : WebResource(controller, str(boost::format("scene/%s/instobject")%scenepk), pk), pk(pk)
 {
 }
 
@@ -528,6 +711,19 @@ void SceneResource::GetTaskPrimaryKeys(std::vector<std::string>& taskkeys)
     }
 }
 
+void SceneResource::GetTaskNames(std::vector<std::string>& taskkeys)
+{
+    GETCONTROLLERIMPL();
+    rapidjson::Document pt(rapidjson::kObjectType);
+    controller->CallGet(str(boost::format("scene/%s/task/?format=json&limit=0&fields=name")%GetPrimaryKey()), pt);
+    rapidjson::Value& objects = pt["objects"];
+    taskkeys.resize(objects.Size());
+    size_t i = 0;
+    for (rapidjson::Document::ValueIterator it = objects.Begin(); it != objects.End(); ++it) {
+        taskkeys[i++] = GetJsonValueByKey<std::string>(*it, "name");
+    }
+}
+
 void SceneResource::GetSensorMapping(std::map<std::string, std::string>& sensormapping)
 {
     GETCONTROLLERIMPL();
@@ -545,7 +741,7 @@ void SceneResource::GetSensorMapping(std::map<std::string, std::string>& sensorm
                 controller->CallGet(str(boost::format("robot/%s/attachedsensor/?format=json")%object_pk), pt_robot);
                 rapidjson::Value& pt_attachedsensors = pt_robot["attachedsensors"];
                 for (rapidjson::Document::ValueIterator itsensor = pt_attachedsensors.Begin();
-                        itsensor != pt_attachedsensors.End(); ++itsensor) {
+                     itsensor != pt_attachedsensors.End(); ++itsensor) {
                     std::string sensorname = GetJsonValueByKey<std::string>(*itsensor, "name");
                     std::string camerafullname = str(boost::format("%s/%s")%cameracontainername%sensorname);
                     std::string cameraid = GetJsonValueByPath<std::string>(*itsensor, "/sensordata/hardware_id");
@@ -569,7 +765,6 @@ void SceneResource::GetInstObjects(std::vector<SceneResource::InstObjectPtr>& in
         InstObjectPtr instobject(new InstObject(controller, GetPrimaryKey(), GetJsonValueByKey<std::string>(*it, "pk")));
 
         LoadJsonValueByKey(*it, "name", instobject->name);
-        LoadJsonValueByKey(*it, "pk", instobject->pk);
         LoadJsonValueByKey(*it, "object_pk", instobject->object_pk);
         LoadJsonValueByKey(*it, "reference_uri", instobject->reference_uri);
         LoadJsonValueByKey(*it, "dofvalues", instobject->dofvalues);
@@ -621,7 +816,7 @@ void SceneResource::GetInstObjects(std::vector<SceneResource::InstObjectPtr>& in
             instobject->attachedsensors.resize(jsonattachedsensors.Size());
             size_t iattchedsensor = 0;
             for (rapidjson::Document::ValueIterator itsensor = jsonattachedsensors.Begin();
-                    itsensor != jsonattachedsensors.End(); ++itsensor) {
+                 itsensor != jsonattachedsensors.End(); ++itsensor) {
                 InstObject::AttachedSensor& sensor  = instobject->attachedsensors[iattchedsensor];
                 LoadJsonValueByKey(*itsensor, "name", sensor.name);
                 LoadJsonValueByKey(*itsensor, "quaternion", sensor.quaternion);
@@ -647,11 +842,11 @@ bool SceneResource::FindInstObject(const std::string& name, SceneResource::InstO
     return false;
 }
 
-SceneResource::InstObjectPtr SceneResource::CreateInstObject(const std::string& name, const std::string& referenceUri, const Real quaternion[4], const Real translation[3], double timeout)
+SceneResource::InstObjectPtr SceneResource::CreateInstObject(const std::string& name, const std::string& referenceUri, const Real quaternion[4], const Real translate[3], double timeout)
 {
     GETCONTROLLERIMPL();
     const std::string uri(str(boost::format("scene/%s/instobject/?format=json&fields=pk")%GetPrimaryKey()));
-    std::string data(str(boost::format("{\"name\":\"%s\", \"quaternion\":[%.15f,%.15f,%.15f,%.15f], \"translate\":[%.15f,%.15f,%.15f]")%name%quaternion[0]%quaternion[1]%quaternion[2]%quaternion[3]%translation[0]%translation[1]%translation[2]));
+    std::string data(str(boost::format("{\"name\":\"%s\", \"quaternion\":[%.15f,%.15f,%.15f,%.15f], \"translate\":[%.15f,%.15f,%.15f]")%name%quaternion[0]%quaternion[1]%quaternion[2]%quaternion[3]%translate[0]%translate[1]%translate[2]));
     if (!referenceUri.empty()) {
         data += ", \"reference_uri\": \"" + referenceUri + "\"";
     }
@@ -866,9 +1061,10 @@ void TaskResource::SetTaskParameters(const ITLPlanningTaskParameters& taskparame
 
     // because program will inside string, encode newlines
     std::string program;
-    std::vector< std::pair<std::string, std::string> > serachpairs(2);
-    serachpairs[0].first = "\n"; serachpairs[0].second = "\\n";
-    serachpairs[1].first = "\r\n"; serachpairs[1].second = "\\n";
+    std::vector< std::pair<std::string, std::string> > serachpairs(3);
+    serachpairs[0].first = "\""; serachpairs[0].second = "\\\"";
+    serachpairs[1].first = "\n"; serachpairs[1].second = "\\n";
+    serachpairs[2].first = "\r\n"; serachpairs[2].second = "\\n";
     SearchAndReplace(program, taskparameters.program, serachpairs);
     std::string taskgoalput = str(boost::format("{\"tasktype\": \"itlplanning\", \"taskparameters\":{\"optimizationvalue\":%f, \"program\":\"%s\", \"unit\":\"%s\", \"returnmode\":\"%s\", \"startfromcurrent\":\"%s\", \"ignorefigure\":\"%s\", \"vrcruns\":%d %s %s } }")%taskparameters.optimizationvalue%program%taskparameters.unit%taskparameters.returnmode%startfromcurrent%ignorefigure%vrcruns%ssinitial_envstate.str()%ssfinal_envstate.str());
     rapidjson::Document pt;

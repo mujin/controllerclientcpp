@@ -14,8 +14,8 @@
 /** \file mujinjson.h
     \brief Wrapper for rapidjson.
  */
-#ifndef MUJIN_JSON_H
-#define MUJIN_JSON_H
+#ifndef MUJIN_CONTROLLERCLIENT_JSON_H
+#define MUJIN_CONTROLLERCLIENT_JSON_H
 
 #include <boost/shared_ptr.hpp>
 #include <boost/lexical_cast.hpp>
@@ -25,13 +25,18 @@
 #include <stdexcept>
 #include <vector>
 #include <map>
+#include <iostream>
 
 #include <rapidjson/pointer.h>
 #include <rapidjson/stringbuffer.h>
+#include <rapidjson/ostreamwrapper.h>
+#include <rapidjson/istreamwrapper.h>
 #include <rapidjson/writer.h>
 #include <rapidjson/error/en.h>
+#include <rapidjson/prettywriter.h>
 
-namespace mujinjson {
+namespace mujinclient {
+namespace mujinjson_external {
 
 enum MujinJSONErrorCode
 {
@@ -87,8 +92,7 @@ private:
     MujinJSONErrorCode _error;
 };
 
-    
-// using namespace mujinclient;
+template<class T> inline std::string GetJsonString(const T& t);
 
 /// \brief gets a string of the Value type for debugging purposes 
 inline std::string GetJsonTypeName(const rapidjson::Value& v) {
@@ -113,15 +117,33 @@ inline std::string GetJsonTypeName(const rapidjson::Value& v) {
     }
 }
 
-inline std::string DumpJson(const rapidjson::Value& value) {
+inline std::string DumpJson(const rapidjson::Value& value, const unsigned int indent=0) {
     rapidjson::StringBuffer stringbuffer;
-    rapidjson::Writer<rapidjson::StringBuffer> writer(stringbuffer);
-    value.Accept(writer);
+    if (indent == 0) {
+        rapidjson::Writer<rapidjson::StringBuffer> writer(stringbuffer);
+        value.Accept(writer);
+    } else {
+        rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(stringbuffer);
+        writer.SetIndent(' ', indent);
+        value.Accept(writer);
+    }
     return std::string(stringbuffer.GetString(), stringbuffer.GetSize());
 }
 
-inline void ParseJson(rapidjson::Document&d, const std::string& str) {
-    d.Parse(str.c_str());
+inline void DumpJson(const rapidjson::Value& value, std::ostream& os, const unsigned int indent=0) {
+    rapidjson::OStreamWrapper osw(os);
+    if (indent == 0) {
+        rapidjson::Writer<rapidjson::OStreamWrapper> writer(osw);
+        value.Accept(writer);
+    } else {
+        rapidjson::PrettyWriter<rapidjson::OStreamWrapper> writer(osw);
+        writer.SetIndent(' ', indent);
+        value.Accept(writer);
+    }
+}
+
+inline void ParseJson(rapidjson::Document& d, const std::string& str) {
+    d.Parse<rapidjson::kParseFullPrecisionFlag>(str.c_str()); // parse float in full precision mode
     if (d.HasParseError()) {
         std::string substr;
         if (str.length()> 200) {
@@ -133,6 +155,13 @@ inline void ParseJson(rapidjson::Document&d, const std::string& str) {
     }
 }
 
+inline void ParseJson(rapidjson::Document& d, std::istream& is) {
+    rapidjson::IStreamWrapper isw(is);
+    d.ParseStream<rapidjson::kParseFullPrecisionFlag>(isw); // parse float in full precision mode
+    if (d.HasParseError()) {
+        throw MujinJSONException(boost::str(boost::format("Json stream is invalid (offset %u) %s")%((unsigned)d.GetErrorOffset())%GetParseError_En(d.GetParseError())), MJE_Failed);
+    }
+}
 class JsonSerializable {
 public:
     virtual void LoadFromJson(const rapidjson::Value& v) = 0;
@@ -155,7 +184,7 @@ inline void LoadJsonValue(const rapidjson::Value& v, std::string& t) {
         //TODO: add warnings on all usages of lexical_cast
         t = boost::lexical_cast<std::string>(v.GetInt64());
     } else {
-        throw MujinJSONException("Cannot convert json type " + GetJsonTypeName(v) + " to String", MJE_Failed);
+        throw MujinJSONException("Cannot convert json value " + GetJsonString(v) + " to String", MJE_Failed);
     }
 
 }
@@ -166,7 +195,7 @@ inline void LoadJsonValue(const rapidjson::Value& v, int& t) {
     } else if (v.IsString()) {
         t = boost::lexical_cast<int>(v.GetString());
     } else {
-        throw MujinJSONException("Cannot convert json type " + GetJsonTypeName(v) + " to Int", MJE_Failed);
+        throw MujinJSONException("Cannot convert json value " + GetJsonString(v) + " to Int", MJE_Failed);
     }
 }
 
@@ -176,7 +205,7 @@ inline void LoadJsonValue(const rapidjson::Value& v, unsigned int& t) {
     } else if (v.IsString()) {
         t = boost::lexical_cast<unsigned int>(v.GetString());
     } else {
-        throw MujinJSONException("Cannot convert json type " + GetJsonTypeName(v) + " to Int", MJE_Failed);
+        throw MujinJSONException("Cannot convert json value " + GetJsonString(v) + " to Int", MJE_Failed);
     }
 }
 
@@ -186,7 +215,7 @@ inline void LoadJsonValue(const rapidjson::Value& v, unsigned long long& t) {
     } else if (v.IsString()) {
         t = boost::lexical_cast<unsigned long long>(v.GetString());
     } else {
-        throw MujinJSONException("Cannot convert json type " + GetJsonTypeName(v) + " to Int64", MJE_Failed);
+        throw MujinJSONException("Cannot convert json value " + GetJsonString(v) + " to Int64", MJE_Failed);
     }
 }
 
@@ -196,7 +225,7 @@ inline void LoadJsonValue(const rapidjson::Value& v, uint64_t& t) {
     } else if (v.IsString()) {
         t = boost::lexical_cast<uint64_t>(v.GetString());
     } else {
-        throw MujinJSONException("Cannot convert json type " + GetJsonTypeName(v) + " to Int64", MJE_Failed);
+        throw MujinJSONException("Cannot convert json value " + GetJsonString(v) + " to Int64", MJE_Failed);
     }
 }
 
@@ -206,7 +235,7 @@ inline void LoadJsonValue(const rapidjson::Value& v, double& t) {
     } else if (v.IsString()) {
         t = boost::lexical_cast<double>(v.GetString());
     } else {
-        throw MujinJSONException("Cannot convert json type " + GetJsonTypeName(v) + " to Double", MJE_Failed);
+        throw MujinJSONException("Cannot convert json value " + GetJsonString(v) + " to Double", MJE_Failed);
     }
 }
 
@@ -216,7 +245,7 @@ inline void LoadJsonValue(const rapidjson::Value& v, float& t) {
     } else if (v.IsString()) {
         t = boost::lexical_cast<double>(v.GetString());
     } else {
-        throw MujinJSONException("Cannot convert json type " + GetJsonTypeName(v) + " to Double", MJE_Failed);
+        throw MujinJSONException("Cannot convert json value " + GetJsonString(v) + " to Double", MJE_Failed);
     }
 }
 
@@ -226,7 +255,7 @@ inline void LoadJsonValue(const rapidjson::Value& v, bool& t) {
     else if (v.IsString())  {
         t = boost::lexical_cast<bool>(v.GetString());
     } else {
-        throw MujinJSONException("Cannot convert json type " + GetJsonTypeName(v) + " to Bool", MJE_Failed);
+        throw MujinJSONException("Cannot convert json value " + GetJsonString(v) + " to Bool", MJE_Failed);
     }
 }
 
@@ -335,7 +364,6 @@ inline void SaveJsonValue(rapidjson::Value& v, long long t, rapidjson::Document:
 inline void SaveJsonValue(rapidjson::Value& v, unsigned long long t, rapidjson::Document::AllocatorType& alloc) {
     v.SetUint64(t);
 }
-
 inline void SaveJsonValue(rapidjson::Value& v, uint64_t t, rapidjson::Document::AllocatorType& alloc) {
     v.SetUint64(t);
 }
@@ -382,6 +410,7 @@ template<> inline void SaveJsonValue(rapidjson::Value& v, const std::vector<doub
     }
 }
 
+
 template<class U> inline void SaveJsonValue(rapidjson::Value& v, const std::map<std::string, U>& t, rapidjson::Document::AllocatorType& alloc) {
     v.SetObject();
     for (typename std::map<std::string, U>::const_iterator it = t.begin(); it != t.end(); ++it) {
@@ -425,13 +454,14 @@ template<class T, class U> T GetJsonValueByKey(const rapidjson::Value& v, const 
         throw MujinJSONException("Cannot get value of non-object.", MJE_Failed);
     }
     if (v.HasMember(key)) {
-        T r;
-        LoadJsonValue(v[key], r);
-        return r;
+        const rapidjson::Value& child = v[key];
+        if (!child.IsNull()) {
+            T r;
+            LoadJsonValue(v[key], r);
+            return r;
+        }
     }
-    else {
-        return T(t);
-    }
+    return T(t);
 }
 template<class T> inline T GetJsonValueByKey(const rapidjson::Value& v, const char* key) {
     if (!v.IsObject()) {
@@ -439,15 +469,21 @@ template<class T> inline T GetJsonValueByKey(const rapidjson::Value& v, const ch
     }
     T r = T();
     if (v.HasMember(key)) {
-        LoadJsonValue(v[key], r);
+        const rapidjson::Value& child = v[key];
+        if (!child.IsNull()) {
+            LoadJsonValue(v[key], r);
+        }
     }
     return r;
 }
 
+inline std::string GetStringJsonValueByKey(const rapidjson::Value& v, const char* key, const std::string& defaultValue=std::string()) {
+    return GetJsonValueByKey<std::string, std::string>(v, key, defaultValue);
+}
 template<class T> inline T GetJsonValueByPath(const rapidjson::Value& v, const char* key) {
     T r;
     const rapidjson::Value *child = rapidjson::Pointer(key).Get(v);
-    if (child) {
+    if (child && !child->IsNull()) {
         LoadJsonValue(*child, r);
     }
     return r;
@@ -455,7 +491,7 @@ template<class T> inline T GetJsonValueByPath(const rapidjson::Value& v, const c
 
 template<class T, class U> T GetJsonValueByPath(const rapidjson::Value& v, const char* key, const U& t) {
     const rapidjson::Value *child = rapidjson::Pointer(key).Get(v);
-    if (child) {
+    if (child && !child->IsNull()) {
         T r;
         LoadJsonValue(*child, r);
         return r;
@@ -512,5 +548,26 @@ template<class T> inline std::string GetJsonString(const T& t) {
     return DumpJson(d);
 }
 
+template<class T, class U> inline std::string GetJsonStringByKey(const U& key, const T& t) {
+    rapidjson::Document d(rapidjson::kObjectType);
+    SetJsonValueByKey(d, key, t);
+    return DumpJson(d);
+}
+
+/** update a json object with another one, new key-value pair will be added, existing ones will be overwritten
+ */
+inline void UpdateJson(rapidjson::Document& a, const rapidjson::Value& b) {
+    if (!a.IsObject()) {
+        throw MujinJSONException("json object should be a dict to be updated: " + GetJsonString(a));
+    }
+    if (!b.IsObject()) {
+        throw MujinJSONException("json object should be a dict to update another dict: " + GetJsonString(b));
+    }
+    for (rapidjson::Value::ConstMemberIterator it = b.MemberBegin(); it != b.MemberEnd(); ++it) {
+        SetJsonValueByKey(a, it->name.GetString(), it->value);
+    }
+}
+
 } // namespace mujinjson
+} // namespace mujinclient
 #endif

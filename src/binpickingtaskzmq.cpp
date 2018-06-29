@@ -30,6 +30,7 @@ using namespace mujinzmq;
 
 namespace mujinclient {
 using namespace utils;
+namespace mujinjson = mujinjson_external;
 using namespace mujinjson;
 
 class ZmqMujinControllerClient : public mujinzmq::ZmqClient
@@ -215,21 +216,21 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
                 try{
                     std::stringstream replystring_ss(replystring);
                     ParseJson(pt, replystring_ss.str());
+                    heartbeat.Parse(pt);
+                    {
+                        boost::mutex::scoped_lock lock(_mutexTaskState);
+                        _taskstate = heartbeat.taskstate;
+                    }
+                    //BINPICKING_LOG_ERROR(replystring);
+                    
+                    if (heartbeat.status != std::string("lost") && heartbeat.status.size() > 1) {
+                        lastheartbeat = GetMilliTime();
+                    }
                 }
                 catch (std::exception const &e) {
                     MUJIN_LOG_ERROR("HeartBeat reply is not JSON");
                     MUJIN_LOG_ERROR(e.what());
                     continue;
-                }
-                heartbeat.Parse(pt);
-                {
-                    boost::mutex::scoped_lock lock(_mutexTaskState);
-                    _taskstate = heartbeat.taskstate;
-                }
-                //BINPICKING_LOG_ERROR(replystring);
-
-                if (heartbeat.status != std::string("lost") && heartbeat.status.size() > 1) {
-                    lastheartbeat = GetMilliTime();
                 }
             }
         }

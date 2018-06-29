@@ -28,6 +28,7 @@ MUJIN_LOGGER("mujin.controllerclientcpp");
 
 namespace mujinclient {
 
+namespace mujinjson = mujinjson_external;
 using namespace mujinjson;
 class CurlTimeoutSetter
 {
@@ -675,6 +676,7 @@ int ControllerClientImpl::CallGet(const std::string& relativeuri, rapidjson::Doc
 
 int ControllerClientImpl::_CallGet(const std::string& desturi, rapidjson::Document& pt, int expectedhttpcode, double timeout)
 {
+    MUJIN_LOG_INFO(str(boost::format("GET %s")%desturi));
     CurlTimeoutSetter timeoutsetter(_curl, timeout);
     curl_easy_setopt(_curl, CURLOPT_URL, desturi.c_str());
     _buffer.clear();
@@ -709,6 +711,7 @@ int ControllerClientImpl::CallGet(const std::string& relativeuri, std::string& o
 
 int ControllerClientImpl::_CallGet(const std::string& desturi, std::string& outputdata, int expectedhttpcode, double timeout)
 {
+    MUJIN_LOG_VERBOSE(str(boost::format("GET %s")%desturi));
     CurlTimeoutSetter timeoutsetter(_curl, timeout);
     curl_easy_setopt(_curl, CURLOPT_URL, desturi.c_str());
     _buffer.clear();
@@ -746,6 +749,7 @@ int ControllerClientImpl::CallGet(const std::string& relativeuri, std::vector<un
 
 int ControllerClientImpl::_CallGet(const std::string& desturi, std::vector<unsigned char>& outputdata, int expectedhttpcode, double timeout)
 {
+    MUJIN_LOG_VERBOSE(str(boost::format("GET %s")%desturi));
     CurlTimeoutSetter timeoutsetter(_curl, timeout);
     curl_easy_setopt(_curl, CURLOPT_URL, desturi.c_str());
 
@@ -780,6 +784,7 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, std::vector<unsig
 /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
 int ControllerClientImpl::CallPost(const std::string& relativeuri, const std::string& data, rapidjson::Document& pt, int expectedhttpcode, double timeout)
 {
+    MUJIN_LOG_DEBUG(str(boost::format("POST %s")%relativeuri));
     CurlTimeoutSetter timeoutsetter(_curl, timeout);
     boost::mutex::scoped_lock lock(_mutex);
     curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, _httpheadersjson);
@@ -824,6 +829,7 @@ int ControllerClientImpl::CallPost_UTF16(const std::string& relativeuri, const s
 
 int ControllerClientImpl::_CallPut(const std::string& relativeuri, const void* pdata, size_t nDataSize, rapidjson::Document& pt, curl_slist* headers, int expectedhttpcode, double timeout)
 {
+    MUJIN_LOG_DEBUG(str(boost::format("PUT %s")%relativeuri));
     boost::mutex::scoped_lock lock(_mutex);
     curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, headers);//isJson ? _httpheadersjson : _httpheadersstl);
     CurlTimeoutSetter timeoutsetter(_curl, timeout);
@@ -872,6 +878,7 @@ int ControllerClientImpl::CallPutJSON(const std::string& relativeuri, const std:
 
 void ControllerClientImpl::CallDelete(const std::string& relativeuri, double timeout)
 {
+    MUJIN_LOG_DEBUG(str(boost::format("DELETE %s")%relativeuri));
     boost::mutex::scoped_lock lock(_mutex);
     CurlTimeoutSetter timeoutsetter(_curl, timeout);
     _uri = _baseapiuri;
@@ -976,11 +983,34 @@ std::string ControllerClientImpl::CreateObjectGeometry(const std::string& object
     return GetJsonValueByKey<std::string>(pt, "pk");
 }
 
+std::string ControllerClientImpl::CreateIkParam(const std::string& objectPk, const std::string& name, const std::string& iktype, double timeout)
+{
+    rapidjson::Document pt(rapidjson::kObjectType);
+    const std::string ikparamData("{\"name\":\"" + name + "\", \"iktype\":\"" + iktype + "\"}");
+    const std::string uri(str(boost::format("object/%s/ikparam/") % objectPk));
+    
+    CallPost(uri, ikparamData, pt, 201, timeout);
+    return GetJsonValueByKey<std::string>(pt, "pk");
+}
+
+std::string ControllerClientImpl::CreateLink(const std::string& objectPk, const std::string& parentlinkPk, const std::string& name, const Real quaternion[4], const Real translate[3], double timeout)
+{
+    rapidjson::Document pt(rapidjson::kObjectType);
+    std::string data(str(boost::format("{\"name\":\"%s\", \"quaternion\":[%.15f,%.15f,%.15f,%.15f], \"translate\":[%.15f,%.15f,%.15f]")%name%quaternion[0]%quaternion[1]%quaternion[2]%quaternion[3]%translate[0]%translate[1]%translate[2]));
+    if (!parentlinkPk.empty()) {
+        data += ", \"parentlinkpk\": \"" + parentlinkPk + "\"";
+    }
+    data += "}";
+    const std::string uri(str(boost::format("object/%s/link/") % objectPk));
+    
+    CallPost(uri, data, pt, 201, timeout);
+    return GetJsonValueByKey<std::string>(pt, "pk");
+}
+
 std::string ControllerClientImpl::SetObjectGeometryMesh(const std::string& objectPk, const std::string& geometryPk, const std::vector<unsigned char>& meshData, const std::string& unit, double timeout)
 {
     rapidjson::Document pt(rapidjson::kObjectType);
     const std::string uri(str(boost::format("object/%s/geometry/%s/?unit=%s")%objectPk%geometryPk%unit));
-    std::cout << uri << std::endl;
     const int status = CallPutSTL(uri, meshData, pt, 202, timeout);
     assert(status == 202);
     return GetJsonValueByKey<std::string>(pt, "pk");
@@ -1634,6 +1664,7 @@ void ControllerClientImpl::_UploadFileToController_UTF16(const std::wstring& fil
 
 void ControllerClientImpl::_UploadFileToController(FILE* fd, const std::string& uri)
 {
+    MUJIN_LOG_DEBUG(str(boost::format("upload %s")%uri))
 #if defined(_WIN32) || defined(_WIN64)
     fseek(fd,0,SEEK_END);
     curl_off_t filesize = ftell(fd);

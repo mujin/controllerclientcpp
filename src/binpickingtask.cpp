@@ -42,6 +42,7 @@ MUJIN_LOGGER("mujin.controllerclientcpp.binpickingtask");
 
 namespace mujinclient {
 using namespace utils;
+namespace mujinjson = mujinjson_external;
 using namespace mujinjson;
 
 BinPickingResultResource::BinPickingResultResource(ControllerClientPtr controller, const std::string& pk) : PlanningResultResource(controller,"binpickingresult", pk)
@@ -296,7 +297,7 @@ std::string utils::GetJsonString(const BinPickingTaskResource::DetectedObject& o
 std::string utils::GetJsonString(const BinPickingTaskResource::PointCloudObstacle& obj)
 {
     std::stringstream ss;
-    ss << std::setprecision(std::numeric_limits<decltype(obj.points)::value_type>::digits10+1);
+    ss << std::setprecision(std::numeric_limits<float>::digits10+1); // want to control the size of the JSON file outputted
     // "\"name\": __dynamicobstacle__, \"pointsize\": 0.005, \"points\": []
     ss << GetJsonString("pointcloudid") << ": " << GetJsonString(obj.name) << ", ";
     ss << GetJsonString("pointsize") << ": " << obj.pointsize <<", ";
@@ -468,14 +469,15 @@ BinPickingTaskResource::ResultGetBinpickingState::ResultGetBinpickingState()
     statusDescPickPlace = "";
     statusPhysics = "";
     isDynamicEnvironmentStateEmpty = false;
-    pickAttemptFromSourceId = -1;
     isSourceContainerEmpty = false;
+    pickAttemptFromSourceId = -1;
     timestamp = 0;
     lastGrabbedTargetTimeStamp = 0;
     isRobotOccludingSourceContainer = true;
     forceRequestDetectionResults = true;
     isGrabbingTarget = true;
     isGrabbingLastTarget = true;
+    hasRobotExecutionStarted = false;
     orderNumber = -1;
     numLeftInOrder = -1;
     numLeftInSupply = -1;
@@ -606,13 +608,14 @@ void BinPickingTaskResource::ResultHeartBeat::Parse(const rapidjson::Value& pt)
     if (pt.HasMember("slavestates") && _slaverequestid.size() > 0) {
         rapidjson::Document d(rapidjson::kObjectType), taskstatejson;
         std::string key = "slaverequestid-" + _slaverequestid;
-        try {
+        //try {
             taskstatejson.CopyFrom(pt["slavestates"][key.c_str()]["taskstate"], taskstatejson.GetAllocator());
             SetJsonValueByKey(d, "output", taskstatejson);
             taskstate.Parse(d);
-        } catch (...){
-
-        }
+//        }
+//        catch (const std::exception& ex){
+//            MUJIN_LOG_WARN("parsing heartbeat at " << timestamp ": " << ex.what());
+//        }
     }
 }
 
@@ -860,7 +863,7 @@ void BinPickingTaskResource::UpdateObjects(const std::string& objectname, const 
     ExecuteCommand(_ss.str(), d, timeout); // need to check return code
 }
 
-void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<float>&vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp, const unsigned long long endtimestamp, const bool executionverification, const std::string& unit, int isoccluded, const std::string& regionname, const double timeout, bool clampToContainer)
+void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<float>&vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp, const unsigned long long endtimestamp, const bool executionverification, const std::string& unit, int isoccluded, const std::string& regionname, const double timeout, bool clampToContainer, CropContainerMarginsXYZXYZPtr pCropContainerMargins)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "AddPointCloudObstacle";
@@ -869,6 +872,9 @@ void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<float>&vpoi
     _ss << GetJsonString("isoccluded", isoccluded) << ", ";
     _ss << GetJsonString("regionname", regionname) << ", ";
     _ss << GetJsonString("clampToContainer", clampToContainer) << ", ";
+    if( !!pCropContainerMargins ) {
+        _ss << "\"cropContainerMarginsXYZXYZ\":[" << pCropContainerMargins->minMargins[0] << ", " << pCropContainerMargins->minMargins[1] << ", " << pCropContainerMargins->minMargins[2] << ", " << pCropContainerMargins->maxMargins[0] << ", " << pCropContainerMargins->maxMargins[1] << ", " << pCropContainerMargins->maxMargins[2] << "], ";
+    }
     PointCloudObstacle pointcloudobstacle;
     pointcloudobstacle.name = name;
     pointcloudobstacle.pointsize = pointsize;

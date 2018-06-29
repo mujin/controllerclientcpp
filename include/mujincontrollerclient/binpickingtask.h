@@ -26,6 +26,15 @@
 
 namespace mujinclient {
 
+/// Margins of the container to be cropped (or enlarged if negative), in order to define 3D container region under (calibration & shape) uncertainty - for pointcloud processing.
+struct CropContainerMarginsXYZXYZ
+{
+    double minMargins[3]; ///< XYZ of how much to crop from min margins (value > 0 means crop inside)
+    double maxMargins[3]; ///< XYZ of how much to crop from min margins (value > 0 means crop inside)
+};
+
+typedef boost::shared_ptr<CropContainerMarginsXYZXYZ> CropContainerMarginsXYZXYZPtr;
+
 class MUJINCLIENT_API BinPickingResultResource : public PlanningResultResource
 {
 public:
@@ -157,9 +166,12 @@ public:
     {
         void Parse(const rapidjson::Value& pt);
         bool operator!=(const ResultOBB& other) const {
-            return translation != other.translation ||
-                   extents != other.extents ||
-                   rotationmat != other.rotationmat;
+            return !FuzzyEquals(translation, other.translation) ||
+                   !FuzzyEquals(extents, other.extents) ||
+                   !FuzzyEquals(rotationmat, other.rotationmat);
+        }
+        bool operator==(const ResultOBB& other) const {
+            return !operator!=(other);
         }
         std::vector<Real> translation;
         std::vector<Real> extents;
@@ -247,7 +259,7 @@ public:
         \param timeout seconds until this command times out
      */
     virtual void InitializeZMQ(const double reinitializetimeout = 0,const double timeout /* second */=5.0);
-
+    
     /** \brief Add a point cloud collision obstacle with name to the environment.
         \param vpoints list of x,y,z coordinates in meter
         \param state additional information about the objects
@@ -258,7 +270,7 @@ public:
         \param timeout seconds until this command times out
         \param clampToContainer if true, then planning will clamp the points to the container walls specified by regionname. Otherwise, will use all the points
      */
-    virtual void AddPointCloudObstacle(const std::vector<float>& vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp=0, const unsigned long long endtimestamp=0, const bool executionverification=false, const std::string& unit="mm", int isoccluded=-1, const std::string& regionname=std::string(), const double timeout /* second */=5.0, bool clampToContainer=true);
+    virtual void AddPointCloudObstacle(const std::vector<float>& vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp=0, const unsigned long long endtimestamp=0, const bool executionverification=false, const std::string& unit="mm", int isoccluded=-1, const std::string& regionname=std::string(), const double timeout /* second */=5.0, bool clampToContainer=true, CropContainerMarginsXYZXYZPtr pCropContainerMargins=CropContainerMarginsXYZXYZPtr());
     
     /// \param locationIOName the location IO name (1, 2, 3, 4, etc) used to tell mujin controller to notify  the IO signal with detected object info
     /// \param cameranames the names of the sensors mapped to the current region used for detetion. The sensor information is used to create shadow obstacles per each part, if empty, will not be able to create the correct shadow obstacles.
@@ -407,29 +419,31 @@ protected:
 
 };
 
+
+
 namespace utils {
-std::string GetJsonString(const std::string& string);
-std::string GetJsonString(const std::vector<float>& vec);
-std::string GetJsonString(const std::vector<double>& vec);
-std::string GetJsonString(const std::vector<int>& vec);
-std::string GetJsonString(const std::vector<std::string>& vec);
-std::string GetJsonString(const Transform& transform);
-std::string GetJsonString(const BinPickingTaskResource::DetectedObject& obj);
-std::string GetJsonString(const BinPickingTaskResource::PointCloudObstacle& obj);
-std::string GetJsonString(const BinPickingTaskResource::SensorOcclusionCheck& check);
+MUJINCLIENT_API std::string GetJsonString(const std::string& string);
+MUJINCLIENT_API std::string GetJsonString(const std::vector<float>& vec);
+MUJINCLIENT_API std::string GetJsonString(const std::vector<double>& vec);
+MUJINCLIENT_API std::string GetJsonString(const std::vector<int>& vec);
+MUJINCLIENT_API std::string GetJsonString(const std::vector<std::string>& vec);
+MUJINCLIENT_API std::string GetJsonString(const Transform& transform);
+MUJINCLIENT_API std::string GetJsonString(const BinPickingTaskResource::DetectedObject& obj);
+MUJINCLIENT_API std::string GetJsonString(const BinPickingTaskResource::PointCloudObstacle& obj);
+MUJINCLIENT_API std::string GetJsonString(const BinPickingTaskResource::SensorOcclusionCheck& check);
 
-std::string GetJsonString(const std::string& key, const std::string& value);
-std::string GetJsonString(const std::string& key, const int value);
-std::string GetJsonString(const std::string& key, const unsigned long long value);
-std::string GetJsonString(const std::string& key, const Real value);
+MUJINCLIENT_API std::string GetJsonString(const std::string& key, const std::string& value);
+MUJINCLIENT_API std::string GetJsonString(const std::string& key, const int value);
+MUJINCLIENT_API std::string GetJsonString(const std::string& key, const unsigned long long value);
+MUJINCLIENT_API std::string GetJsonString(const std::string& key, const Real value);
 
-void GetAttachedSensors(SceneResource& scene, const std::string& bodyname, std::vector<RobotResource::AttachedSensorResourcePtr>& result);
-void GetSensorData(SceneResource& scene, const std::string& bodyname, const std::string& sensorname, RobotResource::AttachedSensorResource::SensorData& result);
+MUJINCLIENT_API void GetAttachedSensors(SceneResource& scene, const std::string& bodyname, std::vector<RobotResource::AttachedSensorResourcePtr>& result);
+MUJINCLIENT_API void GetSensorData(SceneResource& scene, const std::string& bodyname, const std::string& sensorname, RobotResource::AttachedSensorResource::SensorData& result);
 /** \brief Gets transform of attached sensor in sensor body frame
   */
-void GetSensorTransform(SceneResource& scene, const std::string& bodyname, const std::string& sensorname, Transform& result, const std::string& unit="m");
-void DeleteObject(SceneResource& scene, const std::string& name);
-void UpdateObjects(SceneResource& scene, const std::string& basename, const std::vector<BinPickingTaskResource::DetectedObject>& detectedobjects, const std::string& unit="m");
+MUJINCLIENT_API void GetSensorTransform(SceneResource& scene, const std::string& bodyname, const std::string& sensorname, Transform& result, const std::string& unit="m");
+MUJINCLIENT_API void DeleteObject(SceneResource& scene, const std::string& name);
+MUJINCLIENT_API void UpdateObjects(SceneResource& scene, const std::string& basename, const std::vector<BinPickingTaskResource::DetectedObject>& detectedobjects, const std::string& unit="m");
 
 
 #ifdef MUJIN_USEZMQ
