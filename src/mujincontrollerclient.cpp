@@ -168,8 +168,11 @@ ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::GetGeometryFro
     controller->CallGet(relativeuri, pt);
     boost::property_tree::ptree& objects = pt.get_child("geometries");
     FOREACH(v, objects) {
-        if (v->second.find("name") != v->second.not_found() && v->second.get<std::string>("name") == geometryName) {
-            return ObjectResource::GeometryResourcePtr(new GeometryResource(controller, this->objectpk, v->second.get<std::string>("pk")));
+        if (v->second.find("name") != v->second.not_found() && v->second.get<std::string>("name") == geometryName && v->second.get<std::string>("linkpk") == this->pk) {
+            ObjectResource::GeometryResourcePtr geometry(ObjectResource::GeometryResourcePtr(new GeometryResource(controller, this->objectpk, v->second.get<std::string>("pk"))));
+            geometry->name = v->second.get<std::string>("name");
+            geometry->pk = v->second.get<std::string>("pk");
+            return geometry;
         }
     }
     throw MUJIN_EXCEPTION_FORMAT("link %s does not have geometry named %s", this->name%geometryName, MEC_InvalidArguments);
