@@ -42,7 +42,7 @@ void ExtractEnvironmentStateFromPTree(const rapidjson::Value& envstatejson, Envi
         std::vector<Real> quat = GetJsonValueByKey<std::vector<Real> >(*it, "quat_");
         BOOST_ASSERT(quat.size() == 4);
         Real dist2 = 0;
-        for (int i = 0; i < 4; i ++ ) {
+        for (int i = 0; i < 4; i++ ) {
             Real f = quat[i] * quat[i];
             dist2 += f;
             objstate.transform.quaternion[i] = f;
@@ -140,7 +140,7 @@ ObjectResource::ObjectResource(ControllerClientPtr controller, const std::string
 {
 }
 
-ObjectResource::LinkResource::LinkResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk) : WebResource(controller, str(boost::format("object/%s/link")%objectpk), pk), objectpk(objectpk), pk(pk)
+ObjectResource::LinkResource::LinkResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk) : WebResource(controller, str(boost::format("object/%s/link")%objectpk), pk), pk(pk), objectpk(objectpk)
 {
 }
 
@@ -428,7 +428,7 @@ void RobotResource::GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& a
         LoadJsonValueByKey(*it, "translate", attachedsensor->translate);
         std::vector<double> distortionCoeffs = GetJsonValueByPath<std::vector<double> > (*it, "/sensordata/distortion_coeffs");
         BOOST_ASSERT(distortionCoeffs.size() <= 5);
-        for (size_t i = 0; i < distortionCoeffs.size(); i ++) {
+        for (size_t i = 0; i < distortionCoeffs.size(); i++) {
             attachedsensor->sensordata.distortion_coeffs[i] = distortionCoeffs[i];
         }
         attachedsensor->sensordata.distortion_model = GetJsonValueByPath<std::string>(*it, "/sensordata/distortion_model");
@@ -742,7 +742,7 @@ void SceneResource::GetSensorMapping(std::map<std::string, std::string>& sensorm
                 controller->CallGet(str(boost::format("robot/%s/attachedsensor/?format=json")%object_pk), pt_robot);
                 rapidjson::Value& pt_attachedsensors = pt_robot["attachedsensors"];
                 for (rapidjson::Document::ValueIterator itsensor = pt_attachedsensors.Begin();
-                        itsensor != pt_attachedsensors.End(); ++itsensor) {
+                     itsensor != pt_attachedsensors.End(); ++itsensor) {
                     std::string sensorname = GetJsonValueByKey<std::string>(*itsensor, "name");
                     std::string camerafullname = str(boost::format("%s/%s")%cameracontainername%sensorname);
                     std::string cameraid = GetJsonValueByPath<std::string>(*itsensor, "/sensordata/hardware_id");
@@ -817,7 +817,7 @@ void SceneResource::GetInstObjects(std::vector<SceneResource::InstObjectPtr>& in
             instobject->attachedsensors.resize(jsonattachedsensors.Size());
             size_t iattchedsensor = 0;
             for (rapidjson::Document::ValueIterator itsensor = jsonattachedsensors.Begin();
-                    itsensor != jsonattachedsensors.End(); ++itsensor) {
+                 itsensor != jsonattachedsensors.End(); ++itsensor) {
                 InstObject::AttachedSensor& sensor  = instobject->attachedsensors[iattchedsensor];
                 LoadJsonValueByKey(*itsensor, "name", sensor.name);
                 LoadJsonValueByKey(*itsensor, "quaternion", sensor.quaternion);

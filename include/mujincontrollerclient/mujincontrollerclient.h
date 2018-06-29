@@ -18,15 +18,11 @@
 #ifndef MUJIN_CONTROLLERCLIENT_H
 #define MUJIN_CONTROLLERCLIENT_H
 
-#ifndef MUJINCLIENT_DISABLE_ASSERT_HANDLER
-#define BOOST_ENABLE_ASSERT_HANDLER
-#endif
-
 #ifdef _MSC_VER
 
-#pragma warning(disable:4251) // needs to have dll-interface to be used by clients of class
-#pragma warning(disable:4190) // C-linkage specified, but returns UDT 'boost::shared_ptr<T>' which is incompatible with C
-#pragma warning(disable:4819) //The file contains a character that cannot be represented in the current code page (932). Save the file in Unicode format to prevent data loss using native typeof
+#pragma warning(disable:4251)// needs to have dll-interface to be used by clients of class
+#pragma warning(disable:4190)// C-linkage specified, but returns UDT 'boost::shared_ptr<T>' which is incompatible with C
+#pragma warning(disable:4819)//The file contains a character that cannot be represented in the current code page (932). Save the file in Unicode format to prevent data loss using native typeof
 
 #ifndef __PRETTY_FUNCTION__
 #define __PRETTY_FUNCTION__ __FUNCDNAME__
@@ -41,6 +37,7 @@
 #define MUJINCLIENT_DEPRECATED
 #endif
 
+#include <cmath>
 #include <string>
 #include <vector>
 #include <list>
@@ -101,6 +98,30 @@ typedef boost::shared_ptr<BinPickingResultResource> BinPickingResultResourcePtr;
 typedef boost::weak_ptr<BinPickingResultResource> BinPickingResultResourceWeakPtr;
 typedef double Real;
 
+inline bool FuzzyEquals(Real p, Real q, double epsilon=1e-3) {
+    return fabs(double(p - q)) < epsilon;
+}
+
+template<class T> inline bool FuzzyEquals(const std::vector<T>& p, const std::vector<T>& q, double epsilon=1e-3) {
+    if (p.size() != q.size()) {
+        return false;
+    }
+    for (size_t i = 0; i < p.size(); ++i) {
+        if (!FuzzyEquals(p[i], q[i], epsilon)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+template<class T, size_t N> inline bool FuzzyEquals(const T (&p)[N], const T (&q)[N], double epsilon=1e-3) {
+    for (size_t i = 0; i < N; ++i) {
+        if (!FuzzyEquals(p[i], q[i], epsilon)) {
+            return false;
+        }
+    }
+    return true;
+}
 /// \brief status code for a job
 ///
 /// Definitions are very similar to http://ros.org/doc/api/actionlib_msgs/html/msg/GoalStatus.html
@@ -144,8 +165,7 @@ struct Transform
         translate[0] = 0; translate[1] = 0; translate[2] = 0;
     }
     bool operator!=(const Transform& other) const {
-        return std::memcmp(quaternion, other.quaternion, 4 * sizeof(Real)) != 0 ||
-               std::memcmp(translate, other.translate, 3 * sizeof(Real)) != 0;
+        return !FuzzyEquals(quaternion, other.quaternion) || !FuzzyEquals(translate, other.translate);
     }
     bool operator==(const Transform& other) const {
         return !operator!=(other);
@@ -186,7 +206,7 @@ public:
         optimizationvalue = 1;
         program.clear();
     }
-    
+
     int startfromcurrent; ///< Will start planning from the current robot joint values, otherwise will start at the first waypoint in the program.
 
     /// specifies the final movement of the robot. There's 3 different modes:
@@ -194,7 +214,7 @@ public:
     /// - \b "start" - robot returns to wherever it started
     /// - \b "final" - robot returns to the final_envstate
     std::string returnmode;
-    
+
     int vrcruns; ///< Use the Robot Virtual Controller for retiming and extra validation. Makes planning slow, but robot timing because very accurate.
     int ignorefigure; ///< if 1, ignores the figure/structure flags for every goal parameter. These flags fix the configuration of the robot from the multitute of possibilities. If 0, will attempt to use the flags and error if task is not possible with them.
     std::string unit; ///< the unit that information is used in. m, mm, nm, inch, etc
@@ -577,7 +597,7 @@ public:
     /// \param objectPk primary key for the object to set mesh data to
     /// \param geometryPk primary key for the geometry
     /// \param data stl format binary mesh data
-    /// \param unit length unit of mesh 
+    /// \param unit length unit of mesh
     /// \param timeout timeout of uploading mesh
     ///
     virtual std::string SetObjectGeometryMesh(const std::string& objectPk, const std::string& geometryPk, const std::vector<unsigned char>& data, const std::string& unit = "mm", double timeout = 5) = 0;
@@ -606,7 +626,7 @@ public:
     T Get(const std::string& field, double timeout = 5.0) {
         rapidjson::Document pt(rapidjson::kObjectType);
         GetWrap(pt, field, timeout);
-        return mujinjson_external::GetJsonValueByKey<T>(pt, field.c_str());
+        return mujinjson::GetJsonValueByKey<T>(pt, field.c_str());
     }
 
     /// \brief sets an attribute of this web resource
@@ -940,7 +960,7 @@ public:
     /// \brief creates an inst object in scene
     /// \param name name of the object to create
     /// \param referenceUri uri to reference. Leave empty to reference nothing.
-    /// \param quaternion quaternion of the object 
+    /// \param quaternion quaternion of the object
     /// \param translate translation of the object
     /// \return pointer to inst object created
     virtual SceneResource::InstObjectPtr CreateInstObject(const std::string& name, const std::string& referenceUri, const Real quaternion[4], const Real translate[3], double timeout = 300);
@@ -1129,26 +1149,8 @@ MUJINCLIENT_API void ComputeZXYFromTransform(Real ZXY[3], const Transform &trans
 
 MUJINCLIENT_API void SerializeEnvironmentStateToJSON(const EnvironmentState& envstate, std::ostream& os);
 
+
 } // namespace mujinclient
-
-#if !defined(MUJINCLIENT_DISABLE_ASSERT_HANDLER) && defined(BOOST_ENABLE_ASSERT_HANDLER)
-/// Modifications controlling %boost library behavior.
-namespace boost
-{
-inline void assertion_failed(char const * expr, char const * function, char const * file, long line)
-{
-    throw mujinclient::MujinException(boost::str(boost::format("[%s:%d] -> %s, expr: %s")%file%line%function%expr),mujinclient::MEC_Assert);
-}
-
-#if BOOST_VERSION>104600
-inline void assertion_failed_msg(char const * expr, char const * msg, char const * function, char const * file, long line)
-{
-    throw mujinclient::MujinException(boost::str(boost::format("[%s:%d] -> %s, expr: %s, msg: %s")%file%line%function%expr%msg),mujinclient::MEC_Assert);
-}
-#endif
-
-}
-#endif
 
 BOOST_STATIC_ASSERT(MUJINCLIENT_VERSION_MAJOR>=0&&MUJINCLIENT_VERSION_MAJOR<=255);
 BOOST_STATIC_ASSERT(MUJINCLIENT_VERSION_MINOR>=0&&MUJINCLIENT_VERSION_MINOR<=255);
