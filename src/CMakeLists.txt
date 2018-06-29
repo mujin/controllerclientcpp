@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 include_directories(${CURL_INCLUDE_DIRS} ${LOG4CXX_INCLUDEDIR})
 if (libzmq_FOUND)
   include_directories(${libzmq_INCLUDE_DIRS})
@@ -18,7 +19,7 @@ endif()
 
 link_directories(${MUJINCLIENT_LINK_DIRS})
 
-set(SOURCE_FILES handeyecalibrationtask.cpp binpickingtask.cpp common.cpp common.h controllerclientimpl.cpp controllerclientimpl.h mujincontrollerclient.cpp utf8.h )
+set(SOURCE_FILES handeyecalibrationtask.cpp binpickingtask.cpp common.cpp common.h controllerclientimpl.cpp controllerclientimpl.h mujincontrollerclient.cpp utf8.h boost_assertion_failed.cpp)
 if (libzmq_FOUND)
   set(SOURCE_FILES ${SOURCE_FILES} binpickingtaskzmq.h binpickingtaskzmq.cpp mujinzmq.cpp)
 endif()
