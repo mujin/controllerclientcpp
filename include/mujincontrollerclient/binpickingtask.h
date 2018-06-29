@@ -166,9 +166,9 @@ public:
     {
         void Parse(const rapidjson::Value& pt);
         bool operator!=(const ResultOBB& other) const {
-            return translation != other.translation ||
-                   extents != other.extents ||
-                   rotationmat != other.rotationmat;
+            return !FuzzyEquals(translation, other.translation) ||
+                   !FuzzyEquals(extents, other.extents) ||
+                   !FuzzyEquals(rotationmat, other.rotationmat);
         }
         bool operator==(const ResultOBB& other) const {
             return !operator!=(other);
@@ -418,6 +418,8 @@ protected:
     bool _bShutdownHeartbeatMonitor;
 
 };
+
+
 
 namespace utils {
 MUJINCLIENT_API std::string GetJsonString(const std::string& string);
