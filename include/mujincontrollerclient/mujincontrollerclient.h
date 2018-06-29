@@ -626,7 +626,7 @@ public:
     T Get(const std::string& field, double timeout = 5.0) {
         rapidjson::Document pt(rapidjson::kObjectType);
         GetWrap(pt, field, timeout);
-        return mujinjson::GetJsonValueByKey<T>(pt, field.c_str());
+        return mujinjson_external::GetJsonValueByKey<T>(pt, field.c_str());
     }
 
     /// \brief sets an attribute of this web resource

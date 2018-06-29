@@ -784,7 +784,7 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, std::vector<unsig
 /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
 int ControllerClientImpl::CallPost(const std::string& relativeuri, const std::string& data, rapidjson::Document& pt, int expectedhttpcode, double timeout)
 {
-    MUJIN_LOG_DEBUG(str(boost::format("POST %s")%relativeuri));
+    MUJIN_LOG_DEBUG(str(boost::format("POST %s%s")%_baseapiuri%relativeuri));
     CurlTimeoutSetter timeoutsetter(_curl, timeout);
     boost::mutex::scoped_lock lock(_mutex);
     curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, _httpheadersjson);
@@ -829,7 +829,7 @@ int ControllerClientImpl::CallPost_UTF16(const std::string& relativeuri, const s
 
 int ControllerClientImpl::_CallPut(const std::string& relativeuri, const void* pdata, size_t nDataSize, rapidjson::Document& pt, curl_slist* headers, int expectedhttpcode, double timeout)
 {
-    MUJIN_LOG_DEBUG(str(boost::format("PUT %s")%relativeuri));
+    MUJIN_LOG_DEBUG(str(boost::format("PUT %s%s")%_baseapiuri%relativeuri));
     boost::mutex::scoped_lock lock(_mutex);
     curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, headers);//isJson ? _httpheadersjson : _httpheadersstl);
     CurlTimeoutSetter timeoutsetter(_curl, timeout);
@@ -878,7 +878,7 @@ int ControllerClientImpl::CallPutJSON(const std::string& relativeuri, const std:
 
 void ControllerClientImpl::CallDelete(const std::string& relativeuri, double timeout)
 {
-    MUJIN_LOG_DEBUG(str(boost::format("DELETE %s")%relativeuri));
+    MUJIN_LOG_DEBUG(str(boost::format("DELETE %s%s")%_baseapiuri%relativeuri));
     boost::mutex::scoped_lock lock(_mutex);
     CurlTimeoutSetter timeoutsetter(_curl, timeout);
     _uri = _baseapiuri;
