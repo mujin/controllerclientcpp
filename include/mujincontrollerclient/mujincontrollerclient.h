@@ -599,7 +599,12 @@ public:
     }
 
     /// \brief gets an attribute of this web resource
-    virtual std::string Get(const std::string& field, double timeout = 5.0);
+    template<class T>
+    T Get(const std::string& field, double timeout = 5.0) {
+        rapidjson::Document pt(rapidjson::kObjectType);
+        GetWrap(pt, field, timeout);
+        return mujinjson::GetJsonValueByKey<T>(pt, field.c_str());
+    }
 
     /// \brief sets an attribute of this web resource
     virtual void Set(const std::string& field, const std::string& newvalue, double timeout = 5.0);
@@ -611,6 +616,8 @@ public:
     virtual void Copy(const std::string& newname, int options, double timeout = 5.0);
 
 private:
+    virtual void GetWrap(rapidjson::Document& pt, const std::string& field, double timeout = 5.0);
+
     ControllerClientPtr __controller;
     std::string __resourcename, __pk;
 };
