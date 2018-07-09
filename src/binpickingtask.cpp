@@ -135,7 +135,7 @@ void BinPickingTaskResource::Initialize(const std::string& defaultTaskParameters
 #ifdef MUJIN_USEZMQ
 void BinPickingTaskResource::Initialize(const std::string& defaultTaskParameters, const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq, const double reinitializetimeout, const double timeout, const std::string& userinfo, const std::string& slaverequestid)
 {
-    
+
     if( defaultTaskParameters.size() > 0 ) {
         rapidjson::Document d;
         d.Parse(defaultTaskParameters.c_str());
@@ -430,7 +430,7 @@ void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const rapid
     }
 
     const rapidjson::Value& sensors = output["sensors"];
-    for (rapidjson::Document::ConstMemberIterator it = sensors.MemberBegin(); it != sensors.MemberEnd(); it ++) {
+    for (rapidjson::Document::ConstMemberIterator it = sensors.MemberBegin(); it != sensors.MemberEnd(); it++) {
         std::string sensorname = it->name.GetString();
         Transform transform;
         RobotResource::AttachedSensorResource::SensorData sensordata;
@@ -449,7 +449,7 @@ void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const rapid
         if (imagedimensions.size() != 3) {
             throw MujinException("the length of image_dimensions is invalid", MEC_Failed);
         }
-        for (int i = 0; i < 3; i ++) {
+        for (int i = 0; i < 3; i++) {
             sensordata.image_dimensions[i] = imagedimensions[i];
         }
 
@@ -572,25 +572,28 @@ void BinPickingTaskResource::ResultAABB::Parse(const rapidjson::Value& pt)
 
 void BinPickingTaskResource::ResultOBB::Parse(const rapidjson::Value& pt)
 {
-    const rapidjson::Value&  v = (pt.IsObject()&&pt.HasMember("output")?pt["output"]:pt);
+    const rapidjson::Value&  v = (pt.IsObject()&&pt.HasMember("output") ? pt["output"] : pt);
 
     LoadJsonValueByKey(v, "translation", translation);
     LoadJsonValueByKey(v, "extents", extents);
-    std::vector<std::vector<Real> > rotationmatrix;
-    LoadJsonValueByKey(v, "rotationmat", rotationmatrix);
+    std::vector<std::vector<Real> > rotationmatrix2d;
+    LoadJsonValueByKey(v, "rotationmat", rotationmatrix2d);
     if (translation.size() != 3) {
         throw MujinException("The length of translation is invalid.", MEC_Failed);
     }
     if (extents.size() != 3) {
         throw MujinException("The length of extents is invalid.", MEC_Failed);
     }
-    if (rotationmatrix.size() != 3 || rotationmatrix[0].size() != 3 || rotationmatrix[1].size() != 3 || rotationmatrix[2].size() != 3) {
+    if (rotationmatrix2d.size() != 3 || rotationmatrix2d[0].size() != 3 || rotationmatrix2d[1].size() != 3 || rotationmatrix2d[2].size() != 3) {
         throw MujinException("The row number of rotationmat is invalid.", MEC_Failed);
     }
-    for (int i = 0; i < 3; i ++)
-        for (int j = 0; j < 3; j ++) {
-            rotationmat.push_back(rotationmatrix[i][j]);
+
+    rotationmat.resize(9);
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            rotationmat[i*3+j] = rotationmatrix2d[i][j];
         }
+    }
 }
 
 BinPickingTaskResource::ResultHeartBeat::~ResultHeartBeat()
@@ -609,9 +612,9 @@ void BinPickingTaskResource::ResultHeartBeat::Parse(const rapidjson::Value& pt)
         rapidjson::Document d(rapidjson::kObjectType), taskstatejson;
         std::string key = "slaverequestid-" + _slaverequestid;
         //try {
-            taskstatejson.CopyFrom(pt["slavestates"][key.c_str()]["taskstate"], taskstatejson.GetAllocator());
-            SetJsonValueByKey(d, "output", taskstatejson);
-            taskstate.Parse(d);
+        taskstatejson.CopyFrom(pt["slavestates"][key.c_str()]["taskstate"], taskstatejson.GetAllocator());
+        SetJsonValueByKey(d, "output", taskstatejson);
+        taskstate.Parse(d);
 //        }
 //        catch (const std::exception& ex){
 //            MUJIN_LOG_WARN("parsing heartbeat at " << timestamp ": " << ex.what());
@@ -620,61 +623,61 @@ void BinPickingTaskResource::ResultHeartBeat::Parse(const rapidjson::Value& pt)
 }
 
 namespace {
-    void SetMapTaskParameters(std::stringstream &ss, const std::map<std::string, std::string> &params) {
-        ss.str("");
-        ss.clear();
-        ss << "{";
-                FOREACHC(it, params) {
-            ss << "\"" << it->first << "\":" << it->second << ", ";
-        }
+void SetMapTaskParameters(std::stringstream &ss, const std::map<std::string, std::string> &params) {
+    ss.str("");
+    ss.clear();
+    ss << "{";
+    FOREACHC(it, params) {
+        ss << "\"" << it->first << "\":" << it->second << ", ";
     }
+}
 
-    void SerializeGetStateCommand(std::stringstream &ss, const std::map<std::string, std::string> &params,
-                                  const std::string &functionname, const std::string &tasktype,
-                                  const std::string &robotname, const std::string &unit, const double timeout) {
-        SetMapTaskParameters(ss, params);
+void SerializeGetStateCommand(std::stringstream &ss, const std::map<std::string, std::string> &params,
+                              const std::string &functionname, const std::string &tasktype,
+                              const std::string &robotname, const std::string &unit, const double timeout) {
+    SetMapTaskParameters(ss, params);
 
-        ss << GetJsonString("command", functionname) << ", ";
-        ss << GetJsonString("tasktype", tasktype) << ", ";
-        if (!robotname.empty()) {
-            ss << GetJsonString("robotname", robotname) << ", ";
-        }
-        ss << GetJsonString("unit", unit);
-        ss << "}";
+    ss << GetJsonString("command", functionname) << ", ";
+    ss << GetJsonString("tasktype", tasktype) << ", ";
+    if (!robotname.empty()) {
+        ss << GetJsonString("robotname", robotname) << ", ";
     }
+    ss << GetJsonString("unit", unit);
+    ss << "}";
+}
 
-    void
-    GenerateMoveToolCommand(const std::string &movetype, const std::string &goaltype, const std::vector<double> &goals,
-                            const std::string &robotname, const std::string &toolname, const double robotspeed,
-                            Real envclearance, std::stringstream &ss,
-                            const std::map<std::string, std::string> &params) {
-        SetMapTaskParameters(ss, params);
-        ss << GetJsonString("command", movetype) << ", ";
-        ss << GetJsonString("goaltype", goaltype) << ", ";
-        if (!robotname.empty()) {
-            ss << GetJsonString("robotname", robotname) << ", ";
-        }
-        if (!toolname.empty()) {
-            ss << GetJsonString("toolname", toolname) << ", ";
-        }
-        if (robotspeed >= 0) {
-            ss << GetJsonString("robotspeed") << ": " << robotspeed << ", ";
-        }
-        if (envclearance >= 0) {
-            ss << GetJsonString("envclearance") << ": " << envclearance << ", ";
-        }
-        ss << GetJsonString("goals") << ": " << GetJsonString(goals);
-        ss << "}";
-
+void
+GenerateMoveToolCommand(const std::string &movetype, const std::string &goaltype, const std::vector<double> &goals,
+                        const std::string &robotname, const std::string &toolname, const double robotspeed,
+                        Real envclearance, std::stringstream &ss,
+                        const std::map<std::string, std::string> &params) {
+    SetMapTaskParameters(ss, params);
+    ss << GetJsonString("command", movetype) << ", ";
+    ss << GetJsonString("goaltype", goaltype) << ", ";
+    if (!robotname.empty()) {
+        ss << GetJsonString("robotname", robotname) << ", ";
     }
-
-    void SetTrajectory(const rapidjson::Value &pt,
-                       std::string *pTraj) {
-        if (!(pt.IsObject() && pt.HasMember("output") && pt["output"].HasMember("trajectory"))) {
-            throw MujinException("trajectory is not available in output", MEC_Failed);
-        }
-        *pTraj = GetJsonValueByPath<std::string>(pt, "/output/trajectory");
+    if (!toolname.empty()) {
+        ss << GetJsonString("toolname", toolname) << ", ";
     }
+    if (robotspeed >= 0) {
+        ss << GetJsonString("robotspeed") << ": " << robotspeed << ", ";
+    }
+    if (envclearance >= 0) {
+        ss << GetJsonString("envclearance") << ": " << envclearance << ", ";
+    }
+    ss << GetJsonString("goals") << ": " << GetJsonString(goals);
+    ss << "}";
+
+}
+
+void SetTrajectory(const rapidjson::Value &pt,
+                   std::string *pTraj) {
+    if (!(pt.IsObject() && pt.HasMember("output") && pt["output"].HasMember("trajectory"))) {
+        throw MujinException("trajectory is not available in output", MEC_Failed);
+    }
+    *pTraj = GetJsonValueByPath<std::string>(pt, "/output/trajectory");
+}
 }
 
 void BinPickingTaskResource::GetJointValues(ResultGetJointValues& result, const double timeout)
@@ -936,7 +939,7 @@ void BinPickingTaskResource::RemoveObjectsWithPrefix(const std::string& prefix, 
     _ss << "}";
     rapidjson::Document d;
     ExecuteCommand(_ss.str(),d, timeout);
-    
+
 }
 void BinPickingTaskResource::VisualizePointCloud(const std::vector<std::vector<float> >&pointslist, const Real pointsize, const std::vector<std::string>&names, const std::string& unit, const double timeout)
 {
@@ -1074,7 +1077,7 @@ void BinPickingTaskResource::GetPublishedTaskState(ResultGetBinpickingState& res
         result = taskstate;
     }
 }
-    
+
 void BinPickingTaskResource::GetBinpickingState(ResultGetBinpickingState& result, const std::string& robotname, const std::string& unit, const double timeout)
 {
     SerializeGetStateCommand(_ss, _mapTaskParameters, "GetBinpickingState", _tasktype, robotname, unit, timeout);
@@ -1413,7 +1416,7 @@ void BinPickingTaskResource::_HeartbeatMonitorThread(const double reinitializeti
             if (pollitem.revents & ZMQ_POLLIN) {
                 zmq::message_t reply;
                 socket->recv(&reply);
-                std::string replystring((char *) reply.data (), (size_t) reply.size());
+                std::string replystring((char *)reply.data (), (size_t)reply.size());
                 //if ((size_t)reply.size() == 1 && ((char *)reply.data())[0]==255) {
                 if (replystring == "255") {
                     lastheartbeat = GetMilliTime();
@@ -1447,10 +1450,10 @@ std::string utils::GetHeartbeat(const std::string& endpoint) {
     if (!(pollitem.revents & ZMQ_POLLIN)) {
         return "";
     }
-    
+
     zmq::message_t reply;
     socket.recv(&reply);
-    const std::string received((char *) reply.data (), (size_t) reply.size());
+    const std::string received((char *)reply.data (), (size_t)reply.size());
 #ifndef _WIN32
     return received;
 #else
@@ -1497,7 +1500,7 @@ std::string FindSmallestSlaveRequestId(const rapidjson::Value& pt) {
         if (smallest_suffix > suffix) {
             smallest_suffix = suffix;
             smallest_suffix_index = std::distance<std::vector<std::string>::const_iterator>(slavereqids.begin(), it);
-        }                                   
+        }
     }
 
     if (smallest_suffix_index == -1) {
@@ -1505,9 +1508,9 @@ std::string FindSmallestSlaveRequestId(const rapidjson::Value& pt) {
     }
     return slavereqids[smallest_suffix_index];
 }
-    
+
 std::string GetValueForSmallestSlaveRequestId(const std::string& heartbeat,
-                                                     const std::string& key)
+                                              const std::string& key)
 {
 
     rapidjson::Document pt(rapidjson::kObjectType);
@@ -1526,7 +1529,7 @@ std::string GetValueForSmallestSlaveRequestId(const std::string& heartbeat,
 }
 }
 
-    
+
 std::string mujinclient::utils::GetScenePkFromHeatbeat(const std::string& heartbeat) {
     static const std::string prefix("mujin:/");
     return GetValueForSmallestSlaveRequestId(heartbeat, "currentsceneuri").substr(prefix.length());
