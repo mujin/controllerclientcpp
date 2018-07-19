@@ -152,14 +152,18 @@ ObjectResource::IkParamResource::IkParamResource(ControllerClientPtr controller,
 {
 }
 
-void ObjectResource::GeometryResource::GetMesh(std::string& primitive, std::vector<std::vector<int> >& indices, std::vector<std::vector<Real> >& vertices)
+void ObjectResource::GeometryResource::GetMesh(std::vector<boost::array<int32_t, 3>>& indices, std::vector<boost::array<float, 3> >& vertices)
 {
     GETCONTROLLERIMPL();
     rapidjson::Document pt(rapidjson::kObjectType);
     const std::string relativeuri(str(boost::format("%s/%s/?format=json&limit=0&mesh=true")%GetResourceName()%GetPrimaryKey()));
     controller->CallGet(relativeuri, pt);
     rapidjson::Value& objects = pt["mesh"];
+
+    std::string primitive;
     LoadJsonValueByKey(objects,"primitive",primitive);
+    MUJIN_ASSERT_OP_FORMAT(primitive,!=,"triangleset", "primitive is not triangleset: %s", primitive, MEC_InvalidArguments);
+
     LoadJsonValueByKey(objects,"indices",indices);
     LoadJsonValueByKey(objects,"vertices",vertices);
 }

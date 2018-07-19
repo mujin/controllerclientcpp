@@ -667,7 +667,7 @@ public:
         Real diffusecolor[4];
         Real transparency;
 
-        virtual void GetMesh(std::string& primitive, std::vector<std::vector<int> >& indices, std::vector<std::vector<Real> >& vertices);
+        virtual void GetMesh(std::vector<boost::array<int32_t, 3>>& indices, std::vector<boost::array<float, 3> >& vertices);
         virtual void SetGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& unit, double timeout);
         virtual void SetVisible(bool visible);
         virtual int GetVisible();
