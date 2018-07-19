@@ -461,6 +461,11 @@ void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const rapid
         msensortransform[sensorname] = transform;
         msensordata[sensorname] = sensordata;
     }
+
+    const rapidjson::Value& serializedinstobjects = output["serializedinstobjects"];
+    for (rapidjson::Document::ConstMemberIterator it = serializedinstobjects.MemberBegin(); it != serializedinstobjects.MemberEnd(); it++) {
+        mserializedinstobjects[it->name.GetString()] = it->value.GetString();
+    }
 }
 
 BinPickingTaskResource::ResultGetBinpickingState::ResultGetBinpickingState()
@@ -1032,7 +1037,12 @@ PlanningResultResourcePtr BinPickingTaskResource::GetResult()
     return result;
 }
 
-void BinPickingTaskResource::GetInstObjectAndSensorInfo(const std::vector<std::string>& instobjectnames, const std::vector<std::string>& sensornames, ResultGetInstObjectAndSensorInfo& result, const std::string& unit, const double timeout)
+void BinPickingTaskResource::GetInstObjectAndSensorInfo(
+    const std::vector<std::string>& instobjectnames,
+    const std::vector<std::string>& sensornames,
+    const std::vector<std::string>& serializeinstobjectnames,
+    ResultGetInstObjectAndSensorInfo& result,
+    const std::string& unit, const double timeout)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "GetInstObjectAndSensorInfo";
@@ -1040,6 +1050,7 @@ void BinPickingTaskResource::GetInstObjectAndSensorInfo(const std::vector<std::s
     _ss << GetJsonString("tasktype", _tasktype) << ", ";
     _ss << GetJsonString("instobjectnames") << ": " << GetJsonString(instobjectnames) << ", ";
     _ss << GetJsonString("sensornames") << ": " << GetJsonString(sensornames) << ", ";
+    _ss << GetJsonString("serializeinstobjectnames") << ": " << GetJsonString(serializeinstobjectnames) << ", ";
     _ss << GetJsonString("unit", unit);
     _ss << "}";
     rapidjson::Document pt(rapidjson::kObjectType);

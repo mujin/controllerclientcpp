@@ -187,6 +187,7 @@ public:
         std::map<std::string, ResultOBB> minstobjectinnerobb; ///< unit is m
         std::map<std::string, Transform> msensortransform; ///< unit is m
         std::map<std::string, RobotResource::AttachedSensorResource::SensorData> msensordata;
+        std::map<std::string, std::string> mserializedinstobjects;
     };
 
     struct MUJINCLIENT_API ResultHeartBeat : public ResultBase
@@ -310,7 +311,7 @@ public:
         \param unit input unit
         \param result unit is always in meter
      */
-    virtual void GetInstObjectAndSensorInfo(const std::vector<std::string>& instobjectnames, const std::vector<std::string>& sensornames, ResultGetInstObjectAndSensorInfo& result, const std::string& unit="m", const double timeout /* second */=5.0);
+    virtual void GetInstObjectAndSensorInfo(const std::vector<std::string>& instobjectnames, const std::vector<std::string>& sensornames, const std::vector<std::string>& serializeinstobjectnames, ResultGetInstObjectAndSensorInfo& result, const std::string& unit="m", const double timeout /* second */=5.0);
 
     /// \brief Get state of bin picking
     /// \param result state of bin picking
