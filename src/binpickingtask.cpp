@@ -749,6 +749,33 @@ void BinPickingTaskResource::SetTransform(const std::string& targetname, const T
     ExecuteCommand(_ss.str(), d, timeout); // need to check return code
 }
 
+void BinPickingTaskResource::GetDOFValues(const std::string& targetname,std::vector<Real>& dofvalues, const std::string& unit, const double timeout)
+{
+    rapidjson::Document pt(rapidjson::kObjectType);
+    SaveJsonValue(pt,_mapTaskParameters);
+    SetJsonValueByKey(pt,"command","GetDOFValues");
+    SetJsonValueByKey(pt,"targetname",targetname);
+    SetJsonValueByKey(pt,"tasktype",_tasktype);
+    SetJsonValueByKey(pt,"unit",unit);
+    rapidjson::Document d;
+    ExecuteCommand(DumpJson(pt), d, timeout);
+    LoadJsonValue(d["dofvalues"],dofvalues);
+}
+
+void BinPickingTaskResource::SetDOFValues(const std::string& targetname, const std::vector<Real>& dofvalues, const std::string& unit, const double timeout)
+{
+    rapidjson::Document pt(rapidjson::kObjectType);
+    SaveJsonValue(pt,_mapTaskParameters);
+    SetJsonValueByKey(pt,"command","SetDOFValues");
+    SetJsonValueByKey(pt,"targetname",targetname);
+    SetJsonValueByKey(pt,"tasktype",_tasktype);
+    SetJsonValueByKey(pt,"dofvalues",dofvalues);
+    SetJsonValueByKey(pt,"unit",unit);
+    rapidjson::Document d;
+    ExecuteCommand(DumpJson(pt), d, timeout); // need to check return code
+}
+
+
 void BinPickingTaskResource::GetManipTransformToRobot(Transform& transform, const std::string& unit, const double timeout)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
