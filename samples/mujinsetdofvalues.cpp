@@ -1,9 +1,8 @@
 // -*- coding: utf-8 -*-
-/** \example mujintransform.cpp
+/** \example mujinsetdofvalues.cpp
 
-    Shows how to transform object
-    example1: mujintransform --controller_hostname yourhost targetname chair # move chair to origin
-    example2: mujintransform --controller_hostname yourhost targetname chair destination 1000 2000 3000 0.70711 0 0 0.70711 # move chair to specified pose
+    Shows how to setdofvalues object
+    example: mujinsetdofvalues --controller_hostname localhost --task_scenepk machine.mujin.dae --destination -300 -1000 -2000 10 --taskparameters '{"robotname":"machine","robots":{"machine":{}}}'
  */
 
 #include <mujincontrollerclient/binpickingtask.h>
