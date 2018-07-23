@@ -44,7 +44,6 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("zmq_port", bpo::value<unsigned int>()->default_value(11000), "port of the binpicking task on the mujin controller")
         ("heartbeat_port", bpo::value<unsigned int>()->default_value(11001), "port of the binpicking task's heartbeat signal on the mujin controller")
         ("unit", bpo::value<string>()->default_value("mm"), "length unit of pose")
-        ("targetname", bpo::value<string>(), "target to move")
         ("destination", bpo::value<vector<double> >()->multitoken(), "destination dofvalues")
         ;
 
@@ -175,7 +174,6 @@ int main(int argc, char ** argv)
 
     const double timeout = opts["controller_command_timeout"].as<double>();
     const string unit = opts["unit"].as<string>();
-    const string targetname = opts["targetname"].as<string>();
 
 /*
     Transform transform;
@@ -204,7 +202,7 @@ int main(int argc, char ** argv)
          << transform.quaternion[2] << ", "
          << transform.quaternion[3] << "]\n";
 */
-    pBinpickingTask->SetDOFValues(targetname, opts["destination"].as<vector<double>>(), unit, timeout);
+    pBinpickingTask->SetInstantaneousJointValues(opts["destination"].as<vector<double>>(), unit, timeout);
 
     return 0;
 }

@@ -223,7 +223,8 @@ public:
 
     virtual void ExecuteCommand(const std::string& command, rapidjson::Document&d, const double timeout /* second */=5.0, const bool getresult=true);
 
-    virtual void GetJointValues(ResultGetJointValues& result, const double timeout /* second */=5.0);
+    virtual void GetJointValues(ResultGetJointValues& result, const std::string& unit="mm", const double timeout /* second */=5.0);
+    virtual void SetInstantaneousJointValues(const std::vector<Real>& jointvalues, const std::string& unit="mm", const double timeout /* second */=5.0);
 
     /// \brief Moves joints to specified value
     /// \param jointvalues goal joint values
@@ -236,8 +237,7 @@ public:
     virtual void MoveJoints(const std::vector<Real>& jointvalues, const std::vector<int>& jointindices, const Real envclearance, const Real speed /* 0.1-1 */, ResultMoveJoints& result, const double timeout /* second */=5.0, std::string* pTraj = NULL);
     virtual void GetTransform(const std::string& targetname, Transform& result, const std::string& unit="mm", const double timeout /* second */=5.0);
     virtual void SetTransform(const std::string& targetname, const Transform& transform, const std::string& unit="mm", const double timeout /* second */=5.0);
-    virtual void GetDOFValues(const std::string& targetname, std::vector<Real>& result, const std::string& unit="mm", const double timeout /* second */=5.0);
-    virtual void SetDOFValues(const std::string& targetname, const std::vector<Real>& jointvalues, const std::string& unit="mm", const double timeout /* second */=5.0);
+
     virtual void GetManipTransformToRobot(Transform& result, const std::string& unit="mm", const double timeout /* second */=5.0);
     virtual void GetManipTransform(Transform& result, const std::string& unit="mm", const double timeout /* second */=5.0);
 
