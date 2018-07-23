@@ -680,13 +680,14 @@ void SetTrajectory(const rapidjson::Value &pt,
 }
 }
 
-void BinPickingTaskResource::GetJointValues(ResultGetJointValues& result, const double timeout)
+void BinPickingTaskResource::GetJointValues(ResultGetJointValues& result, const std::string& unit, const double timeout)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "GetJointValues";
     std::string robottype = "densowave";
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("robottype", robottype) << ", ";
+    _ss << GetJsonString("unit", unit) << ", ";
     _ss << GetJsonString("tasktype", _tasktype);
     _ss << "}";
 
@@ -694,6 +695,25 @@ void BinPickingTaskResource::GetJointValues(ResultGetJointValues& result, const 
     ExecuteCommand(_ss.str(), pt, timeout);
     result.Parse(pt);
 }
+
+void BinPickingTaskResource::SetInstantaneousJointValues(const std::vector<Real>& jointvalues, const std::string& unit, const double timeout)
+{
+    rapidjson::Document pt(rapidjson::kObjectType);
+    {
+       for(std::map<std::string,std::string>::iterator it=_mapTaskParameters.begin();it!=_mapTaskParameters.end();++it){
+           rapidjson::Document t;
+           ParseJson(t,it->second);
+           SetJsonValueByKey(pt,it->first,t);
+       }
+    }
+    SetJsonValueByKey(pt,"command","SetInstantaneousJointValues");
+    SetJsonValueByKey(pt,"tasktype",_tasktype);
+    SetJsonValueByKey(pt,"jointvalues",jointvalues);
+    SetJsonValueByKey(pt,"unit",unit);
+    rapidjson::Document d;
+    ExecuteCommand(DumpJson(pt), d, timeout); // need to check return code
+}
+
 
 void BinPickingTaskResource::MoveJoints(const std::vector<Real>& goaljoints, const std::vector<int>& jointindices, const Real envclearance, const Real speed, ResultMoveJoints& result, const double timeout, std::string* pTraj)
 {
@@ -748,33 +768,6 @@ void BinPickingTaskResource::SetTransform(const std::string& targetname, const T
     rapidjson::Document d;
     ExecuteCommand(_ss.str(), d, timeout); // need to check return code
 }
-
-void BinPickingTaskResource::GetDOFValues(const std::string& targetname,std::vector<Real>& dofvalues, const std::string& unit, const double timeout)
-{
-    rapidjson::Document pt(rapidjson::kObjectType);
-    SaveJsonValue(pt,_mapTaskParameters);
-    SetJsonValueByKey(pt,"command","GetDOFValues");
-    SetJsonValueByKey(pt,"targetname",targetname);
-    SetJsonValueByKey(pt,"tasktype",_tasktype);
-    SetJsonValueByKey(pt,"unit",unit);
-    rapidjson::Document d;
-    ExecuteCommand(DumpJson(pt), d, timeout);
-    LoadJsonValue(d["dofvalues"],dofvalues);
-}
-
-void BinPickingTaskResource::SetDOFValues(const std::string& targetname, const std::vector<Real>& dofvalues, const std::string& unit, const double timeout)
-{
-    rapidjson::Document pt(rapidjson::kObjectType);
-    SaveJsonValue(pt,_mapTaskParameters);
-    SetJsonValueByKey(pt,"command","SetDOFValues");
-    SetJsonValueByKey(pt,"targetname",targetname);
-    SetJsonValueByKey(pt,"tasktype",_tasktype);
-    SetJsonValueByKey(pt,"dofvalues",dofvalues);
-    SetJsonValueByKey(pt,"unit",unit);
-    rapidjson::Document d;
-    ExecuteCommand(DumpJson(pt), d, timeout); // need to check return code
-}
-
 
 void BinPickingTaskResource::GetManipTransformToRobot(Transform& transform, const std::string& unit, const double timeout)
 {
