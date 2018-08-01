@@ -15,6 +15,8 @@
 #include "controllerclientimpl.h"
 
 #include <boost/algorithm/string.hpp>
+#include <tinyxml2.h>
+#include <iomanip>
 
 #define SKIP_PEER_VERIFICATION // temporary
 //#define SKIP_HOSTNAME_VERIFICATION
@@ -1387,6 +1389,40 @@ void ControllerClientImpl::DeleteDirectoryOnController_UTF16(const std::wstring&
     _DeleteDirectoryOnController(_PrepareDestinationURI_UTF16(desturi, false, false, true));
 }
 
+void ControllerClientImpl::ListRegistrationFiles(std::vector<std::pair<std::string, time_t>> &fileInfo)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    std::vector<unsigned char> buf;
+    _CallPropfind(_basewebdavuri + "registration/", buf);
+    {
+        tinyxml2::XMLDocument doc;
+        doc.Parse(reinterpret_cast<const char*>(buf.data()));
+        BOOST_ASSERT(doc.FirstChildElement("D:multistatus") != nullptr && doc.FirstChildElement("D:multistatus")->FirstChildElement("D:response") != nullptr);
+        const tinyxml2::XMLElement* nResponse = doc.FirstChildElement("D:multistatus")->FirstChildElement("D:response");
+        while (nResponse != nullptr) {
+            std::string filename = nResponse->FirstChildElement("D:href")->GetText();
+            if (filename.rfind("tar.gz") == filename.size() - 6) {
+                const tinyxml2::XMLElement* eProp = nResponse->FirstChildElement("D:propstat");
+                BOOST_ASSERT(eProp != nullptr);
+                eProp = eProp->FirstChildElement("D:prop");
+                const tinyxml2::XMLElement* eLastModified = eProp->FirstChildElement("lp1:getlastmodified");
+
+                printf("%s\n", filename.c_str());
+                std::tm time = {};
+                std::istringstream ss(eLastModified->GetText());
+                ss.imbue(std::locale("en_US.utf-8"));
+                ss >> std::get_time(&time, "%a, %d %b %Y %T");
+                time_t lastModified = timegm(&time);
+                printf("%llu", lastModified);
+
+                fileInfo.emplace_back(filename, lastModified);
+            }
+            nResponse = nResponse->NextSiblingElement();
+        }
+    }
+    // printf("testtttttttttttttttttttttttttttttttttttttttttt %s\n", reinterpret_cast<const char*>(buf.data()));
+}
+
 void ControllerClientImpl::_UploadDirectoryToController_UTF8(const std::string& copydir_utf8, const std::string& rawuri)
 {
     BOOST_ASSERT(rawuri.size()>0 && copydir_utf8.size()>0);
@@ -1806,6 +1842,40 @@ size_t ControllerClientImpl::_ReadInMemoryUploadCallback(void *ptr, size_t size,
         pstreamdata->second -= nBytesToRead;
     }
     return nBytesToRead;
+}
+
+int ControllerClientImpl::_CallPropfind(const std::string& uri, std::vector<unsigned char>& outputdata, int expectedhttpcode, double timeout)
+{
+    MUJIN_LOG_INFO((boost::format("PROPFIND %s") % uri).str());
+    CurlTimeoutSetter timeoutsetter(_curl, timeout);
+    curl_easy_setopt(_curl, CURLOPT_URL, uri.c_str());
+
+    CURLcode res = curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, _WriteVectorCallback);
+    CHECKCURLCODE(res, "failed to set writer");
+    outputdata.resize(0);
+    CurlWriteDataSetter writedata(_curl, &outputdata);
+
+    // curl_easy_setopt(_curl, CURLOPT_FOLLOWLOCATION, 0);
+    curl_easy_setopt(_curl, CURLOPT_HTTPGET, 0);
+    CurlCustomRequestSetter setter(_curl, "PROPFIND");
+    res = curl_easy_perform(_curl);
+    CHECKCURLCODE(res, "curl_easy_perform failed");
+    long http_code = 0;
+    res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
+    CHECKCURLCODE(res, "curl_easy_getinfo");
+    if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
+        if( outputdata.size() > 0 ) {
+            rapidjson::Document d;
+            std::stringstream ss;
+            ss.write((const char*)&outputdata[0], outputdata.size());
+            ParseJson(d, ss.str());
+            std::string error_message = GetJsonValueByKey<std::string>(d, "error_message");
+            std::string traceback = GetJsonValueByKey<std::string>(d, "traceback");
+            throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s: %s", uri%http_code%error_message, MEC_HTTPServer);
+        }
+        throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s", uri%http_code, MEC_HTTPServer);
+    }
+    return http_code;
 }
 
 } // end namespace mujinclient

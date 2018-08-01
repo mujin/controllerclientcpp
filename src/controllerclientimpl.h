@@ -62,6 +62,7 @@ public:
     virtual void DeleteFileOnController_UTF16(const std::wstring& desturi);
     virtual void DeleteDirectoryOnController_UTF8(const std::string& desturi);
     virtual void DeleteDirectoryOnController_UTF16(const std::wstring& desturi);
+    virtual void ListRegistrationFiles(std::vector<std::pair<std::string, time_t>> &fileInfo);
 
     /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
     int CallGet(const std::string& relativeuri, rapidjson::Document& pt, int expectedhttpcode=200, double timeout = 5.0);
@@ -190,6 +191,8 @@ protected:
     int _CallGet(const std::string& desturi, rapidjson::Document& pt, int expectedhttpcode=200, double timeout = 5.0);
     int _CallGet(const std::string& desturi, std::string& outputdata, int expectedhttpcode=200, double timeout = 5.0);
     int _CallGet(const std::string& desturi, std::vector<unsigned char>& outputdata, int expectedhttpcode=200, double timeout = 5.0);
+
+    int _CallPropfind(const std::string& uri, std::vector<unsigned char>& outputdata, int expectedhttpcode=207, double timeout = 5.0);
 
     /// \brief desturi is URL-encoded. Also assume _mutex is locked.
     virtual void _UploadFileToController_UTF8(const std::string& filename, const std::string& desturi);

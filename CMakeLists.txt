@@ -180,6 +180,11 @@ else()
   add_definitions("-DRAPIDJSON_ASSERT=BOOST_ASSERT")
 endif()
 
+pkg_check_modules(tinyxml2 tinyxml2)
+if (tinyxml2_FOUND)
+  include_directories(${tinyxml2_INCLUDE_DIRS})
+endif()
+
 if( Boost_FOUND )
   include_directories(${Boost_INCLUDE_DIRS})
   set(MUJINCLIENT_LINK_DIRS ${MUJINCLIENT_LINK_DIRS} ${Boost_LIBRARY_DIRS})

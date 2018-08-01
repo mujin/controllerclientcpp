@@ -539,6 +539,9 @@ public:
     /// \param uri UTF-16 encoded
     virtual void DeleteDirectoryOnController_UTF16(const std::wstring& uri) = 0;
 
+    /// <<<<<<<<<<<<<<, TODO: documentation
+    virtual void ListRegistrationFiles(std::vector<std::pair<std::string, time_t>> &fileInfo) = 0;
+
     virtual void SetDefaultSceneType(const std::string& scenetype) = 0;
 
     virtual const std::string& GetDefaultSceneType() = 0;
