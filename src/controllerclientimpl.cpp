@@ -1396,8 +1396,12 @@ void ControllerClientImpl::ListRegistrationFiles(std::vector<std::pair<std::stri
     _CallPropfind(_basewebdavuri + "registration/", buf);
     {
         tinyxml2::XMLDocument doc;
-        doc.Parse(reinterpret_cast<const char*>(buf.data()));
-        BOOST_ASSERT(doc.FirstChildElement("D:multistatus") != nullptr && doc.FirstChildElement("D:multistatus")->FirstChildElement("D:response") != nullptr);
+        tinyxml2::XMLError retc = doc.Parse(reinterpret_cast<const char*>(buf.data()));
+        if (retc != tinyxml2::XML_SUCCESS) {
+            throw MUJIN_EXCEPTION_FORMAT("Cannot parse XML. Error code: %d", retc, MEC_Assert);
+        }
+        BOOST_ASSERT(doc.FirstChildElement("D:multistatus") != nullptr);
+        BOOST_ASSERT(doc.FirstChildElement("D:multistatus")->FirstChildElement("D:response") != nullptr);
         const tinyxml2::XMLElement* nResponse = doc.FirstChildElement("D:multistatus")->FirstChildElement("D:response");
         while (nResponse != nullptr) {
             std::string filename = nResponse->FirstChildElement("D:href")->GetText();
@@ -1407,13 +1411,11 @@ void ControllerClientImpl::ListRegistrationFiles(std::vector<std::pair<std::stri
                 eProp = eProp->FirstChildElement("D:prop");
                 const tinyxml2::XMLElement* eLastModified = eProp->FirstChildElement("lp1:getlastmodified");
 
-                printf("%s\n", filename.c_str());
                 std::tm time = {};
                 std::istringstream ss(eLastModified->GetText());
                 ss.imbue(std::locale("en_US.utf-8"));
                 ss >> std::get_time(&time, "%a, %d %b %Y %T");
                 time_t lastModified = timegm(&time);
-                printf("%llu", lastModified);
 
                 fileInfo.emplace_back(filename, lastModified);
             }
