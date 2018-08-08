@@ -61,13 +61,13 @@ int main(int argc, char ** argv)
         }
         TaskResourcePtr task(new TaskResource(controller, taskkeys.at(0)));
 
-        cout << "got task " << task->Get("name") << endl;
-        cout << "program is " << task->Get("taskgoalxml") << endl;
+        cout << "got task " << task->Get<string>("name") << endl;
+        cout << "program is " << task->Get<string>("taskgoalxml") << endl;
 
         PlanningResultResourcePtr result = task->GetResult();
         EnvironmentState envstate;
         if( !!result ) {
-            cout << "result for task exists and can be completed in " << result->Get("task_time") << " seconds." << endl;
+            cout << "result for task exists and can be completed in " << result->Get<string>("task_time") << " seconds." << endl;
         }
 
         // get the first optimization
@@ -75,14 +75,14 @@ int main(int argc, char ** argv)
         task->GetOptimizationPrimaryKeys(optimizationkeys);
 
         OptimizationResourcePtr optimization(new OptimizationResource(controller, optimizationkeys.at(0)));
-        cout << "found optimization " << optimization->Get("name") << endl;
+        cout << "found optimization " << optimization->Get<string>("name") << endl;
 
         std::vector<PlanningResultResourcePtr> results;
         optimization->GetResults(results,0,10);
         if( results.size() > 0 ) {
             cout << "the top results have times: ";
             for(size_t i = 0; i < results.size(); ++i) {
-                cout << results[i]->Get("task_time") << ", ";
+                cout << results[i]->Get<string>("task_time") << ", ";
             }
             cout << endl;
 
@@ -102,7 +102,7 @@ int main(int argc, char ** argv)
             for(std::map<std::string, RobotProgramData>::iterator it = programs.programs.begin(); it != programs.programs.end(); ++it ) {
                 std::cout << "[" << it->first << "]" << std::endl << it->second.programdata << std::endl << std::endl;
             }
-            std::cout << "final task_time is " << result->Get("task_time") << std::endl;
+            std::cout << "final task_time is " << result->Get<string>("task_time") << std::endl;
         }
     }
     catch(const MujinException& ex) {
