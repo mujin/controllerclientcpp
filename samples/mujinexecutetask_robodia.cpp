@@ -123,7 +123,7 @@ move(p[3_home])\n\
         for(std::map<std::string, RobotProgramData>::iterator it = programs.programs.begin(); it != programs.programs.end(); ++it ) {
             std::cout << "[" << it->first << "]" << std::endl << it->second.programdata << std::endl << std::endl;
         }
-        std::cout << "final task_time is " << result->Get("task_time") << std::endl;
+        std::cout << "final task_time is " << result->Get<std::string>("task_time") << std::endl;
     }
     catch(const MujinException& ex) {
         std::cout << "exception thrown: " << ex.message() << std::endl;

@@ -14,6 +14,8 @@
 include_directories(${MUJINCLIENT_INCLUDE_LOCAL_DIRS})
 link_directories(${MUJINCLIENT_LINK_DIRS})
 
+remove_definitions("-DBOOST_ENABLE_ASSERT_HANDLER")
+
 build_sample(mujinexecutetask)
 build_sample(mujinexecutetask_fast)
 build_sample(mujinexecutetask_robodia)

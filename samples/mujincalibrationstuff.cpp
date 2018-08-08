@@ -35,10 +35,10 @@ int main(int argc, char ** argv)
     scene.reset(new SceneResource(controller,scenepk));
     std::vector<SceneResource::InstObjectPtr> instobjects;
 
-    std::cout << "scenename: " << scene->Get("name") << std::endl;
+    std::cout << "scenename: " << scene->Get<std::string>("name") << std::endl;
 
     //newscene = scene->Copy("irex2013_copied");
-    //std::cout << "newname: " << newscene->Get("name") << std::endl;
+    //std::cout << "newname: " << newscene->Get<std::string>("name") << std::endl;
 
     scene->GetInstObjects(instobjects);
     int robotinstindex = -1;
