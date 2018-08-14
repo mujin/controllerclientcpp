@@ -513,6 +513,10 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     placedInDest = GetJsonValueByKey<int>(v, "/orderstate/placedInDest", -1);
     isControllerInError = GetJsonValueByKey<bool>(v, "isControllerInError", false);
     robotbridgestatus = GetJsonValueByKey<std::string>(v, "robotbridgestatus", "unknown");
+    mvrRegisterState.sensorCaptureInfoJSON = GetJsonValueByPath<std::string>(v, "/mvrRegisterState/sensorCaptureInfoJSON", "null");
+    mvrRegisterState.detectedObjectInfoJSON = GetJsonValueByPath<std::string>(v, "/mvrRegisterState/detectedObjectInfoJSON", "null");
+    mvrUpdateHeightState.targetname = GetJsonValueByPath<std::string>(v, "/mvrUpdateHeightState/targetname", "");
+    mvrUpdateHeightState.height = GetJsonValueByPath<float>(v, "/mvrUpdateHeightState/height", 0);
 
     LoadJsonValueByKey(v, "currentToolValues", currentToolValues);
     LoadJsonValueByKey(v, "currentJointValues", currentJointValues);
@@ -733,6 +737,16 @@ void BinPickingTaskResource::GetTransform(const std::string& targetname, Transfo
     ExecuteCommand(_ss.str(), pt, timeout);
     result.Parse(pt);
     transform = result.transform;
+}
+
+void BinPickingTaskResource::SendMVRRegistrationResult(/*TBD*/double timeout)
+{
+    SetMapTaskParameters(_ss, _mapTaskParameters);
+    _ss << GetJsonString("command", "ReceiveMVRRegistrationResult") << ", ";
+    _ss << "}";
+    rapidjson::Document pt(rapidjson::kObjectType);
+    ExecuteCommand(_ss.str(), pt, timeout);
+
 }
 
 void BinPickingTaskResource::SetTransform(const std::string& targetname, const Transform &transform, const std::string& unit, const double timeout)

@@ -139,6 +139,22 @@ public:
         std::vector<std::string> jointNames;
         bool isControllerInError;
         std::string robotbridgestatus;
+        struct MVRRegisterState {
+            bool operator!=(const MVRRegisterState &rhs) const {
+                return sensorCaptureInfoJSON != rhs.sensorCaptureInfoJSON ||
+                       detectedObjectInfoJSON != rhs.detectedObjectInfoJSON;
+            }
+            std::string sensorCaptureInfoJSON;
+            std::string detectedObjectInfoJSON;
+        } mvrRegisterState;
+        struct MVRUpdateHeightState {
+            bool operator!=(const MVRUpdateHeightState &rhs) const {
+                return targetname != rhs.targetname ||
+                       height != rhs.height;
+            }
+            std::string targetname;
+            float height;
+        } mvrUpdateHeightState;
     };
 
     struct MUJINCLIENT_API ResultIsRobotOccludingBody : public ResultBase
@@ -394,6 +410,8 @@ public:
 
     /// \brief returns the slaverequestid used to communicate with the controller. If empty, then no id is used.
     virtual const std::string& GetSlaveRequestId() const;
+
+    virtual void SendMVRRegistrationResult(/*TBD*/double timeout /* second */=5.0);
 
 protected:
     std::stringstream _ss;
