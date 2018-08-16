@@ -516,8 +516,9 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     registerMinViableRegionInfo.translate = GetJsonValueByPath<std::array<double, 3>>(v, "/registerMinViableRegionInfo/transate");
     registerMinViableRegionInfo.quat = GetJsonValueByPath<std::array<double, 4>>(v, "/registerMinViableRegionInfo/quat");
     
-    mvrUpdateHeightState.targetname = GetJsonValueByPath<std::string>(v, "/mvrUpdateHeightState/targetname", "");
-    mvrUpdateHeightState.height = GetJsonValueByPath<float>(v, "/mvrUpdateHeightState/height", 0);
+    // mvrUpdateObjectInfo.targetname = GetJsonValueByPath<std::string>(v, "/mvrUpdateObjectInfo/targetname", "");
+    // mvrUpdateObjectInfo.height = GetJsonValueByPath<float>(v, "/mvrUpdateObjectInfo/height", 0.0f);
+    // mvrUpdateObjectInfo.mass = GetJsonValueByPath<float>(v, "/mvrUpdateObjectInfo/mass", 0.0f);
 
     LoadJsonValueByKey(v, "currentToolValues", currentToolValues);
     LoadJsonValueByKey(v, "currentJointValues", currentJointValues);
@@ -740,10 +741,19 @@ void BinPickingTaskResource::GetTransform(const std::string& targetname, Transfo
     transform = result.transform;
 }
 
-void BinPickingTaskResource::SendMVRRegistrationResult(/*TBD*/double timeout)
+void BinPickingTaskResource::SendMVRRegistrationResult(
+    const std::string &registrationResultStore,
+    const std::array<float, 3> &boxFullSize,
+    const std::array<float, 3> &translation,
+    const std::array<float, 4> &quat,
+    double timeout)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
     _ss << GetJsonString("command", "ReceiveMVRRegistrationResult") << ", ";
+    _ss << GetJsonString("registrationResultStore", registrationResultStore) << ", ";
+    _ss << GetJsonString("boxFullSize") << ": " << GetJsonString(boxFullSize) << ", ";
+    _ss << GetJsonString("translation") << ": " << GetJsonString(translation) << ", ";
+    _ss << GetJsonString("quat") << ": " << GetJsonString(quat);
     _ss << "}";
     rapidjson::Document pt(rapidjson::kObjectType);
     ExecuteCommand(_ss.str(), pt, timeout);

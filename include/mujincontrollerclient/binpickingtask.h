@@ -145,14 +145,11 @@ public:
             uint64_t sensortimestamp;
             std::string minViableRegionJSON; //: {"size2D", ...}
         } registerMinViableRegionInfo;
-        struct MVRUpdateHeightState {
-            bool operator!=(const MVRUpdateHeightState &rhs) const {
-                return targetname != rhs.targetname ||
-                       height != rhs.height;
-            }
-            std::string targetname;
-            float height;
-        } mvrUpdateHeightState;
+        // struct MVRUpdateObjectInfo {
+        //     std::string targetname;
+        //     float height;
+        //     float mass;
+        // } mvrUpdateObjectInfo;
     };
 
     struct MUJINCLIENT_API ResultIsRobotOccludingBody : public ResultBase
@@ -409,7 +406,12 @@ public:
     /// \brief returns the slaverequestid used to communicate with the controller. If empty, then no id is used.
     virtual const std::string& GetSlaveRequestId() const;
 
-    virtual void SendMVRRegistrationResult(/*TBD*/double timeout /* second */=5.0);
+    virtual void SendMVRRegistrationResult(
+        const std::string &registrationResultStore,
+        const std::array<float, 3> &boxFullSize,
+        const std::array<float, 3> &translation,
+        const std::array<float, 4> &quat,
+        double timeout /* second */=5.0);
 
 protected:
     std::stringstream _ss;
@@ -447,6 +449,21 @@ MUJINCLIENT_API std::string GetJsonString(const Transform& transform);
 MUJINCLIENT_API std::string GetJsonString(const BinPickingTaskResource::DetectedObject& obj);
 MUJINCLIENT_API std::string GetJsonString(const BinPickingTaskResource::PointCloudObstacle& obj);
 MUJINCLIENT_API std::string GetJsonString(const BinPickingTaskResource::SensorOcclusionCheck& check);
+template <typename T, size_t N>
+MUJINCLIENT_API std::string GetJsonString(const std::array<T, N>& a)
+{
+    std::stringstream ss;
+    ss << std::setprecision(std::numeric_limits<T>::digits10+1);
+    ss << "[";
+    for (unsigned int i = 0; i < N; ++i) {
+        ss << a[i];
+        if (i != N - 1) {
+            ss << ", ";
+        }
+    }
+    ss << "]";
+    return ss.str();
+}
 
 MUJINCLIENT_API std::string GetJsonString(const std::string& key, const std::string& value);
 MUJINCLIENT_API std::string GetJsonString(const std::string& key, const int value);
