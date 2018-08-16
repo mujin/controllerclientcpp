@@ -139,14 +139,12 @@ public:
         std::vector<std::string> jointNames;
         bool isControllerInError;
         std::string robotbridgestatus;
-        struct MVRRegisterState {
-            bool operator!=(const MVRRegisterState &rhs) const {
-                return sensorCaptureInfoJSON != rhs.sensorCaptureInfoJSON ||
-                       detectedObjectInfoJSON != rhs.detectedObjectInfoJSON;
-            }
-            std::string sensorCaptureInfoJSON;
-            std::string detectedObjectInfoJSON;
-        } mvrRegisterState;
+        struct RegisterMinViableRegionInfo {
+            std::array<double, 3> translate;
+            std::array<double, 4> quat;
+            uint64_t sensortimestamp;
+            std::string minViableRegionJSON; //: {"size2D", ...}
+        } registerMinViableRegionInfo;
         struct MVRUpdateHeightState {
             bool operator!=(const MVRUpdateHeightState &rhs) const {
                 return targetname != rhs.targetname ||

@@ -513,8 +513,9 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     placedInDest = GetJsonValueByKey<int>(v, "/orderstate/placedInDest", -1);
     isControllerInError = GetJsonValueByKey<bool>(v, "isControllerInError", false);
     robotbridgestatus = GetJsonValueByKey<std::string>(v, "robotbridgestatus", "unknown");
-    mvrRegisterState.sensorCaptureInfoJSON = GetJsonValueByPath<std::string>(v, "/mvrRegisterState/sensorCaptureInfoJSON", "null");
-    mvrRegisterState.detectedObjectInfoJSON = GetJsonValueByPath<std::string>(v, "/mvrRegisterState/detectedObjectInfoJSON", "null");
+    registerMinViableRegionInfo.translate = GetJsonValueByPath<std::array<double, 3>>(v, "/registerMinViableRegionInfo/transate");
+    registerMinViableRegionInfo.quat = GetJsonValueByPath<std::array<double, 4>>(v, "/registerMinViableRegionInfo/quat");
+    
     mvrUpdateHeightState.targetname = GetJsonValueByPath<std::string>(v, "/mvrUpdateHeightState/targetname", "");
     mvrUpdateHeightState.height = GetJsonValueByPath<float>(v, "/mvrUpdateHeightState/height", 0);
 
