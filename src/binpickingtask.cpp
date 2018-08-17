@@ -742,18 +742,13 @@ void BinPickingTaskResource::GetTransform(const std::string& targetname, Transfo
 }
 
 void BinPickingTaskResource::SendMVRRegistrationResult(
-    const std::string &registrationResultStore,
-    const std::array<float, 3> &boxFullSize,
-    const std::array<float, 3> &translation,
-    const std::array<float, 4> &quat,
+    const rapidjson::Document &mvrResultInfo,
     double timeout)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
     _ss << GetJsonString("command", "ReceiveMVRRegistrationResult") << ", ";
-    _ss << GetJsonString("registrationResultStore", registrationResultStore) << ", ";
-    _ss << GetJsonString("boxFullSize") << ": " << GetJsonString(boxFullSize) << ", ";
-    _ss << GetJsonString("translation") << ": " << GetJsonString(translation) << ", ";
-    _ss << GetJsonString("quat") << ": " << GetJsonString(quat);
+    // TODO! Convert mvrResultInfo to string
+    // _ss << GetJsonString("mvrResultInfo", registrationResultStore) << ", ";
     _ss << "}";
     rapidjson::Document pt(rapidjson::kObjectType);
     ExecuteCommand(_ss.str(), pt, timeout);

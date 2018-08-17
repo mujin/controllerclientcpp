@@ -144,6 +144,7 @@ public:
             std::array<double, 4> quat;
             uint64_t sensortimestamp;
             std::string minViableRegionJSON; //: {"size2D", ...}
+            bool IsEmpty() const { return sensortimestamp == 0; }
         } registerMinViableRegionInfo;
         // struct MVRUpdateObjectInfo {
         //     std::string targetname;
@@ -407,10 +408,7 @@ public:
     virtual const std::string& GetSlaveRequestId() const;
 
     virtual void SendMVRRegistrationResult(
-        const std::string &registrationResultStore,
-        const std::array<float, 3> &boxFullSize,
-        const std::array<float, 3> &translation,
-        const std::array<float, 4> &quat,
+        const rapidjson::Document &mvrResultInfo,
         double timeout /* second */=5.0);
 
 protected:
