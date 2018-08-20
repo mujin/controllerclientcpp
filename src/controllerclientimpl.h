@@ -63,6 +63,8 @@ public:
     virtual void DeleteDirectoryOnController_UTF8(const std::string& desturi);
     virtual void DeleteDirectoryOnController_UTF16(const std::wstring& desturi);
 
+    virtual void AddObjectToObjectSet(const std::string &objectname, const std::string &objectsetname);
+
     /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
     int CallGet(const std::string& relativeuri, rapidjson::Document& pt, int expectedhttpcode=200, double timeout = 5.0);
 

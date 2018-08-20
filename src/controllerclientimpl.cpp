@@ -1387,6 +1387,18 @@ void ControllerClientImpl::DeleteDirectoryOnController_UTF16(const std::wstring&
     _DeleteDirectoryOnController(_PrepareDestinationURI_UTF16(desturi, false, false, true));
 }
 
+void ControllerClientImpl::AddObjectToObjectSet(const std::string &objectname, const std::string &objectsetname)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+
+    rapidjson::Document pt(rapidjson::kObjectType);
+    CallGet((boost::format("scene/%s.mujin.dae/?format=json&fields=referenceobjectpks") % objectsetname).str(), pt);
+    rapidjson::Value& objects = pt["referenceobjectpks"];
+    rapidjson::Value r; // TODO::::::::::;
+
+
+}
+
 void ControllerClientImpl::_UploadDirectoryToController_UTF8(const std::string& copydir_utf8, const std::string& rawuri)
 {
     BOOST_ASSERT(rawuri.size()>0 && copydir_utf8.size()>0);
