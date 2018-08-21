@@ -1387,22 +1387,28 @@ void ControllerClientImpl::DeleteDirectoryOnController_UTF16(const std::wstring&
     _DeleteDirectoryOnController(_PrepareDestinationURI_UTF16(desturi, false, false, true));
 }
 
-void ControllerClientImpl::AddObjectToObjectSet(const std::string &objectname, const std::string &objectsetname)
+void ControllerClientImpl::AddObjectToObjectSet(const std::string &objectPk, const std::string &objectsetPk, double timeout)
 {
-    boost::mutex::scoped_lock lock(_mutex);
-
     rapidjson::Document pt(rapidjson::kObjectType);
-    CallGet((boost::format("scene/%s.mujin.dae/?format=json&fields=referenceobjectpks") % objectsetname).str(), pt);
-    rapidjson::Value& refpks = pt["referenceobjectpks"];
-    rapidjson::Value rObjectname;
-    rObjectname = rapidjson::StringRef(objectname.c_str(), objectname.size());
-    refpks.PushBack(rObjectname, pt.GetAllocator());
-
-    printf("~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-    for (auto& v : refpks.GetArray()) {
-        printf("%s\n", v.GetString());
+    const std::string desturi = (boost::format("scene/%s/?format=json&fields=referenceobjectpks") % objectsetPk).str();
+    int http_code = CallGet(desturi, pt, 0);
+    if (http_code == 404) {
+        throw MUJIN_EXCEPTION_FORMAT("objsetsetPK=%s cannot be found on the remote server", objectsetPk, MEC_InvalidArguments);
+    } else if (http_code != 200) {
+        std::string error_message = GetJsonValueByKey<std::string>(pt, "error_message");
+        std::string traceback = GetJsonValueByKey<std::string>(pt, "traceback");
+        throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s: %s", desturi % http_code % error_message, MEC_HTTPServer);
     }
 
+    rapidjson::Value& refpks = pt["referenceobjectpks"];
+    rapidjson::Value rObjectname;
+    rObjectname = rapidjson::StringRef(objectPk.c_str(), objectPk.size());
+    refpks.PushBack(rObjectname, pt.GetAllocator());
+
+    rapidjson::Document pt2(rapidjson::kObjectType);
+    const std::string uri((boost::format("scene/%s/") % objectsetPk).str());
+    const int status = CallPutJSON(uri, DumpJson(pt), pt2, 202, timeout);
+    assert(status == 202);
 }
 
 void ControllerClientImpl::_UploadDirectoryToController_UTF8(const std::string& copydir_utf8, const std::string& rawuri)

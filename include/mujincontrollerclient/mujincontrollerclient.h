@@ -539,7 +539,7 @@ public:
     /// \param uri UTF-16 encoded
     virtual void DeleteDirectoryOnController_UTF16(const std::wstring& uri) = 0;
 
-    virtual void AddObjectToObjectSet(const std::string &objectname, const std::string &objectsetname) = 0;
+    virtual void AddObjectToObjectSet(const std::string &objectname, const std::string &objectsetname, double timeout = 5.0) = 0;
 
     virtual void SetDefaultSceneType(const std::string& scenetype) = 0;
 
