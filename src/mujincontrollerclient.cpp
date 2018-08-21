@@ -1027,6 +1027,9 @@ void TaskResource::GetTaskParameters(ITLPlanningTaskParameters& taskparameters)
         else if( std::string(v->name.GetString()) == "program" ) {
             taskparameters.program = v->value.GetString();
         }
+        else if( std::string(v->name.GetString()) == "parameters" ) {
+            taskparameters.parameters = DumpJson(v->value,2);
+        }
         else if( std::string(v->name.GetString()) == "initial_envstate" ) {
             ExtractEnvironmentStateFromPTree(v->value, taskparameters.initial_envstate);
         }
@@ -1072,7 +1075,7 @@ void TaskResource::SetTaskParameters(const ITLPlanningTaskParameters& taskparame
     serachpairs[1].first = "\n"; serachpairs[1].second = "\\n";
     serachpairs[2].first = "\r\n"; serachpairs[2].second = "\\n";
     SearchAndReplace(program, taskparameters.program, serachpairs);
-    std::string taskgoalput = str(boost::format("{\"tasktype\": \"itlplanning\", \"taskparameters\":{\"optimizationvalue\":%f, \"program\":\"%s\", \"unit\":\"%s\", \"returnmode\":\"%s\", \"startfromcurrent\":\"%s\", \"ignorefigure\":\"%s\", \"vrcruns\":%d %s %s } }")%taskparameters.optimizationvalue%program%taskparameters.unit%taskparameters.returnmode%startfromcurrent%ignorefigure%vrcruns%ssinitial_envstate.str()%ssfinal_envstate.str());
+    std::string taskgoalput = str(boost::format("{\"tasktype\": \"itlplanning\", \"taskparameters\":{\"optimizationvalue\":%f, \"program\":\"%s\", \"parameters\":%s, \"unit\":\"%s\", \"returnmode\":\"%s\", \"startfromcurrent\":\"%s\", \"ignorefigure\":\"%s\", \"vrcruns\":%d %s %s } }")%taskparameters.optimizationvalue%program%taskparameters.parameters%taskparameters.unit%taskparameters.returnmode%startfromcurrent%ignorefigure%vrcruns%ssinitial_envstate.str()%ssfinal_envstate.str());
     rapidjson::Document pt;
     controller->CallPutJSON(str(boost::format("task/%s/?format=json&fields=")%GetPrimaryKey()), taskgoalput, pt);
 }

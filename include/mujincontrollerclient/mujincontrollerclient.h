@@ -220,6 +220,7 @@ public:
     std::string unit; ///< the unit that information is used in. m, mm, nm, inch, etc
     Real optimizationvalue; ///< value in [0,1]. 0 is no optimization (fast), 1 is full optimization (slow)
     std::string program; ///< itl program
+    std::string parameters; ///< parameters (json)
 
     EnvironmentState initial_envstate; ///< initial environment state to set the ITL task to.
     EnvironmentState final_envstate;  ///< final environment state that describes where the robot should end at. If returnmode is set to final, then use this state.
