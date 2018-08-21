@@ -1393,9 +1393,15 @@ void ControllerClientImpl::AddObjectToObjectSet(const std::string &objectname, c
 
     rapidjson::Document pt(rapidjson::kObjectType);
     CallGet((boost::format("scene/%s.mujin.dae/?format=json&fields=referenceobjectpks") % objectsetname).str(), pt);
-    rapidjson::Value& objects = pt["referenceobjectpks"];
-    rapidjson::Value r; // TODO::::::::::;
+    rapidjson::Value& refpks = pt["referenceobjectpks"];
+    rapidjson::Value rObjectname;
+    rObjectname = rapidjson::StringRef(objectname.c_str(), objectname.size());
+    refpks.PushBack(rObjectname, pt.GetAllocator());
 
+    printf("~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+    for (auto& v : refpks.GetArray()) {
+        printf("%s\n", v.GetString());
+    }
 
 }
 
