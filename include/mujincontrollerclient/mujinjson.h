@@ -540,7 +540,7 @@ template<class T> inline T GetJsonValueByPath(const rapidjson::Value& v, const c
     return r;
 }
 
-template<class T, class U> T GetJsonValueByPath(const rapidjson::Value& v, const char* key, const U& t) {
+template<class T, class U=T> T GetJsonValueByPath(const rapidjson::Value& v, const char* key, const U& t) {
     const rapidjson::Value *child = rapidjson::Pointer(key).Get(v);
     if (child && !child->IsNull()) {
         T r;

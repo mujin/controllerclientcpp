@@ -143,16 +143,16 @@ public:
          * Information needed to register a new object using a min viable region
          */
         struct RegisterMinViableRegionInfo {
-            std::array<double, 3> translate; // Translation of the 2D MVR plane (height = 0)
-            std::array<double, 4> quat; // Rotation of the 2D MVR plane (height = 0)
-            uint64_t sensortimestamp; // Same as DetectedObject's timestamp sent to planning
+            std::array<double, 3> translate {}; // Translation of the 2D MVR plane (height = 0)
+            std::array<double, 4> quat {}; // Rotation of the 2D MVR plane (height = 0)
+            uint64_t sensortimestamp = 0; // Same as DetectedObject's timestamp sent to planning
             /**
              * This JSON should contain the following fields
              * 'size2D': (w, h) # width and height on the MVR
              * 'cornerMask': Represents the corner(s) used for corner based detection. 4 bit. -x-y = 1, +x-y = 2, -x+y=4, +x+y = 8
              */
             std::string minViableRegionJSON;
-            std::array<double, 3> liftedWorldOffset; // [dx, dy, dz], mm in world frame
+            std::array<double, 3> liftedWorldOffset {}; // [dx, dy, dz], mm in world frame
             bool IsEmpty() const { return sensortimestamp == 0; }
         } registerMinViableRegionInfo;
 
