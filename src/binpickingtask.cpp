@@ -517,6 +517,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     registerMinViableRegionInfo.translate = GetJsonValueByPath<std::array<double, 3>>(v, "/registerMinViableRegionInfo/translate", {});
     registerMinViableRegionInfo.quat = GetJsonValueByPath<std::array<double, 4>>(v, "/registerMinViableRegionInfo/quat", {});
     registerMinViableRegionInfo.sensortimestamp = GetJsonValueByPath<uint64_t>(v, "/registerMinViableRegionInfo/sensortimestamp", 0);
+    registerMinViableRegionInfo.robotDepartStopTimestamp = GetJsonValueByPath<uint64_t>(v, "/registerMinViableRegionInfo/robotDepartStopTimestamp", 0);
     registerMinViableRegionInfo.minViableRegionJSON = GetJsonValueByPath<std::string>(v, "/registerMinViableRegionInfo/minViableRegionJSON", "");
     registerMinViableRegionInfo.liftedWorldOffset = GetJsonValueByPath<std::array<double, 3>>(v, "/registerMinViableRegionInfo/liftedWorldOffset", {});
     
