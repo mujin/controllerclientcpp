@@ -20,6 +20,7 @@
 #include <mujincontrollerclient/mujincontrollerclient.h>
 
 #include <boost/enable_shared_from_this.hpp>
+#include <pcrecpp.h>
 
 namespace mujinclient {
 
@@ -151,7 +152,12 @@ public:
     {
         return _baseuri;
     }
-
+    std::string Quote(const std::string& value) const;
+    std::string Unquote(const std::string& value) const;
+    bool ParseURI(const std::string& uri, std::string& scheme, std::string& authority, std::string& path, std::string& query, std::string& fragment) const;
+    std::string AssembleURI(const std::string& scheme, const std::string& authority, const std::string& path, const std::string& query, const std::string& fragment);
+    std::string GetPrimaryKeyFromURI(const std::string& uri) const;
+    std::string GetUnicodeFromPrimaryKey(const std::string& pk) const;
 protected:
 
     int _CallPut(const std::string& relativeuri, const void* pdata, size_t nDataSize, rapidjson::Document& pt, curl_slist* headers, int expectedhttpcode=202, double timeout = 5.0);

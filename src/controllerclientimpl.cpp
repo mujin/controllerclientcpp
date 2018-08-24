@@ -1363,6 +1363,106 @@ void ControllerClientImpl::_DownloadFileFromController(const std::string& destur
     }
 }
 
+
+std::string ControllerClientImpl::Quote(const std::string& value) const {
+    if(_curl){
+        char* output = curl_easy_escape(_curl, value.c_str(), value.length());
+        if(output){
+            return std::string(output);
+        }
+    }
+    return "";
+}
+
+std::string ControllerClientImpl::Unquote(const std::string& value) const{
+    if(_curl){
+        int* outlength;
+        char* result = NULL; 
+        result = curl_easy_unescape(_curl, value.c_str(), value.length(), outlength);
+        if(result){
+            return string(result);
+        }
+    }
+    return "";
+}
+
+bool ControllerClientImpl::ParseURI(const std::string& uri, std::string& scheme, std::string& authority, std::string& path, std::string& query, std::string& fragment) const{
+    static pcrecpp::RE re("^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?");
+    std::string s1, s3, s6, s8;
+    if (re.FullMatch(uri, &s1, &scheme, &s3, &authority, &path, &s6, &query, &s8, &fragment))
+    {   
+        if(scheme == "mujin"){
+            // need to do special check since may container fragment in path;
+            if(!boost::ends_with(path, "mujin.dae")){
+                // try only to get last fragment part;
+                size_t fragmentIndex = fragment.rfind('#');
+                path += "#" + fragment.substr(0, fragmentIndex);
+                fragment = fragment.substr(fragmentIndex+1);
+            }
+        }
+        path  = Unquote(path);
+        return true;
+    }
+    return false;
+}
+
+std::string ControllerClientImpl::AssembleURI(const std::string& scheme, const std::string& authority, const std::string& path, const std::string& query, const std::string& fragment){
+    std::string uri = "";
+
+    uri = scheme + ":";
+    if(!authority.empty()){
+        uri = uri + "//" + authority;
+    }
+    if(scheme == "mujin"){
+        if(!path.empty()){
+            if(path[0] != '/'){
+                uri = uri + '/' + path;
+            }
+            else{
+                uri = uri + path;
+            }
+        }
+    }
+    else{
+        if(!path.empty()){
+            if(path[0] != '/'){
+                uri += '/' + Quote(path);
+            }
+            else{
+                uri += Quote(path);
+            }
+        }
+    }
+
+    if(!query.empty()){
+        uri += "?" + query;
+    }
+    if(!fragment.empty()){
+        uri += '#' + fragment;
+    }
+    return uri;
+}
+
+std::string ControllerClientImpl::GetPrimaryKeyFromURI(const std::string& uri) const {
+    if(_curl){
+        if(boost::starts_with(uri, "mujin:/")){
+            // mujin uri is represented in unicode
+            std::string pk = uri.substr();
+
+        }
+        else if(boost::starts_with(uri, "file:/")){
+            // file scheme container the full file path and it's 
+        }
+    }
+    return "";
+}
+
+std::string ControllerClientImpl::GetUnicodeFromPrimaryKey(const std::string& pk) const{
+    return Unquote(pk);
+}
+
+
+
 void ControllerClientImpl::DeleteFileOnController_UTF8(const std::string& desturi)
 {
     boost::mutex::scoped_lock lock(_mutex);
