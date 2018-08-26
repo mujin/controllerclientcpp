@@ -21,7 +21,6 @@
 
 #include <boost/enable_shared_from_this.hpp>
 #include <pcrecpp.h>
-
 namespace mujinclient {
 
 class ControllerClientImpl : public ControllerClient, public boost::enable_shared_from_this<ControllerClientImpl>

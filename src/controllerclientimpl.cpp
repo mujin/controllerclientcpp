@@ -1376,7 +1376,7 @@ std::string ControllerClientImpl::Quote(const std::string& value) const {
 
 std::string ControllerClientImpl::Unquote(const std::string& value) const{
     if(_curl){
-        int* outlength;
+        int* outlength = NULL;
         char* result = NULL; 
         result = curl_easy_unescape(_curl, value.c_str(), value.length(), outlength);
         if(result){
@@ -1388,7 +1388,7 @@ std::string ControllerClientImpl::Unquote(const std::string& value) const{
 
 bool ControllerClientImpl::ParseURI(const std::string& uri, std::string& scheme, std::string& authority, std::string& path, std::string& query, std::string& fragment) const{
     static pcrecpp::RE re("^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?");
-    std::string s1, s3, s6, s8;
+    std::string s1, s3, s6, s8; 
     if (re.FullMatch(uri, &s1, &scheme, &s3, &authority, &path, &s6, &query, &s8, &fragment))
     {   
         if(scheme == "mujin"){
