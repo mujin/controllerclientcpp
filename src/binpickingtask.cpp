@@ -751,7 +751,7 @@ void BinPickingTaskResource::SendMVRRegistrationResult(
     double timeout)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
-    _ss << GetJsonString("command", "ReceiveMVRRegistrationResult") << ", ";
+    _ss << GetJsonString("command", "SendMVRRegistrationResult") << ", ";
     _ss << GetJsonString("mvrResultInfo", DumpJson(mvrResultInfo)) << ", ";
     _ss << "}";
     rapidjson::Document pt(rapidjson::kObjectType);
