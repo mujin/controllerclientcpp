@@ -155,7 +155,6 @@ public:
     std::string Unquote(const std::string& value) const;
     bool ParseURI(const std::string& uri, std::string& scheme, std::string& authority, std::string& path, std::string& query, std::string& fragment) const;
     std::string AssembleURI(const std::string& scheme, const std::string& authority, const std::string& path, const std::string& query, const std::string& fragment);
-    std::string GetPrimaryKeyFromURI(const std::string& uri) const;
     std::string GetUnicodeFromPrimaryKey(const std::string& pk) const;
 protected:
 

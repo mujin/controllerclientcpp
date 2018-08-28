@@ -1443,25 +1443,9 @@ std::string ControllerClientImpl::AssembleURI(const std::string& scheme, const s
     return uri;
 }
 
-std::string ControllerClientImpl::GetPrimaryKeyFromURI(const std::string& uri) const {
-    if(_curl){
-        if(boost::starts_with(uri, "mujin:/")){
-            // mujin uri is represented in unicode
-            std::string pk = uri.substr();
-
-        }
-        else if(boost::starts_with(uri, "file:/")){
-            // file scheme container the full file path and it's 
-        }
-    }
-    return "";
-}
-
 std::string ControllerClientImpl::GetUnicodeFromPrimaryKey(const std::string& pk) const{
     return Unquote(pk);
 }
-
-
 
 void ControllerClientImpl::DeleteFileOnController_UTF8(const std::string& desturi)
 {

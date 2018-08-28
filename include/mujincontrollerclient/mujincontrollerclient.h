@@ -524,7 +524,6 @@ public:
     virtual std::string Unquote(const std::string& value) const = 0;
     virtual bool ParseURI(const std::string& uri, std::string& scheme, std::string& authority, std::string& path, std::string& query, std::string& fragment) const = 0;
     virtual std::string AssembleURI(const std::string& scheme, const std::string& authority, const std::string& path, const std::string& query, const std::string& fragment) = 0;
-    virtual std::string GetPrimaryKeyFromURI(const std::string& uri) const = 0;
     virtual std::string GetUnicodeFromPrimaryKey(const std::string& pk) const = 0;
 
     /// \brief Deletes a file on the controller network filesystem.
