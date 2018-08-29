@@ -1125,6 +1125,10 @@ std::string ControllerClientImpl::_EncodeWithoutSeparator(const std::string& raw
 
 void ControllerClientImpl::_EnsureWebDAVDirectories(const std::string& relativeuri, double timeout)
 {
+    if (relativeuri.empty()) {
+        return;
+    }
+
     CurlTimeoutSetter timeoutsetter(_curl, timeout);
     std::list<std::string> listCreateDirs;
     std::string output;
@@ -1208,6 +1212,8 @@ std::string ControllerClientImpl::_PrepareDestinationURI_UTF8(const std::string&
                 size_t nBaseFilenameStartIndex = s.find_last_of(s_filesep);
                 if( nBaseFilenameStartIndex != std::string::npos ) {
                     s = s.substr(0, nBaseFilenameStartIndex);
+                } else {
+                    s = "";
                 }
             }
             _EnsureWebDAVDirectories(s);
@@ -1244,6 +1250,8 @@ std::string ControllerClientImpl::_PrepareDestinationURI_UTF16(const std::wstrin
                 size_t nBaseFilenameStartIndex = s.find_last_of(s_filesep);
                 if( nBaseFilenameStartIndex != std::string::npos ) {
                     s = s.substr(0, nBaseFilenameStartIndex);
+                } else {
+                    s = "";
                 }
             }
             _EnsureWebDAVDirectories(s);
