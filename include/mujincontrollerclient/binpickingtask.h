@@ -150,7 +150,7 @@ public:
             std::array<double, 3> translation_ {}; // Translation of the 2D MVR plane (height = 0)
             std::array<double, 4> quat_ {}; // Rotation of the 2D MVR plane (height = 0)
             uint64_t sensortimestamp = 0; // Same as DetectedObject's timestamp sent to planning
-            uint64_t robotDepartStopTimestamp = 0; // Force capture after robot stops
+            double robotDepartStopTimestamp = 0; // Force capture after robot stops
             std::array<double, 3> liftedWorldOffset {}; // [dx, dy, dz], mm in world frame
             bool IsEmpty() const { return sensortimestamp == 0; }
         } registerMinViableRegionInfo;
