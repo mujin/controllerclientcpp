@@ -452,11 +452,15 @@ void ControllerClientImpl::GetScenePrimaryKeys(std::vector<std::string>& sceneke
     }
 }
 
-SceneResourcePtr ControllerClientImpl::RegisterScene_UTF8(const std::string& uri, const std::string& scenetype)
+SceneResourcePtr ControllerClientImpl::RegisterScene_UTF8(const std::string& uri, const std::string& scenetype, const std::string& keywords)
 {
     BOOST_ASSERT(scenetype.size()>0);
     rapidjson::Document pt(rapidjson::kObjectType);
-    CallPost_UTF8("scene/?format=json&fields=pk", str(boost::format("{\"uri\":\"%s\", \"scenetype\":\"%s\"}")%uri%scenetype), pt);
+    std::string url = "scene/?format=json&fields=pk";
+    if (keywords.size() > 0) {
+        url += "&keywords=" + keywords + "";
+    }
+      CallPost_UTF8(url, str(boost::format("{\"uri\":\"%s\", \"scenetype\":\"%s\"}")%uri%scenetype), pt);
     std::string pk = GetJsonValueByKey<std::string>(pt, "pk");
     SceneResourcePtr scene(new SceneResource(shared_from_this(), pk));
     return scene;

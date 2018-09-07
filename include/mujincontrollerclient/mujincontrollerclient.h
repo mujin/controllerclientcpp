@@ -399,7 +399,11 @@ public:
         - **stl**
         - **cecrobodiaxml** (CEC RoboDiA XML environments)
      */
-    virtual SceneResourcePtr RegisterScene_UTF8(const std::string& uri, const std::string& scenetype) = 0;
+    virtual SceneResourcePtr RegisterScene_UTF8(const std::string& uri, const std::string& scenetype, const std::string& keywords) = 0;
+    virtual SceneResourcePtr RegisterScene_UTF8(const std::string& uri, const std::string& scenetype)
+    {
+        return RegisterScene_UTF8(uri,GetDefaultSceneType(), "");
+    }
 
     /// \brief registers scene with default scene type
     virtual SceneResourcePtr RegisterScene_UTF8(const std::string& uri)
