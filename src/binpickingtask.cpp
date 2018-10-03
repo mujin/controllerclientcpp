@@ -508,9 +508,9 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     isGrabbingLastTarget = GetJsonValueByKey<bool>(v, "isGrabbingLastTarget", true);
     hasRobotExecutionStarted = GetJsonValueByKey<bool>(v, "hasRobotExecutionStarted", false);
     orderNumber = GetJsonValueByPath<int>(v, "/orderstate/orderNumber", -1);
-    numLeftInOrder = GetJsonValueByKey<int>(v, "/orderstate/numLeftInOrder", -1);
-    numLeftInSupply = GetJsonValueByKey<int>(v, "/orderstate/numLeftInSupply", -1);
-    placedInDest = GetJsonValueByKey<int>(v, "/orderstate/placedInDest", -1);
+    numLeftInOrder = GetJsonValueByPath<int>(v, "/orderstate/numLeftInOrder", -1);
+    numLeftInSupply = GetJsonValueByPath<int>(v, "/orderstate/numLeftInSupply", -1);
+    placedInDest = GetJsonValueByPath<int>(v, "/orderstate/placedInDest", -1);
     isControllerInError = GetJsonValueByKey<bool>(v, "isControllerInError", false);
     robotbridgestatus = GetJsonValueByKey<std::string>(v, "robotbridgestatus", "unknown");
 
