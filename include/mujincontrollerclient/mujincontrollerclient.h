@@ -539,7 +539,9 @@ public:
     /// \param uri UTF-16 encoded
     virtual void DeleteDirectoryOnController_UTF16(const std::wstring& uri) = 0;
 
-    /// <<<<<<<<<<<<<<, TODO: documentation
+    /// \brief List all registered file names with last modified time
+    ///
+    /// \param fileInfo To be filled with file names with last modified time
     virtual void ListRegistrationFiles(std::vector<std::pair<std::string, time_t>> &fileInfo) = 0;
 
     virtual void SetDefaultSceneType(const std::string& scenetype) = 0;

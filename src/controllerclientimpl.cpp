@@ -1422,7 +1422,6 @@ void ControllerClientImpl::ListRegistrationFiles(std::vector<std::pair<std::stri
             nResponse = nResponse->NextSiblingElement();
         }
     }
-    // printf("testtttttttttttttttttttttttttttttttttttttttttt %s\n", reinterpret_cast<const char*>(buf.data()));
 }
 
 void ControllerClientImpl::_UploadDirectoryToController_UTF8(const std::string& copydir_utf8, const std::string& rawuri)
