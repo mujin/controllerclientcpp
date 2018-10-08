@@ -1398,7 +1398,7 @@ void ControllerClientImpl::ListRegistrationFiles(std::vector<std::pair<std::stri
         tinyxml2::XMLDocument doc;
         tinyxml2::XMLError retc = doc.Parse(reinterpret_cast<const char*>(buf.data()));
         if (retc != tinyxml2::XML_SUCCESS) {
-            throw MUJIN_EXCEPTION_FORMAT("Cannot parse XML. Error code: %d", retc, MEC_Assert);
+            throw MUJIN_EXCEPTION_FORMAT("Cannot parse XML. Error: %s", doc.ErrorStr(), MEC_Assert);
         }
         BOOST_ASSERT(doc.FirstChildElement("D:multistatus") != nullptr);
         BOOST_ASSERT(doc.FirstChildElement("D:multistatus")->FirstChildElement("D:response") != nullptr);
