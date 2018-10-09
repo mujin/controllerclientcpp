@@ -520,10 +520,6 @@ public:
     virtual void DownloadFileFromControllerIfModifiedSince_UTF16(const std::wstring& desturi, long localtimeval, long &remotetimeval, std::vector<unsigned char>& vdata, double timeout = 5.0) = 0;
 
 
-    virtual std::string Quote(const std::string& value) const = 0;
-    virtual std::string Unquote(const std::string& value) const = 0;
-    virtual bool ParseURI(const std::string& uri, std::string& scheme, std::string& authority, std::string& path, std::string& query, std::string& fragment) const = 0;
-    virtual std::string AssembleURI(const std::string& scheme, const std::string& authority, const std::string& path, const std::string& query, const std::string& fragment) = 0;
     virtual std::string GetUnicodeFromPrimaryKey(const std::string& pk) const = 0;
 
     /// \brief Deletes a file on the controller network filesystem.
@@ -609,6 +605,11 @@ public:
     ///
     virtual std::string SetObjectGeometryMesh(const std::string& objectPk, const std::string& geometryPk, const std::vector<unsigned char>& data, const std::string& unit = "mm", double timeout = 5) = 0;
 
+protected:
+    virtual std::string _Quote(const std::string& value) const = 0;
+    virtual std::string _Unquote(const std::string& value) const = 0;
+    virtual bool _ParseURI(const std::string& uri, std::string& scheme, std::string& authority, std::string& path, std::string& query, std::string& fragment) const = 0;
+    virtual std::string _AssembleURI(const std::string& scheme, const std::string& authority, const std::string& path, const std::string& query, const std::string& fragment) = 0;
 };
 
 class MUJINCLIENT_API WebResource

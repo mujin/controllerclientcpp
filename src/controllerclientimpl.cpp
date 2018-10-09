@@ -1364,7 +1364,7 @@ void ControllerClientImpl::_DownloadFileFromController(const std::string& destur
 }
 
 
-std::string ControllerClientImpl::Quote(const std::string& value) const {
+std::string ControllerClientImpl::_Quote(const std::string& value) const {
     if(_curl){
         char* output = curl_easy_escape(_curl, value.c_str(), value.length());
         if(output){
@@ -1374,7 +1374,7 @@ std::string ControllerClientImpl::Quote(const std::string& value) const {
     return "";
 }
 
-std::string ControllerClientImpl::Unquote(const std::string& value) const{
+std::string ControllerClientImpl::_Unquote(const std::string& value) const{
     if(_curl){
         int* outlength = NULL;
         char* result = NULL; 
@@ -1386,7 +1386,7 @@ std::string ControllerClientImpl::Unquote(const std::string& value) const{
     return "";
 }
 
-bool ControllerClientImpl::ParseURI(const std::string& uri, std::string& scheme, std::string& authority, std::string& path, std::string& query, std::string& fragment) const{
+bool ControllerClientImpl::_ParseURI(const std::string& uri, std::string& scheme, std::string& authority, std::string& path, std::string& query, std::string& fragment) const{
     static pcrecpp::RE re("^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?");
     std::string s1, s3, s6, s8; 
     if (re.FullMatch(uri, &s1, &scheme, &s3, &authority, &path, &s6, &query, &s8, &fragment))
@@ -1400,13 +1400,13 @@ bool ControllerClientImpl::ParseURI(const std::string& uri, std::string& scheme,
                 fragment = fragment.substr(fragmentIndex+1);
             }
         }
-        path  = Unquote(path);
+        path  = _Unquote(path);
         return true;
     }
     return false;
 }
 
-std::string ControllerClientImpl::AssembleURI(const std::string& scheme, const std::string& authority, const std::string& path, const std::string& query, const std::string& fragment){
+std::string ControllerClientImpl::_AssembleURI(const std::string& scheme, const std::string& authority, const std::string& path, const std::string& query, const std::string& fragment){
     std::string uri = "";
 
     uri = scheme + ":";
@@ -1426,10 +1426,10 @@ std::string ControllerClientImpl::AssembleURI(const std::string& scheme, const s
     else{
         if(!path.empty()){
             if(path[0] != '/'){
-                uri += '/' + Quote(path);
+                uri += '/' + _Quote(path);
             }
             else{
-                uri += Quote(path);
+                uri += _Quote(path);
             }
         }
     }
@@ -1444,7 +1444,7 @@ std::string ControllerClientImpl::AssembleURI(const std::string& scheme, const s
 }
 
 std::string ControllerClientImpl::GetUnicodeFromPrimaryKey(const std::string& pk) const{
-    return Unquote(pk);
+    return _Unquote(pk);
 }
 
 void ControllerClientImpl::DeleteFileOnController_UTF8(const std::string& desturi)
