@@ -180,9 +180,9 @@ else()
   add_definitions("-DRAPIDJSON_ASSERT=BOOST_ASSERT")
 endif()
 
-pkg_check_modules(tinyxml2 tinyxml2)
-if (tinyxml2_FOUND)
-  include_directories(${tinyxml2_INCLUDE_DIRS})
+pkg_check_modules(pugixml REQUIRED pugixml)
+if (pugixml_FOUND)
+  include_directories(${pugixml_INCLUDE_DIRS})
 endif()
 
 if( Boost_FOUND )

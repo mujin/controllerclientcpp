@@ -15,7 +15,7 @@
 #include "controllerclientimpl.h"
 
 #include <boost/algorithm/string.hpp>
-#include <tinyxml2.h>
+#include <pugixml.hpp>
 #include <iomanip>
 
 #define SKIP_PEER_VERIFICATION // temporary
@@ -1395,31 +1395,32 @@ void ControllerClientImpl::ListRegistrationFiles(std::vector<std::pair<std::stri
     std::vector<unsigned char> buf;
     _CallPropfind(_basewebdavuri + "registration/", buf);
     {
-        tinyxml2::XMLDocument doc;
-        tinyxml2::XMLError retc = doc.Parse(reinterpret_cast<const char*>(buf.data()));
-        if (retc != tinyxml2::XML_SUCCESS) {
-            throw MUJIN_EXCEPTION_FORMAT("Cannot parse XML. Error: %s", doc.ErrorStr(), MEC_Assert);
+        pugi::xml_document doc;
+        pugi::xml_parse_result result = doc.load_string(reinterpret_cast<const char*>(buf.data()));
+        if (!result) {
+            std::ofstream f1("/tmp/failed.xml");
+            f1 << reinterpret_cast<const char*>(buf.data());
+
+            throw MUJIN_EXCEPTION_FORMAT("Cannot parse XML. Error: %s", result.description(), MEC_Assert);
         }
-        BOOST_ASSERT(doc.FirstChildElement("D:multistatus") != nullptr);
-        BOOST_ASSERT(doc.FirstChildElement("D:multistatus")->FirstChildElement("D:response") != nullptr);
-        const tinyxml2::XMLElement* nResponse = doc.FirstChildElement("D:multistatus")->FirstChildElement("D:response");
-        while (nResponse != nullptr) {
-            std::string filename = nResponse->FirstChildElement("D:href")->GetText();
+        BOOST_ASSERT(doc.child("D:multistatus"));
+        pugi::xml_node nResponse = doc.child("D:multistatus").child("D:response");
+        while (nResponse) {
+            std::string filename = nResponse.child_value("D:href");
             if (filename.rfind("tar.gz") == filename.size() - 6) {
-                const tinyxml2::XMLElement* eProp = nResponse->FirstChildElement("D:propstat");
-                BOOST_ASSERT(eProp != nullptr);
-                eProp = eProp->FirstChildElement("D:prop");
-                const tinyxml2::XMLElement* eLastModified = eProp->FirstChildElement("lp1:getlastmodified");
+                pugi::xml_node eProp = nResponse.child("D:propstat");
+                BOOST_ASSERT(eProp);
+                eProp = eProp.child("D:prop");
 
                 std::tm time = {};
-                std::istringstream ss(eLastModified->GetText());
+                std::istringstream ss(eProp.child_value("lp1:getlastmodified"));
                 ss.imbue(std::locale("en_US.utf-8"));
                 ss >> std::get_time(&time, "%a, %d %b %Y %T");
                 time_t lastModified = timegm(&time);
 
                 fileInfo.emplace_back(filename, lastModified);
             }
-            nResponse = nResponse->NextSiblingElement();
+            nResponse = nResponse.next_sibling("D:response");
         }
     }
 }
