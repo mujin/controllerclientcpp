@@ -4,12 +4,10 @@
 #include <mujincontrollerclient/mujinexceptions.h>
 
 // Derived from https://gcc.gnu.org/wiki/Visibility
-#if !(defined _WIN32 || defined __CYGWIN__)
-  #if __GNUC__ >= 4
-    #define HIDDEN  __attribute__ ((visibility ("hidden")))
-  #else
-    #define HIDDEN
-  #endif
+#if !(defined _WIN32 || defined __CYGWIN__) && __GNUC__ >= 4
+  #define HIDDEN  __attribute__ ((visibility ("hidden")))
+#else
+  #define HIDDEN
 #endif
 
 /// Modifications controlling %boost library behavior.
@@ -25,7 +23,7 @@ HIDDEN void assertion_failed_msg(char const * expr, char const * msg, char const
 {
     throw mujinclient::MujinException((boost::format("[%s:%d] -> %s, expr: %s, msg: %s")%file%line%function%expr%msg).str(),mujinclient::MEC_Assert);
 }
-} // namespace boost
 #endif
+} // namespace boost
 
 #endif
