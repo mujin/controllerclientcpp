@@ -2,7 +2,7 @@
 /** \example mujincreateikparam.cpp
 
     Shows how to create ikparam using current coordinate
-    example: mujincreateikparam --controller_hostname localhost --task_scenepk machine.mujin.dae --iktype Transform6D --object_name object --taskparameters '{"robotname":"machine","robots":{"machine":{}}}'
+    example: mujincreateikparam --controller_hostname localhost --task_scenepk machine.mujin.dae --iktype Transform6D --object_name object --taskparameters '{"robotname":"machine","robots":{"machine":{"toolname":"tool"}}}'
  */
 
 #include <mujincontrollerclient/binpickingtask.h>
@@ -178,8 +178,8 @@ int main(int argc, char ** argv)
 
     // get manip position
     const string object_name = opts["object_name"].as<string>();
-    BinPickingTaskResource::ResultComputeIkParamPosition result;
-    pBinpickingTask->ComputeIkParamPosition(result,object_name);
+    BinPickingTaskResource::ResultComputeIkParamPosition resultPosition;
+    pBinpickingTask->ComputeIkParamPosition(resultPosition,object_name);
     cout << "ComputeIkParamPosition done" << endl;
 
     stringstream urlss;
@@ -197,9 +197,23 @@ int main(int argc, char ** argv)
     cout << "obtaining object done" << endl;
 
     ObjectResource::IkParamResourcePtr ik=object->AddIkParam("sample",opts["iktype"].as<string>());
-    ik->SetJSON(mujinjson::GetJsonStringByKey("translation",result.translation));
-    ik->SetJSON(mujinjson::GetJsonStringByKey("quaternion",result.quaternion));
-    cout << "setting parameters done" << endl;
+    ik->SetJSON(mujinjson::GetJsonStringByKey("translation",resultPosition.translation));
+    ik->SetJSON(mujinjson::GetJsonStringByKey("quaternion",resultPosition.quaternion));
+
+    BinPickingTaskResource::ResultComputeIKFromParameters result;
+    pBinpickingTask->ComputeIKFromParameters(result,object_name,{"sample"},0);
+    BinPickingTaskResource::ResultGetJointValues jointvalues;
+    pBinpickingTask->GetJointValues(jointvalues);
+    for(int i=0;i<result.dofvalues.size();i++){
+        int j=0;
+        for(;j<jointvalues.currentjointvalues.size();j++){
+            if(abs(result.dofvalues[i][j]-jointvalues.currentjointvalues[j])>0.01)break;
+        }
+        if(j==jointvalues.currentjointvalues.size()){
+            ik->SetJSON("{\"extra\":"+result.extra[i]+"}");
+        }
+    }
+    cout << "setting extra done" << endl;
 
     return 0;
 }

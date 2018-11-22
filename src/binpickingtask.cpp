@@ -621,6 +621,22 @@ void BinPickingTaskResource::ResultComputeIkParamPosition::Parse(const rapidjson
     }
 }
 
+void BinPickingTaskResource::ResultComputeIKFromParameters::Parse(const rapidjson::Value& pt)
+{
+    BOOST_ASSERT(pt.IsObject() && pt.HasMember("output"));
+    const rapidjson::Value& v_ = pt["output"];
+    BOOST_ASSERT(v_.IsObject() && v_.HasMember("solutions"));
+    const rapidjson::Value& v = v_["solutions"];
+    for (rapidjson::Document::ConstValueIterator it = v.Begin(); it != v.End(); ++it) {
+        std::vector<Real> dofvalues_;
+        std::string extra_;
+        LoadJsonValueByKey(*it, "dofvalues", dofvalues_);
+        extra_ = DumpJson((*it)["extra"]);
+        dofvalues.push_back(dofvalues_);
+        extra.push_back(extra_);
+    }
+}
+
 BinPickingTaskResource::ResultHeartBeat::~ResultHeartBeat()
 {
 }
@@ -753,6 +769,27 @@ void BinPickingTaskResource::ComputeIkParamPosition(ResultComputeIkParamPosition
     SetJsonValueByKey(pt,"tasktype",_tasktype);
     SetJsonValueByKey(pt,"name",name);
     SetJsonValueByKey(pt,"unit",unit);
+    rapidjson::Document d;
+    ExecuteCommand(DumpJson(pt), d, timeout);
+    result.Parse(d);
+}
+
+void BinPickingTaskResource::ComputeIKFromParameters(ResultComputeIKFromParameters& result, const std::string& targetname, const std::vector<std::string>& ikparamnames, const int filteroptions, const int limit, const double timeout)
+{
+    rapidjson::Document pt(rapidjson::kObjectType);
+    {
+       for(std::map<std::string,std::string>::iterator it=_mapTaskParameters.begin();it!=_mapTaskParameters.end();++it){
+           rapidjson::Document t;
+           ParseJson(t,it->second);
+           SetJsonValueByKey(pt,it->first,t);
+       }
+    }
+    SetJsonValueByKey(pt,"command","ComputeIKFromParameters");
+    SetJsonValueByKey(pt,"tasktype",_tasktype);
+    SetJsonValueByKey(pt,"targetname",targetname);
+    SetJsonValueByKey(pt,"ikparamnames",ikparamnames);
+    SetJsonValueByKey(pt,"filteroptions",filteroptions); // 0
+    SetJsonValueByKey(pt,"limit",limit); // 0
     rapidjson::Document d;
     ExecuteCommand(DumpJson(pt), d, timeout);
     result.Parse(d);
