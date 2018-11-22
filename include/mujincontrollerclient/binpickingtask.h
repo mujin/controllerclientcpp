@@ -112,6 +112,20 @@ public:
         Transform transform;
     };
 
+    struct MUJINCLIENT_API ResultComputeIkParamPosition : public ResultBase
+    {
+        void Parse(const rapidjson::Value& pt);
+        std::vector<Real> translation;
+        std::vector<Real> quaternion;
+        std::vector<Real> direction;
+        Real angleXZ;
+        Real angleYX;
+        Real angleZY;
+        Real angleX;
+        Real angleY;
+        Real angleZ;
+    };
+
     struct MUJINCLIENT_API ResultGetBinpickingState : public ResultBase
     {
         ResultGetBinpickingState();
@@ -225,6 +239,7 @@ public:
 
     virtual void GetJointValues(ResultGetJointValues& result, const std::string& unit="mm", const double timeout /* second */=5.0);
     virtual void SetInstantaneousJointValues(const std::vector<Real>& jointvalues, const std::string& unit="mm", const double timeout /* second */=5.0);
+    virtual void ComputeIkParamPosition(ResultComputeIkParamPosition& result, const std::string& name, const std::string& unit="mm", const double timeout /* second */=5.0);
 
     /// \brief Moves joints to specified value
     /// \param jointvalues goal joint values

@@ -596,6 +596,31 @@ void BinPickingTaskResource::ResultOBB::Parse(const rapidjson::Value& pt)
     }
 }
 
+void BinPickingTaskResource::ResultComputeIkParamPosition::Parse(const rapidjson::Value& pt)
+{
+    BOOST_ASSERT(pt.IsObject() && pt.HasMember("output"));
+    const rapidjson::Value& v = pt["output"];
+    LoadJsonValueByKey(v, "translation", translation);
+    LoadJsonValueByKey(v, "quaternion", quaternion);
+    LoadJsonValueByKey(v, "direction", direction);
+    LoadJsonValueByKey(v, "angleXZ", angleXZ);
+    LoadJsonValueByKey(v, "angleYX", angleYX);
+    LoadJsonValueByKey(v, "angleZY", angleZY);
+    LoadJsonValueByKey(v, "angleX", angleX);
+    LoadJsonValueByKey(v, "angleY", angleY);
+    LoadJsonValueByKey(v, "angleZ", angleZ);
+
+    if (translation.size() != 3) {
+        throw MujinException("The length of translation is invalid.", MEC_Failed);
+    }
+    if (quaternion.size() != 4) {
+        throw MujinException("The length of quaternion is invalid.", MEC_Failed);
+    }
+    if (direction.size() != 3) {
+        throw MujinException("The length of direction is invalid.", MEC_Failed);
+    }
+}
+
 BinPickingTaskResource::ResultHeartBeat::~ResultHeartBeat()
 {
 }
@@ -714,6 +739,24 @@ void BinPickingTaskResource::SetInstantaneousJointValues(const std::vector<Real>
     ExecuteCommand(DumpJson(pt), d, timeout); // need to check return code
 }
 
+void BinPickingTaskResource::ComputeIkParamPosition(ResultComputeIkParamPosition& result, const std::string& name, const std::string& unit, const double timeout)
+{
+    rapidjson::Document pt(rapidjson::kObjectType);
+    {
+       for(std::map<std::string,std::string>::iterator it=_mapTaskParameters.begin();it!=_mapTaskParameters.end();++it){
+           rapidjson::Document t;
+           ParseJson(t,it->second);
+           SetJsonValueByKey(pt,it->first,t);
+       }
+    }
+    SetJsonValueByKey(pt,"command","ComputeIkParamPosition");
+    SetJsonValueByKey(pt,"tasktype",_tasktype);
+    SetJsonValueByKey(pt,"name",name);
+    SetJsonValueByKey(pt,"unit",unit);
+    rapidjson::Document d;
+    ExecuteCommand(DumpJson(pt), d, timeout);
+    result.Parse(d);
+}
 
 void BinPickingTaskResource::MoveJoints(const std::vector<Real>& goaljoints, const std::vector<int>& jointindices, const Real envclearance, const Real speed, ResultMoveJoints& result, const double timeout, std::string* pTraj)
 {
