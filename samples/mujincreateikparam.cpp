@@ -201,7 +201,9 @@ int main(int argc, char ** argv)
     ik->SetJSON(mujinjson::GetJsonStringByKey("quaternion",resultPosition.quaternion));
 
     BinPickingTaskResource::ResultComputeIKFromParameters result;
-    pBinpickingTask->ComputeIKFromParameters(result,object_name,{"sample"},0);
+    vector<string> iknames;
+    iknames.push_back("sample");
+    pBinpickingTask->ComputeIKFromParameters(result,object_name,iknames,0);
     BinPickingTaskResource::ResultGetJointValues jointvalues;
     pBinpickingTask->GetJointValues(jointvalues);
     for(int i=0;i<result.dofvalues.size();i++){
