@@ -175,10 +175,20 @@ ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::AddGeometryFro
 {
     GETCONTROLLERIMPL();
     const std::string& linkpk = GetPrimaryKey();
-    const std::string geometryPk = controller->CreateObjectGeometry(this->objectpk, name, linkpk, timeout);
+    const std::string geometryPk = controller->CreateObjectGeometry(this->objectpk, name, linkpk, "mesh", timeout);
 
     ObjectResource::GeometryResourcePtr geometry(new GeometryResource(controller, this->objectpk, geometryPk));
     geometry->SetGeometryFromRawSTL(rawstldata, unit, timeout);
+    return geometry;
+}
+
+ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::AddPrimitiveGeometry(const std::string& name, const std::string& geomtype, double timeout)
+{
+    GETCONTROLLERIMPL();
+    const std::string& linkpk = GetPrimaryKey();
+    const std::string geometryPk = controller->CreateObjectGeometry(this->objectpk, name, linkpk, geomtype, timeout);
+
+    ObjectResource::GeometryResourcePtr geometry(new GeometryResource(controller, this->objectpk, geometryPk));
     return geometry;
 }
 
@@ -202,6 +212,15 @@ ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::GetGeometryFro
                 LoadJsonValueByKey(*it,"quaternion",geometry->quaternion);
                 LoadJsonValueByKey(*it,"translate",geometry->translate);
                 LoadJsonValueByKey(*it,"diffusecolor",geometry->diffusecolor);
+
+                /// geomtype ///
+                // mesh
+                // box: half_extents
+                // cylinder: height, radius
+                // sphere: radius
+                LoadJsonValueByKey(*it,"half_extents",geometry->half_extents);
+                LoadJsonValueByKey(*it,"height",geometry->height);
+                LoadJsonValueByKey(*it,"radius",geometry->radius);
                 return geometry;
             }
         }
@@ -230,6 +249,10 @@ void ObjectResource::LinkResource::GetGeometries(std::vector<ObjectResource::Geo
                 LoadJsonValueByKey(*it,"quaternion",geometry->quaternion);
                 LoadJsonValueByKey(*it,"translate",geometry->translate);
                 LoadJsonValueByKey(*it,"diffusecolor",geometry->diffusecolor);
+
+                LoadJsonValueByKey(*it,"half_extents",geometry->half_extents);
+                LoadJsonValueByKey(*it,"height",geometry->height);
+                LoadJsonValueByKey(*it,"radius",geometry->radius);
                 geometries.push_back(geometry);
             }
         }

@@ -1094,10 +1094,10 @@ std::wstring ControllerClientImpl::GetNameFromPrimaryKey_UTF16(const std::string
     return utf16;
 }
 
-std::string ControllerClientImpl::CreateObjectGeometry(const std::string& objectPk, const std::string& geometryName, const std::string& linkPk, double timeout)
+std::string ControllerClientImpl::CreateObjectGeometry(const std::string& objectPk, const std::string& geometryName, const std::string& linkPk, const std::string& geomtype, double timeout)
 {
     rapidjson::Document pt(rapidjson::kObjectType);
-    const std::string geometryData("{\"name\":\"" + geometryName + "\", \"linkpk\":\"" + linkPk + "\", \"geomtype\": \"mesh\"}");
+    const std::string geometryData("{\"name\":\"" + geometryName + "\", \"linkpk\":\"" + linkPk + "\", \"geomtype\": \"" + geomtype + "\"}");
     const std::string uri(str(boost::format("object/%s/geometry/") % objectPk));
 
     CallPost(uri, geometryData, pt, 201, timeout);
