@@ -601,7 +601,7 @@ public:
     /// \return utf-16 encoded name
     virtual std::wstring GetNameFromPrimaryKey_UTF16(const std::string& pk) = 0;
 
-    virtual std::string CreateObjectGeometry(const std::string& objectPk, const std::string& name, const std::string& linkPk, const std::string& geomtype, double timeout) = 0;
+    virtual std::string CreateObjectGeometry(const std::string& objectPk, const std::string& name, const std::string& linkPk, const std::string& geomtype, double timeout = 5) = 0;
 
     /// \brief set geometry mesh to an object
     /// \param objectPk primary key for the object to set mesh data to
@@ -681,7 +681,7 @@ public:
         Real radius;
 
         virtual void GetMesh(std::string& primitive, std::vector<std::vector<int> >& indices, std::vector<std::vector<Real> >& vertices);
-        virtual void SetGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& unit, double timeout);
+        virtual void SetGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& unit, double timeout = 5.0);
         virtual void SetVisible(bool visible);
         virtual int GetVisible();
     };
@@ -708,8 +708,8 @@ public:
         virtual ~LinkResource() {
         }
 
-        virtual GeometryResourcePtr AddGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& name, const std::string& unit, double timeout);
-        virtual GeometryResourcePtr AddPrimitiveGeometry(const std::string& name, const std::string& geomtype, double timeout);
+        virtual GeometryResourcePtr AddGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& name, const std::string& unit, double timeout = 5.0);
+        virtual GeometryResourcePtr AddPrimitiveGeometry(const std::string& name, const std::string& geomtype, double timeout = 5.0);
 
         virtual GeometryResourcePtr GetGeometryFromName(const std::string& geometryName);
 
