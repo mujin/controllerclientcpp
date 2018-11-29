@@ -1,22 +1,22 @@
 // -*- coding: utf-8 -*-
-/** \example mujinsetdofvalues.cpp
+/** \example mujincreateinstobject.cpp
 
-    Shows how to setdofvalues object
-    example: mujinsetdofvalues --controller_hostname localhost --task_scenepk machine.mujin.dae --destination -300 -1000 -2000 10 --taskparameters '{"robotname":"machine","robots":{"machine":{}}}'
+    Shows how to create empty inst object in a scene
+    example1: mujincreateinstobject --controller_hostname=yourhost # creates an inst object at origin
+    example2: mujincreateinstobject --controller_hostname=yourhost --name work_0x1a --translate 100 200 -300
  */
 
 #include <mujincontrollerclient/binpickingtask.h>
+
+#include <boost/program_options.hpp>
+#include <signal.h>
 #include <iostream>
 
 #if defined(_WIN32) || defined(_WIN64)
 #undef GetUserName // clashes with ControllerClient::GetUserName
 #endif // defined(_WIN32) || defined(_WIN64)
 
-
 using namespace mujinclient;
-
-#include <boost/program_options.hpp>
-
 namespace bpo = boost::program_options;
 using namespace std;
 
@@ -34,16 +34,9 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("help,h", "produce help message")
         ("controller_hostname", bpo::value<string>()->required(), "hostname or ip of the mujin controller, e.g. controllerXX or 192.168.0.1")
         ("controller_port", bpo::value<unsigned int>()->default_value(80), "port of the mujin controller")
-        ("slave_request_id", bpo::value<string>()->default_value(""), "request id of the mujin slave, e.g. controller20_slave0. If empty, uses  ")
         ("controller_username_password", bpo::value<string>()->default_value("testuser:pass"), "username and password to the mujin controller, e.g. username:password")
-        ("controller_command_timeout", bpo::value<double>()->default_value(10), "command timeout in seconds, e.g. 10")
-        ("locale", bpo::value<string>()->default_value("en_US"), "locale to use for the mujin controller client")
         ("task_scenepk", bpo::value<string>()->default_value(""), "scene pk of the binpicking task on the mujin controller, e.g. officeboltpicking.mujin.dae.")
-        ("taskparameters", bpo::value<string>()->default_value("{}"), "binpicking task parameters, e.g. {'robotname': 'robot', 'robots':{'robot': {'externalCollisionIO':{}, 'gripperControlInfo':{}, 'robotControllerUri': '', robotDeviceIOUri': '', 'toolname': 'tool'}}}")
-        ("zmq_port", bpo::value<unsigned int>()->default_value(11000), "port of the binpicking task on the mujin controller")
         ("heartbeat_port", bpo::value<unsigned int>()->default_value(11001), "port of the binpicking task's heartbeat signal on the mujin controller")
-        ("unit", bpo::value<string>()->default_value("mm"), "length unit of pose")
-        ("destination", bpo::value<vector<double> >()->multitoken(), "destination dofvalues")
         ;
 
     try {
@@ -76,28 +69,25 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
     return true;
 }
 
-/// \brief initialize BinPickingTask and establish communication with controller
-/// \param opts options parsed from command line
-/// \param pBinPickingTask bin picking task to be initialized
-void InitializeTask(const bpo::variables_map& opts,
-                    boost::shared_ptr<zmq::context_t>& zmqcontext,
-                    BinPickingTaskResourcePtr& pBinpickingTask)
+int main(int argc, char ** argv)
 {
+    // parsing options
+    bpo::variables_map opts;
+    if (!ParseOptions(argc, argv, opts)) {
+        // parsing option failed
+        return 1;
+    }
+
     const string controllerUsernamePass = opts["controller_username_password"].as<string>();
-    const double controllerCommandTimeout = opts["controller_command_timeout"].as<double>();
-    const string taskparameters = opts["taskparameters"].as<string>();
-    const string locale = opts["locale"].as<string>();
-    const unsigned int taskZmqPort = opts["zmq_port"].as<unsigned int>();
     const string hostname = opts["controller_hostname"].as<string>();
     const unsigned int controllerPort = opts["controller_port"].as<unsigned int>();
     stringstream urlss;
     urlss << "http://" << hostname << ":" << controllerPort;
 
     const unsigned int heartbeatPort = opts["heartbeat_port"].as<unsigned int>();
-    string slaverequestid = opts["slave_request_id"].as<string>();
     string taskScenePk = opts["task_scenepk"].as<string>();
     
-    const bool needtoobtainfromheatbeat = taskScenePk.empty() || slaverequestid.empty();
+    const bool needtoobtainfromheatbeat = taskScenePk.empty();
     if (needtoobtainfromheatbeat) {
         stringstream endpoint;
         endpoint << "tcp://" << hostname << ":" << heartbeatPort;
@@ -120,13 +110,8 @@ void InitializeTask(const bpo::variables_map& opts,
             taskScenePk = utils::GetScenePkFromHeatbeat(heartbeat);
             cout << "task_scenepk: " << taskScenePk << " is obtained from heatbeat\n";
         }
-        if (slaverequestid.empty()) {
-            slaverequestid = utils::GetSlaveRequestIdFromHeatbeat(heartbeat);
-            cout << "slave_request_id: " << slaverequestid << " is obtained from heatbeat\n";
-        }
     }
 
-    //    cout << taskparameters << endl;
     const string tasktype = "realtimeitlplanning";
 
     // connect to mujin controller
@@ -136,45 +121,23 @@ void InitializeTask(const bpo::variables_map& opts,
 
     SceneResourcePtr scene(new SceneResource(controllerclient, taskScenePk));
 
-    // initialize binpicking task
-    pBinpickingTask = scene->GetOrCreateBinPickingTaskFromName_UTF8(tasktype+string("task1"), tasktype, TRO_EnableZMQ);
-    const string userinfo = "{\"username\": \"" + controllerclient->GetUserName() + "\", ""\"locale\": \"" + locale + "\"}";
-    cout << "initialzing binpickingtask with userinfo=" + userinfo << " taskparameters=" << taskparameters << endl;
-
-    pBinpickingTask->Initialize(taskparameters, taskZmqPort, heartbeatPort, zmqcontext, false, controllerCommandTimeout, controllerCommandTimeout, userinfo, slaverequestid);
-
-}
-
-void ReinitializeTask(boost::shared_ptr<zmq::context_t>& zmqcontext,
-                      BinPickingTaskResourcePtr& pBinpickingTask)
-{
-    const string taskparameters("{\"robotname\": \"robot\", \"robots\":{\"robot\": {\"robotControllerUri\": \"\"}}}");
-    const unsigned int taskZmqPort(11000);
-    const double controllerCommandTimeout(10);
-    const string userinfo("");
-    const string slaverequestid("controller71_slave0");
-    const unsigned int heartbeatPort(11001);
-    pBinpickingTask->Initialize(taskparameters, taskZmqPort, heartbeatPort, zmqcontext, false, controllerCommandTimeout, controllerCommandTimeout, userinfo, slaverequestid);
-}
-
-int main(int argc, char ** argv)
-{
-    // parsing options
-    bpo::variables_map opts;
-    if (!ParseOptions(argc, argv, opts)) {
-        // parsing option failed
-        return 1;
+    std::vector<std::string> tasknames;
+    scene->GetTaskNames(tasknames);
+    std::string taskname="program/hello";
+    if(find(tasknames.begin(),tasknames.end(),taskname)!=tasknames.end()) {
+        cout << "task " << taskname << " already exists" << endl;
+        return 0;
     }
-
-    // initializing
-    BinPickingTaskResourcePtr pBinpickingTask;
-    boost::shared_ptr<zmq::context_t> zmqcontext(new zmq::context_t(1));
-    InitializeTask(opts, zmqcontext, pBinpickingTask);
-
-    const double timeout = opts["controller_command_timeout"].as<double>();
-    const string unit = opts["unit"].as<string>();
-
-    pBinpickingTask->SetInstantaneousJointValues(opts["destination"].as<vector<double>>(), unit, timeout);
+    TaskResourcePtr task=scene->GetOrCreateTaskFromName_UTF8(taskname,"itlplanning");
+    std::string testITL="raise Exception('hello')";
+    std::string testParameters="{\"hello\":1}";
+    {
+        ITLPlanningTaskParameters info;
+        task->GetTaskParameters(info);
+        info.program = testITL;
+        info.parameters = testParameters;
+        task->SetTaskParameters(info);
+    }
 
     return 0;
 }
