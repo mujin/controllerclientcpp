@@ -717,8 +717,8 @@ public:
 
         virtual boost::shared_ptr<LinkResource> AddChildLink(const std::string& name, const Real quaternion[4], const Real translate[3]);
 
-        /// 0 -> off, 1 -> on, 2 -> partial
         virtual void SetCollision(bool collision);
+        /// 0 -> off, 1 -> on
         virtual int GetCollision();
         virtual void SetVisible(bool visible);
         virtual int GetVisible();
@@ -745,8 +745,8 @@ public:
     virtual LinkResourcePtr AddLink(const std::string& name, const Real quaternion[4], const Real translate[3]);
     virtual IkParamResourcePtr AddIkParam(const std::string& name, const std::string& iktype);
 
-    /// 0 -> off, 1 -> on, 2 -> partial
     virtual void SetCollision(bool collision);
+    /// 0 -> off, 1 -> on, 2 -> partial
     virtual int GetCollision();
     virtual void SetVisible(bool visible);
     virtual int GetVisible();
