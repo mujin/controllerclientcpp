@@ -174,7 +174,7 @@ int main(int argc, char ** argv)
     const double timeout = opts["controller_command_timeout"].as<double>();
     const string unit = opts["unit"].as<string>();
 
-    pBinpickingTask->SetInstantaneousJointValues(opts["destination"].as<vector<double>>(), unit, timeout);
+    pBinpickingTask->SetInstantaneousJointValues(opts["destination"].as<vector<double> >(), unit, timeout);
 
     return 0;
 }

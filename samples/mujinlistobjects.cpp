@@ -12,6 +12,8 @@
 #include <signal.h>
 #include <iostream>
 
+#include "../src/common.h"
+
 #if defined(_WIN32) || defined(_WIN64)
 #undef GetUserName // clashes with ControllerClient::GetUserName
 #endif // defined(_WIN32) || defined(_WIN64)
@@ -118,22 +120,22 @@ int main(int argc, char ** argv)
     SceneResourcePtr scene(new SceneResource(controllerclient,taskScenePk));
     std::vector<SceneResource::InstObjectPtr> instobjects;
     scene->GetInstObjects(instobjects);
-    for(auto &e:instobjects){
-        puts((e->name+"("+e->pk+")").c_str());
-        ObjectResourcePtr object(new ObjectResource(controllerclient, e->object_pk));
+    FOREACH(e, instobjects){
+        puts(((*e)->name+"("+(*e)->pk+")").c_str());
+        ObjectResourcePtr object(new ObjectResource(controllerclient, (*e)->object_pk));
         std::vector<ObjectResource::IkParamResourcePtr> ikparams;
         object->GetIkParams(ikparams);
-        for(auto &f:ikparams){
-            puts((std::string("    ")+f->name+"("+f->pk+")"+std::string(" -> ")+f->iktype).c_str());
+        FOREACH(f, ikparams){
+            puts((std::string("    ")+(*f)->name+"("+(*f)->pk+")"+std::string(" -> ")+(*f)->iktype).c_str());
         }
         std::vector<ObjectResource::LinkResourcePtr> objectlinks;
         object->GetLinks(objectlinks);
-        for(auto &f:objectlinks){
-            bool s=f->Get<bool>("collision");
-            puts((std::string("    ")+f->name+"("+f->pk+")"+std::string(" -> ")+(s?"true":"false")).c_str());
+        FOREACH(f, objectlinks){
+            bool s=(*f)->Get<bool>("collision");
+            puts((std::string("    ")+(*f)->name+"("+(*f)->pk+")"+std::string(" -> ")+(s?"true":"false")).c_str());
             std::vector<ObjectResource::GeometryResourcePtr> geometries;
-            f->GetGeometries(geometries);
-            for(auto &g:geometries){
+            (*f)->GetGeometries(geometries);
+            FOREACH(g, geometries){
                 /*
                 if(g->geomtype=="mesh"){
                     std::string primitive;
@@ -143,8 +145,8 @@ int main(int argc, char ** argv)
                     printf("%f\n",vertices[0][0]);
                 }
                 */
-                bool s=g->Get<bool>("visible");
-                puts((std::string("        ")+g->name+std::string(" -> ")+(s?"true":"false")+" "+g->geomtype).c_str());
+                bool s=(*g)->Get<bool>("visible");
+                puts((std::string("        ")+(*g)->name+std::string(" -> ")+(s?"true":"false")+" "+(*g)->geomtype).c_str());
             }
         }
     }
