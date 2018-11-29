@@ -37,6 +37,8 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("controller_username_password", bpo::value<string>()->default_value("testuser:pass"), "username and password to the mujin controller, e.g. username:password")
         ("task_scenepk", bpo::value<string>()->default_value(""), "scene pk of the binpicking task on the mujin controller, e.g. officeboltpicking.mujin.dae.")
         ("heartbeat_port", bpo::value<unsigned int>()->default_value(11001), "port of the binpicking task's heartbeat signal on the mujin controller")
+        ("objectname", bpo::value<string>()->default_value(""), "object name to query")
+        ("linkname", bpo::value<string>()->default_value("base"), "link name to query")
         ;
 
     try {
@@ -118,36 +120,23 @@ int main(int argc, char ** argv)
     SceneResourcePtr scene(new SceneResource(controllerclient,taskScenePk));
     std::vector<SceneResource::InstObjectPtr> instobjects;
     scene->GetInstObjects(instobjects);
-    for(std::vector<SceneResource::InstObjectPtr>::iterator e=instobjects.begin();e!=instobjects.end();++e){
-        puts(((*e)->name+"("+(*e)->pk+")").c_str());
-        ObjectResourcePtr object(new ObjectResource(controllerclient, (*e)->object_pk));
-        std::vector<ObjectResource::IkParamResourcePtr> ikparams;
-        object->GetIkParams(ikparams);
-        for(std::vector<ObjectResource::IkParamResourcePtr>::iterator f=ikparams.begin();f!=ikparams.end();++f){
-            puts((std::string("    ")+(*f)->name+"("+(*f)->pk+")"+std::string(" -> ")+(*f)->iktype).c_str());
-        }
-        std::vector<ObjectResource::LinkResourcePtr> objectlinks;
-        object->GetLinks(objectlinks);
-        for(std::vector<ObjectResource::LinkResourcePtr>::iterator f=objectlinks.begin();f!=objectlinks.end();++f){
-            bool s=(*f)->Get<bool>("collision");
-            puts((std::string("    ")+(*f)->name+"("+(*f)->pk+")"+std::string(" -> ")+(s?"true":"false")).c_str());
-            std::vector<ObjectResource::GeometryResourcePtr> geometries;
-            (*f)->GetGeometries(geometries);
-            for(std::vector<ObjectResource::GeometryResourcePtr>::iterator g=geometries.begin();g!=geometries.end();++g){
-                /*
-                if(g->geomtype=="mesh"){
-                    std::string primitive;
-                    std::vector<std::vector<int> >indices;
-                    std::vector<std::vector<Real> >vertices;
-                    g->GetMesh(primitive,indices,vertices);
-                    printf("%f\n",vertices[0][0]);
-                }
-                */
-                bool s=(*g)->Get<bool>("visible");
-                puts((std::string("        ")+(*g)->name+std::string(" -> ")+(s?"true":"false")+" "+(*g)->geomtype).c_str());
-            }
-        }
-    }
+    std::string object_name=opts["objectname"].as<string>();
+    std::vector<SceneResource::InstObjectPtr>::iterator it1 = std::find_if(instobjects.begin(),instobjects.end(),boost::bind(&SceneResource::InstObject::name,_1)==object_name);
+    cout << "there are " << instobjects.size() << " objects." << endl;
+    assert(it1!=instobjects.end()); // existence check
+    ObjectResourcePtr object(new ObjectResource(controllerclient, (*it1)->object_pk)); 
+    std::vector<ObjectResource::LinkResourcePtr> objectlinks;
+    object->GetLinks(objectlinks);
+    std::string link_name=opts["linkname"].as<string>();
+    std::vector<ObjectResource::LinkResourcePtr>::iterator it2 = std::find_if(objectlinks.begin(),objectlinks.end(),boost::bind(&ObjectResource::LinkResource::name,_1)==link_name);
+    assert(it2!=objectlinks.end()); // existence check
+    cout << "there are " << objectlinks.size() << " links." << endl;
+    std::vector<ObjectResource::GeometryResourcePtr> geometries;
+    (*it2)->GetGeometries(geometries);
+    cout << "there are " << geometries.size() << " geometries." << endl;
+    std::vector<ObjectResource::IkParamResourcePtr> ikparams;
+    object->GetIkParams(ikparams);
+    cout << "there are " << ikparams.size() << " ikparams." << endl;
 
     return 0;
 }
