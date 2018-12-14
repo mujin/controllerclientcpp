@@ -45,8 +45,6 @@ public:
     virtual SceneResourcePtr ImportSceneToCOLLADA_UTF8(const std::string& importuri, const std::string& importformat, const std::string& newuri, bool overwrite=false);
     virtual SceneResourcePtr ImportSceneToCOLLADA_UTF16(const std::wstring& importuri, const std::string& importformat, const std::wstring& newuri, bool overwrite=false);
 
-    virtual void FileUpload_UTF8(const std::string& sourcefilename);
-    virtual void FileUpload_UTF16(const std::wstring& sourcefilename);
     virtual void SyncUpload_UTF8(const std::string& sourcefilename, const std::string& destinationdir, const std::string& scenetype);
     virtual void SyncUpload_UTF16(const std::wstring& sourcefilename_utf16, const std::wstring& destinationdir_utf16, const std::string& scenetype);
 
@@ -169,6 +167,9 @@ protected:
     /// \brief sets up http header for doing http operation with stl data
     void _SetHTTPHeadersSTL();
 
+    /// \brief sets up http header for doing http operation with multipart/form-data data
+    void _SetHTTPHeadersMultipartFormData();
+
     std::string _GetCSRFFromCookies();
 
     /// \brief given a raw uri with "mujin:/", return the real network uri
@@ -204,6 +205,11 @@ protected:
     /// \param fd FILE pointer of binary reading file. does not close the handle
     virtual void _UploadFileToController(FILE* fd, const std::string& uri);
 
+    /// \brief uploads a single file, to dest location specified by filename
+    ///
+    /// overwrites the file if it already exists.
+    virtual void _UploadFileToControllerViaForm(const std::string& file, const std::string& filename);
+
     /// \brief desturi is URL-encoded. Also assume _mutex is locked.
     virtual void _UploadDataToController(const std::vector<unsigned char>& vdata, const std::string& desturi);
 
@@ -229,8 +235,6 @@ protected:
     /// \param stream is std::pair<std::vector<unsigned char>::const_iterator, size_t>*, which gets incremented everytime this function is called.
     static size_t _ReadInMemoryUploadCallback(void *ptr, size_t size, size_t nmemb, void *stream);
 
-    struct curl_slist *GetCURLHeaderForFileUpload();
-
     int _lastmode;
     CURL *_curl;
     boost::mutex _mutex;
@@ -239,6 +243,7 @@ protected:
 
     curl_slist *_httpheadersjson;
     curl_slist *_httpheadersstl;
+    curl_slist *_httpheadersmultipartformdata;
     std::string _charset, _language;
     std::string _csrfmiddlewaretoken;
 
