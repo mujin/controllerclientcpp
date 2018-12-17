@@ -167,6 +167,9 @@ protected:
     /// \brief sets up http header for doing http operation with stl data
     void _SetHTTPHeadersSTL();
 
+    /// \brief sets up http header for doing http operation with multipart/form-data data
+    void _SetHTTPHeadersMultipartFormData();
+
     std::string _GetCSRFFromCookies();
 
     /// \brief given a raw uri with "mujin:/", return the real network uri
@@ -202,6 +205,11 @@ protected:
     /// \param fd FILE pointer of binary reading file. does not close the handle
     virtual void _UploadFileToController(FILE* fd, const std::string& uri);
 
+    /// \brief uploads a single file, to dest location specified by filename
+    ///
+    /// overwrites the file if it already exists.
+    virtual void _UploadFileToControllerViaForm(const std::string& file, const std::string& filename);
+
     /// \brief desturi is URL-encoded. Also assume _mutex is locked.
     virtual void _UploadDataToController(const std::vector<unsigned char>& vdata, const std::string& desturi);
 
@@ -235,6 +243,7 @@ protected:
 
     curl_slist *_httpheadersjson;
     curl_slist *_httpheadersstl;
+    curl_slist *_httpheadersmultipartformdata;
     std::string _charset, _language;
     std::string _csrfmiddlewaretoken;
 
