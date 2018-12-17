@@ -1289,13 +1289,13 @@ std::string ControllerClientImpl::_PrepareDestinationURI_UTF16(const std::wstrin
 void ControllerClientImpl::UploadFileToController_UTF8(const std::string& filename, const std::string& desturi)
 {
     boost::mutex::scoped_lock lock(_mutex);
-    _UploadFileToController_UTF8(filename, _PrepareDestinationURI_UTF8(desturi));
+    _UploadFileToController_UTF8(filename, _PrepareDestinationURI_UTF8(desturi, false));
 }
 
 void ControllerClientImpl::UploadFileToController_UTF16(const std::wstring& filename_utf16, const std::wstring& desturi_utf16)
 {
     boost::mutex::scoped_lock lock(_mutex);
-    _UploadFileToController_UTF16(filename_utf16, _PrepareDestinationURI_UTF16(desturi_utf16));
+    _UploadFileToController_UTF16(filename_utf16, _PrepareDestinationURI_UTF16(desturi_utf16, false));
 }
 
 void ControllerClientImpl::UploadDataToController_UTF8(const std::vector<unsigned char>& vdata, const std::string& desturi)
@@ -1751,9 +1751,11 @@ void ControllerClientImpl::_UploadFileToControllerViaForm(const std::string& fil
     curl_easy_setopt(_curl, CURLOPT_URL, endpoint.c_str());
     curl_easy_setopt(_curl, CURLOPT_POSTFIELDSIZE, NULL);
     curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, NULL);
-
+    _buffer.clear();
+    _buffer.str("");
     CURLcode res = curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, _WriteStringStreamCallback);
     CHECKCURLCODE(res, "failed to set writer");
+    CurlWriteDataSetter writedata(_curl, &_buffer);
 
     // prepare form
     struct curl_httppost *formpost = NULL;
