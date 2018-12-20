@@ -139,6 +139,7 @@ public:
         std::vector<std::string> jointNames;
         bool isControllerInError;
         std::string robotbridgestatus;
+        std::string cycleIndex; ///< index of the published cycle
     };
 
     struct MUJINCLIENT_API ResultIsRobotOccludingBody : public ResultBase
