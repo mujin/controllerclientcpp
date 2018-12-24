@@ -170,8 +170,6 @@ protected:
     /// \brief sets up http header for doing http operation with multipart/form-data data
     void _SetHTTPHeadersMultipartFormData();
 
-    std::string _GetCSRFFromCookies();
-
     /// \brief given a raw uri with "mujin:/", return the real network uri
     ///
     /// mutex should be locked

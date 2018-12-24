@@ -237,54 +237,11 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
     res = curl_easy_setopt(_curl, CURLOPT_NOSIGNAL, 1);
     CHECKCURLCODE(res, "failed to set no signal");
 
-    if( !(options & 1) ) {
-        // specify a reasonable timeout for the login calls
-        CurlTimeoutSetter timeoutsetter(_curl, timeout);
-
-        // make an initial GET call to get the CSRF token
-        std::string loginuri = _baseuri + "login/";
-        curl_easy_setopt(_curl, CURLOPT_URL, loginuri.c_str());
-        curl_easy_setopt(_curl, CURLOPT_HTTPGET, 1);
-        CURLcode res = curl_easy_perform(_curl);
-        CHECKCURLCODE(res, "curl_easy_perform failed");
-        long http_code = 0;
-        res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
-        CHECKCURLCODE(res, "curl_easy_getinfo");
-        if( http_code == 302 ) {
-            // most likely apache2-only authentication and login page isn't needed, however need to send another GET for the csrftoken
-            loginuri = _baseuri + "api/v1/"; // pick some neutral page that is easy to load
-            curl_easy_setopt(_curl, CURLOPT_URL, loginuri.c_str());
-            CURLcode res = curl_easy_perform(_curl);
-            CHECKCURLCODE(res, "curl_easy_perform failed");
-            long http_code = 0;
-            res = curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
-            CHECKCURLCODE(res, "curl_easy_getinfo");
-            if( http_code != 200 ) {
-                throw MUJIN_EXCEPTION_FORMAT("HTTP GET %s returned HTTP error code %s", loginuri%http_code, MEC_HTTPServer);
-            }
-            _csrfmiddlewaretoken = _GetCSRFFromCookies();
-            curl_easy_setopt(_curl, CURLOPT_REFERER, loginuri.c_str()); // necessary for SSL to work
-        }
-        else if( http_code == 200 ) {
-            _csrfmiddlewaretoken = _GetCSRFFromCookies();
-            std::string data = str(boost::format("username=%s&password=%s&this_is_the_login_form=1&next=%%2F&csrfmiddlewaretoken=%s")%_username%password%_csrfmiddlewaretoken);
-            curl_easy_setopt(_curl, CURLOPT_POSTFIELDSIZE, data.size());
-            curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, data.c_str());
-            curl_easy_setopt(_curl, CURLOPT_REFERER, loginuri.c_str());
-            //std::cout << "---performing post---" << std::endl;
-            res = curl_easy_perform(_curl);
-            CHECKCURLCODE(res, "curl_easy_perform failed");
-            http_code = 0;
-            res = curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
-            CHECKCURLCODE(res, "curl_easy_getinfo failed");
-            if( http_code != 200 && http_code != 302 ) {
-                throw MUJIN_EXCEPTION_FORMAT("User login failed. HTTP POST %s returned HTTP status %s", loginuri%http_code, MEC_UserAuthentication);
-            }
-        }
-        else {
-            throw MUJIN_EXCEPTION_FORMAT("HTTP GET %s returned HTTP error code %s", loginuri%http_code, MEC_HTTPServer);
-        }
-    }
+    // csrftoken can be any non-empty string
+    _csrfmiddlewaretoken = "csrftoken";
+    std::string cookie = "Set-Cookie: csrftoken=" + _csrfmiddlewaretoken;
+    res=curl_easy_setopt (_curl, CURLOPT_COOKIELIST, cookie.c_str());
+    CHECKCURLCODE(res, "failed to set csrftoken cookie");
 
     _charset = "utf-8";
     _language = "en-us";
@@ -1099,27 +1056,6 @@ void ControllerClientImpl::_SetHTTPHeadersMultipartFormData()
     _httpheadersmultipartformdata = curl_slist_append(_httpheadersmultipartformdata, "Keep-Alive: 20"); // keep alive for 20s?
     // test on windows first
     //_httpheadersmultipartformdata = curl_slist_append(_httpheadersmultipartformdata, "Accept-Encoding: gzip, deflate");
-}
-
-std::string ControllerClientImpl::_GetCSRFFromCookies() {
-    struct curl_slist *cookies;
-    CURLcode res = curl_easy_getinfo(_curl, CURLINFO_COOKIELIST, &cookies);
-    CHECKCURLCODE(res, "curl_easy_getinfo CURLINFO_COOKIELIST");
-    struct curl_slist *nc = cookies;
-    int i = 1;
-    std::string csrfmiddlewaretoken;
-    while (nc) {
-        //std::cout << str(boost::format("[%d]: %s")%i%nc->data) << std::endl;
-        char* csrftokenstart = strstr(nc->data, "csrftoken");
-        if( !!csrftokenstart ) {
-            std::stringstream ss(csrftokenstart+10);
-            ss >> csrfmiddlewaretoken;
-        }
-        nc = nc->next;
-        i++;
-    }
-    curl_slist_free_all(cookies);
-    return csrfmiddlewaretoken;
 }
 
 std::string ControllerClientImpl::_EncodeWithoutSeparator(const std::string& raw)
