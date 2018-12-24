@@ -252,19 +252,10 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
         _charset = itcodepage->second;
     }
 #endif
-    std::stringstream ss;
-    ss << "setting character set to " << _charset;
-    MUJIN_LOG_INFO(ss.str());
+    MUJIN_LOG_INFO("setting character set to " << _charset);
     _SetHTTPHeadersJSON();
     _SetHTTPHeadersSTL();
     _SetHTTPHeadersMultipartFormData();
-    try {
-        GetProfile();
-    }
-    catch(const MujinException&) {
-        // most likely username or password are
-        throw MujinException(str(boost::format("failed to get controller profile, check username/password or if controller is active at %s")%_baseuri), MEC_UserAuthentication);
-    }
 }
 
 ControllerClientImpl::~ControllerClientImpl()
@@ -283,6 +274,11 @@ ControllerClientImpl::~ControllerClientImpl()
 
 std::string ControllerClientImpl::GetVersion()
 {
+    boost::mutex::scoped_lock lock(_mutex);
+    if (!_profile.IsObject()) {
+        _profile.SetObject();
+        CallGet("profile/", _profile);
+    }
     return GetJsonValueByKey<std::string>(_profile, "version");
 }
 
@@ -976,12 +972,6 @@ std::string ControllerClientImpl::SetObjectGeometryMesh(const std::string& objec
     const int status = CallPutSTL(uri, meshData, pt, 202, timeout);
     assert(status == 202);
     return GetJsonValueByKey<std::string>(pt, "pk");
-}
-
-void ControllerClientImpl::GetProfile()
-{
-    _profile.SetObject();
-    CallGet("profile/", _profile);
 }
 
 int ControllerClientImpl::_WriteStringStreamCallback(char *data, size_t size, size_t nmemb, std::stringstream *writerData)
