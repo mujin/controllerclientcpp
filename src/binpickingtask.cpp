@@ -501,8 +501,8 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     statusPhysics = GetJsonValueByKey<std::string>(v, "statusPhysics", "unknown");
     pickAttemptFromSourceId = GetJsonValueByKey<int>(v, "pickAttemptFromSourceId", -1);
     isSourceContainerEmpty = GetJsonValueByKey<bool>(v, "isSourceContainerEmpty", false);
-    lastInsideSourceTimestamp = (unsigned long long)(GetJsonValueByKey<double>(v, "lastInsideSourceTimestamp", 0) * 1000.0); // s -> ms
-    lastInsideDestTimestamp = (unsigned long long)(GetJsonValueByKey<double>(v, "lastInsideDestTimestamp", 0) * 1000.0); // s -> ms
+    lastInsideSourceTimeStamp = (unsigned long long)(GetJsonValueByKey<double>(v, "lastInsideSourceTimeStamp", 0) * 1000.0); // s -> ms
+    lastInsideDestTimeStamp = (unsigned long long)(GetJsonValueByKey<double>(v, "lastInsideDestTimeStamp", 0) * 1000.0); // s -> ms
     timestamp = (unsigned long long)(GetJsonValueByKey<double>(v, "timestamp", 0) * 1000.0); // s -> ms
     lastGrabbedTargetTimeStamp = (unsigned long long)(GetJsonValueByKey<double>(v, "lastGrabbedTargetTimeStamp", 0) * 1000.0); // s -> ms
     isRobotOccludingSourceContainer = GetJsonValueByKey<bool>(v, "isRobotOccludingSourceContainer", true);
