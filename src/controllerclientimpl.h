@@ -158,8 +158,6 @@ protected:
 
     int _CallPut(const std::string& relativeuri, const void* pdata, size_t nDataSize, rapidjson::Document& pt, curl_slist* headers, int expectedhttpcode=202, double timeout = 5.0);
 
-    void GetProfile();
-
     static int _WriteStringStreamCallback(char *data, size_t size, size_t nmemb, std::stringstream *writerData);
     static int _WriteVectorCallback(char *data, size_t size, size_t nmemb, std::vector<unsigned char> *writerData);
 
@@ -171,8 +169,6 @@ protected:
 
     /// \brief sets up http header for doing http operation with multipart/form-data data
     void _SetHTTPHeadersMultipartFormData();
-
-    std::string _GetCSRFFromCookies();
 
     /// \brief given a raw uri with "mujin:/", return the real network uri
     ///
