@@ -1441,6 +1441,7 @@ void ControllerClientImpl::AddObjectToObjectSet(const std::string &objectPk, con
     assert(status == 202);
 }
 
+
 void ControllerClientImpl::_UploadDirectoryToController_UTF8(const std::string& copydir_utf8, const std::string& rawuri)
 {
     BOOST_ASSERT(rawuri.size()>0 && copydir_utf8.size()>0);

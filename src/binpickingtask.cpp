@@ -497,6 +497,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
 
     statusPickPlace = GetJsonValueByKey<std::string>(v, "statusPickPlace", "unknown");
     statusDescPickPlace = GetJsonValueByKey<std::string>(v, "statusDescPickPlace", "unknown");
+    cycleIndex = GetJsonValueByKey<std::string>(v, "cycleIndex", "");
     statusPhysics = GetJsonValueByKey<std::string>(v, "statusPhysics", "unknown");
     pickAttemptFromSourceId = GetJsonValueByKey<int>(v, "pickAttemptFromSourceId", -1);
     isSourceContainerEmpty = GetJsonValueByKey<bool>(v, "isSourceContainerEmpty", false);
