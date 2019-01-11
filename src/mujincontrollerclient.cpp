@@ -571,30 +571,31 @@ SceneResource::SceneResource(ControllerClientPtr controller, const std::string& 
 TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& taskname, const std::string& tasktype, int options)
 {
     GETCONTROLLERIMPL();
-    boost::shared_ptr<char> pescapedtaskname = controller->GetURLEscapedString(taskname);
-    rapidjson::Document pt(rapidjson::kObjectType);
-    controller->CallGet(str(boost::format("scene/%s/task/?format=json&limit=1&name=%s&fields=pk,tasktype")%GetPrimaryKey()%pescapedtaskname), pt);
-    // task exists
-    std::string pk;
+    // boost::shared_ptr<char> pescapedtaskname = controller->GetURLEscapedString(taskname);
+    // rapidjson::Document pt(rapidjson::kObjectType);
+    // controller->CallGet(str(boost::format("scene/%s/task/?format=json&limit=1&name=%s&fields=pk,tasktype")%GetPrimaryKey()%pescapedtaskname), pt);
+    // // task exists
+    // std::string pk;
 
-    if (pt.IsObject() && pt.HasMember("objects") && pt["objects"].IsArray() && pt["objects"].Size() > 0) {
-        rapidjson::Value& objects = pt["objects"];
-        pk = GetJsonValueByKey<std::string>(objects[0], "pk");
-        std::string currenttasktype = GetJsonValueByKey<std::string>(objects[0], "tasktype");
-        if( currenttasktype != tasktype ) {
-            throw MUJIN_EXCEPTION_FORMAT("task pk %s exists and has type %s, expected is %s", pk%currenttasktype%tasktype, MEC_InvalidState);
-        }
-    }
-    else {
-        pt.SetObject();
-        controller->CallPost(str(boost::format("scene/%s/task/?format=json&fields=pk")%GetPrimaryKey()), str(boost::format("{\"name\":\"%s\", \"tasktype\":\"%s\", \"scenepk\":\"%s\"}")%taskname%tasktype%GetPrimaryKey()), pt);
-        LoadJsonValueByKey(pt, "pk", pk);
-    }
+    // if (pt.IsObject() && pt.HasMember("objects") && pt["objects"].IsArray() && pt["objects"].Size() > 0) {
+    //     rapidjson::Value& objects = pt["objects"];
+    //     pk = GetJsonValueByKey<std::string>(objects[0], "pk");
+    //     std::string currenttasktype = GetJsonValueByKey<std::string>(objects[0], "tasktype");
+    //     if( currenttasktype != tasktype ) {
+    //         throw MUJIN_EXCEPTION_FORMAT("task pk %s exists and has type %s, expected is %s", pk%currenttasktype%tasktype, MEC_InvalidState);
+    //     }
+    // }
+    // else {
+    //     pt.SetObject();
+    //     controller->CallPost(str(boost::format("scene/%s/task/?format=json&fields=pk")%GetPrimaryKey()), str(boost::format("{\"name\":\"%s\", \"tasktype\":\"%s\", \"scenepk\":\"%s\"}")%taskname%tasktype%GetPrimaryKey()), pt);
+    //     LoadJsonValueByKey(pt, "pk", pk);
+    // }
 
-    if( pk.size() == 0 ) {
-        return TaskResourcePtr();
-    }
+    // if( pk.size() == 0 ) {
+    //     return TaskResourcePtr();
+    // }
 
+    std::string pk = "0";
     if( tasktype == "binpicking" || tasktype == "realtimeitlplanning") {
         BinPickingTaskResourcePtr task;
         if( options & 1 ) {
