@@ -129,6 +129,7 @@ public:
         unsigned long long lastInsideDestTimeStamp; ///< ms
         bool isRobotOccludingSourceContainer;
         bool forceRequestDetectionResults;
+        bool forceRequestDestPointCloud;
         bool isGrabbingTarget;
         bool isGrabbingLastTarget;
         bool hasRobotExecutionStarted;
