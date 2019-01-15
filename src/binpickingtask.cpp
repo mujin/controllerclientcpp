@@ -497,14 +497,17 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
 
     statusPickPlace = GetJsonValueByKey<std::string>(v, "statusPickPlace", "unknown");
     statusDescPickPlace = GetJsonValueByKey<std::string>(v, "statusDescPickPlace", "unknown");
-    cycleIndex = GetJsonValueByKey<std::string>(v, "cycleIndex", "");
+    cycleIndex = GetJsonValueByKey<std::string>(v, "statusPickPlaceCycleIndex", "");
     statusPhysics = GetJsonValueByKey<std::string>(v, "statusPhysics", "unknown");
     pickAttemptFromSourceId = GetJsonValueByKey<int>(v, "pickAttemptFromSourceId", -1);
     isSourceContainerEmpty = GetJsonValueByKey<bool>(v, "isSourceContainerEmpty", false);
+    lastInsideSourceTimeStamp = (unsigned long long)(GetJsonValueByKey<double>(v, "lastInsideSourceTimeStamp", 0) * 1000.0); // s -> ms
+    lastInsideDestTimeStamp = (unsigned long long)(GetJsonValueByKey<double>(v, "lastInsideDestTimeStamp", 0) * 1000.0); // s -> ms
     timestamp = (unsigned long long)(GetJsonValueByKey<double>(v, "timestamp", 0) * 1000.0); // s -> ms
     lastGrabbedTargetTimeStamp = (unsigned long long)(GetJsonValueByKey<double>(v, "lastGrabbedTargetTimeStamp", 0) * 1000.0); // s -> ms
     isRobotOccludingSourceContainer = GetJsonValueByKey<bool>(v, "isRobotOccludingSourceContainer", true);
     forceRequestDetectionResults = GetJsonValueByKey<bool>(v, "forceRequestDetectionResults", true);
+    forceRequestDestPointCloud = GetJsonValueByKey<bool>(v, "forceRequestDestPointCloud", true);
     isGrabbingTarget = GetJsonValueByKey<bool>(v, "isGrabbingTarget", true);
     isGrabbingLastTarget = GetJsonValueByKey<bool>(v, "isGrabbingLastTarget", true);
     hasRobotExecutionStarted = GetJsonValueByKey<bool>(v, "hasRobotExecutionStarted", false);

@@ -125,8 +125,11 @@ public:
         int pickAttemptFromSourceId;
         unsigned long long timestamp;  ///< ms
         unsigned long long lastGrabbedTargetTimeStamp;   ///< ms
+        unsigned long long lastInsideSourceTimeStamp; ///< ms
+        unsigned long long lastInsideDestTimeStamp; ///< ms
         bool isRobotOccludingSourceContainer;
         bool forceRequestDetectionResults;
+        bool forceRequestDestPointCloud;
         bool isGrabbingTarget;
         bool isGrabbingLastTarget;
         bool hasRobotExecutionStarted;
