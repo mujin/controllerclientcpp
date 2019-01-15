@@ -380,6 +380,19 @@ public:
     /// \param pTraj if not NULL, planned trajectory is set but not executed. Otherwise, trajectory is planed and executed but not set.
     virtual void MoveToolLinear(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname = "", const std::string& toolname = "", const double workspeedlin = -1, const double workspeedrot = -1, bool checkEndeffectorCollision = false, const double timeout = 10, std::string* pTraj = NULL);
 
+
+    /// \brief Moves tool to specified posistion linearly
+    /// \param instobjectname name of instobject which the ikparam belongs to
+    /// \param ikparamname name of ikparam which the robot move to
+    /// \param robotname name of the robot to move
+    /// \param toolname name of the tool to move
+    /// \param workspeedlin linear speed at which to move tool in mm/s.
+    /// \param workspeedrot rotational speed at which to move tool in deg/s
+    /// \param timeout timeout of communication
+    /// \param pTraj if not NULL, planned trajectory is set but not executed. Otherwise, trajectory is planed and executed but not set.
+    virtual void MoveToolLinear(const std::string& instobjectname, const std::string& ikparamname, const std::string& robotname = "", const std::string& toolname = "", const double workspeedlin = -1, const double workspeedrot = -1, bool checkEndeffectorCollision = false, const double timeout = 10, std::string* pTraj = NULL);
+
+
     /// \brief Moves hand to specified posistion
     /// \param goaltype whether to specify goal in full six degrees of freedom (transform6d) or three dimentional position and two dimentional angle (translationdirection5d)
     /// \param goals where to move hand to [X, Y, Z, RX, RY, RZ] in mm and deg
@@ -390,6 +403,17 @@ public:
     /// \param envclearance environment clearance for collision avoidance in mm
     /// \param pTraj if not NULL, planned trajectory is set but not executed. Otherwise, trajectory is planed and executed but not set.
     virtual void MoveToHandPosition(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname = "", const std::string& toolname = "", const double robotspeed = -1, const double timeout = 10, Real envclearance = -1.0, std::string* pTraj = NULL);
+
+    /// \brief Moves hand to specified posistion
+    /// \param instobjectname name of instobject which the ikparam belongs to
+    /// \param ikparamname name of ikparam which the robot move to
+    /// \param robotname name of the robot to move
+    /// \param toolname name of the tool to move
+    /// \param robotspeed speed at which to move
+    /// \param timeout timeout of communication
+    /// \param envclearance environment clearance for collision avoidance in mm
+    /// \param pTraj if not NULL, planned trajectory is set but not executed. Otherwise, trajectory is planed and executed but not set.
+    virtual void MoveToHandPosition(const std::string& instobjectname, const std::string& ikparamname, const std::string& robotname = "", const std::string& toolname = "", const double robotspeed = -1, const double timeout = 10, Real envclearance = -1.0, std::string* pTraj = NULL);
 
     /// \brief Executes a trajectory
     /// \param trajectory trajectory to execute

@@ -712,6 +712,31 @@ GenerateMoveToolCommand(const std::string &movetype, const std::string &goaltype
 
 }
 
+void
+GenerateMoveToolByIkParamCommand(const std::string &movetype, const std::string &instobjectname, const std::string &ikparamname,
+                                 const std::string &robotname, const std::string &toolname, const double robotspeed,
+                                 Real envclearance, std::stringstream &ss,
+                                 const std::map<std::string, std::string> &params) {
+    SetMapTaskParameters(ss, params);
+    ss << GetJsonString("command", movetype) << ", ";
+    ss << GetJsonString("instobjectname", instobjectname) << ", ";
+    if (!robotname.empty()) {
+        ss << GetJsonString("robotname", robotname) << ", ";
+    }
+    if (!toolname.empty()) {
+        ss << GetJsonString("toolname", toolname) << ", ";
+    }
+    if (robotspeed >= 0) {
+        ss << GetJsonString("robotspeed") << ": " << robotspeed << ", ";
+    }
+    if (envclearance >= 0) {
+        ss << GetJsonString("envclearance") << ": " << envclearance << ", ";
+    }
+    ss << GetJsonString("ikparamname", ikparamname);
+    ss << "}";
+
+}
+
 void SetTrajectory(const rapidjson::Value &pt,
                    std::string *pTraj) {
     if (!(pt.IsObject() && pt.HasMember("output") && pt["output"].HasMember("trajectory"))) {
@@ -1241,11 +1266,46 @@ void BinPickingTaskResource::MoveToolLinear(const std::string& goaltype, const s
     }
 }
 
+void BinPickingTaskResource::MoveToolLinear(const std::string& instobjectname, const std::string& ikparamname, const std::string& robotname, const std::string& toolname, const double workspeedlin, const double workspeedrot, bool checkEndeffectorCollision, const double timeout, std::string* pTraj)
+{
+    _mapTaskParameters["execute"] = !!pTraj ? "0" : "1";
+
+    const std::string ignorethresh = checkEndeffectorCollision ? "0.0" : "1000.0"; // zero to not ignore collision at any time, large number (1000) to ignore collision of end effector for first and last part of trajectory as well as ignore collision of robot at initial part of trajectory
+    _mapTaskParameters["workignorefirstcollisionee"] = ignorethresh;
+    _mapTaskParameters["workignorelastcollisionee"] = ignorethresh;
+    _mapTaskParameters["workignorefirstcollision"] = ignorethresh;
+    if (workspeedlin > 0 && workspeedrot > 0) {
+        std::stringstream ss;
+        ss << "[" << workspeedrot << ", " << workspeedlin << "]";
+        _mapTaskParameters["workspeed"] = ss.str();
+    }
+    GenerateMoveToolByIkParamCommand("MoveToolLinear", instobjectname, ikparamname, robotname, toolname, -1, -1, _ss, _mapTaskParameters);
+
+    rapidjson::Document pt(rapidjson::kObjectType);
+    ExecuteCommand(_ss.str(), pt, timeout);
+    if (!!pTraj) {
+        SetTrajectory(pt, pTraj);
+    }
+}
+
 void BinPickingTaskResource::MoveToHandPosition(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname, const std::string& toolname, const double robotspeed, const double timeout, Real envclearance, std::string* pTraj)
 {
     _mapTaskParameters["execute"] = !!pTraj ? "0" : "1";
 
     GenerateMoveToolCommand("MoveToHandPosition", goaltype, goals, robotname, toolname, robotspeed, envclearance, _ss, _mapTaskParameters);
+
+    rapidjson::Document pt(rapidjson::kObjectType);
+    ExecuteCommand(_ss.str(), pt, timeout);
+    if (!!pTraj) {
+        SetTrajectory(pt, pTraj);
+    }
+}
+
+void BinPickingTaskResource::MoveToHandPosition(const std::string& instobjectname, const std::string& ikparamname, const std::string& robotname, const std::string& toolname, const double robotspeed, const double timeout, Real envclearance, std::string* pTraj)
+{
+    _mapTaskParameters["execute"] = !!pTraj ? "0" : "1";
+
+    GenerateMoveToolByIkParamCommand("MoveToHandPosition", instobjectname, ikparamname, robotname, toolname, robotspeed, envclearance, _ss, _mapTaskParameters);
 
     rapidjson::Document pt(rapidjson::kObjectType);
     ExecuteCommand(_ss.str(), pt, timeout);
