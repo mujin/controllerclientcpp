@@ -719,6 +719,7 @@ GenerateMoveToolByIkParamCommand(const std::string &movetype, const std::string 
                                  const std::map<std::string, std::string> &params) {
     SetMapTaskParameters(ss, params);
     ss << GetJsonString("command", movetype) << ", ";
+    ss << "\"goaltype\": null,";
     ss << GetJsonString("instobjectname", instobjectname) << ", ";
     if (!robotname.empty()) {
         ss << GetJsonString("robotname", robotname) << ", ";
