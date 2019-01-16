@@ -468,16 +468,6 @@ template<> inline void SaveJsonValue(rapidjson::Value& v, const std::vector<doub
     }
 }
 
-template<class T, size_t N> inline void SaveJsonValue(rapidjson::Value& v, const std::array<T, N>& t, rapidjson::Document::AllocatorType& alloc) {
-    v.SetArray();
-    v.Reserve(N, alloc);
-    for (size_t i = 0; i < N; ++i) {
-        rapidjson::Value tmpv;
-        SaveJsonValue(tmpv, t[i], alloc);
-        v.PushBack(tmpv, alloc);
-    }
-}
-
 template<size_t N> inline void SaveJsonValue(rapidjson::Value& v, const std::array<double, N>& t, rapidjson::Document::AllocatorType& alloc) {
     v.SetArray();
     v.Reserve(N, alloc);
