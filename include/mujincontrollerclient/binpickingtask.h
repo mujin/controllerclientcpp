@@ -146,8 +146,11 @@ public:
         int pickAttemptFromSourceId;
         unsigned long long timestamp;  ///< ms
         unsigned long long lastGrabbedTargetTimeStamp;   ///< ms
+        unsigned long long lastInsideSourceTimeStamp; ///< ms
+        unsigned long long lastInsideDestTimeStamp; ///< ms
         bool isRobotOccludingSourceContainer;
         bool forceRequestDetectionResults;
+        bool forceRequestDestPointCloud;
         bool isGrabbingTarget;
         bool isGrabbingLastTarget;
         bool hasRobotExecutionStarted;
@@ -160,6 +163,29 @@ public:
         std::vector<std::string> jointNames;
         bool isControllerInError;
         std::string robotbridgestatus;
+        std::string cycleIndex; ///< index of the published cycle
+        /**
+         * Information needed to register a new object using a min viable region
+         */
+        struct RegisterMinViableRegionInfo {
+            struct MinViableRegionInfo {
+                std::array<double, 2> size2D {}; ///< width and height on the MVR
+                uint64_t cornerMask = 0; ///< Represents the corner(s) used for corner based detection. 4 bit. -x-y = 1, +x-y = 2, -x+y=4, +x+y = 8
+            } minViableRegion;
+            std::array<double, 3> translation_ {}; // Translation of the 2D MVR plane (height = 0)
+            std::array<double, 4> quat_ {}; // Rotation of the 2D MVR plane (height = 0)
+            uint64_t sensortimestamp = 0; // Same as DetectedObject's timestamp sent to planning
+            double robotDepartStopTimestamp = 0; // Force capture after robot stops
+            std::array<double, 3> liftedWorldOffset {}; // [dx, dy, dz], mm in world frame
+            double transferSpeedMult = 1.0; // transfer speed multiplication factor
+            bool IsEmpty() const { return sensortimestamp == 0; }
+        } registerMinViableRegionInfo;
+
+        // struct MVRUpdateObjectInfo {
+        //     std::string targetname;
+        //     float height;
+        //     float mass;
+        // } mvrUpdateObjectInfo;
     };
 
     struct MUJINCLIENT_API ResultIsRobotOccludingBody : public ResultBase
@@ -444,6 +470,10 @@ public:
     /// \brief returns the slaverequestid used to communicate with the controller. If empty, then no id is used.
     virtual const std::string& GetSlaveRequestId() const;
 
+    virtual void SendMVRRegistrationResult(
+        const rapidjson::Document &mvrResultInfo,
+        double timeout /* second */=5.0);
+
 protected:
     std::stringstream _ss;
 
@@ -480,6 +510,21 @@ MUJINCLIENT_API std::string GetJsonString(const Transform& transform);
 MUJINCLIENT_API std::string GetJsonString(const BinPickingTaskResource::DetectedObject& obj);
 MUJINCLIENT_API std::string GetJsonString(const BinPickingTaskResource::PointCloudObstacle& obj);
 MUJINCLIENT_API std::string GetJsonString(const BinPickingTaskResource::SensorOcclusionCheck& check);
+template <typename T, size_t N>
+MUJINCLIENT_API std::string GetJsonString(const std::array<T, N>& a)
+{
+    std::stringstream ss;
+    ss << std::setprecision(std::numeric_limits<T>::digits10+1);
+    ss << "[";
+    for (unsigned int i = 0; i < N; ++i) {
+        ss << a[i];
+        if (i != N - 1) {
+            ss << ", ";
+        }
+    }
+    ss << "]";
+    return ss.str();
+}
 
 MUJINCLIENT_API std::string GetJsonString(const std::string& key, const std::string& value);
 MUJINCLIENT_API std::string GetJsonString(const std::string& key, const int value);
