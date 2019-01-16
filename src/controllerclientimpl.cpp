@@ -1073,6 +1073,10 @@ std::string ControllerClientImpl::_EncodeWithoutSeparator(const std::string& raw
 
 void ControllerClientImpl::_EnsureWebDAVDirectories(const std::string& relativeuri, double timeout)
 {
+    if (relativeuri.empty()) {
+        return;
+    }
+
     CurlTimeoutSetter timeoutsetter(_curl, timeout);
     std::list<std::string> listCreateDirs;
     std::string output;
@@ -1156,6 +1160,8 @@ std::string ControllerClientImpl::_PrepareDestinationURI_UTF8(const std::string&
                 size_t nBaseFilenameStartIndex = s.find_last_of(s_filesep);
                 if( nBaseFilenameStartIndex != std::string::npos ) {
                     s = s.substr(0, nBaseFilenameStartIndex);
+                } else {
+                    s = "";
                 }
             }
             _EnsureWebDAVDirectories(s);
@@ -1192,6 +1198,8 @@ std::string ControllerClientImpl::_PrepareDestinationURI_UTF16(const std::wstrin
                 size_t nBaseFilenameStartIndex = s.find_last_of(s_filesep);
                 if( nBaseFilenameStartIndex != std::string::npos ) {
                     s = s.substr(0, nBaseFilenameStartIndex);
+                } else {
+                    s = "";
                 }
             }
             _EnsureWebDAVDirectories(s);
@@ -1334,6 +1342,31 @@ void ControllerClientImpl::DeleteDirectoryOnController_UTF16(const std::wstring&
     boost::mutex::scoped_lock lock(_mutex);
     _DeleteDirectoryOnController(_PrepareDestinationURI_UTF16(desturi, false, false, true));
 }
+
+void ControllerClientImpl::AddObjectToObjectSet(const std::string &objectPk, const std::string &objectsetPk, double timeout)
+{
+    rapidjson::Document pt(rapidjson::kObjectType);
+    const std::string desturi = (boost::format("scene/%s/?format=json&fields=referenceobjectpks") % objectsetPk).str();
+    int http_code = CallGet(desturi, pt, 0);
+    if (http_code == 404) {
+        throw MUJIN_EXCEPTION_FORMAT("objsetsetPK=%s cannot be found on the remote server", objectsetPk, MEC_InvalidArguments);
+    } else if (http_code != 200) {
+        std::string error_message = GetJsonValueByKey<std::string>(pt, "error_message");
+        std::string traceback = GetJsonValueByKey<std::string>(pt, "traceback");
+        throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s: %s", desturi % http_code % error_message, MEC_HTTPServer);
+    }
+
+    rapidjson::Value& refpks = pt["referenceobjectpks"];
+    rapidjson::Value rObjectname;
+    rObjectname = rapidjson::StringRef(objectPk.c_str(), objectPk.size());
+    refpks.PushBack(rObjectname, pt.GetAllocator());
+
+    rapidjson::Document pt2(rapidjson::kObjectType);
+    const std::string uri((boost::format("scene/%s/") % objectsetPk).str());
+    const int status = CallPutJSON(uri, DumpJson(pt), pt2, 202, timeout);
+    assert(status == 202);
+}
+
 
 void ControllerClientImpl::_UploadDirectoryToController_UTF8(const std::string& copydir_utf8, const std::string& rawuri)
 {
