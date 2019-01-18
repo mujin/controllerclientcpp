@@ -157,6 +157,8 @@ public:
             double robotDepartStopTimestamp = 0; // Force capture after robot stops
             std::array<double, 3> liftedWorldOffset {}; // [dx, dy, dz], mm in world frame
             double transferSpeedMult = 1.0; // transfer speed multiplication factor
+	    double minCornerVisibleDist = 30;
+	    uint64_t occlusionFreeCornerMask = 0;
             bool IsEmpty() const { return sensortimestamp == 0; }
         } registerMinViableRegionInfo;
 
