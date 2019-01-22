@@ -518,17 +518,19 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     isControllerInError = GetJsonValueByKey<bool>(v, "isControllerInError", false);
     robotbridgestatus = GetJsonValueByKey<std::string>(v, "robotbridgestatus", "unknown");
 
-    registerMinViableRegionInfo.translation_ = GetJsonValueByPath<std::array<double, 3>>(v, "/registerMinViableRegionInfo/translation_", {});
-    registerMinViableRegionInfo.quat_ = GetJsonValueByPath<std::array<double, 4>>(v, "/registerMinViableRegionInfo/quat_", {});
+    registerMinViableRegionInfo.translation_ = GetJsonValueByPath<std::array<double, 3> >(v, "/registerMinViableRegionInfo/translation_", {});
+    registerMinViableRegionInfo.quat_ = GetJsonValueByPath<std::array<double, 4> >(v, "/registerMinViableRegionInfo/quat_", {});
     registerMinViableRegionInfo.sensortimestamp = GetJsonValueByPath<uint64_t>(v, "/registerMinViableRegionInfo/sensortimestamp", 0);
     registerMinViableRegionInfo.robotDepartStopTimestamp = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/robotDepartStopTimestamp", 0);
     registerMinViableRegionInfo.transferSpeedMult = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/transferSpeedMult", 1.0);
     registerMinViableRegionInfo.minCornerVisibleDist = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/minCornerVisibleDist", 30);
-    registerMinViableRegionInfo.minViableRegion.size2D = GetJsonValueByPath<std::array<double, 2>>(v, "/registerMinViableRegionInfo/minViableRegion/size2D", {});
+    registerMinViableRegionInfo.minViableRegion.size2D = GetJsonValueByPath<std::array<double, 2> >(v, "/registerMinViableRegionInfo/minViableRegion/size2D", {});
     registerMinViableRegionInfo.minViableRegion.cornerMask = GetJsonValueByPath<uint64_t>(v, "/registerMinViableRegionInfo/minViableRegion/cornerMask", 0);
     registerMinViableRegionInfo.occlusionFreeCornerMask = GetJsonValueByPath<uint64_t>(v, "/registerMinViableRegionInfo/occlusionFreeCornerMask", 0);
-    registerMinViableRegionInfo.liftedWorldOffset = GetJsonValueByPath<std::array<double, 3>>(v, "/registerMinViableRegionInfo/liftedWorldOffset", {});
-    
+    registerMinViableRegionInfo.liftedWorldOffset = GetJsonValueByPath<std::array<double, 3> >(v, "/registerMinViableRegionInfo/liftedWorldOffset", {});
+    registerMinViableRegionInfo.minCandidateSize = GetJsonValueByPath<std::array<double, 3> >(v, "/registerMinViableRegionInfo/minCandidateSize", {});
+    registerMinViableRegionInfo.maxCandidateSize = GetJsonValueByPath<std::array<double, 3> >(v, "/registerMinViableRegionInfo/maxCandidateSize", {});
+
     // mvrUpdateObjectInfo.targetname = GetJsonValueByPath<std::string>(v, "/mvrUpdateObjectInfo/targetname", "");
     // mvrUpdateObjectInfo.height = GetJsonValueByPath<float>(v, "/mvrUpdateObjectInfo/height", 0.0f);
     // mvrUpdateObjectInfo.mass = GetJsonValueByPath<float>(v, "/mvrUpdateObjectInfo/mass", 0.0f);
