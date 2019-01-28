@@ -20,7 +20,7 @@
 #include <mujincontrollerclient/mujincontrollerclient.h>
 
 #include <boost/enable_shared_from_this.hpp>
-
+#include <pcrecpp.h>
 namespace mujinclient {
 
 class ControllerClientImpl : public ControllerClient, public boost::enable_shared_from_this<ControllerClientImpl>
@@ -153,7 +153,7 @@ public:
     {
         return _baseuri;
     }
-
+    std::string GetUnicodeFromPrimaryKey(const std::string& pk) const;
 protected:
 
     int _CallPut(const std::string& relativeuri, const void* pdata, size_t nDataSize, rapidjson::Document& pt, curl_slist* headers, int expectedhttpcode=202, double timeout = 5.0);
@@ -191,6 +191,13 @@ protected:
     int _CallGet(const std::string& desturi, rapidjson::Document& pt, int expectedhttpcode=200, double timeout = 5.0);
     int _CallGet(const std::string& desturi, std::string& outputdata, int expectedhttpcode=200, double timeout = 5.0);
     int _CallGet(const std::string& desturi, std::vector<unsigned char>& outputdata, int expectedhttpcode=200, double timeout = 5.0);
+    
+
+    std::string _Quote(const std::string& value) const;
+    std::string _Unquote(const std::string& value) const;
+    bool _ParseURI(const std::string& uri, std::string& scheme, std::string& authority, std::string& path, std::string& query, std::string& fragment) const;
+    std::string _AssembleURI(const std::string& scheme, const std::string& authority, const std::string& path, const std::string& query, const std::string& fragment);
+
 
     /// \brief desturi is URL-encoded. Also assume _mutex is locked.
     virtual void _UploadFileToController_UTF8(const std::string& filename, const std::string& desturi);
@@ -232,7 +239,7 @@ protected:
 
     /// \param stream is std::pair<std::vector<unsigned char>::const_iterator, size_t>*, which gets incremented everytime this function is called.
     static size_t _ReadInMemoryUploadCallback(void *ptr, size_t size, size_t nmemb, void *stream);
-
+    
     int _lastmode;
     CURL *_curl;
     boost::mutex _mutex;

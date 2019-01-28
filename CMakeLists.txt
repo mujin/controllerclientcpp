@@ -271,6 +271,18 @@ endif()
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 
+
+pkg_check_modules(libpcrecpp libpcrecpp)
+if( libpcrecpp_FOUND )
+  set(CMAKE_REQUIRED_INCLUDES ${libpcrecpp_INCLUDE_DIRS} ${REQUIRED_INCLUDES})
+  check_include_file_cxx(pcrecpp.h HAVE_PCRECPP_H)
+  set(CMAKE_REQUIRED_INCLUDES)
+  if( NOT HAVE_PCRECPP_H )
+    set(libpcrecpp_FOUND 0)
+  endif()
+  link_libraries(pcrecpp)
+endif()
+
 find_package(ZeroMQ QUIET)
 if( ZeroMQ_FOUND )
   include_directories(${ZeroMQ_INCLUDE_DIR})
