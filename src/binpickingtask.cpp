@@ -929,7 +929,7 @@ void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<float>&vpoi
     ExecuteCommand(_ss.str(), d, timeout); // need to check return code
 }
 
-void BinPickingTaskResource::UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<float>& vpoints, const std::string& state, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit, const double timeout, const std::string& regionname, const std::string& locationIOName, const std::vector<std::string>& cameranames)
+void BinPickingTaskResource::UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<float>& vpoints, const std::string& state, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit, const double timeout, const std::string& regionname, const std::string& locationIOName, const std::vector<std::string>& cameranames, CropContainerMarginsXYZXYZPtr pCropContainerMargins)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "UpdateEnvironmentState";
@@ -953,6 +953,9 @@ void BinPickingTaskResource::UpdateEnvironmentState(const std::string& objectnam
         _ss << GetJsonString("detectionResultState") << ": " << state << ", ";
     }
     _ss << GetJsonString("unit", unit) << ", ";
+    if( !!pCropContainerMargins ) {
+        _ss << "\"cropContainerMarginsXYZXYZ\":[" << pCropContainerMargins->minMargins[0] << ", " << pCropContainerMargins->minMargins[1] << ", " << pCropContainerMargins->minMargins[2] << ", " << pCropContainerMargins->maxMargins[0] << ", " << pCropContainerMargins->maxMargins[1] << ", " << pCropContainerMargins->maxMargins[2] << "], ";
+    }
     PointCloudObstacle pointcloudobstacle;
     pointcloudobstacle.name = pointcloudobstaclename;
     pointcloudobstacle.pointsize = pointsize;
