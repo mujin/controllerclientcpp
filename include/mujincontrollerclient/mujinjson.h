@@ -17,6 +17,7 @@
 #ifndef MUJIN_CONTROLLERCLIENT_JSON_H
 #define MUJIN_CONTROLLERCLIENT_JSON_H
 
+#include <array>
 #include <boost/shared_ptr.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/format.hpp>
@@ -143,8 +144,12 @@ inline void DumpJson(const rapidjson::Value& value, std::ostream& os, const unsi
 }
 
 inline void ParseJson(rapidjson::Document& d, const std::string& str) {
-    d.Parse<rapidjson::kParseFullPrecisionFlag>(str.c_str()); // parse float in full precision mode
-    if (d.HasParseError()) {
+    // repeatedly calling Parse on the same rapidjson::Document will not release previsouly allocated memory, memory will accumulate until the object is destroyed
+    // we use a new temporary Document to parse, and swap content with the original one, so that memory in original Document will be released when this function ends
+    // see: https://github.com/Tencent/rapidjson/issues/1333
+    rapidjson::Document tempDoc;
+    tempDoc.Parse<rapidjson::kParseFullPrecisionFlag>(str.c_str()); // parse float in full precision mode
+    if (tempDoc.HasParseError()) {
         std::string substr;
         if (str.length()> 200) {
             substr = str.substr(0, 200);
@@ -153,15 +158,20 @@ inline void ParseJson(rapidjson::Document& d, const std::string& str) {
         }
         throw MujinJSONException(boost::str(boost::format("Json string is invalid (offset %u) %s str=%s")%((unsigned)d.GetErrorOffset())%GetParseError_En(d.GetParseError())%substr), MJE_Failed);
     }
+    d.Swap(tempDoc);
 }
 
 inline void ParseJson(rapidjson::Document& d, std::istream& is) {
     rapidjson::IStreamWrapper isw(is);
-    d.ParseStream<rapidjson::kParseFullPrecisionFlag>(isw); // parse float in full precision mode
-    if (d.HasParseError()) {
+    // see note in: void ParseJson(rapidjson::Document& d, const std::string& str)
+    rapidjson::Document(tempDoc);
+    tempDoc.ParseStream<rapidjson::kParseFullPrecisionFlag>(isw); // parse float in full precision mode
+    if (tempDoc.HasParseError()) {
         throw MujinJSONException(boost::str(boost::format("Json stream is invalid (offset %u) %s")%((unsigned)d.GetErrorOffset())%GetParseError_En(d.GetParseError())), MJE_Failed);
     }
+    d.Swap(tempDoc);
 }
+
 class JsonSerializable {
 public:
     virtual void LoadFromJson(const rapidjson::Value& v) = 0;
@@ -199,6 +209,16 @@ inline void LoadJsonValue(const rapidjson::Value& v, int& t) {
     }
 }
 
+inline void LoadJsonValue(const rapidjson::Value& v, int64_t& t) {
+    if (v.IsInt64()) {
+        t = v.GetInt64();
+    } else if (v.IsString()) {
+        t = boost::lexical_cast<int64_t>(v.GetString());
+    } else {
+        throw MujinJSONException("Cannot convert json value " + GetJsonString(v) + " to Int64", MJE_Failed);
+    }
+}
+
 inline void LoadJsonValue(const rapidjson::Value& v, unsigned int& t) {
     if (v.IsUint()) {
         t = v.GetUint();
@@ -215,7 +235,7 @@ inline void LoadJsonValue(const rapidjson::Value& v, unsigned long long& t) {
     } else if (v.IsString()) {
         t = boost::lexical_cast<unsigned long long>(v.GetString());
     } else {
-        throw MujinJSONException("Cannot convert json value " + GetJsonString(v) + " to Int64", MJE_Failed);
+        throw MujinJSONException("Cannot convert json value " + GetJsonString(v) + " to UInt64", MJE_Failed);
     }
 }
 
@@ -261,6 +281,8 @@ inline void LoadJsonValue(const rapidjson::Value& v, bool& t) {
 
 template<class T> inline void LoadJsonValue(const rapidjson::Value& v, std::vector<T>& t);
 
+template<class T, size_t N> inline void LoadJsonValue(const rapidjson::Value& v, std::array<T, N>& t);
+
 template<class T> inline void LoadJsonValue(const rapidjson::Value& v, boost::shared_ptr<T>& ptr) {
     T t;
     LoadJsonValue(v, t);
@@ -299,6 +321,24 @@ template<class T> inline void LoadJsonValue(const rapidjson::Value& v, std::vect
     if (v.IsArray()) {
         t.clear();
         t.resize(v.GetArray().Size());
+        size_t i = 0;
+        for (rapidjson::Value::ConstValueIterator it = v.Begin(); it != v.End(); ++it) {
+            LoadJsonValue(*it, t[i]);
+            i++;
+        }
+    } else {
+        throw MujinJSONException("Cannot convert json type " + GetJsonTypeName(v) + " to Array", MJE_Failed);
+    }
+}
+
+template<class T, size_t N> inline void LoadJsonValue(const rapidjson::Value& v, std::array<T, N>& t) {
+    if (v.IsArray()) {
+        if (v.GetArray().Size() != N) {
+            throw MujinJSONException(
+                (boost::format("Cannot convert json type " + GetJsonTypeName(v) + " to Array. "
+                               "Array length does not match (%d != %d)") % N % v.GetArray().Size()).str(),
+                MJE_Failed);
+        }
         size_t i = 0;
         for (rapidjson::Value::ConstValueIterator it = v.Begin(); it != v.End(); ++it) {
             LoadJsonValue(*it, t[i]);
@@ -386,6 +426,8 @@ inline void SaveJsonValue(rapidjson::Value& v, const rapidjson::Value& t, rapidj
 
 template<class T> inline void SaveJsonValue(rapidjson::Value& v, const std::vector<T>& t, rapidjson::Document::AllocatorType& alloc);
 
+template<class T, size_t N> inline void SaveJsonValue(rapidjson::Value& v, const std::array<T, N>& t, rapidjson::Document::AllocatorType& alloc);
+
 /** do not remove: otherwise boost::shared_ptr could be treated as bool
  */
 template<class T> inline void SaveJsonValue(rapidjson::Value& v, const boost::shared_ptr<T>& ptr, rapidjson::Document::AllocatorType& alloc) {
@@ -402,6 +444,17 @@ template<class T> inline void SaveJsonValue(rapidjson::Value& v, const std::vect
     }
 }
 
+template<class T, size_t N> inline void SaveJsonValue(rapidjson::Value& v, const std::array<T, N>& t, rapidjson::Document::AllocatorType& alloc) {
+    v.SetArray();
+    v.Reserve(N, alloc);
+    for (size_t i = 0; i < N; ++i) {
+        rapidjson::Value tmpv;
+        SaveJsonValue(tmpv, t[i], alloc);
+        v.PushBack(tmpv, alloc);
+    }
+}
+
+
 template<> inline void SaveJsonValue(rapidjson::Value& v, const std::vector<double>& t, rapidjson::Document::AllocatorType& alloc) {
     v.SetArray();
     v.Reserve(t.size(), alloc);
@@ -410,6 +463,13 @@ template<> inline void SaveJsonValue(rapidjson::Value& v, const std::vector<doub
     }
 }
 
+template<size_t N> inline void SaveJsonValue(rapidjson::Value& v, const std::array<double, N>& t, rapidjson::Document::AllocatorType& alloc) {
+    v.SetArray();
+    v.Reserve(N, alloc);
+    for (size_t i = 0; i < N; ++i) {
+        v.PushBack(t[i], alloc);
+    }
+}
 
 template<class U> inline void SaveJsonValue(rapidjson::Value& v, const std::map<std::string, U>& t, rapidjson::Document::AllocatorType& alloc) {
     v.SetObject();
@@ -422,7 +482,10 @@ template<class U> inline void SaveJsonValue(rapidjson::Value& v, const std::map<
 }
 
 template<class T> inline void SaveJsonValue(rapidjson::Document& v, const T& t) {
-    SaveJsonValue(v, t, v.GetAllocator());
+    // see note in: void ParseJson(rapidjson::Document& d, const std::string& str)
+    rapidjson::Document tempDoc;
+    SaveJsonValue(tempDoc, t, tempDoc.GetAllocator());
+    v.Swap(tempDoc);
 }
 
 template<class T, class U> inline void SetJsonValueByKey(rapidjson::Value& v, const U& key, const T& t, rapidjson::Document::AllocatorType& alloc);
@@ -489,7 +552,7 @@ template<class T> inline T GetJsonValueByPath(const rapidjson::Value& v, const c
     return r;
 }
 
-template<class T, class U> T GetJsonValueByPath(const rapidjson::Value& v, const char* key, const U& t) {
+template<class T, class U=T> T GetJsonValueByPath(const rapidjson::Value& v, const char* key, const U& t) {
     const rapidjson::Value *child = rapidjson::Pointer(key).Get(v);
     if (child && !child->IsNull()) {
         T r;
