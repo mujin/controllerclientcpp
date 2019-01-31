@@ -50,12 +50,12 @@ class MUJINCLIENT_API BinPickingTaskResource : public TaskResource
 public:
     BinPickingTaskResource(ControllerClientPtr controller, const std::string& pk, const std::string& scenepk, const std::string& tasktype = "binpicking");
     virtual ~BinPickingTaskResource();
-    
+
     struct MUJINCLIENT_API DetectedObject
     {
         std::string name;             // "name": "detectionresutl_1"
         std::string object_uri;       // "object_uri": "mujin:/box0.mujin.dae"
-        Transform transform;  
+        Transform transform;
         std::string confidence;
         unsigned long long timestamp;
         std::string extra;            // (OPTIONAL) "extra": {"type":"randombox", "length":100, "width":100, "height":100}
@@ -177,10 +177,14 @@ public:
             uint64_t sensortimestamp = 0; // Same as DetectedObject's timestamp sent to planning
             double robotDepartStopTimestamp = 0; // Force capture after robot stops
             std::array<double, 3> liftedWorldOffset {}; // [dx, dy, dz], mm in world frame
+            std::array<double, 3> maxCandidateSize {}; ///< the max candidate size expecting
+            std::array<double, 3> minCandidateSize {}; ///< the min candidate size expecting
             double transferSpeedMult = 1.0; // transfer speed multiplication factor
-	    double minCornerVisibleDist = 30;
-	    uint64_t occlusionFreeCornerMask = 0;
-            bool IsEmpty() const { return sensortimestamp == 0; }
+            double minCornerVisibleDist = 30;
+            uint64_t occlusionFreeCornerMask = 0;
+            bool IsEmpty() const {
+                return sensortimestamp == 0;
+            }
         } registerMinViableRegionInfo;
 
         // struct MVRUpdateObjectInfo {
@@ -312,7 +316,7 @@ public:
         \param timeout seconds until this command times out
      */
     virtual void InitializeZMQ(const double reinitializetimeout = 0,const double timeout /* second */=5.0);
-    
+
     /** \brief Add a point cloud collision obstacle with name to the environment.
         \param vpoints list of x,y,z coordinates in meter
         \param state additional information about the objects
@@ -324,10 +328,10 @@ public:
         \param clampToContainer if true, then planning will clamp the points to the container walls specified by regionname. Otherwise, will use all the points
      */
     virtual void AddPointCloudObstacle(const std::vector<float>& vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp=0, const unsigned long long endtimestamp=0, const bool executionverification=false, const std::string& unit="mm", int isoccluded=-1, const std::string& regionname=std::string(), const double timeout /* second */=5.0, bool clampToContainer=true, CropContainerMarginsXYZXYZPtr pCropContainerMargins=CropContainerMarginsXYZXYZPtr());
-    
+
     /// \param locationIOName the location IO name (1, 2, 3, 4, etc) used to tell mujin controller to notify  the IO signal with detected object info
     /// \param cameranames the names of the sensors mapped to the current region used for detetion. The sensor information is used to create shadow obstacles per each part, if empty, will not be able to create the correct shadow obstacles.
-    virtual void UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<float>& vpoints, const std::string& resultstate, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit="mm", const double timeout=0, const std::string& regionname=std::string(), const std::string& locationIOName="1", const std::vector<std::string>& cameranames=std::vector<std::string>());
+    virtual void UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<float>& vpoints, const std::string& resultstate, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit="mm", const double timeout=0, const std::string& regionname=std::string(), const std::string& locationIOName="1", const std::vector<std::string>& cameranames=std::vector<std::string>(), CropContainerMarginsXYZXYZPtr pCropContainerMargins=CropContainerMarginsXYZXYZPtr());
 
     /// \brief removes objects by thier prefix
     /// \param prefix prefix of the objects to remove
@@ -378,7 +382,7 @@ public:
     /// \param unit unit to receive values in, either "m" (indicates radian for angle) or "mm" (indicates degree for angle)
     /// \param timeout timeout of communication
     virtual void GetITLState(ResultGetBinpickingState& result, const std::string& robotname, const std::string& unit="m", const double timeout /* second */=5.0);
-    
+
     /// \brief Get published state of bin picking
     /// except for initial call, this returns cached value.
     /// \param result state of bin picking
@@ -536,7 +540,7 @@ MUJINCLIENT_API std::string GetJsonString(const std::string& key, const Real val
 MUJINCLIENT_API void GetAttachedSensors(SceneResource& scene, const std::string& bodyname, std::vector<RobotResource::AttachedSensorResourcePtr>& result);
 MUJINCLIENT_API void GetSensorData(SceneResource& scene, const std::string& bodyname, const std::string& sensorname, RobotResource::AttachedSensorResource::SensorData& result);
 /** \brief Gets transform of attached sensor in sensor body frame
-  */
+ */
 MUJINCLIENT_API void GetSensorTransform(SceneResource& scene, const std::string& bodyname, const std::string& sensorname, Transform& result, const std::string& unit="m");
 MUJINCLIENT_API void DeleteObject(SceneResource& scene, const std::string& name);
 MUJINCLIENT_API void UpdateObjects(SceneResource& scene, const std::string& basename, const std::vector<BinPickingTaskResource::DetectedObject>& detectedobjects, const std::string& unit="m");
