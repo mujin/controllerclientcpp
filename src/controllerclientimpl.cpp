@@ -146,6 +146,7 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
 
     _httpheadersjson = NULL;
     _httpheadersstl = NULL;
+    _httpheadersmultipartformdata = NULL;
     if( baseuri.size() > 0 ) {
         _baseuri = baseuri;
         // ensure trailing slash
@@ -236,54 +237,11 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
     res = curl_easy_setopt(_curl, CURLOPT_NOSIGNAL, 1);
     CHECKCURLCODE(res, "failed to set no signal");
 
-    if( !(options & 1) ) {
-        // specify a reasonable timeout for the login calls
-        CurlTimeoutSetter timeoutsetter(_curl, timeout);
-
-        // make an initial GET call to get the CSRF token
-        std::string loginuri = _baseuri + "login/";
-        curl_easy_setopt(_curl, CURLOPT_URL, loginuri.c_str());
-        curl_easy_setopt(_curl, CURLOPT_HTTPGET, 1);
-        CURLcode res = curl_easy_perform(_curl);
-        CHECKCURLCODE(res, "curl_easy_perform failed");
-        long http_code = 0;
-        res=curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
-        CHECKCURLCODE(res, "curl_easy_getinfo");
-        if( http_code == 302 ) {
-            // most likely apache2-only authentication and login page isn't needed, however need to send another GET for the csrftoken
-            loginuri = _baseuri + "api/v1/"; // pick some neutral page that is easy to load
-            curl_easy_setopt(_curl, CURLOPT_URL, loginuri.c_str());
-            CURLcode res = curl_easy_perform(_curl);
-            CHECKCURLCODE(res, "curl_easy_perform failed");
-            long http_code = 0;
-            res = curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
-            CHECKCURLCODE(res, "curl_easy_getinfo");
-            if( http_code != 200 ) {
-                throw MUJIN_EXCEPTION_FORMAT("HTTP GET %s returned HTTP error code %s", loginuri%http_code, MEC_HTTPServer);
-            }
-            _csrfmiddlewaretoken = _GetCSRFFromCookies();
-            curl_easy_setopt(_curl, CURLOPT_REFERER, loginuri.c_str()); // necessary for SSL to work
-        }
-        else if( http_code == 200 ) {
-            _csrfmiddlewaretoken = _GetCSRFFromCookies();
-            std::string data = str(boost::format("username=%s&password=%s&this_is_the_login_form=1&next=%%2F&csrfmiddlewaretoken=%s")%_username%password%_csrfmiddlewaretoken);
-            curl_easy_setopt(_curl, CURLOPT_POSTFIELDSIZE, data.size());
-            curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, data.c_str());
-            curl_easy_setopt(_curl, CURLOPT_REFERER, loginuri.c_str());
-            //std::cout << "---performing post---" << std::endl;
-            res = curl_easy_perform(_curl);
-            CHECKCURLCODE(res, "curl_easy_perform failed");
-            http_code = 0;
-            res = curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
-            CHECKCURLCODE(res, "curl_easy_getinfo failed");
-            if( http_code != 200 && http_code != 302 ) {
-                throw MUJIN_EXCEPTION_FORMAT("User login failed. HTTP POST %s returned HTTP status %s", loginuri%http_code, MEC_UserAuthentication);
-            }
-        }
-        else {
-            throw MUJIN_EXCEPTION_FORMAT("HTTP GET %s returned HTTP error code %s", loginuri%http_code, MEC_HTTPServer);
-        }
-    }
+    // csrftoken can be any non-empty string
+    _csrfmiddlewaretoken = "csrftoken";
+    std::string cookie = "Set-Cookie: csrftoken=" + _csrfmiddlewaretoken;
+    res=curl_easy_setopt (_curl, CURLOPT_COOKIELIST, cookie.c_str());
+    CHECKCURLCODE(res, "failed to set csrftoken cookie");
 
     _charset = "utf-8";
     _language = "en-us";
@@ -294,18 +252,10 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
         _charset = itcodepage->second;
     }
 #endif
-    std::stringstream ss;
-    ss << "setting character set to " << _charset;
-    MUJIN_LOG_INFO(ss.str());
+    MUJIN_LOG_INFO("setting character set to " << _charset);
     _SetHTTPHeadersJSON();
     _SetHTTPHeadersSTL();
-    try {
-        GetProfile();
-    }
-    catch(const MujinException&) {
-        // most likely username or password are
-        throw MujinException(str(boost::format("failed to get controller profile, check username/password or if controller is active at %s")%_baseuri), MEC_UserAuthentication);
-    }
+    _SetHTTPHeadersMultipartFormData();
 }
 
 ControllerClientImpl::~ControllerClientImpl()
@@ -316,11 +266,19 @@ ControllerClientImpl::~ControllerClientImpl()
     if( !!_httpheadersstl ) {
         curl_slist_free_all(_httpheadersstl);
     }
+    if( !!_httpheadersmultipartformdata ) {
+        curl_slist_free_all(_httpheadersmultipartformdata);
+    }
     curl_easy_cleanup(_curl);
 }
 
 std::string ControllerClientImpl::GetVersion()
 {
+    boost::mutex::scoped_lock lock(_mutex);
+    if (!_profile.IsObject()) {
+        _profile.SetObject();
+        CallGet("profile/", _profile);
+    }
     return GetJsonValueByKey<std::string>(_profile, "version");
 }
 
@@ -574,127 +532,6 @@ void ControllerClientImpl::SyncUpload_UTF8(const std::string& _sourcefilename, c
        " from SCOPE ('deep traversal of \"/exchange/adb/Calendar/\"') "
        "WHERE \"DAV:isfolder\" = True</D:sql></D:searchrequest>\r\n";
      */
-}
-
-struct curl_slist *ControllerClientImpl::GetCURLHeaderForFileUpload(){
-    struct curl_slist *headerlist = NULL;
-    headerlist = curl_slist_append(headerlist, "Content-Type: multipart/form-data");
-    std::string s = str(boost::format("Accept-Language: %s,en-us")%_language);
-    headerlist = curl_slist_append(headerlist, s.c_str()); //,en;q=0.7,ja;q=0.3',")
-    s = str(boost::format("Accept-Charset: %s")%_charset);
-    headerlist = curl_slist_append(headerlist, s.c_str());
-    s = std::string("X-CSRFToken: ")+_csrfmiddlewaretoken;
-    headerlist = curl_slist_append(headerlist, s.c_str());
-    headerlist = curl_slist_append(headerlist, "Connection: Keep-Alive");
-    headerlist = curl_slist_append(headerlist, "Keep-Alive: 20"); // keep alive for 20s?
-    headerlist = curl_slist_append(headerlist, "Expect:");
-    return headerlist;
-}
-
-void ControllerClientImpl::FileUpload_UTF8(const std::string& _sourcefilename)
-{
-    MUJIN_LOG_INFO(str(boost::format("POST %s%s")%_baseuri%"fileupload"));
-    CurlTimeoutSetter timeoutsetter(_curl, 5);
-    boost::mutex::scoped_lock lock(_mutex);
-    CURLcode res = curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, _WriteStringStreamCallback);
-    CHECKCURLCODE(res, "failed to set writer");
-    _buffer.clear();
-    _buffer.str("");
-    CurlWriteDataSetter writedata(_curl, &_buffer);
-    curl_easy_setopt(_curl, CURLOPT_URL, (_baseuri+"fileupload").c_str());
-    /// CHECKCURLCODE is not allowed
-    const std::string fname = encoding::ConvertUTF8ToFileSystemEncoding(_sourcefilename);
-    std::vector<unsigned char>content;
-    std::ifstream fin(fname.c_str(), std::ios::in | std::ios::binary);
-    fin.seekg(0, std::ios::end);
-    content.resize(fin.tellg());
-    fin.seekg(0, std::ios::beg);
-    fin.read((char*)&content[0], content.size());
-    struct curl_httppost *formpost = NULL;
-    struct curl_httppost *lastptr = NULL;
-    curl_formadd(&formpost,
-                 &lastptr,
-                 CURLFORM_COPYNAME, "files[]",
-                 CURLFORM_BUFFER, fname.c_str(),
-                 CURLFORM_BUFFERPTR, (char*)&content[0],
-                 CURLFORM_BUFFERLENGTH, content.size(),
-                 CURLFORM_END);
-    curl_easy_setopt(_curl, CURLOPT_HTTPPOST, formpost);
-    struct curl_slist *headerlist = GetCURLHeaderForFileUpload();
-    curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, headerlist);
-    res = curl_easy_perform(_curl);
-    curl_formfree(formpost);
-    curl_slist_free_all(headerlist);
-    /// CHECKCURLCODE is allowed
-    CHECKCURLCODE(res, "curl_easy_perform failed");
-    long http_code = 0;
-    res = curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
-    CHECKCURLCODE(res, "curl_easy_getinfo failed");
-    rapidjson::Document pt;
-    if( _buffer.rdbuf()->in_avail() > 0 ) {
-        ParseJson(pt, _buffer.str());
-    } else {
-        pt.SetObject();
-    }
-    int expectedhttpcode = 200;
-    if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
-        std::string error_message = GetJsonValueByKey<std::string>(pt, "error_message");
-        std::string traceback = GetJsonValueByKey<std::string>(pt, "traceback");
-        throw MUJIN_EXCEPTION_FORMAT("HTTP POST to '%s' returned HTTP status %s: %s", "/fileupload"%http_code%error_message, MEC_HTTPServer);
-    }
-}
-
-void ControllerClientImpl::FileUpload_UTF16(const std::wstring& _sourcefilename)
-{
-    MUJIN_LOG_INFO(str(boost::format("POST %s%s")%_baseuri%"fileupload"));
-    CurlTimeoutSetter timeoutsetter(_curl, 5);
-    boost::mutex::scoped_lock lock(_mutex);
-    CURLcode res = curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, _WriteStringStreamCallback);
-    CHECKCURLCODE(res, "failed to set writer");
-    _buffer.clear();
-    _buffer.str("");
-    CurlWriteDataSetter writedata(_curl, &_buffer);
-    curl_easy_setopt(_curl, CURLOPT_URL, (_baseuri+"fileupload").c_str());
-    /// CHECKCURLCODE is not allowed
-    const std::string fname = encoding::ConvertUTF16ToFileSystemEncoding(_sourcefilename);
-    std::vector<unsigned char>content;
-    std::ifstream fin(fname.c_str(), std::ios::in | std::ios::binary);
-    fin.seekg(0, std::ios::end);
-    content.resize(fin.tellg());
-    fin.seekg(0, std::ios::beg);
-    fin.read((char*)&content[0], content.size());
-    struct curl_httppost *formpost = NULL;
-    struct curl_httppost *lastptr = NULL;
-    curl_formadd(&formpost,
-                 &lastptr,
-                 CURLFORM_COPYNAME, "files[]",
-                 CURLFORM_BUFFER, fname.c_str(),
-                 CURLFORM_BUFFERPTR, (char*)&content[0],
-                 CURLFORM_BUFFERLENGTH, content.size(),
-                 CURLFORM_END);
-    curl_easy_setopt(_curl, CURLOPT_HTTPPOST, formpost);
-    struct curl_slist *headerlist = GetCURLHeaderForFileUpload();
-    curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, headerlist);
-    res = curl_easy_perform(_curl);
-    curl_formfree(formpost);
-    curl_slist_free_all(headerlist);
-    /// CHECKCURLCODE is allowed
-    CHECKCURLCODE(res, "curl_easy_perform failed");
-    long http_code = 0;
-    res = curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
-    CHECKCURLCODE(res, "curl_easy_getinfo failed");
-    rapidjson::Document pt;
-    if( _buffer.rdbuf()->in_avail() > 0 ) {
-        ParseJson(pt, _buffer.str());
-    } else {
-        pt.SetObject();
-    }
-    int expectedhttpcode = 200;
-    if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
-        std::string error_message = GetJsonValueByKey<std::string>(pt, "error_message");
-        std::string traceback = GetJsonValueByKey<std::string>(pt, "traceback");
-        throw MUJIN_EXCEPTION_FORMAT("HTTP POST to '%s' returned HTTP status %s: %s", "/fileupload"%http_code%error_message, MEC_HTTPServer);
-    }
 }
 
 void ControllerClientImpl::SyncUpload_UTF16(const std::wstring& _sourcefilename_utf16, const std::wstring& destinationdir_utf16, const std::string& scenetype)
@@ -1137,12 +974,6 @@ std::string ControllerClientImpl::SetObjectGeometryMesh(const std::string& objec
     return GetJsonValueByKey<std::string>(pt, "pk");
 }
 
-void ControllerClientImpl::GetProfile()
-{
-    _profile.SetObject();
-    CallGet("profile/", _profile);
-}
-
 int ControllerClientImpl::_WriteStringStreamCallback(char *data, size_t size, size_t nmemb, std::stringstream *writerData)
 {
     if (writerData == NULL) {
@@ -1200,25 +1031,21 @@ void ControllerClientImpl::_SetHTTPHeadersSTL()
     //_httpheadersstl = curl_slist_append(_httpheadersstl, "Accept-Encoding: gzip, deflate");
 }
 
-std::string ControllerClientImpl::_GetCSRFFromCookies() {
-    struct curl_slist *cookies;
-    CURLcode res = curl_easy_getinfo(_curl, CURLINFO_COOKIELIST, &cookies);
-    CHECKCURLCODE(res, "curl_easy_getinfo CURLINFO_COOKIELIST");
-    struct curl_slist *nc = cookies;
-    int i = 1;
-    std::string csrfmiddlewaretoken;
-    while (nc) {
-        //std::cout << str(boost::format("[%d]: %s")%i%nc->data) << std::endl;
-        char* csrftokenstart = strstr(nc->data, "csrftoken");
-        if( !!csrftokenstart ) {
-            std::stringstream ss(csrftokenstart+10);
-            ss >> csrfmiddlewaretoken;
-        }
-        nc = nc->next;
-        i++;
+void ControllerClientImpl::_SetHTTPHeadersMultipartFormData()
+{
+    // set the header to only send stl
+    std::string s = std::string("Content-Type: multipart/form-data");
+    if( !!_httpheadersmultipartformdata ) {
+        curl_slist_free_all(_httpheadersmultipartformdata);
     }
-    curl_slist_free_all(cookies);
-    return csrfmiddlewaretoken;
+    _httpheadersmultipartformdata = curl_slist_append(NULL, s.c_str());
+    //_httpheadersmultipartformdata = curl_slist_append(_httpheadersmultipartformdata, "Accept:"); // necessary?
+    s = std::string("X-CSRFToken: ")+_csrfmiddlewaretoken;
+    _httpheadersmultipartformdata = curl_slist_append(_httpheadersmultipartformdata, s.c_str());
+    _httpheadersmultipartformdata = curl_slist_append(_httpheadersmultipartformdata, "Connection: Keep-Alive");
+    _httpheadersmultipartformdata = curl_slist_append(_httpheadersmultipartformdata, "Keep-Alive: 20"); // keep alive for 20s?
+    // test on windows first
+    //_httpheadersmultipartformdata = curl_slist_append(_httpheadersmultipartformdata, "Accept-Encoding: gzip, deflate");
 }
 
 std::string ControllerClientImpl::_EncodeWithoutSeparator(const std::string& raw)
@@ -1246,6 +1073,10 @@ std::string ControllerClientImpl::_EncodeWithoutSeparator(const std::string& raw
 
 void ControllerClientImpl::_EnsureWebDAVDirectories(const std::string& relativeuri, double timeout)
 {
+    if (relativeuri.empty()) {
+        return;
+    }
+
     CurlTimeoutSetter timeoutsetter(_curl, timeout);
     std::list<std::string> listCreateDirs;
     std::string output;
@@ -1329,6 +1160,8 @@ std::string ControllerClientImpl::_PrepareDestinationURI_UTF8(const std::string&
                 size_t nBaseFilenameStartIndex = s.find_last_of(s_filesep);
                 if( nBaseFilenameStartIndex != std::string::npos ) {
                     s = s.substr(0, nBaseFilenameStartIndex);
+                } else {
+                    s = "";
                 }
             }
             _EnsureWebDAVDirectories(s);
@@ -1365,6 +1198,8 @@ std::string ControllerClientImpl::_PrepareDestinationURI_UTF16(const std::wstrin
                 size_t nBaseFilenameStartIndex = s.find_last_of(s_filesep);
                 if( nBaseFilenameStartIndex != std::string::npos ) {
                     s = s.substr(0, nBaseFilenameStartIndex);
+                } else {
+                    s = "";
                 }
             }
             _EnsureWebDAVDirectories(s);
@@ -1385,16 +1220,30 @@ std::string ControllerClientImpl::_PrepareDestinationURI_UTF16(const std::wstrin
     return baseuploaduri;
 }
 
+void ControllerClientImpl::FileUpload_UTF8(const std::string& filename)
+{
+    size_t nBaseFilenameStartIndex = filename.find_last_of(s_filesep);
+    std::string basename = nBaseFilenameStartIndex == std::string::npos ? "" : filename.substr(nBaseFilenameStartIndex+1);
+    UploadFileToController_UTF8(filename, std::string("mujin:/")+filename);
+}
+
+void ControllerClientImpl::FileUpload_UTF16(const std::wstring& filename)
+{
+    size_t nBaseFilenameStartIndex = filename.find_last_of(s_wfilesep);
+    std::wstring basename = nBaseFilenameStartIndex == std::string::npos ? L"" : filename.substr(nBaseFilenameStartIndex+1);
+    UploadFileToController_UTF16(filename, std::wstring(L"mujin:/")+filename);
+}
+
 void ControllerClientImpl::UploadFileToController_UTF8(const std::string& filename, const std::string& desturi)
 {
     boost::mutex::scoped_lock lock(_mutex);
-    _UploadFileToController_UTF8(filename, _PrepareDestinationURI_UTF8(desturi));
+    _UploadFileToController_UTF8(filename, _PrepareDestinationURI_UTF8(desturi, false));
 }
 
 void ControllerClientImpl::UploadFileToController_UTF16(const std::wstring& filename_utf16, const std::wstring& desturi_utf16)
 {
     boost::mutex::scoped_lock lock(_mutex);
-    _UploadFileToController_UTF16(filename_utf16, _PrepareDestinationURI_UTF16(desturi_utf16));
+    _UploadFileToController_UTF16(filename_utf16, _PrepareDestinationURI_UTF16(desturi_utf16, false));
 }
 
 void ControllerClientImpl::UploadDataToController_UTF8(const std::vector<unsigned char>& vdata, const std::string& desturi)
@@ -1507,6 +1356,31 @@ void ControllerClientImpl::DeleteDirectoryOnController_UTF16(const std::wstring&
     boost::mutex::scoped_lock lock(_mutex);
     _DeleteDirectoryOnController(_PrepareDestinationURI_UTF16(desturi, false, false, true));
 }
+
+void ControllerClientImpl::AddObjectToObjectSet(const std::string &objectPk, const std::string &objectsetPk, double timeout)
+{
+    rapidjson::Document pt(rapidjson::kObjectType);
+    const std::string desturi = (boost::format("scene/%s/?format=json&fields=referenceobjectpks") % objectsetPk).str();
+    int http_code = CallGet(desturi, pt, 0);
+    if (http_code == 404) {
+        throw MUJIN_EXCEPTION_FORMAT("objsetsetPK=%s cannot be found on the remote server", objectsetPk, MEC_InvalidArguments);
+    } else if (http_code != 200) {
+        std::string error_message = GetJsonValueByKey<std::string>(pt, "error_message");
+        std::string traceback = GetJsonValueByKey<std::string>(pt, "traceback");
+        throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s: %s", desturi % http_code % error_message, MEC_HTTPServer);
+    }
+
+    rapidjson::Value& refpks = pt["referenceobjectpks"];
+    rapidjson::Value rObjectname;
+    rObjectname = rapidjson::StringRef(objectPk.c_str(), objectPk.size());
+    refpks.PushBack(rObjectname, pt.GetAllocator());
+
+    rapidjson::Document pt2(rapidjson::kObjectType);
+    const std::string uri((boost::format("scene/%s/") % objectsetPk).str());
+    const int status = CallPutJSON(uri, DumpJson(pt), pt2, 202, timeout);
+    assert(status == 202);
+}
+
 
 void ControllerClientImpl::_UploadDirectoryToController_UTF8(const std::string& copydir_utf8, const std::string& rawuri)
 {
@@ -1765,7 +1639,7 @@ void ControllerClientImpl::_UploadFileToController_UTF8(const std::string& filen
     if(!handler._fd) {
         throw MUJIN_EXCEPTION_FORMAT("failed to open filename %s for uploading", sFilename_FS, MEC_InvalidArguments);
     }
-    _UploadFileToController(handler._fd, uri);
+    _UploadFileToControllerViaForm(filename, uri);
 }
 
 void ControllerClientImpl::_UploadFileToController_UTF16(const std::wstring& filename, const std::string& uri)
@@ -1780,7 +1654,7 @@ void ControllerClientImpl::_UploadFileToController_UTF16(const std::wstring& fil
     if(!handler._fd) {
         throw MUJIN_EXCEPTION_FORMAT("failed to open filename %s for uploading", filename_fs, MEC_InvalidArguments);
     }
-    _UploadFileToController(handler._fd, uri);
+    _UploadFileToControllerViaForm(filename_fs, uri);
 }
 
 void ControllerClientImpl::_UploadFileToController(FILE* fd, const std::string& uri)
@@ -1834,6 +1708,63 @@ void ControllerClientImpl::_UploadFileToController(FILE* fd, const std::string& 
     //curl_easy_getinfo(_curl, CURLINFO_SPEED_UPLOAD, &speed_upload);
     //curl_easy_getinfo(_curl, CURLINFO_TOTAL_TIME, &total_time);
     //printf("http code: %d, Speed: %.3f bytes/sec during %.3f seconds\n", http_code, speed_upload, total_time);
+}
+
+void ControllerClientImpl::_UploadFileToControllerViaForm(const std::string& file, const std::string& uri)
+{
+    MUJIN_LOG_DEBUG(str(boost::format("upload %s")%uri))
+
+    // the dest filename of the upload is determined by stripping the leading _basewebdavuri
+    if( uri.size() < _basewebdavuri.size() || uri.substr(0,_basewebdavuri.size()) != _basewebdavuri ) {
+        throw MUJIN_EXCEPTION_FORMAT("trying to upload a file outside of the webdav endpoint is not allowed: %s", uri, MEC_HTTPServer);
+    }
+    std::string filename = uri.substr(_basewebdavuri.size());
+
+    const std::string& endpoint = _baseuri + "fileupload";
+    curl_easy_setopt(_curl, CURLOPT_URL, endpoint.c_str());
+    curl_easy_setopt(_curl, CURLOPT_POSTFIELDSIZE, NULL);
+    curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, NULL);
+    _buffer.clear();
+    _buffer.str("");
+    CURLcode res = curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, _WriteStringStreamCallback);
+    CHECKCURLCODE(res, "failed to set writer");
+    CurlWriteDataSetter writedata(_curl, &_buffer);
+
+    // prepare form
+    struct curl_httppost *formpost = NULL;
+    struct curl_httppost *lastptr = NULL;
+    curl_formadd(&formpost, &lastptr,
+                 CURLFORM_COPYNAME, "files[]",
+                 CURLFORM_FILE, file.c_str(),
+                 CURLFORM_END);
+    curl_formadd(&formpost, &lastptr,
+                 CURLFORM_COPYNAME, "filename",
+                 CURLFORM_COPYCONTENTS, filename.c_str(),
+                 CURLFORM_END);
+    curl_easy_setopt(_curl, CURLOPT_HTTPPOST, formpost);
+
+    // set header
+    curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, _httpheadersmultipartformdata);
+
+    res = curl_easy_perform(_curl);
+
+    // reset the headers before any exceptions are thrown
+    _SetHTTPHeadersJSON();
+
+    // free form before exception
+    curl_formfree(formpost);
+
+    CHECKCURLCODE(res, "curl_easy_perform failed");
+
+    // get http status
+    long http_code = 0;
+    res = curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
+    CHECKCURLCODE(res, "curl_easy_getinfo failed");
+
+    // 204 is when it overwrites the file?
+    if( http_code != 200 ) {
+        throw MUJIN_EXCEPTION_FORMAT("upload of %s to %s failed with HTTP status %s", filename%uri%http_code, MEC_HTTPServer);
+    }
 }
 
 void ControllerClientImpl::_UploadDataToController(const std::vector<unsigned char>& vdata, const std::string& desturi)
