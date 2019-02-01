@@ -470,6 +470,10 @@ public:
         SyncUpload_UTF16(sourcefilename, destinationdir, GetDefaultSceneType());
     }
 
+    virtual void FileUpload_UTF8(const std::string& sourcefilename) = 0;
+
+    virtual void FileUpload_UTF16(const std::wstring& sourcefilename) = 0;
+
     /// \brief Uploads a single file to the controller network filesystem.
     ///
     /// Overwrites the file if it already exists
