@@ -1315,7 +1315,7 @@ void BinPickingTaskResource::MoveToHandPosition(const std::string& instobjectnam
     }
 }
 
-void BinPickingTaskResource::GetGrabbed(std::vector<std::string>& grabbed, const std::string& robotname, double timeout)
+void BinPickingTaskResource::GetGrabbed(std::vector<std::string>& grabbed, const std::string& robotname, const double timeout)
 {
     grabbed.clear();
     rapidjson::Document pt(rapidjson::kObjectType);
