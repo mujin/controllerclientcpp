@@ -462,12 +462,7 @@ void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const rapid
         msensordata[sensorname] = sensordata;
     }
 
-    if (output.HasMember("serializedinstobjects")) {
-        const rapidjson::Value& serializedinstobjects = output["serializedinstobjects"];
-        for (rapidjson::Document::ConstMemberIterator it = serializedinstobjects.MemberBegin(); it != serializedinstobjects.MemberEnd(); it++) {
-            mserializedinstobjects[it->name.GetString()] = it->value.GetString();
-        }
-    }
+    LoadJsonValueByKey(output, "serializedinstobjects", mserializedinstobjects);
 }
 
 BinPickingTaskResource::ResultGetBinpickingState::ResultGetBinpickingState()
