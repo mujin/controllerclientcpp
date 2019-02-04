@@ -415,6 +415,8 @@ public:
     /// \param pTraj if not NULL, planned trajectory is set but not executed. Otherwise, trajectory is planed and executed but not set.
     virtual void MoveToHandPosition(const std::string& instobjectname, const std::string& ikparamname, const std::string& robotname = "", const std::string& toolname = "", const double robotspeed = -1, const double timeout = 10, Real envclearance = -1.0, std::string* pTraj = NULL);
 
+    virtual void GetGrabbed(std::vector<std::string>& grabbed, const std::string& robotname = "", const double timeout = 10);
+
     /// \brief Executes a trajectory
     /// \param trajectory trajectory to execute
     /// \param filterTraj whether to filter trajectory so that it is smoother. For slow trajectory, filtering is not necessary.

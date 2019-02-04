@@ -1315,6 +1315,31 @@ void BinPickingTaskResource::MoveToHandPosition(const std::string& instobjectnam
     }
 }
 
+void BinPickingTaskResource::GetGrabbed(std::vector<std::string>& grabbed, const std::string& robotname, double timeout)
+{
+    grabbed.clear();
+    rapidjson::Document pt(rapidjson::kObjectType);
+    {
+       for(std::map<std::string,std::string>::iterator it=_mapTaskParameters.begin();it!=_mapTaskParameters.end();++it){
+           rapidjson::Document t;
+           ParseJson(t,it->second);
+           SetJsonValueByKey(pt,it->first,t);
+       }
+    }
+    SetJsonValueByKey(pt,"command","GetGrabbed");
+    SetJsonValueByKey(pt,"tasktype",_tasktype);
+    if (!robotname.empty()) {
+        SetJsonValueByKey(pt, "robotname", robotname);
+    }
+    rapidjson::Document d;
+    ExecuteCommand(DumpJson(pt), d, timeout); // need to check return code
+    BOOST_ASSERT(d.IsObject() && d.HasMember("output"));
+    const rapidjson::Value& v = d["output"];
+    if(v.HasMember("names") && !v["names"].IsNull()){
+        LoadJsonValueByKey(v, "names", grabbed);
+    }
+}
+
 void BinPickingTaskResource::ExecuteSingleXMLTrajectory(const std::string& trajectory, bool filterTraj, const double timeout)
 {
     _ss.str(""); _ss.clear();
