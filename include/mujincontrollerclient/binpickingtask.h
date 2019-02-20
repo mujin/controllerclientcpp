@@ -128,8 +128,8 @@ public:
         unsigned long long lastInsideSourceTimeStamp; ///< ms
         unsigned long long lastInsideDestTimeStamp; ///< ms
         bool isRobotOccludingSourceContainer;
-        bool forceRequestDetectionResults;
-        bool forceRequestDestPointCloud;
+        uint64_t forceRequestDetectionResultsStamp; ///< time stamp when force request for source was first set on planning side
+        uint64_t forceRequestDestPointCloudStamp; ///< time stamp when force request for dest was first set on planning side
         bool isGrabbingTarget;
         bool isGrabbingLastTarget;
         bool hasRobotExecutionStarted;
