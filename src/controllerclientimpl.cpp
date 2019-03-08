@@ -742,13 +742,19 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, std::vector<unsig
 /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
 int ControllerClientImpl::CallPost(const std::string& relativeuri, const std::string& data, rapidjson::Document& pt, int expectedhttpcode, double timeout)
 {
-    MUJIN_LOG_DEBUG(str(boost::format("POST %s")%relativeuri));
-    CurlTimeoutSetter timeoutsetter(_curl, timeout);
     boost::mutex::scoped_lock lock(_mutex);
-    curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, _httpheadersjson);
     _uri = _baseapiuri;
     _uri += relativeuri;
-    curl_easy_setopt(_curl, CURLOPT_URL, _uri.c_str());
+    return _CallPost(_uri, data, pt, expectedhttpcode, timeout);
+}
+
+/// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
+int ControllerClientImpl::_CallPost(const std::string& desturi, const std::string& data, rapidjson::Document& pt, int expectedhttpcode, double timeout)
+{
+    MUJIN_LOG_DEBUG(str(boost::format("POST %s")%desturi));
+    CurlTimeoutSetter timeoutsetter(_curl, timeout);
+    curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, _httpheadersjson);
+    curl_easy_setopt(_curl, CURLOPT_URL, desturi.c_str());
     _buffer.clear();
     _buffer.str("");
     CURLcode res = curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, _WriteStringStreamCallback);
@@ -770,7 +776,7 @@ int ControllerClientImpl::CallPost(const std::string& relativeuri, const std::st
     if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
         std::string error_message = GetJsonValueByKey<std::string>(pt, "error_message");
         std::string traceback = GetJsonValueByKey<std::string>(pt, "traceback");
-        throw MUJIN_EXCEPTION_FORMAT("HTTP POST to '%s' returned HTTP status %s: %s", relativeuri%http_code%error_message, MEC_HTTPServer);
+        throw MUJIN_EXCEPTION_FORMAT("HTTP POST to '%s' returned HTTP status %s: %s", desturi%http_code%error_message, MEC_HTTPServer);
     }
     return http_code;
 }
@@ -969,8 +975,7 @@ std::string ControllerClientImpl::SetObjectGeometryMesh(const std::string& objec
 {
     rapidjson::Document pt(rapidjson::kObjectType);
     const std::string uri(str(boost::format("object/%s/geometry/%s/?unit=%s")%objectPk%geometryPk%unit));
-    const int status = CallPutSTL(uri, meshData, pt, 202, timeout);
-    assert(status == 202);
+    CallPutSTL(uri, meshData, pt, 202, timeout);
     return GetJsonValueByKey<std::string>(pt, "pk");
 }
 
@@ -1343,30 +1348,39 @@ void ControllerClientImpl::DeleteDirectoryOnController_UTF16(const std::wstring&
     _DeleteDirectoryOnController(_PrepareDestinationURI_UTF16(desturi, false, false, true));
 }
 
-void ControllerClientImpl::AddObjectToObjectSet(const std::string &objectPk, const std::string &objectsetPk, double timeout)
+void ControllerClientImpl::ModifySceneAddReferenceObjectPK(const std::string &scenepk, const std::string &referenceobjectpk, double timeout)
 {
-    rapidjson::Document pt(rapidjson::kObjectType);
-    const std::string desturi = (boost::format("scene/%s/?format=json&fields=referenceobjectpks") % objectsetPk).str();
-    int http_code = CallGet(desturi, pt, 0);
-    if (http_code == 404) {
-        throw MUJIN_EXCEPTION_FORMAT("objsetsetPK=%s cannot be found on the remote server", objectsetPk, MEC_InvalidArguments);
-    } else if (http_code != 200) {
-        std::string error_message = GetJsonValueByKey<std::string>(pt, "error_message");
-        std::string traceback = GetJsonValueByKey<std::string>(pt, "traceback");
-        throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s: %s", desturi % http_code % error_message, MEC_HTTPServer);
-    }
+    rapidjson::Document pt, pt2;
+    rapidjson::Value value;
 
-    rapidjson::Value& refpks = pt["referenceobjectpks"];
-    rapidjson::Value rObjectname;
-    rObjectname = rapidjson::StringRef(objectPk.c_str(), objectPk.size());
-    refpks.PushBack(rObjectname, pt.GetAllocator());
+    pt.SetObject();
 
-    rapidjson::Document pt2(rapidjson::kObjectType);
-    const std::string uri((boost::format("scene/%s/") % objectsetPk).str());
-    const int status = CallPutJSON(uri, DumpJson(pt), pt2, 202, timeout);
-    assert(status == 202);
+    value.SetString(scenepk.c_str(), pt.GetAllocator());
+    pt.AddMember("scenepk", value, pt.GetAllocator());
+
+    value.SetString(referenceobjectpk.c_str(), pt.GetAllocator());
+    pt.AddMember("referenceobjectpk", value, pt.GetAllocator());
+
+    boost::mutex::scoped_lock lock(_mutex);
+    _CallPost(_baseuri + "referenceobjectpks/add/", DumpJson(pt), pt2, 200, timeout);
 }
 
+void ControllerClientImpl::ModifySceneRemoveReferenceObjectPK(const std::string &scenepk, const std::string &referenceobjectpk, double timeout)
+{
+    rapidjson::Document pt, pt2;
+    rapidjson::Value value;
+
+    pt.SetObject();
+
+    value.SetString(scenepk.c_str(), pt.GetAllocator());
+    pt.AddMember("scenepk", value, pt.GetAllocator());
+
+    value.SetString(referenceobjectpk.c_str(), pt.GetAllocator());
+    pt.AddMember("referenceobjectpk", value, pt.GetAllocator());
+
+    boost::mutex::scoped_lock lock(_mutex);
+    _CallPost(_baseuri + "referenceobjectpks/remove/", DumpJson(pt), pt2, 200, timeout);
+}
 
 void ControllerClientImpl::_UploadDirectoryToController_UTF8(const std::string& copydir_utf8, const std::string& rawuri)
 {
