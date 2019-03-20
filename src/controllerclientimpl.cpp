@@ -1288,37 +1288,19 @@ void ControllerClientImpl::DownloadFileFromControllerIfModifiedSince_UTF16(const
 long ControllerClientImpl::GetModifiedTime(const std::string& uri, double timeout)
 {
     boost::mutex::scoped_lock lock(_mutex);
-    CurlTimeoutSetter timeoutsetter(_curl, timeout);
-    CURL_OPTION_SAVER(_curl, CURLOPT_NOBODY, 1, long);
-    CURL_OPTION_SAVER(_curl, CURLOPT_FILETIME, 1, long);
-    CURL_OPTION_SAVER(_curl, CURLOPT_HEADER, 0L, long);
-    CURL_OPTION_SAVER(_curl, CURLOPT_VERBOSE, 1L, long);
 
-    std::vector<uint8_t> dummy;
-    MUJIN_LOG_INFO(_PrepareDestinationURI_UTF8(uri, false));
-
-    long http_code = 0;
+    // Copied from https://curl.haxx.se/libcurl/c/CURLINFO_FILETIME.html
+    long filetime=-1;
     curl_easy_setopt(_curl, CURLOPT_URL, _PrepareDestinationURI_UTF8(uri, false).c_str());
-
-    curl_easy_setopt(_curl, CURLOPT_HTTPGET, 0L);
+    curl_easy_setopt(_curl, CURLOPT_FILETIME, 1L);
     CURLcode res = curl_easy_perform(_curl);
-    CHECKCURLCODE(res, "curl_easy_perform failed");
-
-    res = curl_easy_getinfo(_curl, CURLINFO_RESPONSE_CODE, &http_code);
-    CHECKCURLCODE(res, "curl_easy_getinfo");
-
-    if ((http_code != 200 && http_code != 304)) {
-        throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s", uri % http_code, MEC_HTTPServer);
+    if (CURLE_OK == res) {
+        res = curl_easy_getinfo(_curl, CURLINFO_FILETIME, &filetime);
+        if((CURLE_OK == res) && (filetime >= 0)) {
+            time_t file_time = (time_t)filetime;
+        }
     }
-
-    if (http_code == 304) {
-        return 0;
-    }
-
-    long mtime;
-    res = curl_easy_getinfo(_curl, CURLINFO_FILETIME, &mtime);
-    CHECKCURLCODE(res, "curl_easy_getinfo");
-    return mtime;
+    return filetime;
 }
 
 void ControllerClientImpl::_DownloadFileFromController(const std::string& desturi, long localtimeval, long &remotetimeval, std::vector<unsigned char>& outputdata, double timeout)
