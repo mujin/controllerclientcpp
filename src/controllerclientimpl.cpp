@@ -1285,6 +1285,29 @@ void ControllerClientImpl::DownloadFileFromControllerIfModifiedSince_UTF16(const
     _DownloadFileFromController(_PrepareDestinationURI_UTF16(desturi, false), localtimeval, remotetimeval, vdata, timeout);
 }
 
+long ControllerClientImpl::GetModifiedTime(const std::string& uri, double timeout)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    CurlTimeoutSetter timeoutsetter(_curl, timeout);
+    CURL_OPTION_SAVER(_curl, CURLOPT_NOBODY, 1, long);
+    CURL_OPTION_SAVER(_curl, CURLOPT_FILETIME, 1, long);
+
+    std::vector<uint8_t> dummy;
+    long http_code = _CallGet(uri, dummy, 0);
+    if ((http_code != 200 && http_code != 304)) {
+        throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s", uri % http_code, MEC_HTTPServer);
+    }
+
+    if (http_code == 304) {
+        return 0;
+    }
+
+    long mtime;
+    CURLcode res = curl_easy_getinfo(_curl, CURLINFO_FILETIME, &mtime);
+    CHECKCURLCODE(res, "curl_easy_getinfo");
+    return mtime;
+}
+
 void ControllerClientImpl::_DownloadFileFromController(const std::string& desturi, long localtimeval, long &remotetimeval, std::vector<unsigned char>& outputdata, double timeout)
 {
     CurlTimeoutSetter timeoutsetter(_curl, timeout);

@@ -58,6 +58,7 @@ public:
     virtual void DownloadFileFromController_UTF16(const std::wstring& desturi, std::vector<unsigned char>& vdata);
     virtual void DownloadFileFromControllerIfModifiedSince_UTF8(const std::string& desturi, long localtimeval, long &remotetimeval, std::vector<unsigned char>& vdata, double timeout);
     virtual void DownloadFileFromControllerIfModifiedSince_UTF16(const std::wstring& desturi, long localtimeval, long &remotetimeval, std::vector<unsigned char>& vdata, double timeout);
+    virtual long GetModifiedTime(const std::string& uri, double timeout);
     virtual void DeleteFileOnController_UTF8(const std::string& desturi);
     virtual void DeleteFileOnController_UTF16(const std::wstring& desturi);
     virtual void DeleteDirectoryOnController_UTF8(const std::string& desturi);
