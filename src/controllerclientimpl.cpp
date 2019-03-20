@@ -1291,9 +1291,22 @@ long ControllerClientImpl::GetModifiedTime(const std::string& uri, double timeou
     CurlTimeoutSetter timeoutsetter(_curl, timeout);
     CURL_OPTION_SAVER(_curl, CURLOPT_NOBODY, 1, long);
     CURL_OPTION_SAVER(_curl, CURLOPT_FILETIME, 1, long);
+    CURL_OPTION_SAVER(_curl, CURLOPT_HEADER, 0L, long);
+    CURL_OPTION_SAVER(_curl, CURLOPT_VERBOSE, 1L, long);
 
     std::vector<uint8_t> dummy;
-    long http_code = _CallGet(uri, dummy, 0);
+    MUJIN_LOG_INFO(_PrepareDestinationURI_UTF8(uri, false));
+
+    long http_code = 0;
+    curl_easy_setopt(_curl, CURLOPT_URL, _PrepareDestinationURI_UTF8(uri, false).c_str());
+
+    curl_easy_setopt(_curl, CURLOPT_HTTPGET, 0L);
+    CURLcode res = curl_easy_perform(_curl);
+    CHECKCURLCODE(res, "curl_easy_perform failed");
+
+    res = curl_easy_getinfo(_curl, CURLINFO_RESPONSE_CODE, &http_code);
+    CHECKCURLCODE(res, "curl_easy_getinfo");
+
     if ((http_code != 200 && http_code != 304)) {
         throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s", uri % http_code, MEC_HTTPServer);
     }
@@ -1303,7 +1316,7 @@ long ControllerClientImpl::GetModifiedTime(const std::string& uri, double timeou
     }
 
     long mtime;
-    CURLcode res = curl_easy_getinfo(_curl, CURLINFO_FILETIME, &mtime);
+    res = curl_easy_getinfo(_curl, CURLINFO_FILETIME, &mtime);
     CHECKCURLCODE(res, "curl_easy_getinfo");
     return mtime;
 }
