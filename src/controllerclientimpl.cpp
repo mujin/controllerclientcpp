@@ -1293,12 +1293,13 @@ long ControllerClientImpl::GetModifiedTime(const std::string& uri, double timeou
     long filetime=-1;
     curl_easy_setopt(_curl, CURLOPT_URL, _PrepareDestinationURI_UTF8(uri, false).c_str());
     curl_easy_setopt(_curl, CURLOPT_FILETIME, 1L);
+    curl_easy_setopt(_curl, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(_curl, CURLOPT_NOBODY, 1L);
     CURLcode res = curl_easy_perform(_curl);
     if (CURLE_OK == res) {
         res = curl_easy_getinfo(_curl, CURLINFO_FILETIME, &filetime);
-        if((CURLE_OK == res) && (filetime >= 0)) {
-            time_t file_time = (time_t)filetime;
-        }
+    } else {
+        MUJIN_LOG_INFO("Failed to get the timestamp of " + _PrepareDestinationURI_UTF8(uri, false));
     }
     return filetime;
 }
