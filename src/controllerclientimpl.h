@@ -164,13 +164,13 @@ protected:
     static int _WriteVectorCallback(char *data, size_t size, size_t nmemb, std::vector<unsigned char> *writerData);
 
     /// \brief sets up http header for doing http operation with json data
-    void _SetHTTPHeadersJSON();
+    void _SetupHTTPHeadersJSON();
 
     /// \brief sets up http header for doing http operation with stl data
-    void _SetHTTPHeadersSTL();
+    void _SetupHTTPHeadersSTL();
 
     /// \brief sets up http header for doing http operation with multipart/form-data data
-    void _SetHTTPHeadersMultipartFormData();
+    void _SetupHTTPHeadersMultipartFormData();
 
     /// \brief given a raw uri with "mujin:/", return the real network uri
     ///
