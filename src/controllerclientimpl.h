@@ -141,16 +141,6 @@ public:
     /// \return primary key for the geometry created
     std::string SetObjectGeometryMesh(const std::string& objectPk, const std::string& scenePk, const std::vector<unsigned char>& meshData, const std::string& unit = "mm", double timeout = 5);
 
-    inline CURL* GetCURL() const
-    {
-        return _curl;
-    }
-
-    inline boost::shared_ptr<char> GetURLEscapedString(const std::string& name) const
-    {
-        return boost::shared_ptr<char>(curl_easy_escape(_curl, name.c_str(), name.size()), curl_free);
-    }
-
     inline std::string GetBaseUri() const
     {
         return _baseuri;
