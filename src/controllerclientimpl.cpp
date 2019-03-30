@@ -230,7 +230,7 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
     res = curl_easy_setopt(_curl, CURLOPT_USERAGENT, useragent.c_str());
     CHECKCURLCODE(res, "failed to set user-agent");
 
-    res = curl_easy_setopt(_curl, CURLOPT_FOLLOWLOCATION, 0); // do not bounce through pages since we need to detect when login sessions expired
+    res = curl_easy_setopt(_curl, CURLOPT_FOLLOWLOCATION, 1); // we can always follow redirect now, we don't need to detect login page
     CHECKCURLCODE(res, "failed to set follow location");
     res = curl_easy_setopt(_curl, CURLOPT_MAXREDIRS, 10);
     CHECKCURLCODE(res, "failed to set max redirs");
@@ -1289,11 +1289,14 @@ long ControllerClientImpl::GetModifiedTime(const std::string& uri, double timeou
 {
     boost::mutex::scoped_lock lock(_mutex);
 
+    // on exit, reset the curl options we are going to set
+    CURL_OPTION_SAVER(_curl, CURLOPT_FILETIME, 0, long);
+    CURL_OPTION_SAVER(_curl, CURLOPT_NOBODY, 0, long);
+
     // Copied from https://curl.haxx.se/libcurl/c/CURLINFO_FILETIME.html
     long filetime=-1;
     curl_easy_setopt(_curl, CURLOPT_URL, _PrepareDestinationURI_UTF8(uri, false).c_str());
     curl_easy_setopt(_curl, CURLOPT_FILETIME, 1L);
-    curl_easy_setopt(_curl, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(_curl, CURLOPT_NOBODY, 1L);
     CURLcode res = curl_easy_perform(_curl);
     if (CURLE_OK == res) {
