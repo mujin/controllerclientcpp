@@ -23,12 +23,12 @@
 
 MUJIN_LOGGER("mujin.controllerclientcpp");
 
-#define CURL_OPTION_SAVER(curl, curlopt, curvalue) boost::shared_ptr<void> __curloptionsaver ## curlopt((void*)0, boost::bind(boost::function<CURLcode(CURL*, CURLoption, decltype(curvalue))>(curl_easy_setopt), curl, curlopt, curvalue));
-#define CURL_OPTION_SETTER(curl, curlopt, newvalue) CHECKCURLCODE(curl_easy_setopt(curl, curlopt, newvalue), "curl_easy_setopt " # curlopt);
-#define CURL_OPTION_SAVE_SETTER(curl, curlopt, curvalue, newvalue) CURL_OPTION_SAVER(curl, curlopt, curvalue); CURL_OPTION_SETTER(curl, curlopt, newvalue);
+#define CURL_OPTION_SAVER(curl, curlopt, curvalue) boost::shared_ptr<void> __curloptionsaver ## curlopt((void*)0, boost::bind(boost::function<CURLcode(CURL*, CURLoption, decltype(curvalue))>(curl_easy_setopt), curl, curlopt, curvalue))
+#define CURL_OPTION_SETTER(curl, curlopt, newvalue) CHECKCURLCODE(curl_easy_setopt(curl, curlopt, newvalue), "curl_easy_setopt " # curlopt)
+#define CURL_OPTION_SAVE_SETTER(curl, curlopt, curvalue, newvalue) CURL_OPTION_SAVER(curl, curlopt, curvalue); CURL_OPTION_SETTER(curl, curlopt, newvalue)
 #define CURL_INFO_GETTER(curl, curlinfo, outvalue) CHECKCURLCODE(curl_easy_getinfo(curl, curlinfo, outvalue), "curl_easy_getinfo " # curlinfo)
 #define CURL_PERFORM(curl) CHECKCURLCODE(curl_easy_perform(curl), "curl_easy_perform")
-#define CURL_FORM_RELEASER(form) boost::shared_ptr<void> __curlformreleaser ## form((void*)0, boost::bind(boost::function<void(decltype(form))>(curl_formfree), form));
+#define CURL_FORM_RELEASER(form) boost::shared_ptr<void> __curlformreleaser ## form((void*)0, boost::bind(boost::function<void(decltype(form))>(curl_formfree), form))
 
 namespace mujinclient {
 
@@ -437,9 +437,7 @@ void ControllerClientImpl::SyncUpload_UTF8(const std::string& _sourcefilename, c
     }
 
     // sourcefilenamebase is utf-8
-    char* pescapeddir = curl_easy_escape(_curl, sourcefilename.substr(nBaseFilenameStartIndex).c_str(), 0);
-    std::string uploadfileuri = baseuploaduri + std::string(pescapeddir);
-    curl_free(pescapeddir);
+    std::string uploadfileuri = baseuploaduri + EscapeString(sourcefilename.substr(nBaseFilenameStartIndex));
     _UploadFileToController_UTF8(sourcefilename, uploadfileuri);
 
     /* webdav operations
@@ -534,9 +532,7 @@ void ControllerClientImpl::SyncUpload_UTF16(const std::wstring& _sourcefilename_
     // sourcefilenamebase is utf-8
     std::string sourcefilenamedir_utf8;
     utf8::utf16to8(sourcefilename_utf16.begin()+nBaseFilenameStartIndex, sourcefilename_utf16.end(), std::back_inserter(sourcefilenamedir_utf8));
-    char* pescapeddir = curl_easy_escape(_curl, sourcefilenamedir_utf8.c_str(), 0);
-    std::string uploadfileuri = baseuploaduri + std::string(pescapeddir);
-    curl_free(pescapeddir);
+    std::string uploadfileuri = baseuploaduri + EscapeString(sourcefilenamedir_utf8);
     _UploadFileToController_UTF16(sourcefilename_utf16, uploadfileuri);
 }
 
@@ -785,11 +781,7 @@ std::string ControllerClientImpl::GetScenePrimaryKeyFromURI_UTF8(const std::stri
 {
     size_t index = uri.find(":/");
     MUJIN_ASSERT_OP_FORMAT(index,!=,std::string::npos, "bad URI: %s", uri, MEC_InvalidArguments);
-    uri.substr(index+2);
-    char* pcurlresult = curl_easy_escape(_curl, uri.c_str()+index+2,uri.size()-index-2);
-    std::string sresult(pcurlresult);
-    curl_free(pcurlresult); // have to release the result
-    return sresult;
+    return EscapeString(uri.substr(index+2));
 }
 
 std::string ControllerClientImpl::GetScenePrimaryKeyFromURI_UTF16(const std::wstring& uri)
@@ -801,10 +793,7 @@ std::string ControllerClientImpl::GetScenePrimaryKeyFromURI_UTF16(const std::wst
 
 std::string ControllerClientImpl::GetPrimaryKeyFromName_UTF8(const std::string& name)
 {
-    char* pcurlresult = curl_easy_escape(_curl, name.c_str(), name.size());
-    std::string sresult(pcurlresult);
-    curl_free(pcurlresult); // have to release the result
-    return sresult;
+    return EscapeString(name);
 }
 
 std::string ControllerClientImpl::GetPrimaryKeyFromName_UTF16(const std::wstring& name)
@@ -816,11 +805,7 @@ std::string ControllerClientImpl::GetPrimaryKeyFromName_UTF16(const std::wstring
 
 std::string ControllerClientImpl::GetNameFromPrimaryKey_UTF8(const std::string& pk)
 {
-    int outlength = 0;
-    char* punescaped = curl_easy_unescape(_curl, pk.c_str(), pk.size(), &outlength);
-    std::string utf8(punescaped, outlength);
-    curl_free(punescaped); // have to release the result
-    return utf8;
+    return UnescapeString(pk);
 }
 
 std::wstring ControllerClientImpl::GetNameFromPrimaryKey_UTF16(const std::string& pk)
@@ -953,18 +938,14 @@ std::string ControllerClientImpl::_EncodeWithoutSeparator(const std::string& raw
     for(size_t i = 0; i < raw.size(); ++i) {
         if( raw[i] == '/' ) {
             if( startindex != i ) {
-                char* pescaped = curl_easy_escape(_curl, raw.c_str()+startindex, i-startindex);
-                output += std::string(pescaped);
-                curl_free(pescaped);
+                output += EscapeString(raw.substr(startindex, i-startindex));
                 startindex = i+1;
             }
             output += '/';
         }
     }
     if( startindex != raw.size() ) {
-        char* pescaped = curl_easy_escape(_curl, raw.c_str()+startindex, raw.size()-startindex);
-        output += std::string(pescaped);
-        curl_free(pescaped);
+        output += EscapeString(raw.substr(startindex));
     }
     return output;
 }
@@ -982,17 +963,13 @@ void ControllerClientImpl::_EnsureWebDAVDirectories(const std::string& relativeu
     for(size_t i = 0; i < relativeuri.size(); ++i) {
         if( relativeuri[i] == '/' ) {
             if( startindex != i ) {
-                char* pescaped = curl_easy_escape(_curl, relativeuri.c_str()+startindex, i-startindex);
-                listCreateDirs.push_back(std::string(pescaped));
-                curl_free(pescaped);
+                listCreateDirs.push_back(EscapeString(relativeuri.substr(startindex, i-startindex)));
                 startindex = i+1;
             }
         }
     }
     if( startindex != relativeuri.size() ) {
-        char* pescaped = curl_easy_escape(_curl, relativeuri.c_str()+startindex, relativeuri.size()-startindex);
-        listCreateDirs.push_back(std::string(pescaped));
-        curl_free(pescaped);
+        listCreateDirs.push_back(EscapeString(relativeuri.substr(startindex)));
     }
 
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEFUNCTION, NULL, _WriteStringStreamCallback);
@@ -1291,9 +1268,7 @@ void ControllerClientImpl::_UploadDirectoryToController_UTF8(const std::string& 
             else {
                 nBaseFilenameStartIndex++;
             }
-            char* pescapeddir = curl_easy_escape(_curl, copydir_utf8.substr(nBaseFilenameStartIndex).c_str(), 0);
-            uri = rawuri + std::string(pescapeddir);
-            curl_free(pescapeddir);
+            uri = rawuri + EscapeString(copydir_utf8.substr(nBaseFilenameStartIndex));
         }
         else {
             // copydir also ends in a fileseparator, so remove the file separator from rawuri
@@ -1352,9 +1327,7 @@ void ControllerClientImpl::_UploadDirectoryToController_UTF8(const std::string& 
             else {
                 newcopydir_utf8 = str(boost::format("%s%c%s")%copydir_utf8%s_filesep%filename_utf8);
             }
-            char* pescapeddir = curl_easy_escape(_curl, filename_utf8.c_str(), filename_utf8.size());
-            std::string newuri = str(boost::format("%s/%s")%uri%pescapeddir);
-            curl_free(pescapeddir);
+            std::string newuri = str(boost::format("%s/%s")%uri%EscapeString(filename_utf8));
 
             if( ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) {
                 _UploadDirectoryToController_UTF8(newcopydir_utf8, newuri);
@@ -1379,9 +1352,7 @@ void ControllerClientImpl::_UploadDirectoryToController_UTF8(const std::string& 
 #else
         std::string dirfilename = encoding::ConvertFileSystemEncodingToUTF8(itdir->path().filename());
 #endif
-        char* pescapeddir = curl_easy_escape(_curl, dirfilename.c_str(), dirfilename.size());
-        std::string newuri = str(boost::format("%s/%s")%uri%pescapeddir);
-        curl_free(pescapeddir);
+        std::string newuri = str(boost::format("%s/%s")%uri%EscapeString(dirfilename));
         if( boost::filesystem::is_directory(itdir->status()) ) {
             _UploadDirectoryToController_UTF8(itdir->path().string(), newuri);
         }
@@ -1411,9 +1382,7 @@ void ControllerClientImpl::_UploadDirectoryToController_UTF16(const std::wstring
             }
             std::string name_utf8;
             utf8::utf16to8(copydir_utf16.begin()+nBaseFilenameStartIndex, copydir_utf16.end(), std::back_inserter(name_utf8));
-            char* pescapeddir = curl_easy_escape(_curl, name_utf8.c_str(), 0);
-            uri = rawuri + std::string(pescapeddir);
-            curl_free(pescapeddir);
+            uri = rawuri + EscapeString(name_utf8);
         }
         else {
             // copydir also ends in a fileseparator, so remove the file separator from rawuri
@@ -1467,9 +1436,7 @@ void ControllerClientImpl::_UploadDirectoryToController_UTF16(const std::wstring
             std::string filename_utf8;
             utf8::utf16to8(filename.begin(), filename.end(), std::back_inserter(filename_utf8));
             std::wstring newcopydir = str(boost::wformat(L"%s\\%s")%copydir_utf16%filename);
-            char* pescapeddir = curl_easy_escape(_curl, filename_utf8.c_str(), filename_utf8.size());
-            std::string newuri = str(boost::format("%s/%s")%uri%pescapeddir);
-            curl_free(pescapeddir);
+            std::string newuri = str(boost::format("%s/%s")%uri%EscapeString(filename_utf8));
 
             if( ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) {
                 _UploadDirectoryToController_UTF16(newcopydir, newuri);
@@ -1492,9 +1459,7 @@ void ControllerClientImpl::_UploadDirectoryToController_UTF16(const std::wstring
         std::wstring dirfilename_utf16 = itdir->path().filename().wstring();
         std::string dirfilename;
         utf8::utf16to8(dirfilename_utf16.begin(), dirfilename_utf16.end(), std::back_inserter(dirfilename));
-        char* pescapeddir = curl_easy_escape(_curl, dirfilename.c_str(), dirfilename.size());
-        std::string newuri = str(boost::format("%s/%s")%uri%pescapeddir);
-        curl_free(pescapeddir);
+        std::string newuri = str(boost::format("%s/%s")%uri%EscapeString(dirfilename));
         if( boost::filesystem::is_directory(itdir->status()) ) {
             _UploadDirectoryToController_UTF16(itdir->path().wstring(), newuri);
         }
@@ -1509,9 +1474,7 @@ void ControllerClientImpl::_UploadDirectoryToController_UTF16(const std::wstring
         std::wstring dirfilename_utf16 = itdir->path().filename();
         std::string dirfilename;
         utf8::utf16to8(dirfilename_utf16.begin(), dirfilename_utf16.end(), std::back_inserter(dirfilename));
-        char* pescapeddir = curl_easy_escape(_curl, dirfilename.c_str(), dirfilename.size());
-        std::string newuri = str(boost::format("%s/%s")%uri%pescapeddir);
-        curl_free(pescapeddir);
+        std::string newuri = str(boost::format("%s/%s")%uri%EscapeString(dirfilename));
         if( boost::filesystem::is_directory(itdir->status()) ) {
             _UploadDirectoryToController_UTF16(itdir->path().string(), newuri);
         }
@@ -1727,3 +1690,4 @@ size_t ControllerClientImpl::_ReadInMemoryUploadCallback(void *ptr, size_t size,
 }
 
 } // end namespace mujinclient
+

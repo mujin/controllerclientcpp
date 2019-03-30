@@ -156,6 +156,22 @@ public:
         return _baseuri;
     }
 
+    /// \brief URL-encode raw string
+    inline std::string EscapeString(const std::string& raw) const
+    {
+        boost::shared_ptr<char> pstr(curl_easy_escape(_curl, raw.c_str(), raw.size()), curl_free);
+        return std::string(pstr.get());
+    }
+
+    /// \brief decode URL-encoded raw string
+    inline std::string UnescapeString(const std::string& raw) const
+    {
+        int outlength = 0;
+        boost::shared_ptr<char> pstr(curl_easy_unescape(_curl, raw.c_str(), raw.size(), &outlength), curl_free);
+        return std::string(pstr.get(), outlength);
+    }
+
+
 protected:
 
     int _CallPut(const std::string& relativeuri, const void* pdata, size_t nDataSize, rapidjson::Document& pt, curl_slist* headers, int expectedhttpcode=202, double timeout = 5.0);
