@@ -524,6 +524,8 @@ public:
     /// \param vdata filled with the contents of the file on the controller filesystem
     virtual void DownloadFileFromControllerIfModifiedSince_UTF16(const std::wstring& desturi, long localtimeval, long &remotetimeval, std::vector<unsigned char>& vdata, double timeout = 5.0) = 0;
 
+    virtual long GetModifiedTime(const std::string& uri, double timeout = 5.0) = 0;
+
     /// \brief Deletes a file on the controller network filesystem.
     ///
     /// \param uri UTF-8 encoded file in the network filesystem to delete.
@@ -544,7 +546,9 @@ public:
     /// \param uri UTF-16 encoded
     virtual void DeleteDirectoryOnController_UTF16(const std::wstring& uri) = 0;
 
-    virtual void AddObjectToObjectSet(const std::string &objectname, const std::string &objectsetname, double timeout = 5.0) = 0;
+    virtual void ModifySceneAddReferenceObjectPK(const std::string &scenepk, const std::string &referenceobjectpk, double timeout = 5.0) = 0;
+
+    virtual void ModifySceneRemoveReferenceObjectPK(const std::string &scenepk, const std::string &referenceobjectpk, double timeout = 5.0) = 0;
 
     virtual void SetDefaultSceneType(const std::string& scenetype) = 0;
 

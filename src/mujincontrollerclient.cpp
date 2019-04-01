@@ -144,7 +144,7 @@ ObjectResource::LinkResource::LinkResource(ControllerClientPtr controller, const
 {
 }
 
-ObjectResource::GeometryResource::GeometryResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk) : WebResource(controller, str(boost::format("object/%s/geometry")%objectpk), pk), objectpk(objectpk), pk(pk)
+ObjectResource::GeometryResource::GeometryResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk) : WebResource(controller, str(boost::format("object/%s/geometry")%objectpk), pk), pk(pk), objectpk(objectpk)
 {
 }
 
@@ -595,9 +595,8 @@ SceneResource::SceneResource(ControllerClientPtr controller, const std::string& 
 TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& taskname, const std::string& tasktype, int options)
 {
     GETCONTROLLERIMPL();
-    boost::shared_ptr<char> pescapedtaskname = controller->GetURLEscapedString(taskname);
     rapidjson::Document pt(rapidjson::kObjectType);
-    controller->CallGet(str(boost::format("scene/%s/task/?format=json&limit=1&name=%s&fields=pk,tasktype")%GetPrimaryKey()%pescapedtaskname), pt);
+    controller->CallGet(str(boost::format("scene/%s/task/?format=json&limit=1&name=%s&fields=pk,tasktype")%GetPrimaryKey()%controller->EscapeString(taskname)), pt);
     // task exists
     std::string pk;
 
@@ -684,9 +683,8 @@ void SceneResource::SetInstObjectsState(const std::vector<SceneResource::InstObj
 TaskResourcePtr SceneResource::GetTaskFromName_UTF8(const std::string& taskname, int options)
 {
     GETCONTROLLERIMPL();
-    boost::shared_ptr<char> pescapedtaskname = controller->GetURLEscapedString(taskname);
     rapidjson::Document pt(rapidjson::kObjectType);
-    controller->CallGet(str(boost::format("scene/%s/task/?format=json&limit=1&name=%s&fields=pk,tasktype")%GetPrimaryKey()%pescapedtaskname), pt);
+    controller->CallGet(str(boost::format("scene/%s/task/?format=json&limit=1&name=%s&fields=pk,tasktype")%GetPrimaryKey()%controller->EscapeString(taskname)), pt);
     // task exists
 
     if (!(pt.IsObject() && pt.HasMember("objects") && pt["objects"].IsArray() && pt["objects"].Size() > 0)) {
@@ -966,9 +964,8 @@ void TaskResource::GetRunTimeStatus(JobStatus& status, int options)
 OptimizationResourcePtr TaskResource::GetOrCreateOptimizationFromName_UTF8(const std::string& optimizationname, const std::string& optimizationtype)
 {
     GETCONTROLLERIMPL();
-    boost::shared_ptr<char> pescapedoptimizationname = controller->GetURLEscapedString(optimizationname);
     rapidjson::Document pt(rapidjson::kObjectType);
-    controller->CallGet(str(boost::format("task/%s/optimization/?format=json&limit=1&name=%s&fields=pk,optimizationtype")%GetPrimaryKey()%pescapedoptimizationname), pt);
+    controller->CallGet(str(boost::format("task/%s/optimization/?format=json&limit=1&name=%s&fields=pk,optimizationtype")%GetPrimaryKey()%controller->EscapeString(optimizationname)), pt);
     // optimization exists
     if (pt.IsObject() && pt.HasMember("objects") && pt["objects"].IsArray() && pt["objects"].Size() > 0) {
         rapidjson::Value& object = pt["objects"][0];

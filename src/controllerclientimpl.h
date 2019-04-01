@@ -59,14 +59,16 @@ public:
     virtual void UploadDirectoryToController_UTF16(const std::wstring& copydir, const std::wstring& desturi);
     virtual void DownloadFileFromController_UTF8(const std::string& desturi, std::vector<unsigned char>& vdata);
     virtual void DownloadFileFromController_UTF16(const std::wstring& desturi, std::vector<unsigned char>& vdata);
-    virtual void DownloadFileFromControllerIfModifiedSince_UTF8(const std::string& desturi, long localtimeval, long &remotetimeval, std::vector<unsigned char>& vdata, double timeout = 5);
-    virtual void DownloadFileFromControllerIfModifiedSince_UTF16(const std::wstring& desturi, long localtimeval, long &remotetimeval, std::vector<unsigned char>& vdata, double timeout = 5);
+    virtual void DownloadFileFromControllerIfModifiedSince_UTF8(const std::string& desturi, long localtimeval, long &remotetimeval, std::vector<unsigned char>& vdata, double timeout);
+    virtual void DownloadFileFromControllerIfModifiedSince_UTF16(const std::wstring& desturi, long localtimeval, long &remotetimeval, std::vector<unsigned char>& vdata, double timeout);
+    virtual long GetModifiedTime(const std::string& uri, double timeout);
     virtual void DeleteFileOnController_UTF8(const std::string& desturi);
     virtual void DeleteFileOnController_UTF16(const std::wstring& desturi);
     virtual void DeleteDirectoryOnController_UTF8(const std::string& desturi);
     virtual void DeleteDirectoryOnController_UTF16(const std::wstring& desturi);
 
-    virtual void AddObjectToObjectSet(const std::string &objectname, const std::string &objectsetname, double timeout = 5.0);
+    virtual void ModifySceneAddReferenceObjectPK(const std::string &scenepk, const std::string &referenceobjectpk, double timeout = 5.0);
+    virtual void ModifySceneRemoveReferenceObjectPK(const std::string &scenepk, const std::string &referenceobjectpk, double timeout = 5.0);
 
     /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
     int CallGet(const std::string& relativeuri, rapidjson::Document& pt, int expectedhttpcode=200, double timeout = 5.0);
@@ -142,20 +144,26 @@ public:
     /// \return primary key for the geometry created
     std::string SetObjectGeometryMesh(const std::string& objectPk, const std::string& scenePk, const std::vector<unsigned char>& meshData, const std::string& unit = "mm", double timeout = 5);
 
-    inline CURL* GetCURL() const
-    {
-        return _curl;
-    }
-
-    inline boost::shared_ptr<char> GetURLEscapedString(const std::string& name) const
-    {
-        return boost::shared_ptr<char>(curl_easy_escape(_curl, name.c_str(), name.size()), curl_free);
-    }
-
     inline std::string GetBaseUri() const
     {
         return _baseuri;
     }
+
+    /// \brief URL-encode raw string
+    inline std::string EscapeString(const std::string& raw) const
+    {
+        boost::shared_ptr<char> pstr(curl_easy_escape(_curl, raw.c_str(), raw.size()), curl_free);
+        return std::string(pstr.get());
+    }
+
+    /// \brief decode URL-encoded raw string
+    inline std::string UnescapeString(const std::string& raw) const
+    {
+        int outlength = 0;
+        boost::shared_ptr<char> pstr(curl_easy_unescape(_curl, raw.c_str(), raw.size(), &outlength), curl_free);
+        return std::string(pstr.get(), outlength);
+    }
+
 
 protected:
 
@@ -165,13 +173,13 @@ protected:
     static int _WriteVectorCallback(char *data, size_t size, size_t nmemb, std::vector<unsigned char> *writerData);
 
     /// \brief sets up http header for doing http operation with json data
-    void _SetHTTPHeadersJSON();
+    void _SetupHTTPHeadersJSON();
 
     /// \brief sets up http header for doing http operation with stl data
-    void _SetHTTPHeadersSTL();
+    void _SetupHTTPHeadersSTL();
 
     /// \brief sets up http header for doing http operation with multipart/form-data data
-    void _SetHTTPHeadersMultipartFormData();
+    void _SetupHTTPHeadersMultipartFormData();
 
     /// \brief given a raw uri with "mujin:/", return the real network uri
     ///
@@ -194,6 +202,7 @@ protected:
     int _CallGet(const std::string& desturi, rapidjson::Document& pt, int expectedhttpcode=200, double timeout = 5.0);
     int _CallGet(const std::string& desturi, std::string& outputdata, int expectedhttpcode=200, double timeout = 5.0);
     int _CallGet(const std::string& desturi, std::vector<unsigned char>& outputdata, int expectedhttpcode=200, double timeout = 5.0);
+    int _CallPost(const std::string& desturi, const std::string& data, rapidjson::Document& pt, int expectedhttpcode=201, double timeout = 5.0);
 
     /// \brief desturi is URL-encoded. Also assume _mutex is locked.
     virtual void _UploadFileToController_UTF8(const std::string& filename, const std::string& desturi);
