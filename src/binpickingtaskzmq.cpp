@@ -229,6 +229,7 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
                 }
                 catch (std::exception const &e) {
                     MUJIN_LOG_ERROR("HeartBeat reply is not JSON");
+                    MUJIN_LOG_ERROR(replystring);
                     MUJIN_LOG_ERROR(e.what());
                     continue;
                 }
