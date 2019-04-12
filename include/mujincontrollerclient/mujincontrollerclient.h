@@ -519,6 +519,8 @@ public:
     /// \param vdata filled with the contents of the file on the controller filesystem
     virtual void DownloadFileFromControllerIfModifiedSince_UTF16(const std::wstring& desturi, long localtimeval, long &remotetimeval, std::vector<unsigned char>& vdata, double timeout = 5.0) = 0;
 
+    virtual long GetModifiedTime(const std::string& uri, double timeout = 5.0) = 0;
+
     /// \brief Deletes a file on the controller network filesystem.
     ///
     /// \param uri UTF-8 encoded file in the network filesystem to delete.
