@@ -104,7 +104,7 @@ int main(int argc, char ** argv)
                 break;
             }
             cout << "Failed to get heart beat " << it_try_heartbeat << "/" << num_try_heartbeat << "\n";
-            boost::this_thread::sleep(boost::posix_time::seconds(0.1));
+            boost::this_thread::sleep(boost::posix_time::milliseconds(100));
         }
         if (heartbeat.empty()) {
             throw MujinException(boost::str(boost::format("Failed to obtain heartbeat from %s. Is controller running?")%endpoint.str()));
