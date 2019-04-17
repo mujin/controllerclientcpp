@@ -414,6 +414,8 @@ void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const rapid
     BOOST_ASSERT(pt.IsObject() && pt.HasMember("output"));
     const rapidjson::Value& output = pt["output"];
 
+    mrGeometryInfos.clear();
+    
     const rapidjson::Value& instobjects = output["instobjects"];
     for (rapidjson::Document::ConstMemberIterator it = instobjects.MemberBegin(); it != instobjects.MemberEnd(); it++) {
         std::string objname = it->name.GetString();
@@ -427,6 +429,11 @@ void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const rapid
         minstobjecttransform[objname] = transform;
         minstobjectobb[objname] = resultobb;
         minstobjectinnerobb[objname] = resultinnerobb;
+
+        mrGeometryInfos[objname] = rapidjson::Document();
+        if( it->value.HasMember("geometryInfos") ) {
+            mrGeometryInfos[objname].CopyFrom(it->value["geometryInfos"], mrGeometryInfos[objname].GetAllocator());
+        }
     }
 
     const rapidjson::Value& sensors = output["sensors"];

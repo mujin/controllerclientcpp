@@ -214,11 +214,12 @@ public:
     {
         virtual ~ResultGetInstObjectAndSensorInfo();
         void Parse(const rapidjson::Value& pt);
-        std::map<std::string, Transform> minstobjecttransform; ///< unit is m
-        std::map<std::string, ResultOBB> minstobjectobb; ///< unit is m
-        std::map<std::string, ResultOBB> minstobjectinnerobb; ///< unit is m
-        std::map<std::string, Transform> msensortransform; ///< unit is m
+        std::map<std::string, Transform> minstobjecttransform;
+        std::map<std::string, ResultOBB> minstobjectobb;
+        std::map<std::string, ResultOBB> minstobjectinnerobb; 
+        std::map<std::string, Transform> msensortransform;
         std::map<std::string, RobotResource::AttachedSensorResource::SensorData> msensordata;
+        std::map<std::string, rapidjson::Document> mrGeometryInfos; ///< for every object, list of all the geometry infos
     };
 
     struct MUJINCLIENT_API ResultHeartBeat : public ResultBase
