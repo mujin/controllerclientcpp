@@ -430,9 +430,10 @@ void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const rapid
         minstobjectobb[objname] = resultobb;
         minstobjectinnerobb[objname] = resultinnerobb;
 
-        mrGeometryInfos[objname] = rapidjson::Document();
         if( it->value.HasMember("geometryInfos") ) {
-            mrGeometryInfos[objname].CopyFrom(it->value["geometryInfos"], mrGeometryInfos[objname].GetAllocator());
+            boost::shared_ptr<rapidjson::Document> pr(new rapidjson::Document());;
+            pr->CopyFrom(it->value["geometryInfos"], pr->GetAllocator());
+            mrGeometryInfos[objname] = pr;
         }
     }
 

@@ -219,7 +219,7 @@ public:
         std::map<std::string, ResultOBB> minstobjectinnerobb; 
         std::map<std::string, Transform> msensortransform;
         std::map<std::string, RobotResource::AttachedSensorResource::SensorData> msensordata;
-        std::map<std::string, rapidjson::Document> mrGeometryInfos; ///< for every object, list of all the geometry infos
+        std::map<std::string, boost::shared_ptr<rapidjson::Document> > mrGeometryInfos; ///< for every object, list of all the geometry infos
     };
 
     struct MUJINCLIENT_API ResultHeartBeat : public ResultBase
