@@ -31,18 +31,12 @@ public:
     std::string command;
     std::string cameraname;
     std::vector<Real> halconpatternparameters;
-
-    std::vector<Real> conedirection;
-    Real coneangle;
-    int orientationdensity;
     std::vector<Real> distances;
 
     int numsamples;
 
     std::string toolname;
     Transform transform;
-    std::string targetarea;
-    std::string samplingmethod;
 
     /*
     goals["command"] = "ComputeCalibrationPoses"
@@ -67,6 +61,7 @@ public:
         std::vector<std::vector<Real> > poses;
         std::vector<std::vector<Real> > configs;
         std::vector<int> jointindices;
+        std::vector<int> gridindices;
     };
 
     HandEyeCalibrationResultResource(ControllerClientPtr controller, const std::string& pk);

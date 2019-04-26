@@ -26,20 +26,14 @@ void HandEyeCalibrationTaskParameters::SetDefaults()
     halconpatternparameters.resize(4);
     halconpatternparameters[0] = 7;
     halconpatternparameters[1] = 7;
-    halconpatternparameters[2] = 0.015875;
+    halconpatternparameters[2] = 0.016;
     halconpatternparameters[3] = 0.5;
-    conedirection.resize(3);
-    conedirection[0] = 0;
-    conedirection[1] = 0;
-    conedirection[2] = -1;
-    coneangle = 45;
-    orientationdensity = 1;
     distances.resize(3);
     numsamples = 15;
     toolname = "Flange";
 }
 
-HandEyeCalibrationResultResource::HandEyeCalibrationResultResource(ControllerClientPtr controller, const std::string& pk) : PlanningResultResource(controller,"binpickingresult", pk)
+HandEyeCalibrationResultResource::HandEyeCalibrationResultResource(ControllerClientPtr controller, const std::string& pk) : PlanningResultResource(controller, "binpickingresult", pk)
 {
 }
 
@@ -52,6 +46,7 @@ void HandEyeCalibrationResultResource::GetCalibrationPoses(HandEyeCalibrationRes
     LoadJsonValueByKey(output, "poses", result.poses);
     LoadJsonValueByKey(output, "configs", result.configs);
     LoadJsonValueByKey(output, "jointindices", result.jointindices);
+    LoadJsonValueByKey(output, "gridindices", result.gridindices);
 }
 
 HandEyeCalibrationTaskResource::HandEyeCalibrationTaskResource(const std::string& taskname, ControllerClientPtr controller, SceneResourcePtr scene) : TaskResource(controller,_GetOrCreateTaskAndGetPk(scene, taskname))
@@ -104,14 +99,11 @@ void HandEyeCalibrationTaskResource::SetTaskParameters(const HandEyeCalibrationT
 \"command\":\"%s\",\
 \"cameraname\": \"%s\",\
 \"halconpatternparameters\": [%d,%d,%.15f,%.15f],\
-\"patternvisibility\": {\"conedirection\": [%.15f, %.15f, %.15f], \"coneangle\": %.15f, \"orientationdensity\": %d,\
-\"distances\": [%.15f, %.15f, %.15f]}, \"numsamples\": %d,\
-\"toolname\": \"%s\",\
-\"targetarea\": \"%s\",\
-\"samplingmethod\": \"%s\",\
-\"patternposition\": {\"translation\":[%.15f, %.15f, %.15f], \"quaternion\":[%.15f, %.15f, %.15f, %.15f]}}}")%taskparameters.command%taskparameters.cameraname%taskparameters.halconpatternparameters[0]%taskparameters.halconpatternparameters[1]%taskparameters.halconpatternparameters[2]%taskparameters.halconpatternparameters[3]%taskparameters.conedirection[0]%taskparameters.conedirection[1]%taskparameters.conedirection[2]%taskparameters.coneangle%taskparameters.orientationdensity%taskparameters.distances[0]%taskparameters.distances[1]%taskparameters.distances[2]%taskparameters.numsamples%taskparameters.toolname%taskparameters.targetarea%taskparameters.samplingmethod%taskparameters.transform.translate[0]%taskparameters.transform.translate[1]%taskparameters.transform.translate[2]%taskparameters.transform.quaternion[0]%taskparameters.transform.quaternion[1]%taskparameters.transform.quaternion[2]%taskparameters.transform.quaternion[3]);
+\"calibboardvisibility\": {\"distances\": [%.15f, %.15f, %.15f]},\
+\"numsamples\": %d,\
+\"toolname\": \"%s\"}}") % taskparameters.command % taskparameters.cameraname % taskparameters.halconpatternparameters[0] % taskparameters.halconpatternparameters[1] % taskparameters.halconpatternparameters[2] % taskparameters.halconpatternparameters[3] % taskparameters.distances[0] % taskparameters.distances[1] % taskparameters.distances[2] % taskparameters.numsamples % taskparameters.toolname);
     rapidjson::Document d;
-    controller->CallPutJSON(str(boost::format("task/%s/?format=json")%GetPrimaryKey()), taskgoalput,d);
+    controller->CallPutJSON(str(boost::format("task/%s/?format=json") % GetPrimaryKey()), taskgoalput, d);
 }
 
 PlanningResultResourcePtr HandEyeCalibrationTaskResource::GetResult()
