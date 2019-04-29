@@ -19,7 +19,7 @@ endif()
 
 link_directories(${MUJINCLIENT_LINK_DIRS})
 
-set(SOURCE_FILES handeyecalibrationtask.cpp binpickingtask.cpp common.cpp common.h controllerclientimpl.cpp controllerclientimpl.h mujincontrollerclient.cpp utf8.h boost_assertion_failed.cpp)
+set(SOURCE_FILES binpickingtask.cpp common.cpp common.h controllerclientimpl.cpp controllerclientimpl.h mujincontrollerclient.cpp utf8.h boost_assertion_failed.cpp)
 if (libzmq_FOUND)
   set(SOURCE_FILES ${SOURCE_FILES} binpickingtaskzmq.h binpickingtaskzmq.cpp mujinzmq.cpp)
 endif()
