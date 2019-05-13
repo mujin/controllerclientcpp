@@ -831,7 +831,7 @@ std::string ControllerClientImpl::CreateIkParam(const std::string& objectPk, con
     rapidjson::Document pt(rapidjson::kObjectType);
     const std::string ikparamData("{\"name\":\"" + name + "\", \"iktype\":\"" + iktype + "\"}");
     const std::string uri(str(boost::format("object/%s/ikparam/") % objectPk));
-    
+
     CallPost(uri, ikparamData, pt, 201, timeout);
     return GetJsonValueByKey<std::string>(pt, "pk");
 }
@@ -845,7 +845,7 @@ std::string ControllerClientImpl::CreateLink(const std::string& objectPk, const 
     }
     data += "}";
     const std::string uri(str(boost::format("object/%s/link/") % objectPk));
-    
+
     CallPost(uri, data, pt, 201, timeout);
     return GetJsonValueByKey<std::string>(pt, "pk");
 }
@@ -1152,10 +1152,23 @@ long ControllerClientImpl::GetModifiedTime(const std::string& uri, double timeou
 
     // Copied from https://curl.haxx.se/libcurl/c/CURLINFO_FILETIME.html
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPHEADER, NULL, _httpheadersjson);
-    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, _PrepareDestinationURI_UTF8(uri, false).c_str());
+
+    // in order to resolve cache correctly, need to go thorugh file/download endpoint
+    std::string apiendpoint = _baseuri + "file/download/?filename=";
+    if( uri.size() >= 7 && uri.substr(0,7) == "mujin:/" ) {
+        apiendpoint += _EncodeWithoutSeparator(uri.substr(7));
+    }
+
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, apiendpoint.c_str());
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_FILETIME, 0L, 1L);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_NOBODY, 0L, 1L);
     CURL_PERFORM(_curl);
+
+    long http_code = 0;
+    CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
+    if( http_code != 200 ) {
+        throw MUJIN_EXCEPTION_FORMAT("Cannot get modified date of %s for HTTP HEAD call: return is %s", uri%http_code, MEC_HTTPServer);
+    }
 
     long filetime=-1;
     CURL_INFO_GETTER(_curl, CURLINFO_FILETIME, &filetime);
