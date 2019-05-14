@@ -626,6 +626,8 @@ void BinPickingTaskResource::ResultOBB::Parse(const rapidjson::Value& pt)
             rotationmat[i*3+j] = rotationmatrix2d[i][j];
         }
     }
+
+    LoadJsonValueByKey(v, "quaternion", quaternion);
 }
 
 BinPickingTaskResource::ResultHeartBeat::~ResultHeartBeat()

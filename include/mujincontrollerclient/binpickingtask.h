@@ -200,7 +200,8 @@ public:
         bool operator!=(const ResultOBB& other) const {
             return !FuzzyEquals(translation, other.translation) ||
                    !FuzzyEquals(extents, other.extents) ||
-                   !FuzzyEquals(rotationmat, other.rotationmat);
+                   !FuzzyEquals(rotationmat, other.rotationmat) ||
+                   !FuzzyEquals(quaternion, other.quaternion);
         }
         bool operator==(const ResultOBB& other) const {
             return !operator!=(other);
@@ -208,6 +209,7 @@ public:
         std::vector<Real> translation;
         std::vector<Real> extents;
         std::vector<Real> rotationmat;  // row major
+        std::vector<Real> quaternion; // the quaternion
     };
 
     struct MUJINCLIENT_API ResultGetInstObjectAndSensorInfo : public ResultBase
@@ -216,7 +218,7 @@ public:
         void Parse(const rapidjson::Value& pt);
         std::map<std::string, Transform> minstobjecttransform;
         std::map<std::string, ResultOBB> minstobjectobb;
-        std::map<std::string, ResultOBB> minstobjectinnerobb; 
+        std::map<std::string, ResultOBB> minstobjectinnerobb;
         std::map<std::string, Transform> msensortransform;
         std::map<std::string, RobotResource::AttachedSensorResource::SensorData> msensordata;
         std::map<std::string, boost::shared_ptr<rapidjson::Document> > mrGeometryInfos; ///< for every object, list of all the geometry infos
