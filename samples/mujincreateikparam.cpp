@@ -204,14 +204,16 @@ int main(int argc, char ** argv)
     vector<string> iknames;
     iknames.push_back("sample");
     pBinpickingTask->ComputeIKFromParameters(result,object_name,iknames,0);
-    BinPickingTaskResource::ResultGetJointValues jointvalues;
-    pBinpickingTask->GetJointValues(jointvalues);
+    BinPickingTaskResource::ResultGetBinpickingState taskstate;
+    rapidjson::Document taskparametersParsed;
+    mujinjson::ParseJson(taskparametersParsed,opts["taskparameters"].as<string>());
+    pBinpickingTask->GetPublishedTaskState(taskstate, mujinjson::GetStringJsonValueByKey(taskparametersParsed,"robotname"), "mm", timeout);
     for(int i=0;i<result.dofvalues.size();i++){
         int j=0;
-        for(;j<jointvalues.currentjointvalues.size();j++){
-            if(abs(result.dofvalues[i][j]-jointvalues.currentjointvalues[j])>0.01)break;
+        for(;j<taskstate.currentJointValues.size();j++){
+            if(abs(result.dofvalues[i][j]-taskstate.currentJointValues[j])>0.01)break;
         }
-        if(j==jointvalues.currentjointvalues.size()){
+        if(j==taskstate.currentJointValues.size()){
             ik->SetJSON("{\"extra\":"+result.extra[i]+"}");
         }
     }
