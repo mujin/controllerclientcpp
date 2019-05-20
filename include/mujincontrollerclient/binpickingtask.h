@@ -114,6 +114,14 @@ public:
 
     struct MUJINCLIENT_API ResultGetBinpickingState : public ResultBase
     {
+        /// \brief holds published occlusion results of camera and container pairs
+        struct OcclusionResult
+        {
+            std::string cameraname; ///< full camera name like: sourcecamera1/ensenso_r_rectified
+            std::string bodyname;
+            int isocclusion;
+        };
+        
         ResultGetBinpickingState();
         virtual ~ResultGetBinpickingState();
         void Parse(const rapidjson::Value& pt);
@@ -128,6 +136,8 @@ public:
         unsigned long long lastInsideSourceTimeStamp; ///< ms
         unsigned long long lastInsideDestTimeStamp; ///< ms
         bool isRobotOccludingSourceContainer;
+        std::vector<OcclusionResult> vOcclusionResults;
+            
         uint64_t forceRequestDetectionResultsStamp; ///< time stamp when force request for source was first set on planning side
         uint64_t forceRequestDestPointCloudStamp; ///< time stamp when force request for dest was first set on planning side
         bool isGrabbingTarget;
