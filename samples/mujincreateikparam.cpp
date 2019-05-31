@@ -196,9 +196,21 @@ int main(int argc, char ** argv)
     ObjectResourcePtr object(new ObjectResource(controllerclient, (*it1)->object_pk));
     cout << "obtaining object done" << endl;
 
-    ObjectResource::IkParamResourcePtr ik=object->AddIkParam("sample",opts["iktype"].as<string>());
-    ik->SetJSON(mujinjson::GetJsonStringByKey("translation",resultPosition.translation));
-    ik->SetJSON(mujinjson::GetJsonStringByKey("quaternion",resultPosition.quaternion));
+    string ikType = opts["iktype"].as<string>();
+    ObjectResource::IkParamResourcePtr ik=object->AddIkParam("sample",ikType);
+    if(ikType=="TranslationZAxisAngle4D"){
+        ik->SetJSON(mujinjson::GetJsonStringByKey("translation",resultPosition.translation));
+        ik->SetJSON(mujinjson::GetJsonStringByKey("angle",resultPosition.angleZ));
+    }else if(ikType=="TranslationZAxisAngleYNorm4D"){
+        ik->SetJSON(mujinjson::GetJsonStringByKey("translation",resultPosition.translation));
+        ik->SetJSON(mujinjson::GetJsonStringByKey("angle",resultPosition.angleZY));
+    }else if(ikType=="TranslationDirection5D"){
+        ik->SetJSON(mujinjson::GetJsonStringByKey("translation",resultPosition.translation));
+        ik->SetJSON(mujinjson::GetJsonStringByKey("angle",resultPosition.direction));
+    }else{
+        ik->SetJSON(mujinjson::GetJsonStringByKey("translation",resultPosition.translation));
+        ik->SetJSON(mujinjson::GetJsonStringByKey("quaternion",resultPosition.quaternion));
+    }
 
     BinPickingTaskResource::ResultComputeIKFromParameters result;
     vector<string> iknames;
