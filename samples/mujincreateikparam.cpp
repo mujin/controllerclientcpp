@@ -206,7 +206,7 @@ int main(int argc, char ** argv)
         ik->SetJSON(mujinjson::GetJsonStringByKey("angle",resultPosition.angleZY));
     }else if(ikType=="TranslationDirection5D"){
         ik->SetJSON(mujinjson::GetJsonStringByKey("translation",resultPosition.translation));
-        ik->SetJSON(mujinjson::GetJsonStringByKey("angle",resultPosition.direction));
+        ik->SetJSON(mujinjson::GetJsonStringByKey("direction",resultPosition.direction));
     }else{
         ik->SetJSON(mujinjson::GetJsonStringByKey("translation",resultPosition.translation));
         ik->SetJSON(mujinjson::GetJsonStringByKey("quaternion",resultPosition.quaternion));
