@@ -517,6 +517,17 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     timestamp = (unsigned long long)(GetJsonValueByKey<double>(v, "timestamp", 0) * 1000.0); // s -> ms
     lastGrabbedTargetTimeStamp = (unsigned long long)(GetJsonValueByKey<double>(v, "lastGrabbedTargetTimeStamp", 0) * 1000.0); // s -> ms
     isRobotOccludingSourceContainer = GetJsonValueByKey<bool>(v, "isRobotOccludingSourceContainer", true);
+
+    vOcclusionResults.clear();
+    if( v.HasMember("occlusionResults") && v["occlusionResults"].IsArray() ) {
+        vOcclusionResults.resize(v["occlusionResults"].Size());
+        for(int iocc = 0; iocc < (int)vOcclusionResults.size(); ++iocc) {
+            vOcclusionResults[iocc].cameraname = GetJsonValueByKey<std::string,std::string>(v["occlusionResults"][iocc], "cameraname", std::string());
+            vOcclusionResults[iocc].bodyname = GetJsonValueByKey<std::string,std::string>(v["occlusionResults"][iocc], "bodyname", std::string());
+            vOcclusionResults[iocc].isocclusion = GetJsonValueByKey<int,int>(v["occlusionResults"][iocc], "isocclusion", -1);
+        }
+    }
+    
     forceRequestDetectionResultsStamp = GetJsonValueByKey<uint64_t>(v, "forceRequestDetectionResultsStamp", 0);
     forceRequestDestPointCloudStamp = GetJsonValueByKey<uint64_t>(v, "forceRequestDestPointCloudStamp", 0);
     isGrabbingTarget = GetJsonValueByKey<bool>(v, "isGrabbingTarget", true);
