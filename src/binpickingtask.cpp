@@ -1273,13 +1273,17 @@ void BinPickingTaskResource::ExecuteCommand(const std::string& taskparameters, r
 
     GETCONTROLLERIMPL();
 
+    std::string callerid = str(boost::format("controllerclientcpp%s_web")%MUJINCLIENT_VERSION_STRING);
+    
     std::stringstream ss;
     ss << "{\"tasktype\": \"" << _tasktype << "\", \"taskparameters\": " << taskparameters << ", ";
     ss << "\"sceneparams\": " << _sceneparams_json << ", ";
-    ss << "\"userinfo\": " << _userinfo_json;
+    ss << "\"userinfo\": " << _userinfo_json << ", ";
     if (_slaverequestid != "") {
-        ss << ", " << GetJsonString("slaverequestid", _slaverequestid);
+        ss << GetJsonString("slaverequestid", _slaverequestid) << ", ";
     }
+    ss << "\"stamp\": " << (GetMilliTime()*1e-3) << ", ";
+    ss << "\"callerid\": \"" << callerid << "\"";
     ss << "}";
     const std::string taskgoalput = ss.str();
     rapidjson::Document pt(rapidjson::kObjectType);
