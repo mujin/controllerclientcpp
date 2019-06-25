@@ -287,9 +287,11 @@ std::string utils::GetJsonString(const BinPickingTaskResource::DetectedObject& o
     }
     ss << "], ";
     ss << GetJsonString("confidence") << ": " << obj.confidence;
-    ss << ", " << GetJsonString("sensortimestamp") << ": " << obj.timestamp << ", ";
-    ss << GetJsonString("isPickable") << ": " << obj.isPickable << ", ";
-    ss << GetJsonString("extra") << ": " << obj.extra;
+    ss << ", " << GetJsonString("sensortimestamp") << ": " << obj.timestamp;
+    ss << ", " << GetJsonString("isPickable") << ": " << obj.isPickable;
+    if( obj.extra.size() > 0 ) {
+        ss << ", " << GetJsonString("extra") << ": " << obj.extra;
+    }
     ss << "}";
     return ss.str();
 }
@@ -414,6 +416,8 @@ void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const rapid
     BOOST_ASSERT(pt.IsObject() && pt.HasMember("output"));
     const rapidjson::Value& output = pt["output"];
 
+    mrGeometryInfos.clear();
+    
     const rapidjson::Value& instobjects = output["instobjects"];
     for (rapidjson::Document::ConstMemberIterator it = instobjects.MemberBegin(); it != instobjects.MemberEnd(); it++) {
         std::string objname = it->name.GetString();
@@ -427,6 +431,12 @@ void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const rapid
         minstobjecttransform[objname] = transform;
         minstobjectobb[objname] = resultobb;
         minstobjectinnerobb[objname] = resultinnerobb;
+
+        if( it->value.HasMember("geometryInfos") ) {
+            boost::shared_ptr<rapidjson::Document> pr(new rapidjson::Document());;
+            pr->CopyFrom(it->value["geometryInfos"], pr->GetAllocator());
+            mrGeometryInfos[objname] = pr;
+        }
     }
 
     const rapidjson::Value& sensors = output["sensors"];
@@ -507,6 +517,17 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     timestamp = (unsigned long long)(GetJsonValueByKey<double>(v, "timestamp", 0) * 1000.0); // s -> ms
     lastGrabbedTargetTimeStamp = (unsigned long long)(GetJsonValueByKey<double>(v, "lastGrabbedTargetTimeStamp", 0) * 1000.0); // s -> ms
     isRobotOccludingSourceContainer = GetJsonValueByKey<bool>(v, "isRobotOccludingSourceContainer", true);
+
+    vOcclusionResults.clear();
+    if( v.HasMember("occlusionResults") && v["occlusionResults"].IsArray() ) {
+        vOcclusionResults.resize(v["occlusionResults"].Size());
+        for(int iocc = 0; iocc < (int)vOcclusionResults.size(); ++iocc) {
+            vOcclusionResults[iocc].cameraname = GetJsonValueByKey<std::string,std::string>(v["occlusionResults"][iocc], "cameraname", std::string());
+            vOcclusionResults[iocc].bodyname = GetJsonValueByKey<std::string,std::string>(v["occlusionResults"][iocc], "bodyname", std::string());
+            vOcclusionResults[iocc].isocclusion = GetJsonValueByKey<int,int>(v["occlusionResults"][iocc], "isocclusion", -1);
+        }
+    }
+    
     forceRequestDetectionResultsStamp = GetJsonValueByKey<uint64_t>(v, "forceRequestDetectionResultsStamp", 0);
     forceRequestDestPointCloudStamp = GetJsonValueByKey<uint64_t>(v, "forceRequestDestPointCloudStamp", 0);
     isGrabbingTarget = GetJsonValueByKey<bool>(v, "isGrabbingTarget", true);
@@ -616,6 +637,8 @@ void BinPickingTaskResource::ResultOBB::Parse(const rapidjson::Value& pt)
             rotationmat[i*3+j] = rotationmatrix2d[i][j];
         }
     }
+
+    LoadJsonValueByKey(v, "quaternion", quaternion);
 }
 
 void BinPickingTaskResource::ResultComputeIkParamPosition::Parse(const rapidjson::Value& pt)
@@ -1436,13 +1459,17 @@ void BinPickingTaskResource::ExecuteCommand(const std::string& taskparameters, r
 
     GETCONTROLLERIMPL();
 
+    std::string callerid = str(boost::format("controllerclientcpp%s_web")%MUJINCLIENT_VERSION_STRING);
+    
     std::stringstream ss;
     ss << "{\"tasktype\": \"" << _tasktype << "\", \"taskparameters\": " << taskparameters << ", ";
     ss << "\"sceneparams\": " << _sceneparams_json << ", ";
-    ss << "\"userinfo\": " << _userinfo_json;
+    ss << "\"userinfo\": " << _userinfo_json << ", ";
     if (_slaverequestid != "") {
-        ss << ", " << GetJsonString("slaverequestid", _slaverequestid);
+        ss << GetJsonString("slaverequestid", _slaverequestid) << ", ";
     }
+    ss << "\"stamp\": " << (GetMilliTime()*1e-3) << ", ";
+    ss << "\"callerid\": \"" << callerid << "\"";
     ss << "}";
     const std::string taskgoalput = ss.str();
     rapidjson::Document pt(rapidjson::kObjectType);

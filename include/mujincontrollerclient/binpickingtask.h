@@ -135,6 +135,14 @@ public:
 
     struct MUJINCLIENT_API ResultGetBinpickingState : public ResultBase
     {
+        /// \brief holds published occlusion results of camera and container pairs
+        struct OcclusionResult
+        {
+            std::string cameraname; ///< full camera name like: sourcecamera1/ensenso_r_rectified
+            std::string bodyname;
+            int isocclusion;
+        };
+        
         ResultGetBinpickingState();
         virtual ~ResultGetBinpickingState();
         void Parse(const rapidjson::Value& pt);
@@ -149,15 +157,17 @@ public:
         unsigned long long lastInsideSourceTimeStamp; ///< ms
         unsigned long long lastInsideDestTimeStamp; ///< ms
         bool isRobotOccludingSourceContainer;
+        std::vector<OcclusionResult> vOcclusionResults;
+            
         uint64_t forceRequestDetectionResultsStamp; ///< time stamp when force request for source was first set on planning side
         uint64_t forceRequestDestPointCloudStamp; ///< time stamp when force request for dest was first set on planning side
         bool isGrabbingTarget;
         bool isGrabbingLastTarget;
         bool hasRobotExecutionStarted;
-        int orderNumber;
-        int numLeftInOrder;
-        int numLeftInSupply;
-        int placedInDest;
+        int orderNumber; ///< -1 if not initiaized
+        int numLeftInOrder; ///< -1 if not initiaized
+        int numLeftInSupply; ///< -1 if not initiaized
+        int placedInDest; ///< -1 if not initiaized
         std::vector<double> currentJointValues;
         std::vector<double> currentToolValues;
         std::vector<std::string> jointNames;
@@ -221,7 +231,8 @@ public:
         bool operator!=(const ResultOBB& other) const {
             return !FuzzyEquals(translation, other.translation) ||
                    !FuzzyEquals(extents, other.extents) ||
-                   !FuzzyEquals(rotationmat, other.rotationmat);
+                   !FuzzyEquals(rotationmat, other.rotationmat) ||
+                   !FuzzyEquals(quaternion, other.quaternion);
         }
         bool operator==(const ResultOBB& other) const {
             return !operator!=(other);
@@ -229,17 +240,19 @@ public:
         std::vector<Real> translation;
         std::vector<Real> extents;
         std::vector<Real> rotationmat;  // row major
+        std::vector<Real> quaternion; // the quaternion
     };
 
     struct MUJINCLIENT_API ResultGetInstObjectAndSensorInfo : public ResultBase
     {
         virtual ~ResultGetInstObjectAndSensorInfo();
         void Parse(const rapidjson::Value& pt);
-        std::map<std::string, Transform> minstobjecttransform; ///< unit is m
-        std::map<std::string, ResultOBB> minstobjectobb; ///< unit is m
-        std::map<std::string, ResultOBB> minstobjectinnerobb; ///< unit is m
-        std::map<std::string, Transform> msensortransform; ///< unit is m
+        std::map<std::string, Transform> minstobjecttransform;
+        std::map<std::string, ResultOBB> minstobjectobb;
+        std::map<std::string, ResultOBB> minstobjectinnerobb;
+        std::map<std::string, Transform> msensortransform;
         std::map<std::string, RobotResource::AttachedSensorResource::SensorData> msensordata;
+        std::map<std::string, boost::shared_ptr<rapidjson::Document> > mrGeometryInfos; ///< for every object, list of all the geometry infos
     };
 
     struct MUJINCLIENT_API ResultHeartBeat : public ResultBase

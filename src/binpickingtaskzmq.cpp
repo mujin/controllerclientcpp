@@ -92,12 +92,17 @@ void BinPickingTaskZmqResource::ExecuteCommand(const std::string& taskparameters
         _zmqmujincontrollerclient.reset(new ZmqMujinControllerClient(_zmqcontext, _mujinControllerIp, _zmqPort));
     }
 
+    std::string callerid = str(boost::format("controllerclientcpp%s_zmq")%MUJINCLIENT_VERSION_STRING);
+    
     std::stringstream ss;
     ss << "{\"fnname\": \"";
     if (_tasktype == "binpicking") {
         ss << "binpicking.";
     }
-    ss << "RunCommand\", \"taskparams\": {\"tasktype\": \"" << _tasktype << "\", ";
+    ss << "RunCommand\", ";
+    ss << "\"stamp\": " << (GetMilliTime()*1e-3) << ", ";
+    ss << "\"callerid\": \"" << callerid << "\", ";
+    ss << "\"taskparams\": {\"tasktype\": \"" << _tasktype << "\", ";
 
     ss << "\"taskparameters\": " << taskparameters << ", ";
     ss << "\"sceneparams\": " << _sceneparams_json << "}, ";
