@@ -1087,20 +1087,6 @@ std::string ControllerClientImpl::_PrepareDestinationURI_UTF16(const std::wstrin
     return baseuploaduri;
 }
 
-void ControllerClientImpl::FileUpload_UTF8(const std::string& filename)
-{
-    size_t nBaseFilenameStartIndex = filename.find_last_of(s_filesep);
-    std::string basename = nBaseFilenameStartIndex == std::string::npos ? filename : filename.substr(nBaseFilenameStartIndex+1);
-    UploadFileToController_UTF8(filename, std::string("mujin:/")+basename);
-}
-
-void ControllerClientImpl::FileUpload_UTF16(const std::wstring& filename)
-{
-    size_t nBaseFilenameStartIndex = filename.find_last_of(s_wfilesep);
-    std::wstring basename = nBaseFilenameStartIndex == std::string::npos ? filename : filename.substr(nBaseFilenameStartIndex+1);
-    UploadFileToController_UTF16(filename, std::wstring(L"mujin:/")+basename);
-}
-
 void ControllerClientImpl::UploadFileToController_UTF8(const std::string& filename, const std::string& desturi)
 {
     boost::mutex::scoped_lock lock(_mutex);
