@@ -30,7 +30,7 @@ public:
     virtual ~ControllerClientImpl();
 
     virtual const std::string& GetUserName() const;
-    
+
     virtual std::string GetVersion();
     virtual void SetCharacterEncoding(const std::string& newencoding);
     virtual void SetProxy(const std::string& serverport, const std::string& userpw);
@@ -47,9 +47,6 @@ public:
 
     virtual void SyncUpload_UTF8(const std::string& sourcefilename, const std::string& destinationdir, const std::string& scenetype);
     virtual void SyncUpload_UTF16(const std::wstring& sourcefilename_utf16, const std::wstring& destinationdir_utf16, const std::string& scenetype);
-
-    virtual void FileUpload_UTF8(const std::string& filename);
-    virtual void FileUpload_UTF16(const std::wstring& filename);
 
     virtual void UploadFileToController_UTF8(const std::string& filename, const std::string& desturi);
     virtual void UploadFileToController_UTF16(const std::wstring& filename, const std::wstring& desturi);
@@ -98,7 +95,7 @@ public:
     /// \param timeout timeout of puts
     /// \return http code returned
     int CallPutJSON(const std::string& relativeuri, const std::string& data, rapidjson::Document& pt, int expectedhttpcode=202, double timeout = 5.0);
-    
+
     /// \brief puts stl data
     /// \param relativeuri relative uri to put at
     /// \param data stl raw data
@@ -107,7 +104,7 @@ public:
     /// \param timeout timeout of puts
     /// \return http code returned
     int CallPutSTL(const std::string& relativeuri, const std::vector<unsigned char>& data, rapidjson::Document& pt, int expectedhttpcode=202, double timeout = 5.0);
-    
+
 
     void CallDelete(const std::string& relativeuri, double timeout = 5.0);
 
