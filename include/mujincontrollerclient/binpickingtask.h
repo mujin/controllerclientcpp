@@ -143,10 +143,10 @@ public:
         bool isGrabbingTarget;
         bool isGrabbingLastTarget;
         bool hasRobotExecutionStarted;
-        int orderNumber;
-        int numLeftInOrder;
-        int numLeftInSupply;
-        int placedInDest;
+        int orderNumber; ///< -1 if not initiaized
+        int numLeftInOrder; ///< -1 if not initiaized
+        int numLeftInSupply; ///< -1 if not initiaized
+        int placedInDest; ///< -1 if not initiaized
         std::vector<double> currentJointValues;
         std::vector<double> currentToolValues;
         std::vector<std::string> jointNames;
