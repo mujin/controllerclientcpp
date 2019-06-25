@@ -174,38 +174,7 @@ int main(int argc, char ** argv)
     const double timeout = opts["controller_command_timeout"].as<double>();
     const string unit = opts["unit"].as<string>();
 
-<<<<<<< HEAD
-/*
-    Transform transform;
-    if (opts.find("destination") != opts.end()) {
-        const vector<double> destination = opts["destination"].as<vector<double> >();
-        if (destination.size() > 2) {
-            for (size_t i = 0; i < 3; ++i) {
-                transform.translate[i] = destination[i];
-            }
-        }
-        
-        if (destination.size() > 6) {
-            for (size_t i = 0; i < 4; ++i) {
-                transform.quaternion[i] = destination[3 + i];
-            }
-        }
-    }
-
-    cout << "setting target " << targetname
-         << " to translate(" << unit << ") ["
-         << transform.translate[0] << ", "
-         << transform.translate[1] << ", "
-         << transform.translate[2] << "] " << ", quaternion ["
-         << transform.quaternion[0] << ", "
-         << transform.quaternion[1] << ", "
-         << transform.quaternion[2] << ", "
-         << transform.quaternion[3] << "]\n";
-*/
-    pBinpickingTask->SetInstantaneousJointValues(opts["destination"].as<vector<double>>(), unit, timeout);
-=======
     pBinpickingTask->SetInstantaneousJointValues(opts["destination"].as<vector<double> >(), unit, timeout);
->>>>>>> origin/master
 
     return 0;
 }
