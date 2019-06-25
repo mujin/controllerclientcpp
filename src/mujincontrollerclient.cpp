@@ -867,7 +867,7 @@ bool SceneResource::FindInstObject(const std::string& name, SceneResource::InstO
 SceneResource::InstObjectPtr SceneResource::CreateInstObject(const std::string& name, const std::string& referenceUri, const Real quaternion[4], const Real translate[3], double timeout)
 {
     GETCONTROLLERIMPL();
-    const std::string uri(str(boost::format("scene/%s/instobject/?format=json&field=")%GetPrimaryKey()));
+    const std::string uri(str(boost::format("scene/%s/instobject/?format=json&fields=pk,object_pk,reference_uri,dofvalues,quaternion,translate")%GetPrimaryKey()));
     std::string data(str(boost::format("{\"name\":\"%s\", \"quaternion\":[%.15f,%.15f,%.15f,%.15f], \"translate\":[%.15f,%.15f,%.15f]")%name%quaternion[0]%quaternion[1]%quaternion[2]%quaternion[3]%translate[0]%translate[1]%translate[2]));
     if (!referenceUri.empty()) {
         data += ", \"reference_uri\": \"" + referenceUri + "\"";
