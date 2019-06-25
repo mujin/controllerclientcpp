@@ -1,8 +1,8 @@
 // -*- coding: utf-8 -*-
-/** \example mujinsetdofvalues.cpp
+/** \example mujincreateikparam.cpp
 
-    Shows how to setdofvalues object
-    example: mujinsetdofvalues --controller_hostname localhost --task_scenepk machine.mujin.dae --destination -300 -1000 -2000 10 --taskparameters '{"robotname":"machine","robots":{"machine":{}}}'
+    Shows how to create ikparam using current coordinate
+    example: mujincreateikparam --controller_hostname localhost --task_scenepk machine.mujin.dae --iktype Transform6D --object_name object --taskparameters '{"robotname":"machine","robots":{"machine":{"toolname":"tool"}}}'
  */
 
 #include <mujincontrollerclient/binpickingtask.h>
@@ -14,6 +14,7 @@
 
 
 using namespace mujinclient;
+namespace mujinjson = mujinclient::mujinjson_external;
 
 #include <boost/program_options.hpp>
 
@@ -43,7 +44,8 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("zmq_port", bpo::value<unsigned int>()->default_value(11000), "port of the binpicking task on the mujin controller")
         ("heartbeat_port", bpo::value<unsigned int>()->default_value(11001), "port of the binpicking task's heartbeat signal on the mujin controller")
         ("unit", bpo::value<string>()->default_value("mm"), "length unit of pose")
-        ("destination", bpo::value<vector<double> >()->multitoken(), "destination dofvalues")
+        ("object_name", bpo::value<string>()->default_value(""), "object name to create ikparam for")
+        ("iktype", bpo::value<string>()->default_value("Transform6D"), "iktype")
         ;
 
     try {
@@ -174,38 +176,60 @@ int main(int argc, char ** argv)
     const double timeout = opts["controller_command_timeout"].as<double>();
     const string unit = opts["unit"].as<string>();
 
-<<<<<<< HEAD
-/*
-    Transform transform;
-    if (opts.find("destination") != opts.end()) {
-        const vector<double> destination = opts["destination"].as<vector<double> >();
-        if (destination.size() > 2) {
-            for (size_t i = 0; i < 3; ++i) {
-                transform.translate[i] = destination[i];
-            }
-        }
-        
-        if (destination.size() > 6) {
-            for (size_t i = 0; i < 4; ++i) {
-                transform.quaternion[i] = destination[3 + i];
-            }
-        }
+    // get manip position
+    const string object_name = opts["object_name"].as<string>();
+    BinPickingTaskResource::ResultComputeIkParamPosition resultPosition;
+    pBinpickingTask->ComputeIkParamPosition(resultPosition,object_name);
+    cout << "ComputeIkParamPosition done" << endl;
+
+    stringstream urlss;
+    {
+        const string hostname = opts["controller_hostname"].as<string>();
+        const unsigned int controllerPort = opts["controller_port"].as<unsigned int>();
+        urlss << "http://" << hostname << ":" << controllerPort;
+    }
+    ControllerClientPtr controllerclient = CreateControllerClient(opts["controller_username_password"].as<string>(), urlss.str());
+    SceneResourcePtr scene(new SceneResource(controllerclient, opts["task_scenepk"].as<string>()));
+    std::vector<SceneResource::InstObjectPtr> instobjects;
+    scene->GetInstObjects(instobjects);
+    std::vector<SceneResource::InstObjectPtr>::iterator it1 = std::find_if(instobjects.begin(),instobjects.end(),boost::bind(&SceneResource::InstObject::name,_1)==object_name);
+    ObjectResourcePtr object(new ObjectResource(controllerclient, (*it1)->object_pk));
+    cout << "obtaining object done" << endl;
+
+    string ikType = opts["iktype"].as<string>();
+    ObjectResource::IkParamResourcePtr ik=object->AddIkParam("sample",ikType);
+    if(ikType=="TranslationZAxisAngle4D"){
+        ik->SetJSON(mujinjson::GetJsonStringByKey("translation",resultPosition.translation));
+        ik->SetJSON(mujinjson::GetJsonStringByKey("angle",resultPosition.angleZ));
+    }else if(ikType=="TranslationZAxisAngleYNorm4D"){
+        ik->SetJSON(mujinjson::GetJsonStringByKey("translation",resultPosition.translation));
+        ik->SetJSON(mujinjson::GetJsonStringByKey("angle",resultPosition.angleZY));
+    }else if(ikType=="TranslationDirection5D"){
+        ik->SetJSON(mujinjson::GetJsonStringByKey("translation",resultPosition.translation));
+        ik->SetJSON(mujinjson::GetJsonStringByKey("direction",resultPosition.direction));
+    }else{
+        ik->SetJSON(mujinjson::GetJsonStringByKey("translation",resultPosition.translation));
+        ik->SetJSON(mujinjson::GetJsonStringByKey("quaternion",resultPosition.quaternion));
     }
 
-    cout << "setting target " << targetname
-         << " to translate(" << unit << ") ["
-         << transform.translate[0] << ", "
-         << transform.translate[1] << ", "
-         << transform.translate[2] << "] " << ", quaternion ["
-         << transform.quaternion[0] << ", "
-         << transform.quaternion[1] << ", "
-         << transform.quaternion[2] << ", "
-         << transform.quaternion[3] << "]\n";
-*/
-    pBinpickingTask->SetInstantaneousJointValues(opts["destination"].as<vector<double>>(), unit, timeout);
-=======
-    pBinpickingTask->SetInstantaneousJointValues(opts["destination"].as<vector<double> >(), unit, timeout);
->>>>>>> origin/master
+    BinPickingTaskResource::ResultComputeIKFromParameters result;
+    vector<string> iknames;
+    iknames.push_back("sample");
+    pBinpickingTask->ComputeIKFromParameters(result,object_name,iknames,0);
+    BinPickingTaskResource::ResultGetBinpickingState taskstate;
+    rapidjson::Document taskparametersParsed;
+    mujinjson::ParseJson(taskparametersParsed,opts["taskparameters"].as<string>());
+    pBinpickingTask->GetPublishedTaskState(taskstate, mujinjson::GetStringJsonValueByKey(taskparametersParsed,"robotname"), "mm", timeout);
+    for(int i=0;i<result.dofvalues.size();i++){
+        int j=0;
+        for(;j<taskstate.currentJointValues.size();j++){
+            if(abs(result.dofvalues[i][j]-taskstate.currentJointValues[j])>0.01)break;
+        }
+        if(j==taskstate.currentJointValues.size()){
+            ik->SetJSON("{\"extra\":"+result.extra[i]+"}");
+        }
+    }
+    cout << "setting extra done" << endl;
 
     return 0;
 }

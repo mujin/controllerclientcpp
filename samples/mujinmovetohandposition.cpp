@@ -52,6 +52,8 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("goals", bpo::value<vector<double> >()->multitoken(), "goal to move tool to, \'X Y Z RX RY RZ\'. Units are in mm and deg.")
         ("speed", bpo::value<double>()->default_value(0.1), "speed to move at")
         ("envclearance", bpo::value<double>()->default_value(-1), "environment clearcance for collision avoidance")
+        ("instobjectname", bpo::value<string>()->default_value(""), "name of instobject which the ikparam belongs to")
+        ("ikparamname", bpo::value<string>()->default_value(""), "name of ikparam which the robot move to")
         ;
 
     try {
@@ -76,7 +78,9 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
     }
 
     if (!badargs) {
-        badargs = opts.find("goals") == opts.end() || opts["goals"].as<vector<double> >().size() < 6;
+        bool goalsavailable = opts.find("goals") != opts.end() && opts["goals"].as<vector<double> >().size() == 6;
+        bool ikparamavailable = opts.find("instobjectname") != opts.end() && opts.find("ikparamname") != opts.end();
+        badargs = (!goalsavailable && !ikparamavailable) || (goalsavailable && ikparamavailable);
     }
     if(opts.count("help") || badargs) {
         cout << "Usage: " << argv[0] << " [OPTS]" << endl;
@@ -120,7 +124,7 @@ void InitializeTask(const bpo::variables_map& opts,
                 break;
             }
             cout << "Failed to get heart beat " << it_try_heartbeat << "/" << num_try_heartbeat << "\n";
-            boost::this_thread::sleep(boost::posix_time::seconds(0.1));
+            boost::this_thread::sleep(boost::posix_time::milliseconds(100));
         }
         if (heartbeat.empty()) {
             throw MujinException(boost::str(boost::format("Failed to obtain heartbeat from %s. Is controller running?")%endpoint.str()));
@@ -233,6 +237,37 @@ void Run(BinPickingTaskResourcePtr& pTask,
     cout << "Finished:\n" << ConvertStateToString(result) << endl;
 }
 
+/// \brief run hand moving task
+/// \param pTask task
+/// \param instobjectname name of instobject which the ikparam belongs to
+/// \param ikparamname name of ikparam which the robot move to
+/// \param speed speed to move at
+/// \param robotname robot name
+/// \param toolname tool name
+/// \param envclearance environment clearance when aboiding obstacles
+/// \param checkcollision whether to move in line or not
+void Run(BinPickingTaskResourcePtr& pTask,
+         const string& instobjectname,
+         const string& ikparamname,
+         double speed,
+         const string& robotname,
+         const string& toolname,
+         double envclearance,
+         double timeout)
+{
+    // print state
+    BinPickingTaskResource::ResultGetBinpickingState result;
+    pTask->GetPublishedTaskState(result, robotname, "mm", 1.0);
+    cout << "Starting:\n" << ConvertStateToString(result) << endl;
+
+    // start moving
+    pTask->MoveToHandPosition(instobjectname, ikparamname, robotname, toolname, speed, timeout, envclearance);
+
+    // print state
+    pTask->GetPublishedTaskState(result, robotname, "mm", 1.0);
+    cout << "Finished:\n" << ConvertStateToString(result) << endl;
+}
+
 int main(int argc, char ** argv)
 {
     // parsing options
@@ -243,8 +278,6 @@ int main(int argc, char ** argv)
     }
     const string robotname = opts["robotname"].as<string>();
     const string toolname = opts["toolname"].as<string>();
-    const vector<double> goals = opts["goals"].as<vector<double> >();
-    const string goaltype = opts["goaltype"].as<string>();
     const double speed = opts["speed"].as<double>();
     const double timeout = opts["controller_command_timeout"].as<double>();
     const double envclearance = opts["envclearance"].as<double>();
@@ -254,7 +287,15 @@ int main(int argc, char ** argv)
     InitializeTask(opts, pBinpickingTask);
 
     // do interesting part
-    Run(pBinpickingTask, goaltype, goals, speed, s_robotname, toolname, envclearance, timeout);
+    if(opts.find("instobjectname") != opts.end() && opts.find("ikparamname") != opts.end()) {
+        const string instobjectname = opts["instobjectname"].as<string>();
+        const string ikparamname = opts["ikparamname"].as<string>();
+        Run(pBinpickingTask, instobjectname, ikparamname, speed, s_robotname, toolname, envclearance, timeout);
+    } else {
+        const vector<double> goals = opts["goals"].as<vector<double> >();
+        const string goaltype = opts["goaltype"].as<string>();
+        Run(pBinpickingTask, goaltype, goals, speed, s_robotname, toolname, envclearance, timeout);
+    }
 
     return 0;
 }

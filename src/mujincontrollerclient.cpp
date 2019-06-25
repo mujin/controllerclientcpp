@@ -144,7 +144,7 @@ ObjectResource::LinkResource::LinkResource(ControllerClientPtr controller, const
 {
 }
 
-ObjectResource::GeometryResource::GeometryResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk) : WebResource(controller, str(boost::format("object/%s/geometry")%objectpk), pk), objectpk(objectpk), pk(pk)
+ObjectResource::GeometryResource::GeometryResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk) : WebResource(controller, str(boost::format("object/%s/geometry")%objectpk), pk), pk(pk), objectpk(objectpk)
 {
 }
 
@@ -175,10 +175,20 @@ ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::AddGeometryFro
 {
     GETCONTROLLERIMPL();
     const std::string& linkpk = GetPrimaryKey();
-    const std::string geometryPk = controller->CreateObjectGeometry(this->objectpk, name, linkpk, timeout);
+    const std::string geometryPk = controller->CreateObjectGeometry(this->objectpk, name, linkpk, "mesh", timeout);
 
     ObjectResource::GeometryResourcePtr geometry(new GeometryResource(controller, this->objectpk, geometryPk));
     geometry->SetGeometryFromRawSTL(rawstldata, unit, timeout);
+    return geometry;
+}
+
+ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::AddPrimitiveGeometry(const std::string& name, const std::string& geomtype, double timeout)
+{
+    GETCONTROLLERIMPL();
+    const std::string& linkpk = GetPrimaryKey();
+    const std::string geometryPk = controller->CreateObjectGeometry(this->objectpk, name, linkpk, geomtype, timeout);
+
+    ObjectResource::GeometryResourcePtr geometry(new GeometryResource(controller, this->objectpk, geometryPk));
     return geometry;
 }
 
@@ -191,7 +201,7 @@ ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::GetGeometryFro
     if (pt.IsObject() && pt.HasMember("geometries") && pt["geometries"].IsArray()) {
         rapidjson::Value& objects = pt["geometries"];
         for (rapidjson::Document::ConstValueIterator it = objects.Begin(); it != objects.End(); ++it) {
-            const std::string name = it->HasMember("name") ? (*it)["name"].GetString() : (*it)["pk"].GetString();
+            const std::string name = it->HasMember("name") ? GetJsonValueByKey<std::string>(*it, "name") : GetJsonValueByKey<std::string>(*it, "pk");
             if (name == geometryName && (*it)["linkpk"].GetString() == this->pk) {
                 ObjectResource::GeometryResourcePtr geometry(new GeometryResource(controller, this->objectpk, GetJsonValueByKey<std::string>(*it, "pk")));
                 geometry->name = name;
@@ -202,6 +212,15 @@ ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::GetGeometryFro
                 LoadJsonValueByKey(*it,"quaternion",geometry->quaternion);
                 LoadJsonValueByKey(*it,"translate",geometry->translate);
                 LoadJsonValueByKey(*it,"diffusecolor",geometry->diffusecolor);
+
+                /// geomtype ///
+                // mesh
+                // box: half_extents
+                // cylinder: height, radius
+                // sphere: radius
+                LoadJsonValueByKey(*it,"half_extents",geometry->half_extents);
+                LoadJsonValueByKey(*it,"height",geometry->height);
+                LoadJsonValueByKey(*it,"radius",geometry->radius);
                 return geometry;
             }
         }
@@ -219,16 +238,21 @@ void ObjectResource::LinkResource::GetGeometries(std::vector<ObjectResource::Geo
         rapidjson::Value& objects = pt["geometries"];
         geometries.clear();
         for (rapidjson::Document::ConstValueIterator it = objects.Begin(); it != objects.End(); ++it) {
-            if ((*it)["linkpk"].GetString() == this->pk) {
+            const std::string linkpk = GetJsonValueByKey<std::string>(*it, "linkpk");
+            if (linkpk == this->pk) {
                 ObjectResource::GeometryResourcePtr geometry(new GeometryResource(controller, this->objectpk, GetJsonValueByKey<std::string>(*it, "pk")));
-                geometry->name = it->HasMember("name") ? (*it)["name"].GetString() : (*it)["pk"].GetString();
-                LoadJsonValueByKey(*it,"linkpk",geometry->linkpk);
+                geometry->linkpk = linkpk;
+                LoadJsonValueByKey(*it,"name",geometry->name,geometry->pk);
                 LoadJsonValueByKey(*it,"visible",geometry->visible);
                 LoadJsonValueByKey(*it,"geomtype",geometry->geomtype);
                 LoadJsonValueByKey(*it,"transparency",geometry->transparency);
                 LoadJsonValueByKey(*it,"quaternion",geometry->quaternion);
                 LoadJsonValueByKey(*it,"translate",geometry->translate);
                 LoadJsonValueByKey(*it,"diffusecolor",geometry->diffusecolor);
+
+                LoadJsonValueByKey(*it,"half_extents",geometry->half_extents);
+                LoadJsonValueByKey(*it,"height",geometry->height);
+                LoadJsonValueByKey(*it,"radius",geometry->radius);
                 geometries.push_back(geometry);
             }
         }
@@ -319,7 +343,7 @@ void ObjectResource::GetLinks(std::vector<ObjectResource::LinkResourcePtr>& link
     size_t i = 0;
     for (rapidjson::Document::ValueIterator it = objects.Begin(); it != objects.End(); ++it) {
         LinkResourcePtr link(new LinkResource(controller, GetPrimaryKey(), GetJsonValueByKey<std::string>(*it, "pk")));
-        link->parentlinkpk = it->HasMember("parentlinkpk") ? (*it)["parentlinkpk"].GetString() : "";
+        LoadJsonValueByKey(*it,"parentlinkpk",link->parentlinkpk);
         LoadJsonValueByKey(*it,"name",link->name);
         LoadJsonValueByKey(*it,"collision",link->collision);
         LoadJsonValueByKey(*it,"attachmentpks",link->attachmentpks);
@@ -571,9 +595,8 @@ SceneResource::SceneResource(ControllerClientPtr controller, const std::string& 
 TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& taskname, const std::string& tasktype, int options)
 {
     GETCONTROLLERIMPL();
-    boost::shared_ptr<char> pescapedtaskname = controller->GetURLEscapedString(taskname);
     rapidjson::Document pt(rapidjson::kObjectType);
-    controller->CallGet(str(boost::format("scene/%s/task/?format=json&limit=1&name=%s&fields=pk,tasktype")%GetPrimaryKey()%pescapedtaskname), pt);
+    controller->CallGet(str(boost::format("scene/%s/task/?format=json&limit=1&name=%s&fields=pk,tasktype")%GetPrimaryKey()%controller->EscapeString(taskname)), pt);
     // task exists
     std::string pk;
 
@@ -660,9 +683,8 @@ void SceneResource::SetInstObjectsState(const std::vector<SceneResource::InstObj
 TaskResourcePtr SceneResource::GetTaskFromName_UTF8(const std::string& taskname, int options)
 {
     GETCONTROLLERIMPL();
-    boost::shared_ptr<char> pescapedtaskname = controller->GetURLEscapedString(taskname);
     rapidjson::Document pt(rapidjson::kObjectType);
-    controller->CallGet(str(boost::format("scene/%s/task/?format=json&limit=1&name=%s&fields=pk,tasktype")%GetPrimaryKey()%pescapedtaskname), pt);
+    controller->CallGet(str(boost::format("scene/%s/task/?format=json&limit=1&name=%s&fields=pk,tasktype")%GetPrimaryKey()%controller->EscapeString(taskname)), pt);
     // task exists
 
     if (!(pt.IsObject() && pt.HasMember("objects") && pt["objects"].IsArray() && pt["objects"].Size() > 0)) {
@@ -845,7 +867,7 @@ bool SceneResource::FindInstObject(const std::string& name, SceneResource::InstO
 SceneResource::InstObjectPtr SceneResource::CreateInstObject(const std::string& name, const std::string& referenceUri, const Real quaternion[4], const Real translate[3], double timeout)
 {
     GETCONTROLLERIMPL();
-    const std::string uri(str(boost::format("scene/%s/instobject/?format=json&fields=pk")%GetPrimaryKey()));
+    const std::string uri(str(boost::format("scene/%s/instobject/?format=json&fields=pk,object_pk,reference_uri,dofvalues,quaternion,translate")%GetPrimaryKey()));
     std::string data(str(boost::format("{\"name\":\"%s\", \"quaternion\":[%.15f,%.15f,%.15f,%.15f], \"translate\":[%.15f,%.15f,%.15f]")%name%quaternion[0]%quaternion[1]%quaternion[2]%quaternion[3]%translate[0]%translate[1]%translate[2]));
     if (!referenceUri.empty()) {
         data += ", \"reference_uri\": \"" + referenceUri + "\"";
@@ -856,6 +878,11 @@ SceneResource::InstObjectPtr SceneResource::CreateInstObject(const std::string& 
     controller->CallPost(uri, data, pt, 201, timeout);
     std::string inst_pk = GetJsonValueByKey<std::string>(pt, "pk");
     SceneResource::InstObjectPtr instobject(new SceneResource::InstObject(GetController(), GetPrimaryKey(),  inst_pk));
+    LoadJsonValueByKey(pt, "object_pk", instobject->object_pk);
+    LoadJsonValueByKey(pt, "reference_uri", instobject->reference_uri);
+    LoadJsonValueByKey(pt, "dofvalues", instobject->dofvalues);
+    LoadJsonValueByKey(pt, "quaternion", instobject->quaternion);
+    LoadJsonValueByKey(pt, "translate", instobject->translate);
     return instobject;
 }
 
@@ -937,9 +964,8 @@ void TaskResource::GetRunTimeStatus(JobStatus& status, int options)
 OptimizationResourcePtr TaskResource::GetOrCreateOptimizationFromName_UTF8(const std::string& optimizationname, const std::string& optimizationtype)
 {
     GETCONTROLLERIMPL();
-    boost::shared_ptr<char> pescapedoptimizationname = controller->GetURLEscapedString(optimizationname);
     rapidjson::Document pt(rapidjson::kObjectType);
-    controller->CallGet(str(boost::format("task/%s/optimization/?format=json&limit=1&name=%s&fields=pk,optimizationtype")%GetPrimaryKey()%pescapedoptimizationname), pt);
+    controller->CallGet(str(boost::format("task/%s/optimization/?format=json&limit=1&name=%s&fields=pk,optimizationtype")%GetPrimaryKey()%controller->EscapeString(optimizationname)), pt);
     // optimization exists
     if (pt.IsObject() && pt.HasMember("objects") && pt["objects"].IsArray() && pt["objects"].Size() > 0) {
         rapidjson::Value& object = pt["objects"][0];
@@ -1021,6 +1047,9 @@ void TaskResource::GetTaskParameters(ITLPlanningTaskParameters& taskparameters)
         else if( std::string(v->name.GetString()) == "program" ) {
             taskparameters.program = v->value.GetString();
         }
+        else if( std::string(v->name.GetString()) == "parameters" ) {
+            taskparameters.parameters = DumpJson(v->value,2);
+        }
         else if( std::string(v->name.GetString()) == "initial_envstate" ) {
             ExtractEnvironmentStateFromPTree(v->value, taskparameters.initial_envstate);
         }
@@ -1066,7 +1095,7 @@ void TaskResource::SetTaskParameters(const ITLPlanningTaskParameters& taskparame
     serachpairs[1].first = "\n"; serachpairs[1].second = "\\n";
     serachpairs[2].first = "\r\n"; serachpairs[2].second = "\\n";
     SearchAndReplace(program, taskparameters.program, serachpairs);
-    std::string taskgoalput = str(boost::format("{\"tasktype\": \"itlplanning\", \"taskparameters\":{\"optimizationvalue\":%f, \"program\":\"%s\", \"unit\":\"%s\", \"returnmode\":\"%s\", \"startfromcurrent\":\"%s\", \"ignorefigure\":\"%s\", \"vrcruns\":%d %s %s } }")%taskparameters.optimizationvalue%program%taskparameters.unit%taskparameters.returnmode%startfromcurrent%ignorefigure%vrcruns%ssinitial_envstate.str()%ssfinal_envstate.str());
+    std::string taskgoalput = str(boost::format("{\"tasktype\": \"itlplanning\", \"taskparameters\":{\"optimizationvalue\":%f, \"program\":\"%s\", \"parameters\":%s, \"unit\":\"%s\", \"returnmode\":\"%s\", \"startfromcurrent\":\"%s\", \"ignorefigure\":\"%s\", \"vrcruns\":%d %s %s } }")%taskparameters.optimizationvalue%program%taskparameters.parameters%taskparameters.unit%taskparameters.returnmode%startfromcurrent%ignorefigure%vrcruns%ssinitial_envstate.str()%ssfinal_envstate.str());
     rapidjson::Document pt;
     controller->CallPutJSON(str(boost::format("task/%s/?format=json&fields=")%GetPrimaryKey()), taskgoalput, pt);
 }

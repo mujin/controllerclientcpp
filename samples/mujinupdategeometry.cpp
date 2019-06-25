@@ -40,13 +40,12 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("controller_command_timeout", bpo::value<double>()->default_value(10), "command timeout in seconds, e.g. 10")
         ("locale", bpo::value<string>()->default_value("en_US"), "locale to use for the mujin controller client")
         ("task_scenepk", bpo::value<string>()->default_value(""), "scene pk of the binpicking task on the mujin controller, e.g. officeboltpicking.mujin.dae.")
-        ("robotname", bpo::value<string>()->default_value(""), "robot name.")
         ("taskparameters", bpo::value<string>()->default_value("{}"), "binpicking task parameters, e.g. {'robotname': 'robot', 'robots':{'robot': {'externalCollisionIO':{}, 'gripperControlInfo':{}, 'robotControllerUri': '', robotDeviceIOUri': '', 'toolname': 'tool'}}}")
         ("zmq_port", bpo::value<unsigned int>()->default_value(11000), "port of the binpicking task on the mujin controller")
         ("heartbeat_port", bpo::value<unsigned int>()->default_value(11001), "port of the binpicking task's heartbeat signal on the mujin controller")
-        ("linkname", bpo::value<string>()->default_value(""), "link to which to add mesh")
+        //("linkname", bpo::value<string>()->default_value(""), "link to which to add mesh")
         ("filename", bpo::value<string>(), "stl file to import mesh from")
-        ("geometryname", bpo::value<string>()->default_value("default name"), "stl file to import mesh from")
+        ("geometryname", bpo::value<string>()->default_value("default name"), "geometry name")
         ;
 
     try {
@@ -129,9 +128,6 @@ void InitializeTask(const bpo::variables_map& opts,
         }
     }
 
-    //    cout << taskparameters << endl;
-    const string tasktype = "realtimeitlplanning";
-
     // connect to mujin controller
     ControllerClientPtr controllerclient = CreateControllerClient(controllerUsernamePass, urlss.str());
 
@@ -139,32 +135,10 @@ void InitializeTask(const bpo::variables_map& opts,
 
     SceneResourcePtr scene(new SceneResource(controllerclient, taskScenePk));
 
-    // initialize binpicking task
-    pBinpickingTask = scene->GetOrCreateBinPickingTaskFromName_UTF8(tasktype+string("task1"), tasktype, TRO_EnableZMQ);
-    const string userinfo = "{\"username\": \"" + controllerclient->GetUserName() + "\", ""\"locale\": \"" + locale + "\"}";
-    cout << "initialzing binpickingtask with userinfo=" + userinfo << " taskparameters=" << taskparameters << endl;
-
-    s_robotname = opts["robotname"].as<string>();
-    ObjectResourcePtr object;
-    string objectPk;
-    if (s_robotname.empty()) {
-        vector<SceneResource::InstObjectPtr> instobjects;
-        scene->GetInstObjects(instobjects);
-        for (vector<SceneResource::InstObjectPtr>::const_iterator it = instobjects.begin();
-             it != instobjects.end(); ++it) {
-            if (!(**it).dofvalues.empty()) {
-                s_robotname = (**it).name;
-                objectPk = (**it).object_pk;
-                cout << "robot name: " << s_robotname << ":" << objectPk << " is obtained from scene\n";
-                object.reset(new ObjectResource(controllerclient, objectPk));
-                break;
-            }
-        }
-        if (s_robotname.empty()) {
-            throw MujinException("Robot name was not given by command line option. Also, failed to obtain robot name from scene.\n");
-        }
-    }
-
+    std::vector<SceneResource::InstObjectPtr> instobjects;
+    scene->GetInstObjects(instobjects);
+    cout << instobjects[0]->name << endl;
+    ObjectResourcePtr object(new ObjectResource(controllerclient, instobjects[0]->object_pk));
     vector<ObjectResource::LinkResourcePtr> objectlinks;
     object->GetLinks(objectlinks);
     for (vector<ObjectResource::LinkResourcePtr>::const_iterator it = objectlinks.begin();
@@ -172,8 +146,6 @@ void InitializeTask(const bpo::variables_map& opts,
         cout << (**it).name << ": " << (**it).pk << endl;
     }
 
-    boost::shared_ptr<zmq::context_t> zmqcontext(new zmq::context_t(1));
-    pBinpickingTask->Initialize(taskparameters, taskZmqPort, heartbeatPort, zmqcontext, false, 10, controllerCommandTimeout, userinfo, slaverequestid);
     ifstream meshStream(opts["filename"].as<string>().c_str(), ios::binary);
     meshStream.unsetf(std::ios::skipws); // need this to not skip white space
     vector<unsigned char> meshData;

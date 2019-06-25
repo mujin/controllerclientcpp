@@ -220,6 +220,7 @@ public:
     std::string unit; ///< the unit that information is used in. m, mm, nm, inch, etc
     Real optimizationvalue; ///< value in [0,1]. 0 is no optimization (fast), 1 is full optimization (slow)
     std::string program; ///< itl program
+    std::string parameters; ///< parameters (json)
 
     EnvironmentState initial_envstate; ///< initial environment state to set the ITL task to.
     EnvironmentState final_envstate;  ///< final environment state that describes where the robot should end at. If returnmode is set to final, then use this state.
@@ -519,6 +520,9 @@ public:
     /// \param vdata filled with the contents of the file on the controller filesystem
     virtual void DownloadFileFromControllerIfModifiedSince_UTF16(const std::wstring& desturi, long localtimeval, long &remotetimeval, std::vector<unsigned char>& vdata, double timeout = 5.0) = 0;
 
+    /// \brief returns seconds since epoch, last modified time from server header
+    virtual long GetModifiedTime(const std::string& uri, double timeout = 5.0) = 0;
+
     /// \brief Deletes a file on the controller network filesystem.
     ///
     /// \param uri UTF-8 encoded file in the network filesystem to delete.
@@ -538,6 +542,10 @@ public:
     ///
     /// \param uri UTF-16 encoded
     virtual void DeleteDirectoryOnController_UTF16(const std::wstring& uri) = 0;
+
+    virtual void ModifySceneAddReferenceObjectPK(const std::string &scenepk, const std::string &referenceobjectpk, double timeout = 5.0) = 0;
+
+    virtual void ModifySceneRemoveReferenceObjectPK(const std::string &scenepk, const std::string &referenceobjectpk, double timeout = 5.0) = 0;
 
     virtual void SetDefaultSceneType(const std::string& scenetype) = 0;
 
@@ -591,7 +599,7 @@ public:
     /// \return utf-16 encoded name
     virtual std::wstring GetNameFromPrimaryKey_UTF16(const std::string& pk) = 0;
 
-    virtual std::string CreateObjectGeometry(const std::string& objectPk, const std::string& name, const std::string& linkPk, double timeout) = 0;
+    virtual std::string CreateObjectGeometry(const std::string& objectPk, const std::string& name, const std::string& linkPk, const std::string& geomtype, double timeout = 5) = 0;
 
     /// \brief set geometry mesh to an object
     /// \param objectPk primary key for the object to set mesh data to
@@ -666,10 +674,14 @@ public:
         bool visible;
         Real diffusecolor[4];
         Real transparency;
+        Real half_extents[3];
+        Real height;
+        Real radius;
 
         virtual void GetMesh(std::string& primitive, std::vector<std::vector<int> >& indices, std::vector<std::vector<Real> >& vertices);
-        virtual void SetGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& unit, double timeout);
+        virtual void SetGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& unit, double timeout = 5.0);
         virtual void SetVisible(bool visible);
+        /// 0 -> off, 1 -> on
         virtual int GetVisible();
     };
     typedef boost::shared_ptr<GeometryResource> GeometryResourcePtr;
@@ -695,7 +707,8 @@ public:
         virtual ~LinkResource() {
         }
 
-        virtual GeometryResourcePtr AddGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& name, const std::string& unit, double timeout);
+        virtual GeometryResourcePtr AddGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& name, const std::string& unit, double timeout = 5.0);
+        virtual GeometryResourcePtr AddPrimitiveGeometry(const std::string& name, const std::string& geomtype, double timeout = 5.0);
 
         virtual GeometryResourcePtr GetGeometryFromName(const std::string& geometryName);
 
@@ -703,10 +716,11 @@ public:
 
         virtual boost::shared_ptr<LinkResource> AddChildLink(const std::string& name, const Real quaternion[4], const Real translate[3]);
 
-        /// 0 -> off, 1 -> on, 2 -> partial
         virtual void SetCollision(bool collision);
+        /// 0 -> off, 1 -> on
         virtual int GetCollision();
         virtual void SetVisible(bool visible);
+        /// 0 -> off, 1 -> on, 2 -> partial
         virtual int GetVisible();
 
         std::vector<std::string> attachmentpks;
@@ -731,10 +745,11 @@ public:
     virtual LinkResourcePtr AddLink(const std::string& name, const Real quaternion[4], const Real translate[3]);
     virtual IkParamResourcePtr AddIkParam(const std::string& name, const std::string& iktype);
 
-    /// 0 -> off, 1 -> on, 2 -> partial
     virtual void SetCollision(bool collision);
+    /// 0 -> off, 1 -> on, 2 -> partial
     virtual int GetCollision();
     virtual void SetVisible(bool visible);
+    /// 0 -> off, 1 -> on, 2 -> partial
     virtual int GetVisible();
 
     std::string name;

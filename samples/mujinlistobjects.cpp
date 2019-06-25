@@ -37,10 +37,6 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("controller_username_password", bpo::value<string>()->default_value("testuser:pass"), "username and password to the mujin controller, e.g. username:password")
         ("task_scenepk", bpo::value<string>()->default_value(""), "scene pk of the binpicking task on the mujin controller, e.g. officeboltpicking.mujin.dae.")
         ("heartbeat_port", bpo::value<unsigned int>()->default_value(11001), "port of the binpicking task's heartbeat signal on the mujin controller")
-        ("name", bpo::value<string>()->default_value("new_object"), "name of the object to create")
-        ("translate", bpo::value<vector<double> >()->multitoken(), "translation of the object")
-        ("quaternion", bpo::value<vector<double> >()->multitoken(), "quaternion of the object")
-        ("filename", bpo::value<string>(), "stl file to import mesh from")
         ;
 
     try {
@@ -116,69 +112,42 @@ int main(int argc, char ** argv)
         }
     }
 
-    const string tasktype = "realtimeitlplanning";
-
     // connect to mujin controller
     ControllerClientPtr controllerclient = CreateControllerClient(controllerUsernamePass, urlss.str());
-
     cout << "connected to mujin controller at " << urlss.str() << endl;
-
-    SceneResourcePtr scene(new SceneResource(controllerclient, taskScenePk));
-
-    
-    Real quaternion[] = {1, 0, 0, 0};
-    if (opts.find("quaternion") != opts.end() && opts["quaternion"].as<vector<double> >().size() > 3) {
-        const vector<double> quat = opts["quaternion"].as<vector<double> >();
-        for (size_t i = 0; i < 4; ++i) {
-            quaternion[i] = quat[i];
-        }
-    }
-    Real translate[] = {0, 0, 0};
-    if (opts.find("translate") != opts.end() && opts["translate"].as<vector<double> >().size() > 2) {
-        const vector<double> trans = opts["translate"].as<vector<double> >();
-        for (size_t i = 0; i < 3; ++i) {
-            translate[i] = trans[i];
-        }
-    }
-    const string name(opts["name"].as<string>());
-    cout << "scene->GetPrimaryKey()" <<  scene->GetPrimaryKey() << endl;
-    const SceneResource::InstObjectPtr instobj = scene->CreateInstObject(name, "", quaternion, translate);
-    cout << instobj << endl;
-    cout << instobj->object_pk << endl;
-
-    vector<ObjectResource::LinkResourcePtr> objectlinks;
-    vector<SceneResource::InstObjectPtr> instobjects;
+    SceneResourcePtr scene(new SceneResource(controllerclient,taskScenePk));
+    std::vector<SceneResource::InstObjectPtr> instobjects;
     scene->GetInstObjects(instobjects);
-    for (vector<SceneResource::InstObjectPtr>::const_iterator it = instobjects.begin();
-         it != instobjects.end(); ++it) {
-        if (name == (**it).name) {
-            const string pk((**it).object_pk);
-            cout << "name: " << name << ":" << pk << " is obtained from scene\n";
-            ObjectResourcePtr object(new ObjectResource(controllerclient, pk));
-            object->GetLinks(objectlinks);
-            break;
+    for(std::vector<SceneResource::InstObjectPtr>::iterator e=instobjects.begin();e!=instobjects.end();++e){
+        puts(((*e)->name+"("+(*e)->pk+")").c_str());
+        ObjectResourcePtr object(new ObjectResource(controllerclient, (*e)->object_pk));
+        std::vector<ObjectResource::IkParamResourcePtr> ikparams;
+        object->GetIkParams(ikparams);
+        for(std::vector<ObjectResource::IkParamResourcePtr>::iterator f=ikparams.begin();f!=ikparams.end();++f){
+            puts((std::string("    ")+(*f)->name+"("+(*f)->pk+")"+std::string(" -> ")+(*f)->iktype).c_str());
+        }
+        std::vector<ObjectResource::LinkResourcePtr> objectlinks;
+        object->GetLinks(objectlinks);
+        for(std::vector<ObjectResource::LinkResourcePtr>::iterator f=objectlinks.begin();f!=objectlinks.end();++f){
+            bool s=(*f)->Get<bool>("collision");
+            puts((std::string("    ")+(*f)->name+"("+(*f)->pk+")"+std::string(" -> ")+(s?"true":"false")).c_str());
+            std::vector<ObjectResource::GeometryResourcePtr> geometries;
+            (*f)->GetGeometries(geometries);
+            for(std::vector<ObjectResource::GeometryResourcePtr>::iterator g=geometries.begin();g!=geometries.end();++g){
+                /*
+                if(g->geomtype=="mesh"){
+                    std::string primitive;
+                    std::vector<std::vector<int> >indices;
+                    std::vector<std::vector<Real> >vertices;
+                    g->GetMesh(primitive,indices,vertices);
+                    printf("%f\n",vertices[0][0]);
+                }
+                */
+                bool s=(*g)->Get<bool>("visible");
+                puts((std::string("        ")+(*g)->name+std::string(" -> ")+(s?"true":"false")+" "+(*g)->geomtype).c_str());
+            }
         }
     }
-
-
-    const string filename(opts["filename"].as<string>());
-    ObjectResource::GeometryResourcePtr geometryResource;
-    if (!filename.empty()) {
-        ifstream meshStream(filename.c_str(), ios::binary);
-        meshStream.unsetf(std::ios::skipws); // need this to not skip white space
-        vector<unsigned char> meshData;
-        copy(std::istream_iterator<unsigned char>(meshStream),
-             std::istream_iterator<unsigned char>(),
-             back_inserter(meshData));
-        geometryResource = objectlinks.front()->AddGeometryFromRawSTL(meshData, "MyGeometry", "mm", 5);
-    }
-    cout << "added object named \"" << name << "\" and whos pk is " << instobj->GetPrimaryKey() << ". Enjoy before being deleted in 10 seconds!" << endl;
-    boost::this_thread::sleep(boost::posix_time::seconds(10));
-
-    if (!filename.empty()) {
-        geometryResource->Delete(10);
-    }
-    scene->DeleteInstObject(instobj->GetPrimaryKey());
 
     return 0;
 }

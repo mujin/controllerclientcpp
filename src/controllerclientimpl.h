@@ -30,7 +30,7 @@ public:
     virtual ~ControllerClientImpl();
 
     virtual const std::string& GetUserName() const;
-    
+
     virtual std::string GetVersion();
     virtual void SetCharacterEncoding(const std::string& newencoding);
     virtual void SetProxy(const std::string& serverport, const std::string& userpw);
@@ -58,10 +58,14 @@ public:
     virtual void DownloadFileFromController_UTF16(const std::wstring& desturi, std::vector<unsigned char>& vdata);
     virtual void DownloadFileFromControllerIfModifiedSince_UTF8(const std::string& desturi, long localtimeval, long &remotetimeval, std::vector<unsigned char>& vdata, double timeout);
     virtual void DownloadFileFromControllerIfModifiedSince_UTF16(const std::wstring& desturi, long localtimeval, long &remotetimeval, std::vector<unsigned char>& vdata, double timeout);
+    virtual long GetModifiedTime(const std::string& uri, double timeout);
     virtual void DeleteFileOnController_UTF8(const std::string& desturi);
     virtual void DeleteFileOnController_UTF16(const std::wstring& desturi);
     virtual void DeleteDirectoryOnController_UTF8(const std::string& desturi);
     virtual void DeleteDirectoryOnController_UTF16(const std::wstring& desturi);
+
+    virtual void ModifySceneAddReferenceObjectPK(const std::string &scenepk, const std::string &referenceobjectpk, double timeout = 5.0);
+    virtual void ModifySceneRemoveReferenceObjectPK(const std::string &scenepk, const std::string &referenceobjectpk, double timeout = 5.0);
 
     /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
     int CallGet(const std::string& relativeuri, rapidjson::Document& pt, int expectedhttpcode=200, double timeout = 5.0);
@@ -91,7 +95,7 @@ public:
     /// \param timeout timeout of puts
     /// \return http code returned
     int CallPutJSON(const std::string& relativeuri, const std::string& data, rapidjson::Document& pt, int expectedhttpcode=202, double timeout = 5.0);
-    
+
     /// \brief puts stl data
     /// \param relativeuri relative uri to put at
     /// \param data stl raw data
@@ -100,7 +104,7 @@ public:
     /// \param timeout timeout of puts
     /// \return http code returned
     int CallPutSTL(const std::string& relativeuri, const std::vector<unsigned char>& data, rapidjson::Document& pt, int expectedhttpcode=202, double timeout = 5.0);
-    
+
 
     void CallDelete(const std::string& relativeuri, double timeout = 5.0);
 
@@ -124,7 +128,7 @@ public:
     /// \param linkPk primary key for the link
     /// \param timeout timeout of creating object geometry
     /// \return primary key for the geometry created
-    std::string CreateObjectGeometry(const std::string& objectPk, const std::string& geometryName, const std::string& linkPk, double timeout = 5);
+    std::string CreateObjectGeometry(const std::string& objectPk, const std::string& geometryName, const std::string& linkPk, const std::string& geomtype, double timeout = 5);
 
     std::string CreateIkParam(const std::string& objectPk, const std::string& name, const std::string& iktype, double timeout = 5);
     std::string CreateLink(const std::string& objectPk, const std::string& parentlinkPk, const std::string& name, const Real quaternion[4], const Real translate[3], double timeout = 5);
@@ -137,37 +141,42 @@ public:
     /// \return primary key for the geometry created
     std::string SetObjectGeometryMesh(const std::string& objectPk, const std::string& scenePk, const std::vector<unsigned char>& meshData, const std::string& unit = "mm", double timeout = 5);
 
-    inline CURL* GetCURL() const
-    {
-        return _curl;
-    }
-
-    inline boost::shared_ptr<char> GetURLEscapedString(const std::string& name) const
-    {
-        return boost::shared_ptr<char>(curl_easy_escape(_curl, name.c_str(), name.size()), curl_free);
-    }
-
     inline std::string GetBaseUri() const
     {
         return _baseuri;
     }
 
+    /// \brief URL-encode raw string
+    inline std::string EscapeString(const std::string& raw) const
+    {
+        boost::shared_ptr<char> pstr(curl_easy_escape(_curl, raw.c_str(), raw.size()), curl_free);
+        return std::string(pstr.get());
+    }
+
+    /// \brief decode URL-encoded raw string
+    inline std::string UnescapeString(const std::string& raw) const
+    {
+        int outlength = 0;
+        boost::shared_ptr<char> pstr(curl_easy_unescape(_curl, raw.c_str(), raw.size(), &outlength), curl_free);
+        return std::string(pstr.get(), outlength);
+    }
+
+
 protected:
 
     int _CallPut(const std::string& relativeuri, const void* pdata, size_t nDataSize, rapidjson::Document& pt, curl_slist* headers, int expectedhttpcode=202, double timeout = 5.0);
-
-    void GetProfile();
 
     static int _WriteStringStreamCallback(char *data, size_t size, size_t nmemb, std::stringstream *writerData);
     static int _WriteVectorCallback(char *data, size_t size, size_t nmemb, std::vector<unsigned char> *writerData);
 
     /// \brief sets up http header for doing http operation with json data
-    void _SetHTTPHeadersJSON();
+    void _SetupHTTPHeadersJSON();
 
     /// \brief sets up http header for doing http operation with stl data
-    void _SetHTTPHeadersSTL();
+    void _SetupHTTPHeadersSTL();
 
-    std::string _GetCSRFFromCookies();
+    /// \brief sets up http header for doing http operation with multipart/form-data data
+    void _SetupHTTPHeadersMultipartFormData();
 
     /// \brief given a raw uri with "mujin:/", return the real network uri
     ///
@@ -190,6 +199,7 @@ protected:
     int _CallGet(const std::string& desturi, rapidjson::Document& pt, int expectedhttpcode=200, double timeout = 5.0);
     int _CallGet(const std::string& desturi, std::string& outputdata, int expectedhttpcode=200, double timeout = 5.0);
     int _CallGet(const std::string& desturi, std::vector<unsigned char>& outputdata, int expectedhttpcode=200, double timeout = 5.0);
+    int _CallPost(const std::string& desturi, const std::string& data, rapidjson::Document& pt, int expectedhttpcode=201, double timeout = 5.0);
 
     /// \brief desturi is URL-encoded. Also assume _mutex is locked.
     virtual void _UploadFileToController_UTF8(const std::string& filename, const std::string& desturi);
@@ -201,6 +211,11 @@ protected:
     /// overwrites the file if it already exists.
     /// \param fd FILE pointer of binary reading file. does not close the handle
     virtual void _UploadFileToController(FILE* fd, const std::string& uri);
+
+    /// \brief uploads a single file, to dest location specified by filename
+    ///
+    /// overwrites the file if it already exists.
+    virtual void _UploadFileToControllerViaForm(const std::string& file, const std::string& filename);
 
     /// \brief desturi is URL-encoded. Also assume _mutex is locked.
     virtual void _UploadDataToController(const std::vector<unsigned char>& vdata, const std::string& desturi);
@@ -216,7 +231,7 @@ protected:
     virtual void _DeleteDirectoryOnController(const std::string& desturi);
 
     /// \brief desturi is URL-encoded. Also assume _mutex is locked.
-    virtual void _DownloadFileFromController(const std::string& desturi, long localtimeval, long &remotetimeval, std::vector<unsigned char>& vdata, double timeout);
+    virtual void _DownloadFileFromController(const std::string& desturi, long localtimeval, long &remotetimeval, std::vector<unsigned char>& vdata, double timeout = 5);
 
     //@}
 
@@ -235,6 +250,7 @@ protected:
 
     curl_slist *_httpheadersjson;
     curl_slist *_httpheadersstl;
+    curl_slist *_httpheadersmultipartformdata;
     std::string _charset, _language;
     std::string _csrfmiddlewaretoken;
 
