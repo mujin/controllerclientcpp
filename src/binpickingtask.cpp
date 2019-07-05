@@ -1267,7 +1267,7 @@ void BinPickingTaskResource::GetInstObjectInfoFromURI(const std::string& objectu
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "GetInstObjectAndSensorInfo";
     _ss << GetJsonString("command", command) << ", ";
-    _ss << "\"objecturi\":" << GetJsonString(objecturi);
+    _ss << "\"objecturi\":" << GetJsonString(objecturi) << ", ";
     _ss << "\"instobjectpose\":[";
     _ss << instobjecttransform.quaternion[0] << ", " << instobjecttransform.quaternion[1] << ", " << instobjecttransform.quaternion[2] << ", " << instobjecttransform.quaternion[3] << ", ";
     _ss << instobjecttransform.translate[0] << ", " << instobjecttransform.translate[1] << ", " << instobjecttransform.translate[2];
