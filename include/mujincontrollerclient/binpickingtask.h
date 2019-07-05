@@ -142,7 +142,7 @@ public:
             std::string bodyname;
             int isocclusion;
         };
-        
+
         ResultGetBinpickingState();
         virtual ~ResultGetBinpickingState();
         void Parse(const rapidjson::Value& pt);
@@ -158,7 +158,7 @@ public:
         unsigned long long lastInsideDestTimeStamp; ///< ms
         bool isRobotOccludingSourceContainer;
         std::vector<OcclusionResult> vOcclusionResults;
-            
+
         uint64_t forceRequestDetectionResultsStamp; ///< time stamp when force request for source was first set on planning side
         uint64_t forceRequestDestPointCloudStamp; ///< time stamp when force request for dest was first set on planning side
         bool isGrabbingTarget;
@@ -241,6 +241,16 @@ public:
         std::vector<Real> extents;
         std::vector<Real> rotationmat;  // row major
         std::vector<Real> quaternion; // the quaternion
+    };
+
+    struct MUJINCLIENT_API ResultInstObjectInfo : public ResultBase
+    {
+        virtual ~ResultInstObjectInfo();
+        void Parse(const rapidjson::Value& pt);
+        Transform instobjecttransform;
+        ResultOBB instobjectobb;
+        ResultOBB instobjectinnerobb;
+        rapidjson::Document rGeometryInfos; ///< for every object, list of all the geometry infos
     };
 
     struct MUJINCLIENT_API ResultGetInstObjectAndSensorInfo : public ResultBase
@@ -376,11 +386,17 @@ public:
 
     virtual PlanningResultResourcePtr GetResult();
 
-    /** \brief Gets inst object
+    /** \brief Gets inst object and sensor info of existing objects in the scene
         \param unit input unit
         \param result unit is always in meter
      */
     virtual void GetInstObjectAndSensorInfo(const std::vector<std::string>& instobjectnames, const std::vector<std::string>& sensornames, ResultGetInstObjectAndSensorInfo& result, const std::string& unit="m", const double timeout /* second */=5.0);
+
+    /** \brief Gets inst object info for a particular URI
+        \param unit input unit
+        \param result unit is always in meter
+     */
+    virtual void GetInstObjectInfoFromURI(const std::string& objecturi, const Transform& instobjecttransform, ResultInstObjectInfo& result, const std::string& unit="m", const double timeout /* second */=5.0);
 
     /// \brief Get state of bin picking
     /// \param result state of bin picking
@@ -484,7 +500,7 @@ public:
 
     /// \brief calls planning GetRobotBridgeIOVariableString and returns the contents of the signal in a string with correct endianness
     virtual void GetRobotBridgeIOVariableString(const std::vector<std::string>& ionames, std::vector<std::string>& iovalues, const double timeout=10);
-    
+
     /** \brief Monitors heartbeat signals from a running binpicking ZMQ server, and reinitializes the ZMQ server when heartbeat is lost.
         \param reinitializetimeout seconds to wait before re-initializing the ZMQ server after the heartbeat signal is lost
         \param execfn function to use to execute the InitializeZMQ command
