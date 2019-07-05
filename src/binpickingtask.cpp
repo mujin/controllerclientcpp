@@ -1446,6 +1446,23 @@ void BinPickingTaskResource::Release(const std::string& targetname, const std::s
     ExecuteCommand(_ss.str(), d, timeout);
 }
 
+void BinPickingTaskResource::GetRobotBridgeIOVariableString(const std::vector<std::string>& ionames, std::vector<std::string>& iovalues, const double timeout)
+{
+    SetMapTaskParameters(_ss, _mapTaskParameters);
+    _ss << GetJsonString("command", "GetRobotBridgeIOVariableString") << ", ";
+    _ss << "\"ionames\":" << GetJsonString(ionames);
+    _ss << "}";
+    rapidjson::Document d;
+    ExecuteCommand(_ss.str(), d, timeout);
+    rapidjson::Value root(d, d.GetAllocator());
+ 
+    // process
+    iovalues.resize(ionames.size());
+    for(size_t index = 0; index < ionames.size(); ++index) {
+        iovalues[index] = mujinjson::GetStringJsonValueByKey(root, ionames[index].c_str(), std::string());
+    }
+}
+
 const std::string& BinPickingTaskResource::GetSlaveRequestId() const
 {
     return _slaverequestid;
