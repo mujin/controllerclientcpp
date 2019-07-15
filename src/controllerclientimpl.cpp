@@ -1207,6 +1207,27 @@ void ControllerClientImpl::_DownloadFileFromController(const std::string& destur
     }
 }
 
+void ControllerClientImpl::SaveBackup(std::vector<unsigned char>& vdata, bool config, bool media, double timeout)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    std::string query=std::string("?config=")+(config ? "true" : "false")+"&media="+(media ? "true" : "false");
+    _CallGet(_baseuri+"backup/"+query, vdata, 200, timeout);
+}
+
+void ControllerClientImpl::RestoreBackup_UTF8(const std::string& filename_utf8, bool config, bool media)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    std::string query=std::string("?config=")+(config ? "true" : "false")+"&media="+(media ? "true" : "false");
+    _UploadFileToControllerViaForm2(encoding::ConvertUTF8ToFileSystemEncoding(filename_utf8), "backup.tar", _baseuri+"backup/"+query);
+}
+
+void ControllerClientImpl::RestoreBackup_UTF16(const std::wstring& filename_utf16, bool config, bool media)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    std::string query=std::string("?config=")+(config ? "true" : "false")+"&media="+(media ? "true" : "false");
+    _UploadFileToControllerViaForm2(encoding::ConvertUTF16ToFileSystemEncoding(filename_utf16), "backup.tar", _baseuri+"backup/"+query);
+}
+
 void ControllerClientImpl::DeleteFileOnController_UTF8(const std::string& desturi)
 {
     boost::mutex::scoped_lock lock(_mutex);
@@ -1585,7 +1606,11 @@ void ControllerClientImpl::_UploadFileToControllerViaForm(const std::string& fil
     }
     std::string filename = uri.substr(_basewebdavuri.size());
 
-    const std::string& endpoint = _baseuri + "fileupload";
+    _UploadFileToControllerViaForm2(file, filename, _baseuri + "fileupload");
+}
+
+void ControllerClientImpl::_UploadFileToControllerViaForm2(const std::string& file, const std::string& filename, const std::string& endpoint)
+{
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, endpoint.c_str());
     _buffer.clear();
     _buffer.str("");
@@ -1613,7 +1638,7 @@ void ControllerClientImpl::_UploadFileToControllerViaForm(const std::string& fil
 
     // 204 is when it overwrites the file?
     if( http_code != 200 ) {
-        throw MUJIN_EXCEPTION_FORMAT("upload of %s to %s failed with HTTP status %s", filename%uri%http_code, MEC_HTTPServer);
+        throw MUJIN_EXCEPTION_FORMAT("upload of %s to %s failed with HTTP status %s", filename%endpoint%http_code, MEC_HTTPServer);
     }
 }
 
@@ -1704,4 +1729,3 @@ size_t ControllerClientImpl::_ReadInMemoryUploadCallback(void *ptr, size_t size,
 }
 
 } // end namespace mujinclient
-

@@ -490,6 +490,10 @@ public:
     /// \param desturi UTF-8 encoded destination file in the network filesystem. By default prefix with "mujin:/". Use the / separator for different paths.
     virtual void UploadDataToController_UTF8(const std::vector<unsigned char>& vdata, const std::string& desturi) = 0;
 
+    virtual void SaveBackup(std::vector<unsigned char>& vdata, bool config = true, bool media = true, double timeout = 60.0) = 0;
+    virtual void RestoreBackup_UTF8(const std::string& filename_utf8, bool config = true, bool media = true) = 0;
+    virtual void RestoreBackup_UTF16(const std::wstring& filename_utf16, bool config = true, bool media = true) = 0;
+
     /** \brief Recursively uploads a directory to the controller network filesystem.
 
         Creates directories along the way if they don't exist.

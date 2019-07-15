@@ -64,6 +64,10 @@ public:
     virtual void DeleteDirectoryOnController_UTF8(const std::string& desturi);
     virtual void DeleteDirectoryOnController_UTF16(const std::wstring& desturi);
 
+    virtual void SaveBackup(std::vector<unsigned char>& vdata, bool config, bool media, double timeout);
+    virtual void RestoreBackup_UTF8(const std::string& filename_utf8, bool config, bool media);
+    virtual void RestoreBackup_UTF16(const std::wstring& filename_utf16, bool config, bool media);
+
     virtual void ModifySceneAddReferenceObjectPK(const std::string &scenepk, const std::string &referenceobjectpk, double timeout = 5.0);
     virtual void ModifySceneRemoveReferenceObjectPK(const std::string &scenepk, const std::string &referenceobjectpk, double timeout = 5.0);
 
@@ -216,6 +220,7 @@ protected:
     ///
     /// overwrites the file if it already exists.
     virtual void _UploadFileToControllerViaForm(const std::string& file, const std::string& filename);
+    virtual void _UploadFileToControllerViaForm2(const std::string& file, const std::string& filename, const std::string& endpoint);
 
     /// \brief desturi is URL-encoded. Also assume _mutex is locked.
     virtual void _UploadDataToController(const std::vector<unsigned char>& vdata, const std::string& desturi);
