@@ -7,6 +7,7 @@
 
 #include <mujincontrollerclient/binpickingtask.h>
 #include <iostream>
+#include <cmath>
 
 #if defined(_WIN32) || defined(_WIN64)
 #undef GetUserName // clashes with ControllerClient::GetUserName
@@ -220,16 +221,46 @@ int main(int argc, char ** argv)
     rapidjson::Document taskparametersParsed;
     mujinjson::ParseJson(taskparametersParsed,opts["taskparameters"].as<string>());
     pBinpickingTask->GetPublishedTaskState(taskstate, mujinjson::GetStringJsonValueByKey(taskparametersParsed,"robotname"), "mm", timeout);
-    for(int i=0;i<result.dofvalues.size();i++){
-        int j=0;
-        for(;j<taskstate.currentJointValues.size();j++){
-            if(abs(result.dofvalues[i][j]-taskstate.currentJointValues[j])>0.01)break;
+    if(true){
+        vector<double> dofResiduals;
+        double minDofResidual=HUGE_VAL;
+        int bestIndex=-1;
+        for(int i=0;i<result.dofvalues.size();i++){
+            double dofResidual = 0;
+            for(int j=0;j<taskstate.currentJointValues.size();j++){
+                dofResidual+=abs(result.dofvalues[i][j]-taskstate.currentJointValues[j]);
+            }
+            dofResidual = sqrt(dofResidual);
+            if(bestIndex<0 || dofResidual<minDofResidual){
+                bestIndex = i;
+                minDofResidual = dofResidual;
+            }
         }
-        if(j==taskstate.currentJointValues.size()){
-            ik->SetJSON("{\"extra\":"+result.extra[i]+"}");
+        double maxDofDistance=0;
+        for(int j=0;j<taskstate.currentJointValues.size();j++){
+            double distance = abs(result.dofvalues[bestIndex][j]-taskstate.currentJointValues[j]);
+            if(maxDofDistance < distance){
+                maxDofDistance = distance;
+            }
+        }
+        if(maxDofDistance<=1){
+            ik->SetJSON("{\"extra\":"+result.extra[bestIndex]+"}");
+            cout << "setting extra done" << endl;
+        }else{
+            cout << "failed to set extra" << endl;
+        }
+    }else{
+        for(int i=0;i<result.dofvalues.size();i++){
+            int j=0;
+            for(;j<taskstate.currentJointValues.size();j++){
+                if(abs(result.dofvalues[i][j]-taskstate.currentJointValues[j])>0.01)break;
+            }
+            if(j==taskstate.currentJointValues.size()){
+                ik->SetJSON("{\"extra\":"+result.extra[i]+"}");
+                cout << "setting extra done" << endl;
+            }
         }
     }
-    cout << "setting extra done" << endl;
 
     return 0;
 }
