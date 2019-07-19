@@ -490,8 +490,21 @@ public:
     /// \param desturi UTF-8 encoded destination file in the network filesystem. By default prefix with "mujin:/". Use the / separator for different paths.
     virtual void UploadDataToController_UTF8(const std::vector<unsigned char>& vdata, const std::string& desturi) = 0;
 
+    /// \brief Build a backup of config/media and download it.
+    ///
+    /// \param vdata filled with the contents of the backup. the backup is tar.gz format.
+    /// \param config whether to backup config. By default true.
+    /// \param media whether to backup media. By default true.
     virtual void SaveBackup(std::vector<unsigned char>& vdata, bool config = true, bool media = true, double timeout = 60.0) = 0;
+
+    /// \brief Restore backup archive into controller. Restaring might be required after restoration.
+    ///
+    /// \param filename_utf8 utf-8 encoded path of the backup file on the system. tar/tar.gz/tar.bz2 formats are accepted.
+    /// \param config whether to restore config. By default true (if the backup file has config).
+    /// \param media whether to restore media. By default true (if the backup file has media).
     virtual void RestoreBackup_UTF8(const std::string& filename_utf8, bool config = true, bool media = true) = 0;
+
+    /// \param filename_utf16 utf-16 encoded path of the backup file on the system. tar/tar.gz/tar.bz2 formats are accepted.
     virtual void RestoreBackup_UTF16(const std::wstring& filename_utf16, bool config = true, bool media = true) = 0;
 
     /** \brief Recursively uploads a directory to the controller network filesystem.
