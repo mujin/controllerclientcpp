@@ -1214,18 +1214,11 @@ void ControllerClientImpl::SaveBackup(std::vector<unsigned char>& vdata, bool co
     _CallGet(_baseuri+"backup/"+query, vdata, 200, timeout);
 }
 
-void ControllerClientImpl::RestoreBackup_UTF8(const std::string& filename_utf8, bool config, bool media)
+void ControllerClientImpl::RestoreBackup(const std::vector<unsigned char>& vdata, bool config, bool media)
 {
     boost::mutex::scoped_lock lock(_mutex);
     std::string query=std::string("?config=")+(config ? "true" : "false")+"&media="+(media ? "true" : "false");
-    _UploadFileToControllerViaForm2(encoding::ConvertUTF8ToFileSystemEncoding(filename_utf8), "backup.tar", _baseuri+"backup/"+query);
-}
-
-void ControllerClientImpl::RestoreBackup_UTF16(const std::wstring& filename_utf16, bool config, bool media)
-{
-    boost::mutex::scoped_lock lock(_mutex);
-    std::string query=std::string("?config=")+(config ? "true" : "false")+"&media="+(media ? "true" : "false");
-    _UploadFileToControllerViaForm2(encoding::ConvertUTF16ToFileSystemEncoding(filename_utf16), "backup.tar", _baseuri+"backup/"+query);
+    _UploadFileToControllerViaForm(vdata, "backup.tar", _baseuri+"backup/"+query);
 }
 
 void ControllerClientImpl::DeleteFileOnController_UTF8(const std::string& desturi)
@@ -1522,27 +1515,48 @@ void ControllerClientImpl::_UploadDirectoryToController_UTF16(const std::wstring
 
 void ControllerClientImpl::_UploadFileToController_UTF8(const std::string& filename, const std::string& uri)
 {
+    // the dest filename of the upload is determined by stripping the leading _basewebdavuri
+    if( uri.size() < _basewebdavuri.size() || uri.substr(0,_basewebdavuri.size()) != _basewebdavuri ) {
+        throw MUJIN_EXCEPTION_FORMAT("trying to upload a file outside of the webdav endpoint is not allowed: %s", uri, MEC_HTTPServer);
+    }
+    std::string filenameoncontroller = uri.substr(_basewebdavuri.size());
+
     std::string sFilename_FS = encoding::ConvertUTF8ToFileSystemEncoding(filename);
-    FileHandler handler(sFilename_FS.c_str());
-    if(!handler._fd) {
+    std::vector<unsigned char>content;
+    std::ifstream fin(sFilename_FS.c_str(), std::ios::in | std::ios::binary);
+    if(!fin.good()) {
         throw MUJIN_EXCEPTION_FORMAT("failed to open filename %s for uploading", sFilename_FS, MEC_InvalidArguments);
     }
-    _UploadFileToControllerViaForm(filename, uri);
+    fin.seekg(0, std::ios::end);
+    content.resize(fin.tellg());
+    fin.seekg(0, std::ios::beg);
+    fin.read((char*)&content[0], content.size());
+
+    MUJIN_LOG_DEBUG(str(boost::format("upload %s")%uri))
+    _UploadFileToControllerViaForm(content, filenameoncontroller, _baseuri + "fileupload");
 }
 
 void ControllerClientImpl::_UploadFileToController_UTF16(const std::wstring& filename, const std::string& uri)
 {
-    std::string filename_fs = encoding::ConvertUTF16ToFileSystemEncoding(filename);
-#if defined(_WIN32) || defined(_WIN64)
-    FileHandler handler(filename.c_str());
-#else
-    // linux does not support wide-char fopen
-    FileHandler handler(filename_fs.c_str());
-#endif
-    if(!handler._fd) {
-        throw MUJIN_EXCEPTION_FORMAT("failed to open filename %s for uploading", filename_fs, MEC_InvalidArguments);
+    // the dest filename of the upload is determined by stripping the leading _basewebdavuri
+    if( uri.size() < _basewebdavuri.size() || uri.substr(0,_basewebdavuri.size()) != _basewebdavuri ) {
+        throw MUJIN_EXCEPTION_FORMAT("trying to upload a file outside of the webdav endpoint is not allowed: %s", uri, MEC_HTTPServer);
     }
-    _UploadFileToControllerViaForm(filename_fs, uri);
+    std::string filenameoncontroller = uri.substr(_basewebdavuri.size());
+
+    std::string sFilename_FS = encoding::ConvertUTF16ToFileSystemEncoding(filename);
+    std::vector<unsigned char>content;
+    std::ifstream fin(sFilename_FS.c_str(), std::ios::in | std::ios::binary);
+    if(!fin.good()) {
+        throw MUJIN_EXCEPTION_FORMAT("failed to open filename %s for uploading", sFilename_FS, MEC_InvalidArguments);
+    }
+    fin.seekg(0, std::ios::end);
+    content.resize(fin.tellg());
+    fin.seekg(0, std::ios::beg);
+    fin.read((char*)&content[0], content.size());
+
+    MUJIN_LOG_DEBUG(str(boost::format("upload %s")%uri))
+    _UploadFileToControllerViaForm(content, filenameoncontroller, _baseuri + "fileupload");
 }
 
 void ControllerClientImpl::_UploadFileToController(FILE* fd, const std::string& uri)
@@ -1596,20 +1610,9 @@ void ControllerClientImpl::_UploadFileToController(FILE* fd, const std::string& 
     //printf("http code: %d, Speed: %.3f bytes/sec during %.3f seconds\n", http_code, speed_upload, total_time);
 }
 
-void ControllerClientImpl::_UploadFileToControllerViaForm(const std::string& file, const std::string& uri)
-{
-    MUJIN_LOG_DEBUG(str(boost::format("upload %s")%uri))
 
-    // the dest filename of the upload is determined by stripping the leading _basewebdavuri
-    if( uri.size() < _basewebdavuri.size() || uri.substr(0,_basewebdavuri.size()) != _basewebdavuri ) {
-        throw MUJIN_EXCEPTION_FORMAT("trying to upload a file outside of the webdav endpoint is not allowed: %s", uri, MEC_HTTPServer);
-    }
-    std::string filename = uri.substr(_basewebdavuri.size());
 
-    _UploadFileToControllerViaForm2(file, filename, _baseuri + "fileupload");
-}
-
-void ControllerClientImpl::_UploadFileToControllerViaForm2(const std::string& file, const std::string& filename, const std::string& endpoint)
+void ControllerClientImpl::_UploadFileToControllerViaForm(const std::vector<unsigned char>& vdata, const std::string& filename, const std::string& endpoint)
 {
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, endpoint.c_str());
     _buffer.clear();
@@ -1623,7 +1626,9 @@ void ControllerClientImpl::_UploadFileToControllerViaForm2(const std::string& fi
     CURL_FORM_RELEASER(formpost);
     curl_formadd(&formpost, &lastptr,
                  CURLFORM_COPYNAME, "files[]",
-                 CURLFORM_FILE, file.c_str(),
+                 CURLFORM_BUFFER, filename.c_str(),
+                 CURLFORM_BUFFERPTR, (char*)&vdata[0],
+                 CURLFORM_BUFFERLENGTH, vdata.size(),
                  CURLFORM_END);
     curl_formadd(&formpost, &lastptr,
                  CURLFORM_COPYNAME, "filename",

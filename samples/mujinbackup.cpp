@@ -35,7 +35,8 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("controller_hostname", bpo::value<string>()->required(), "hostname or ip of the mujin controller, e.g. controllerXX or 192.168.0.1")
         ("controller_port", bpo::value<unsigned int>()->default_value(80), "port of the mujin controller")
         ("controller_username_password", bpo::value<string>()->default_value("testuser:pass"), "username and password to the mujin controller, e.g. username:password")
-        ("filename", bpo::value<string>(), "backup file name from which restore [redirect stdout when saving]")
+        ("filename", bpo::value<string>(), "backup file name")
+        ("restore", bpo::value<unsigned int>()->default_value(0), "if 1, will restore")
         ("useconfig", bpo::value<unsigned int>()->default_value(1))
         ("usemedia", bpo::value<unsigned int>()->default_value(1))
         ;
@@ -84,6 +85,8 @@ int main(int argc, char ** argv)
     const unsigned int controllerPort = opts["controller_port"].as<unsigned int>();
     const unsigned int useconfig = opts["useconfig"].as<unsigned int>();
     const unsigned int usemedia = opts["usemedia"].as<unsigned int>();
+    const unsigned int restore = opts["restore"].as<unsigned int>();
+    const string filename = opts["filename"].as<string>();
     stringstream urlss;
     urlss << "http://" << hostname << ":" << controllerPort;
 
@@ -91,12 +94,18 @@ int main(int argc, char ** argv)
     ControllerClientPtr controllerclient = CreateControllerClient(controllerUsernamePass, urlss.str());
     cerr << "connected to mujin controller at " << urlss.str() << endl;
 
-    if(!isatty(fileno(stdout))){
-        vector<unsigned char>buf;
-        controllerclient->SaveBackup(buf,useconfig,usemedia);
-        fwrite(buf.data(),1,buf.size(),stdout);
+    vector<unsigned char>buf;
+    if(restore){
+        ifstream fin(filename.c_str(), std::ios::in | std::ios::binary);
+        fin.seekg(0, std::ios::end);
+        buf.resize(fin.tellg());
+        fin.seekg(0, std::ios::beg);
+        fin.read((char*)&buf[0], buf.size());
+        controllerclient->RestoreBackup(buf,useconfig,usemedia);
     }else{
-        controllerclient->RestoreBackup_UTF8(opts["filename"].as<string>(),useconfig,usemedia);
+        controllerclient->SaveBackup(buf,useconfig,usemedia);
+        ofstream fout(filename.c_str(), std::ios::out | std::ios::binary);
+        fout.write((char*)&buf[0], buf.size());
     }
 
     return 0;
