@@ -868,6 +868,15 @@ int ControllerClientImpl::_WriteStringStreamCallback(char *data, size_t size, si
     return size * nmemb;
 }
 
+int ControllerClientImpl::_WriteOStreamCallback(char *data, size_t size, size_t nmemb, std::ostream *writerData)
+{
+    if (writerData == NULL) {
+        return 0;
+    }
+    writerData->write(data, size*nmemb);
+    return size * nmemb;
+}
+
 int ControllerClientImpl::_WriteVectorCallback(char *data, size_t size, size_t nmemb, std::vector<unsigned char> *writerData)
 {
     if (writerData == NULL) {
@@ -875,6 +884,15 @@ int ControllerClientImpl::_WriteVectorCallback(char *data, size_t size, size_t n
     }
     writerData->insert(writerData->end(), data, data+size*nmemb);
     return size * nmemb;
+}
+
+int ControllerClientImpl::_ReadIStreamCallback(char *data, size_t size, size_t nmemb, std::istream *readerData)
+{
+    if (readerData == NULL) {
+        return 0;
+    }
+    std::cout << size*nmemb << std::endl;
+    return readerData->read(data, size*nmemb).gcount();
 }
 
 void ControllerClientImpl::_SetupHTTPHeadersJSON()
@@ -1214,11 +1232,11 @@ void ControllerClientImpl::SaveBackup(std::vector<unsigned char>& vdata, bool co
     _CallGet(_baseuri+"backup/"+query, vdata, 200, timeout);
 }
 
-void ControllerClientImpl::RestoreBackup(const std::vector<unsigned char>& vdata, bool config, bool media)
+void ControllerClientImpl::RestoreBackup(std::istream& inputStream, bool config, bool media)
 {
     boost::mutex::scoped_lock lock(_mutex);
     std::string query=std::string("?config=")+(config ? "true" : "false")+"&media="+(media ? "true" : "false");
-    _UploadFileToControllerViaForm(vdata, "backup.tar", _baseuri+"backup/"+query);
+    _UploadFileToControllerViaForm(inputStream, "backup"/*".tar"*/, _baseuri+"backup/"+query);
 }
 
 void ControllerClientImpl::DeleteFileOnController_UTF8(const std::string& desturi)
@@ -1522,18 +1540,13 @@ void ControllerClientImpl::_UploadFileToController_UTF8(const std::string& filen
     std::string filenameoncontroller = uri.substr(_basewebdavuri.size());
 
     std::string sFilename_FS = encoding::ConvertUTF8ToFileSystemEncoding(filename);
-    std::vector<unsigned char>content;
     std::ifstream fin(sFilename_FS.c_str(), std::ios::in | std::ios::binary);
     if(!fin.good()) {
         throw MUJIN_EXCEPTION_FORMAT("failed to open filename %s for uploading", sFilename_FS, MEC_InvalidArguments);
     }
-    fin.seekg(0, std::ios::end);
-    content.resize(fin.tellg());
-    fin.seekg(0, std::ios::beg);
-    fin.read((char*)&content[0], content.size());
 
     MUJIN_LOG_DEBUG(str(boost::format("upload %s")%uri))
-    _UploadFileToControllerViaForm(content, filenameoncontroller, _baseuri + "fileupload");
+    _UploadFileToControllerViaForm(fin, filenameoncontroller, _baseuri + "fileupload");
 }
 
 void ControllerClientImpl::_UploadFileToController_UTF16(const std::wstring& filename, const std::string& uri)
@@ -1550,13 +1563,9 @@ void ControllerClientImpl::_UploadFileToController_UTF16(const std::wstring& fil
     if(!fin.good()) {
         throw MUJIN_EXCEPTION_FORMAT("failed to open filename %s for uploading", sFilename_FS, MEC_InvalidArguments);
     }
-    fin.seekg(0, std::ios::end);
-    content.resize(fin.tellg());
-    fin.seekg(0, std::ios::beg);
-    fin.read((char*)&content[0], content.size());
 
     MUJIN_LOG_DEBUG(str(boost::format("upload %s")%uri))
-    _UploadFileToControllerViaForm(content, filenameoncontroller, _baseuri + "fileupload");
+    _UploadFileToControllerViaForm(fin, filenameoncontroller, _baseuri + "fileupload");
 }
 
 void ControllerClientImpl::_UploadFileToController(FILE* fd, const std::string& uri)
@@ -1612,7 +1621,7 @@ void ControllerClientImpl::_UploadFileToController(FILE* fd, const std::string& 
 
 
 
-void ControllerClientImpl::_UploadFileToControllerViaForm(const std::vector<unsigned char>& vdata, const std::string& filename, const std::string& endpoint)
+void ControllerClientImpl::_UploadFileToControllerViaForm(std::istream& inputStream, const std::string& filename, const std::string& endpoint)
 {
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, endpoint.c_str());
     _buffer.clear();
@@ -1620,15 +1629,30 @@ void ControllerClientImpl::_UploadFileToControllerViaForm(const std::vector<unsi
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEFUNCTION, NULL, _WriteStringStreamCallback);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEDATA, NULL, &_buffer);
 
+    inputStream.seekg(0, std::ios::end);
+    if(inputStream.fail()) {
+        throw MUJIN_EXCEPTION_FORMAT("failed to seek inputStream (%s) to get the length", filename, MEC_InvalidArguments);
+    }
+    size_t contentLength = inputStream.tellg();
+    if(inputStream.fail()) {
+        throw MUJIN_EXCEPTION_FORMAT("failed to tell the length of inputStream (%s)", filename, MEC_InvalidArguments);
+    }
+    inputStream.seekg(0, std::ios::beg);
+    if(inputStream.fail()) {
+        throw MUJIN_EXCEPTION_FORMAT("failed to rewind inputStream (%s)", filename, MEC_InvalidArguments);
+    }
+    std::cout << contentLength << std::endl;
+
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_READFUNCTION, NULL, _ReadIStreamCallback);
     // prepare form
     struct curl_httppost *formpost = NULL;
     struct curl_httppost *lastptr = NULL;
     CURL_FORM_RELEASER(formpost);
     curl_formadd(&formpost, &lastptr,
                  CURLFORM_COPYNAME, "files[]",
-                 CURLFORM_BUFFER, filename.c_str(),
-                 CURLFORM_BUFFERPTR, (char*)&vdata[0],
-                 CURLFORM_BUFFERLENGTH, vdata.size(),
+                 CURLFORM_FILENAME, filename.c_str(),
+                 CURLFORM_STREAM, &inputStream,
+                 CURLFORM_CONTENTSLENGTH, contentLength,
                  CURLFORM_END);
     curl_formadd(&formpost, &lastptr,
                  CURLFORM_COPYNAME, "filename",

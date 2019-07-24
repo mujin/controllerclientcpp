@@ -65,7 +65,7 @@ public:
     virtual void DeleteDirectoryOnController_UTF16(const std::wstring& desturi);
 
     virtual void SaveBackup(std::vector<unsigned char>& vdata, bool config, bool media, double timeout);
-    virtual void RestoreBackup(const std::vector<unsigned char>& vdata, bool config, bool media);
+    virtual void RestoreBackup(std::istream& inputStream, bool config, bool media);
 
     virtual void ModifySceneAddReferenceObjectPK(const std::string &scenepk, const std::string &referenceobjectpk, double timeout = 5.0);
     virtual void ModifySceneRemoveReferenceObjectPK(const std::string &scenepk, const std::string &referenceobjectpk, double timeout = 5.0);
@@ -171,6 +171,8 @@ protected:
 
     static int _WriteStringStreamCallback(char *data, size_t size, size_t nmemb, std::stringstream *writerData);
     static int _WriteVectorCallback(char *data, size_t size, size_t nmemb, std::vector<unsigned char> *writerData);
+    static int _WriteOStreamCallback(char *data, size_t size, size_t nmemb, std::ostream *writerData);
+    static int _ReadIStreamCallback(char *data, size_t size, size_t nmemb, std::istream *writerData);
 
     /// \brief sets up http header for doing http operation with json data
     void _SetupHTTPHeadersJSON();
@@ -218,7 +220,8 @@ protected:
     /// \brief uploads a single file, to dest location specified by filename
     ///
     /// overwrites the file if it already exists.
-    virtual void _UploadFileToControllerViaForm(const std::vector<unsigned char>& vdata, const std::string& filename, const std::string& endpoint);
+    /// \param inputStream the stream represententing the backup. It needs to be seekable to get the size (ifstream subclass is applicable to files).
+    virtual void _UploadFileToControllerViaForm(std::istream& inputStream, const std::string& filename, const std::string& endpoint);
 
     /// \brief desturi is URL-encoded. Also assume _mutex is locked.
     virtual void _UploadDataToController(const std::vector<unsigned char>& vdata, const std::string& desturi);

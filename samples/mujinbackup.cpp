@@ -97,11 +97,7 @@ int main(int argc, char ** argv)
     vector<unsigned char>buf;
     if(restore){
         ifstream fin(filename.c_str(), std::ios::in | std::ios::binary);
-        fin.seekg(0, std::ios::end);
-        buf.resize(fin.tellg());
-        fin.seekg(0, std::ios::beg);
-        fin.read((char*)&buf[0], buf.size());
-        controllerclient->RestoreBackup(buf,useconfig,usemedia);
+        controllerclient->RestoreBackup(fin,useconfig,usemedia);
     }else{
         controllerclient->SaveBackup(buf,useconfig,usemedia);
         ofstream fout(filename.c_str(), std::ios::out | std::ios::binary);
