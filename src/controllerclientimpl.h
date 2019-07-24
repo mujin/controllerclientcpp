@@ -65,7 +65,7 @@ public:
     virtual void DeleteDirectoryOnController_UTF16(const std::wstring& desturi);
 
     virtual void SaveBackup(std::vector<unsigned char>& vdata, bool config, bool media, double timeout);
-    virtual void RestoreBackup(std::istream& inputStream, bool config, bool media);
+    virtual void RestoreBackup(std::istream& inputStream, bool config, bool media, double timeout);
 
     virtual void ModifySceneAddReferenceObjectPK(const std::string &scenepk, const std::string &referenceobjectpk, double timeout = 5.0);
     virtual void ModifySceneRemoveReferenceObjectPK(const std::string &scenepk, const std::string &referenceobjectpk, double timeout = 5.0);
@@ -221,7 +221,7 @@ protected:
     ///
     /// overwrites the file if it already exists.
     /// \param inputStream the stream represententing the backup. It needs to be seekable to get the size (ifstream subclass is applicable to files).
-    virtual void _UploadFileToControllerViaForm(std::istream& inputStream, const std::string& filename, const std::string& endpoint);
+    virtual void _UploadFileToControllerViaForm(std::istream& inputStream, const std::string& filename, const std::string& endpoint, double timeout = 0);
 
     /// \brief desturi is URL-encoded. Also assume _mutex is locked.
     virtual void _UploadDataToController(const std::vector<unsigned char>& vdata, const std::string& desturi);

@@ -502,7 +502,7 @@ public:
     /// \param inputStream the stream represententing the backup. It needs to be seekable to get the size (ifstream subclass is applicable to files). tar/tar.gz/tar.bz2 formats are accepted.
     /// \param config whether to restore config. By default true (if the backup file has config).
     /// \param media whether to restore media. By default true (if the backup file has media).
-    virtual void RestoreBackup(std::istream& inputStream, bool config = true, bool media = true) = 0;
+    virtual void RestoreBackup(std::istream& inputStream, bool config = true, bool media = true, double timeout = 60.0) = 0;
 
     /** \brief Recursively uploads a directory to the controller network filesystem.
 

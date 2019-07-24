@@ -1232,11 +1232,11 @@ void ControllerClientImpl::SaveBackup(std::vector<unsigned char>& vdata, bool co
     _CallGet(_baseuri+"backup/"+query, vdata, 200, timeout);
 }
 
-void ControllerClientImpl::RestoreBackup(std::istream& inputStream, bool config, bool media)
+void ControllerClientImpl::RestoreBackup(std::istream& inputStream, bool config, bool media, double timeout)
 {
     boost::mutex::scoped_lock lock(_mutex);
     std::string query=std::string("?config=")+(config ? "true" : "false")+"&media="+(media ? "true" : "false");
-    _UploadFileToControllerViaForm(inputStream, "backup"/*".tar"*/, _baseuri+"backup/"+query);
+    _UploadFileToControllerViaForm(inputStream, "backup"/*".tar"*/, _baseuri+"backup/"+query, timeout);
 }
 
 void ControllerClientImpl::DeleteFileOnController_UTF8(const std::string& desturi)
@@ -1621,13 +1621,15 @@ void ControllerClientImpl::_UploadFileToController(FILE* fd, const std::string& 
 
 
 
-void ControllerClientImpl::_UploadFileToControllerViaForm(std::istream& inputStream, const std::string& filename, const std::string& endpoint)
+void ControllerClientImpl::_UploadFileToControllerViaForm(std::istream& inputStream, const std::string& filename, const std::string& endpoint, double timeout)
 {
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, endpoint.c_str());
     _buffer.clear();
     _buffer.str("");
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEFUNCTION, NULL, _WriteStringStreamCallback);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEDATA, NULL, &_buffer);
+    //timeout is default to 0 (never)
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_TIMEOUT_MS, 0L, (long)(timeout * 1000L));
 
     inputStream.seekg(0, std::ios::end);
     if(inputStream.fail()) {
