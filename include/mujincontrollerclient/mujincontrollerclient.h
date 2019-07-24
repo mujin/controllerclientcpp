@@ -492,10 +492,10 @@ public:
 
     /// \brief Build a backup of config/media and download it.
     ///
-    /// \param vdata filled with the contents of the backup. the backup is tar.gz format.
+    /// \param outputStream filled with the contents of the backup. the backup is tar.gz format.
     /// \param config whether to backup config. By default true.
     /// \param media whether to backup media. By default true.
-    virtual void SaveBackup(std::vector<unsigned char>& vdata, bool config = true, bool media = true, double timeout = 60.0) = 0;
+    virtual void SaveBackup(std::ostream& outputStream, bool config = true, bool media = true, double timeout = 60.0) = 0;
 
     /// \brief Restore backup archive into controller. Restaring might be required after restoration.
     ///

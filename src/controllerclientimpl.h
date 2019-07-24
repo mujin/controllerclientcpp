@@ -64,7 +64,7 @@ public:
     virtual void DeleteDirectoryOnController_UTF8(const std::string& desturi);
     virtual void DeleteDirectoryOnController_UTF16(const std::wstring& desturi);
 
-    virtual void SaveBackup(std::vector<unsigned char>& vdata, bool config, bool media, double timeout);
+    virtual void SaveBackup(std::ostream& outputStream, bool config, bool media, double timeout);
     virtual void RestoreBackup(std::istream& inputStream, bool config, bool media, double timeout);
 
     virtual void ModifySceneAddReferenceObjectPK(const std::string &scenepk, const std::string &referenceobjectpk, double timeout = 5.0);
@@ -204,6 +204,7 @@ protected:
     int _CallGet(const std::string& desturi, rapidjson::Document& pt, int expectedhttpcode=200, double timeout = 5.0);
     int _CallGet(const std::string& desturi, std::string& outputdata, int expectedhttpcode=200, double timeout = 5.0);
     int _CallGet(const std::string& desturi, std::vector<unsigned char>& outputdata, int expectedhttpcode=200, double timeout = 5.0);
+    int _CallGet(const std::string& desturi, std::ostream& outputStream, int expectedhttpcode=200, double timeout = 5.0);
     int _CallPost(const std::string& desturi, const std::string& data, rapidjson::Document& pt, int expectedhttpcode=201, double timeout = 5.0);
 
     /// \brief desturi is URL-encoded. Also assume _mutex is locked.

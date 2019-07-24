@@ -99,9 +99,8 @@ int main(int argc, char ** argv)
         ifstream fin(filename.c_str(), std::ios::in | std::ios::binary);
         controllerclient->RestoreBackup(fin,useconfig,usemedia);
     }else{
-        controllerclient->SaveBackup(buf,useconfig,usemedia);
         ofstream fout(filename.c_str(), std::ios::out | std::ios::binary);
-        fout.write((char*)&buf[0], buf.size());
+        controllerclient->SaveBackup(fout,useconfig,usemedia);
     }
 
     return 0;

@@ -606,6 +606,25 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, std::string& outp
     return http_code;
 }
 
+int ControllerClientImpl::_CallGet(const std::string& desturi, std::ostream& outputStream, int expectedhttpcode, double timeout)
+{
+    MUJIN_LOG_VERBOSE(str(boost::format("GET %s")%desturi));
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_TIMEOUT_MS, 0L, (long)(timeout * 1000L));
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPHEADER, NULL, _httpheadersjson);
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, desturi.c_str());
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEFUNCTION, NULL, _WriteOStreamCallback);
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEDATA, NULL, &outputStream);
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPGET, 0L, 1L);
+    CURL_PERFORM(_curl);
+    long http_code = 0;
+    CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
+    if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
+        // outputStream is not always seekable; ignore any error message.
+        throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s (outputStream might have information)", desturi%http_code, MEC_HTTPServer);
+    }
+    return http_code;
+}
+
 int ControllerClientImpl::CallGet(const std::string& relativeuri, std::vector<unsigned char>& outputdata, int expectedhttpcode, double timeout)
 {
     boost::mutex::scoped_lock lock(_mutex);
@@ -1226,11 +1245,11 @@ void ControllerClientImpl::_DownloadFileFromController(const std::string& destur
     }
 }
 
-void ControllerClientImpl::SaveBackup(std::vector<unsigned char>& vdata, bool config, bool media, double timeout)
+void ControllerClientImpl::SaveBackup(std::ostream& outputStream, bool config, bool media, double timeout)
 {
     boost::mutex::scoped_lock lock(_mutex);
     std::string query=std::string("?config=")+(config ? "true" : "false")+"&media="+(media ? "true" : "false");
-    _CallGet(_baseuri+"backup/"+query, vdata, 200, timeout);
+    _CallGet(_baseuri+"backup/"+query, outputStream, 200, timeout);
 }
 
 void ControllerClientImpl::RestoreBackup(std::istream& inputStream, bool config, bool media, double timeout)
