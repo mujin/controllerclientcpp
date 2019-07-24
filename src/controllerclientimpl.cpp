@@ -1255,7 +1255,7 @@ void ControllerClientImpl::RestoreBackup(std::istream& inputStream, bool config,
 {
     boost::mutex::scoped_lock lock(_mutex);
     std::string query=std::string("?config=")+(config ? "true" : "false")+"&media="+(media ? "true" : "false");
-    _UploadFileToControllerViaForm(inputStream, "backup"/*".tar"*/, _baseuri+"backup/"+query, timeout);
+    _UploadFileToControllerViaForm(inputStream, "", _baseuri+"backup/"+query, timeout);
 }
 
 void ControllerClientImpl::DeleteFileOnController_UTF8(const std::string& desturi)
@@ -1652,15 +1652,15 @@ void ControllerClientImpl::_UploadFileToControllerViaForm(std::istream& inputStr
 
     inputStream.seekg(0, std::ios::end);
     if(inputStream.fail()) {
-        throw MUJIN_EXCEPTION_FORMAT("failed to seek inputStream (%s) to get the length", filename, MEC_InvalidArguments);
+        throw MUJIN_EXCEPTION_FORMAT0("failed to seek inputStream to get the length", MEC_InvalidArguments);
     }
     size_t contentLength = inputStream.tellg();
     if(inputStream.fail()) {
-        throw MUJIN_EXCEPTION_FORMAT("failed to tell the length of inputStream (%s)", filename, MEC_InvalidArguments);
+        throw MUJIN_EXCEPTION_FORMAT0("failed to tell the length of inputStream", MEC_InvalidArguments);
     }
     inputStream.seekg(0, std::ios::beg);
     if(inputStream.fail()) {
-        throw MUJIN_EXCEPTION_FORMAT("failed to rewind inputStream (%s)", filename, MEC_InvalidArguments);
+        throw MUJIN_EXCEPTION_FORMAT0("failed to rewind inputStream", MEC_InvalidArguments);
     }
 
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_READFUNCTION, NULL, _ReadIStreamCallback);
@@ -1670,14 +1670,16 @@ void ControllerClientImpl::_UploadFileToControllerViaForm(std::istream& inputStr
     CURL_FORM_RELEASER(formpost);
     curl_formadd(&formpost, &lastptr,
                  CURLFORM_COPYNAME, "files[]",
-                 CURLFORM_FILENAME, filename.c_str(),
+                 CURLFORM_FILENAME, filename.empty() ? "unused" : filename.c_str(),
                  CURLFORM_STREAM, &inputStream,
                  CURLFORM_CONTENTSLENGTH, contentLength,
                  CURLFORM_END);
-    curl_formadd(&formpost, &lastptr,
-                 CURLFORM_COPYNAME, "filename",
-                 CURLFORM_COPYCONTENTS, filename.c_str(),
-                 CURLFORM_END);
+    if(!filename.empty()) {
+        curl_formadd(&formpost, &lastptr,
+                     CURLFORM_COPYNAME, "filename",
+                     CURLFORM_COPYCONTENTS, filename.c_str(),
+                     CURLFORM_END);
+    }
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPPOST, NULL, formpost);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPHEADER, NULL, _httpheadersmultipartformdata);
     CURL_PERFORM(_curl);
