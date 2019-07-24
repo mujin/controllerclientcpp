@@ -911,7 +911,6 @@ int ControllerClientImpl::_ReadIStreamCallback(char *data, size_t size, size_t n
     if (readerData == NULL) {
         return 0;
     }
-    std::cout << size*nmemb << std::endl;
     return readerData->read(data, size*nmemb).gcount();
 }
 
@@ -1663,7 +1662,6 @@ void ControllerClientImpl::_UploadFileToControllerViaForm(std::istream& inputStr
     if(inputStream.fail()) {
         throw MUJIN_EXCEPTION_FORMAT("failed to rewind inputStream (%s)", filename, MEC_InvalidArguments);
     }
-    std::cout << contentLength << std::endl;
 
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_READFUNCTION, NULL, _ReadIStreamCallback);
     // prepare form
