@@ -197,11 +197,13 @@ public:
             }
         } registerMinViableRegionInfo;
 
-        // struct MVRUpdateObjectInfo {
-        //     std::string targetname;
-        //     float height;
-        //     float mass;
-        // } mvrUpdateObjectInfo;
+        struct RemoveObjectFromObjectListInfo {
+            double timestamp = 0; // timestamp this request was sent
+            std::string objectPk; // objectPk to remove from the current object set vision is using
+            bool IsEmpty() const {
+                return objectPk.empty();
+            }
+        } removeObjectFromObjectListInfo;
     };
 
     struct MUJINCLIENT_API ResultIsRobotOccludingBody : public ResultBase
@@ -514,6 +516,8 @@ public:
         const rapidjson::Document &mvrResultInfo,
         double timeout /* second */=5.0);
 
+    // send result of RemoveObjectFromObjectList request
+    virtual void SendRemoveObjectFromObjectListResult(const std::string& objectPk, bool success, double timeout /* second */=5.0);
 protected:
     std::stringstream _ss;
 
