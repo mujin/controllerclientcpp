@@ -612,15 +612,30 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, std::ostream& out
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_TIMEOUT_MS, 0L, (long)(timeout * 1000L));
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPHEADER, NULL, _httpheadersjson);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, desturi.c_str());
-    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEFUNCTION, NULL, _WriteOStreamCallback);
-    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEDATA, NULL, &outputStream);
+    _buffer.clear();
+    _buffer.str("");
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEFUNCTION, NULL, static_cast<size_t(*)(char*, size_t, size_t, void**)>([](char *data, size_t size, size_t nmemb, void **writerData) -> size_t{
+        if(((std::stringstream*)writerData[0])->tellg() < 0x1000) {
+            _WriteStringStreamCallback(data, size, nmemb, (std::stringstream*)writerData[0]);
+        }
+        return _WriteOStreamCallback(data, size, nmemb, (std::ostream*)writerData[1]);
+    }));
+    void *writerData[]{&_buffer,&outputStream};
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEDATA, NULL, writerData);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPGET, 0L, 1L);
     CURL_PERFORM(_curl);
     long http_code = 0;
     CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
+    std::string outputdata = _buffer.str();
     if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
-        // outputStream is not always seekable; ignore any error message.
-        throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s (outputStream might have information)", desturi%http_code, MEC_HTTPServer);
+        if( outputdata.size() > 0 ) {
+            rapidjson::Document d;
+            ParseJson(d, _buffer.str());
+            std::string error_message = GetJsonValueByKey<std::string>(d, "error_message");
+            std::string traceback = GetJsonValueByKey<std::string>(d, "traceback");
+            throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s: %s", desturi%http_code%error_message, MEC_HTTPServer);
+        }
+        throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s", desturi%http_code, MEC_HTTPServer);
     }
     return http_code;
 }
