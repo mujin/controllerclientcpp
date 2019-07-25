@@ -573,9 +573,8 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     registerMinViableRegionInfo.minCandidateSize = GetJsonValueByPath<std::array<double, 3> >(v, "/registerMinViableRegionInfo/minCandidateSize", {});
     registerMinViableRegionInfo.maxCandidateSize = GetJsonValueByPath<std::array<double, 3> >(v, "/registerMinViableRegionInfo/maxCandidateSize", {});
 
-    // mvrUpdateObjectInfo.targetname = GetJsonValueByPath<std::string>(v, "/mvrUpdateObjectInfo/targetname", "");
-    // mvrUpdateObjectInfo.height = GetJsonValueByPath<float>(v, "/mvrUpdateObjectInfo/height", 0.0f);
-    // mvrUpdateObjectInfo.mass = GetJsonValueByPath<float>(v, "/mvrUpdateObjectInfo/mass", 0.0f);
+    removeObjectFromObjectListInfo.objectPk = GetJsonValueByPath<std::string>(v, "/removeObjectFromObjectList/objectPk", "");
+    removeObjectFromObjectListInfo.timestamp = GetJsonValueByPath<double>(v, "/removeObjectFromObjectList/timestamp", 0);
 
     LoadJsonValueByKey(v, "currentToolValues", currentToolValues);
     LoadJsonValueByKey(v, "currentJointValues", currentJointValues);
@@ -939,6 +938,20 @@ void BinPickingTaskResource::SendMVRRegistrationResult(
     rapidjson::Document pt(rapidjson::kObjectType);
     ExecuteCommand(_ss.str(), pt, timeout);
 
+}
+
+void BinPickingTaskResource::SendRemoveObjectFromObjectListResult(
+    const std::string& objectPk,
+    bool success,
+    double timeout)
+{
+    SetMapTaskParameters(_ss, _mapTaskParameters);
+    _ss << GetJsonString("command", "SendRemoveObjectFromObjectListResult") << ", ";
+    _ss << GetJsonString("objectPk", objectPk) << ", ";
+    _ss << GetJsonString("success", success) << ", ";
+    _ss << "}";
+    rapidjson::Document pt(rapidjson::kObjectType);
+    ExecuteCommand(_ss.str(), pt, timeout);
 }
 
 void BinPickingTaskResource::SetTransform(const std::string& targetname, const Transform &transform, const std::string& unit, const double timeout)
