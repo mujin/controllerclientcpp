@@ -1278,7 +1278,7 @@ void BinPickingTaskResource::GetInstObjectAndSensorInfo(const std::vector<std::s
 void BinPickingTaskResource::GetInstObjectInfoFromURI(const std::string& objecturi, const Transform& instobjecttransform, ResultInstObjectInfo& result, const std::string& unit, const double timeout)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
-    std::string command = "GetInstObjectAndSensorInfo";
+    std::string command = "GetInstObjectInfoFromURI";
     _ss << GetJsonString("command", command) << ", ";
     _ss << "\"objecturi\":" << GetJsonString(objecturi) << ", ";
     _ss << "\"instobjectpose\":[";
@@ -1509,12 +1509,18 @@ void BinPickingTaskResource::GetRobotBridgeIOVariableString(const std::vector<st
     _ss << "}";
     rapidjson::Document d;
     ExecuteCommand(_ss.str(), d, timeout);
-    rapidjson::Value root(d, d.GetAllocator());
+    BOOST_ASSERT(d.IsObject() && d.HasMember("output"));
+    const rapidjson::Value& rIOOutputs = d["output"];
 
     // process
     iovalues.resize(ionames.size());
     for(size_t index = 0; index < ionames.size(); ++index) {
-        iovalues[index] = mujinjson::GetStringJsonValueByKey(root, ionames[index].c_str(), std::string());
+        if( rIOOutputs.HasMember(ionames[index].c_str()) ) {
+            iovalues[index] = mujinjson::GetStringJsonValueByKey(rIOOutputs, ionames[index].c_str(), std::string());
+        }
+        else {
+            MUJIN_LOG_DEBUG(str(boost::format("could not read ioname %s")%ionames[index]));
+        }
     }
 }
 
