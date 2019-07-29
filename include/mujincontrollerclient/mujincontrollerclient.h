@@ -490,6 +490,20 @@ public:
     /// \param desturi UTF-8 encoded destination file in the network filesystem. By default prefix with "mujin:/". Use the / separator for different paths.
     virtual void UploadDataToController_UTF8(const std::vector<unsigned char>& vdata, const std::string& desturi) = 0;
 
+    /// \brief Build a backup of config/media and download it.
+    ///
+    /// \param outputStream filled with the contents of the backup. the backup is tar.gz format.
+    /// \param config whether to backup config. By default true.
+    /// \param media whether to backup media. By default true.
+    virtual void SaveBackup(std::ostream& outputStream, bool config = true, bool media = true, double timeout = 60.0) = 0;
+
+    /// \brief Restore backup archive into controller. Restaring might be required after restoration.
+    ///
+    /// \param inputStream the stream represententing the backup. It needs to be seekable to get the size (ifstream subclass is applicable to files).
+    /// \param config whether to restore config. By default true (if the backup file has config).
+    /// \param media whether to restore media. By default true (if the backup file has media).
+    virtual void RestoreBackup(std::istream& inputStream, bool config = true, bool media = true, double timeout = 60.0) = 0;
+
     /** \brief Recursively uploads a directory to the controller network filesystem.
 
         Creates directories along the way if they don't exist.

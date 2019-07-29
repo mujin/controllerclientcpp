@@ -588,6 +588,7 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, std::string& outp
     _buffer.str("");
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEFUNCTION, NULL, _WriteStringStreamCallback);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEDATA, NULL, &_buffer);
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPGET, 0L, 1L);
     CURL_PERFORM(_curl);
     long http_code = 0;
     CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
@@ -601,6 +602,25 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, std::string& outp
             throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s: %s", desturi%http_code%error_message, MEC_HTTPServer);
         }
         throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s", desturi%http_code, MEC_HTTPServer);
+    }
+    return http_code;
+}
+
+int ControllerClientImpl::_CallGet(const std::string& desturi, std::ostream& outputStream, int expectedhttpcode, double timeout)
+{
+    MUJIN_LOG_VERBOSE(str(boost::format("GET %s")%desturi));
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_TIMEOUT_MS, 0L, (long)(timeout * 1000L));
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPHEADER, NULL, _httpheadersjson);
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, desturi.c_str());
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEFUNCTION, NULL, _WriteOStreamCallback);
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEDATA, NULL, &outputStream);
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPGET, 0L, 1L);
+    CURL_PERFORM(_curl);
+    long http_code = 0;
+    CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
+    if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
+        // outputStream is not always seekable; ignore any error message.
+        throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s (outputStream might have information)", desturi%http_code, MEC_HTTPServer);
     }
     return http_code;
 }
@@ -868,6 +888,15 @@ int ControllerClientImpl::_WriteStringStreamCallback(char *data, size_t size, si
     return size * nmemb;
 }
 
+int ControllerClientImpl::_WriteOStreamCallback(char *data, size_t size, size_t nmemb, std::ostream *writerData)
+{
+    if (writerData == NULL) {
+        return 0;
+    }
+    writerData->write(data, size*nmemb);
+    return size * nmemb;
+}
+
 int ControllerClientImpl::_WriteVectorCallback(char *data, size_t size, size_t nmemb, std::vector<unsigned char> *writerData)
 {
     if (writerData == NULL) {
@@ -875,6 +904,14 @@ int ControllerClientImpl::_WriteVectorCallback(char *data, size_t size, size_t n
     }
     writerData->insert(writerData->end(), data, data+size*nmemb);
     return size * nmemb;
+}
+
+int ControllerClientImpl::_ReadIStreamCallback(char *data, size_t size, size_t nmemb, std::istream *readerData)
+{
+    if (readerData == NULL) {
+        return 0;
+    }
+    return readerData->read(data, size*nmemb).gcount();
 }
 
 void ControllerClientImpl::_SetupHTTPHeadersJSON()
@@ -1207,6 +1244,20 @@ void ControllerClientImpl::_DownloadFileFromController(const std::string& destur
     }
 }
 
+void ControllerClientImpl::SaveBackup(std::ostream& outputStream, bool config, bool media, double timeout)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    std::string query=std::string("?config=")+(config ? "true" : "false")+"&media="+(media ? "true" : "false");
+    _CallGet(_baseuri+"backup/"+query, outputStream, 200, timeout);
+}
+
+void ControllerClientImpl::RestoreBackup(std::istream& inputStream, bool config, bool media, double timeout)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    std::string query=std::string("?config=")+(config ? "true" : "false")+"&media="+(media ? "true" : "false");
+    _UploadFileToControllerViaForm(inputStream, "", _baseuri+"backup/"+query, timeout);
+}
+
 void ControllerClientImpl::DeleteFileOnController_UTF8(const std::string& desturi)
 {
     boost::mutex::scoped_lock lock(_mutex);
@@ -1501,27 +1552,39 @@ void ControllerClientImpl::_UploadDirectoryToController_UTF16(const std::wstring
 
 void ControllerClientImpl::_UploadFileToController_UTF8(const std::string& filename, const std::string& uri)
 {
+    // the dest filename of the upload is determined by stripping the leading _basewebdavuri
+    if( uri.size() < _basewebdavuri.size() || uri.substr(0,_basewebdavuri.size()) != _basewebdavuri ) {
+        throw MUJIN_EXCEPTION_FORMAT("trying to upload a file outside of the webdav endpoint is not allowed: %s", uri, MEC_HTTPServer);
+    }
+    std::string filenameoncontroller = uri.substr(_basewebdavuri.size());
+
     std::string sFilename_FS = encoding::ConvertUTF8ToFileSystemEncoding(filename);
-    FileHandler handler(sFilename_FS.c_str());
-    if(!handler._fd) {
+    std::ifstream fin(sFilename_FS.c_str(), std::ios::in | std::ios::binary);
+    if(!fin.good()) {
         throw MUJIN_EXCEPTION_FORMAT("failed to open filename %s for uploading", sFilename_FS, MEC_InvalidArguments);
     }
-    _UploadFileToControllerViaForm(filename, uri);
+
+    MUJIN_LOG_DEBUG(str(boost::format("upload %s")%uri))
+    _UploadFileToControllerViaForm(fin, filenameoncontroller, _baseuri + "fileupload");
 }
 
 void ControllerClientImpl::_UploadFileToController_UTF16(const std::wstring& filename, const std::string& uri)
 {
-    std::string filename_fs = encoding::ConvertUTF16ToFileSystemEncoding(filename);
-#if defined(_WIN32) || defined(_WIN64)
-    FileHandler handler(filename.c_str());
-#else
-    // linux does not support wide-char fopen
-    FileHandler handler(filename_fs.c_str());
-#endif
-    if(!handler._fd) {
-        throw MUJIN_EXCEPTION_FORMAT("failed to open filename %s for uploading", filename_fs, MEC_InvalidArguments);
+    // the dest filename of the upload is determined by stripping the leading _basewebdavuri
+    if( uri.size() < _basewebdavuri.size() || uri.substr(0,_basewebdavuri.size()) != _basewebdavuri ) {
+        throw MUJIN_EXCEPTION_FORMAT("trying to upload a file outside of the webdav endpoint is not allowed: %s", uri, MEC_HTTPServer);
     }
-    _UploadFileToControllerViaForm(filename_fs, uri);
+    std::string filenameoncontroller = uri.substr(_basewebdavuri.size());
+
+    std::string sFilename_FS = encoding::ConvertUTF16ToFileSystemEncoding(filename);
+    std::vector<unsigned char>content;
+    std::ifstream fin(sFilename_FS.c_str(), std::ios::in | std::ios::binary);
+    if(!fin.good()) {
+        throw MUJIN_EXCEPTION_FORMAT("failed to open filename %s for uploading", sFilename_FS, MEC_InvalidArguments);
+    }
+
+    MUJIN_LOG_DEBUG(str(boost::format("upload %s")%uri))
+    _UploadFileToControllerViaForm(fin, filenameoncontroller, _baseuri + "fileupload");
 }
 
 void ControllerClientImpl::_UploadFileToController(FILE* fd, const std::string& uri)
@@ -1575,35 +1638,48 @@ void ControllerClientImpl::_UploadFileToController(FILE* fd, const std::string& 
     //printf("http code: %d, Speed: %.3f bytes/sec during %.3f seconds\n", http_code, speed_upload, total_time);
 }
 
-void ControllerClientImpl::_UploadFileToControllerViaForm(const std::string& file, const std::string& uri)
+
+
+void ControllerClientImpl::_UploadFileToControllerViaForm(std::istream& inputStream, const std::string& filename, const std::string& endpoint, double timeout)
 {
-    MUJIN_LOG_DEBUG(str(boost::format("upload %s")%uri))
-
-    // the dest filename of the upload is determined by stripping the leading _basewebdavuri
-    if( uri.size() < _basewebdavuri.size() || uri.substr(0,_basewebdavuri.size()) != _basewebdavuri ) {
-        throw MUJIN_EXCEPTION_FORMAT("trying to upload a file outside of the webdav endpoint is not allowed: %s", uri, MEC_HTTPServer);
-    }
-    std::string filename = uri.substr(_basewebdavuri.size());
-
-    const std::string& endpoint = _baseuri + "fileupload";
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, endpoint.c_str());
     _buffer.clear();
     _buffer.str("");
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEFUNCTION, NULL, _WriteStringStreamCallback);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEDATA, NULL, &_buffer);
+    //timeout is default to 0 (never)
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_TIMEOUT_MS, 0L, (long)(timeout * 1000L));
 
+    inputStream.seekg(0, std::ios::end);
+    if(inputStream.fail()) {
+        throw MUJIN_EXCEPTION_FORMAT0("failed to seek inputStream to get the length", MEC_InvalidArguments);
+    }
+    size_t contentLength = inputStream.tellg();
+    if(inputStream.fail()) {
+        throw MUJIN_EXCEPTION_FORMAT0("failed to tell the length of inputStream", MEC_InvalidArguments);
+    }
+    inputStream.seekg(0, std::ios::beg);
+    if(inputStream.fail()) {
+        throw MUJIN_EXCEPTION_FORMAT0("failed to rewind inputStream", MEC_InvalidArguments);
+    }
+
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_READFUNCTION, NULL, _ReadIStreamCallback);
     // prepare form
     struct curl_httppost *formpost = NULL;
     struct curl_httppost *lastptr = NULL;
     CURL_FORM_RELEASER(formpost);
     curl_formadd(&formpost, &lastptr,
                  CURLFORM_COPYNAME, "files[]",
-                 CURLFORM_FILE, file.c_str(),
+                 CURLFORM_FILENAME, filename.empty() ? "unused" : filename.c_str(),
+                 CURLFORM_STREAM, &inputStream,
+                 CURLFORM_CONTENTSLENGTH, contentLength,
                  CURLFORM_END);
-    curl_formadd(&formpost, &lastptr,
-                 CURLFORM_COPYNAME, "filename",
-                 CURLFORM_COPYCONTENTS, filename.c_str(),
-                 CURLFORM_END);
+    if(!filename.empty()) {
+        curl_formadd(&formpost, &lastptr,
+                     CURLFORM_COPYNAME, "filename",
+                     CURLFORM_COPYCONTENTS, filename.c_str(),
+                     CURLFORM_END);
+    }
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPPOST, NULL, formpost);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPHEADER, NULL, _httpheadersmultipartformdata);
     CURL_PERFORM(_curl);
@@ -1613,7 +1689,7 @@ void ControllerClientImpl::_UploadFileToControllerViaForm(const std::string& fil
 
     // 204 is when it overwrites the file?
     if( http_code != 200 ) {
-        throw MUJIN_EXCEPTION_FORMAT("upload of %s to %s failed with HTTP status %s", filename%uri%http_code, MEC_HTTPServer);
+        throw MUJIN_EXCEPTION_FORMAT("upload of %s to %s failed with HTTP status %s", filename%endpoint%http_code, MEC_HTTPServer);
     }
 }
 
@@ -1704,4 +1780,3 @@ size_t ControllerClientImpl::_ReadInMemoryUploadCallback(void *ptr, size_t size,
 }
 
 } // end namespace mujinclient
-
