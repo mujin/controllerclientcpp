@@ -1,9 +1,9 @@
 // -*- coding: utf-8 -*-
-/** \example mujincreateinstobject.cpp
+/** \example mujinbackup.cpp
 
-    Shows how to create empty inst object in a scene
-    example1: mujincreateinstobject --controller_hostname=yourhost # creates an inst object at origin
-    example2: mujincreateinstobject --controller_hostname=yourhost --name work_0x1a --translate 100 200 -300
+    Shows how to save/restore backup
+    example1: mujinbackup --controller_hostname=yourhost --filename=backup.tar.gz --useconfig=1 --usemedia=1
+    example2: mujinbackup --controller_hostname=yourhost --filename=backup.tar.gz --useconfig=1 --usemedia=0 --restore # restore only config even though backup.tar.gz has media backup
  */
 
 #include <mujincontrollerclient/mujincontrollerclient.h>

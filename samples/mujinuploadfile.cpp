@@ -1,9 +1,8 @@
 // -*- coding: utf-8 -*-
-/** \example mujincreateinstobject.cpp
+/** \example mujinuploadfile.cpp
 
-    Shows how to create empty inst object in a scene
-    example1: mujincreateinstobject --controller_hostname=yourhost # creates an inst object at origin
-    example2: mujincreateinstobject --controller_hostname=yourhost --name work_0x1a --translate 100 200 -300
+    Shows how to upload file
+    example1: mujinuploadfile --controller_hostname=yourhost --filename=sample.mujin.dae # creates an inst object at origin
  */
 
 #include <mujincontrollerclient/mujincontrollerclient.h>
