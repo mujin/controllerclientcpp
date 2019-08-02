@@ -179,26 +179,26 @@ public:
          */
         struct RegisterMinViableRegionInfo {
             struct MinViableRegionInfo {
-                std::array<double, 2> size2D {}; ///< width and height on the MVR
-                uint64_t cornerMask = 0; ///< Represents the corner(s) used for corner based detection. 4 bit. -x-y = 1, +x-y = 2, -x+y=4, +x+y = 8
+                std::array<double, 2> size2D; ///< width and height on the MVR
+                uint64_t cornerMask; ///< Represents the corner(s) used for corner based detection. 4 bit. -x-y = 1, +x-y = 2, -x+y=4, +x+y = 8
             } minViableRegion;
-            std::array<double, 3> translation_ {}; // Translation of the 2D MVR plane (height = 0)
-            std::array<double, 4> quat_ {}; // Rotation of the 2D MVR plane (height = 0)
-            uint64_t sensortimestamp = 0; // Same as DetectedObject's timestamp sent to planning
-            double robotDepartStopTimestamp = 0; // Force capture after robot stops
-            std::array<double, 3> liftedWorldOffset {}; // [dx, dy, dz], mm in world frame
-            std::array<double, 3> maxCandidateSize {}; ///< the max candidate size expecting
-            std::array<double, 3> minCandidateSize {}; ///< the min candidate size expecting
-            double transferSpeedMult = 1.0; // transfer speed multiplication factor
-            double minCornerVisibleDist = 30;
-            uint64_t occlusionFreeCornerMask = 0;
+            std::array<double, 3> translation_; // Translation of the 2D MVR plane (height = 0)
+            std::array<double, 4> quat_; // Rotation of the 2D MVR plane (height = 0)
+            uint64_t sensortimestamp; // Same as DetectedObject's timestamp sent to planning
+            double robotDepartStopTimestamp; // Force capture after robot stops
+            std::array<double, 3> liftedWorldOffset; // [dx, dy, dz], mm in world frame
+            std::array<double, 3> maxCandidateSize; ///< the max candidate size expecting
+            std::array<double, 3> minCandidateSize; ///< the min candidate size expecting
+            double transferSpeedMult; // transfer speed multiplication factor
+            double minCornerVisibleDist;
+            uint64_t occlusionFreeCornerMask;
             bool IsEmpty() const {
                 return sensortimestamp == 0;
             }
         } registerMinViableRegionInfo;
 
         struct RemoveObjectFromObjectListInfo {
-            double timestamp = 0; // timestamp this request was sent
+            double timestamp; // timestamp this request was sent
             std::string objectPk; // objectPk to remove from the current object set vision is using
             bool IsEmpty() const {
                 return objectPk.empty();
