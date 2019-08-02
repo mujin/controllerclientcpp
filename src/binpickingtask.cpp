@@ -515,6 +515,16 @@ BinPickingTaskResource::ResultGetBinpickingState::ResultGetBinpickingState()
     placedInDest = -1;
     isControllerInError = false;
     robotbridgestatus= "";
+
+    registerMinViableRegionInfo.minViableRegion.size2D.resize(2);
+    registerMinViableRegionInfo.translation_.resize(3);
+    registerMinViableRegionInfo.quat_.resize(4);
+    registerMinViableRegionInfo.liftedWorldOffset.resize(3);
+    registerMinViableRegionInfo.maxCandidateSize.resize(3);
+    registerMinViableRegionInfo.minCandidateSize.resize(3);
+    registerMinViableRegionInfo.transferSpeedMult = 1.0;
+    registerMinViableRegionInfo.minCornerVisibleDist = 30;
+    removeObjectFromObjectListInfo.timestamp = 0;
 }
 
 BinPickingTaskResource::ResultGetBinpickingState::~ResultGetBinpickingState()
@@ -560,18 +570,37 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     isControllerInError = GetJsonValueByKey<bool>(v, "isControllerInError", false);
     robotbridgestatus = GetJsonValueByKey<std::string>(v, "robotbridgestatus", "unknown");
 
-    registerMinViableRegionInfo.translation_ = GetJsonValueByPath<std::array<double, 3> >(v, "/registerMinViableRegionInfo/translation_", {});
-    registerMinViableRegionInfo.quat_ = GetJsonValueByPath<std::array<double, 4> >(v, "/registerMinViableRegionInfo/quat_", {});
+    LoadJsonValueByPath(v, "/registerMinViableRegionInfo/translation_", registerMinViableRegionInfo.translation_);
+    LoadJsonValueByPath(v, "/registerMinViableRegionInfo/quat_", registerMinViableRegionInfo.quat_);
     registerMinViableRegionInfo.sensortimestamp = GetJsonValueByPath<uint64_t>(v, "/registerMinViableRegionInfo/sensortimestamp", 0);
     registerMinViableRegionInfo.robotDepartStopTimestamp = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/robotDepartStopTimestamp", 0);
     registerMinViableRegionInfo.transferSpeedMult = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/transferSpeedMult", 1.0);
     registerMinViableRegionInfo.minCornerVisibleDist = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/minCornerVisibleDist", 30);
-    registerMinViableRegionInfo.minViableRegion.size2D = GetJsonValueByPath<std::array<double, 2> >(v, "/registerMinViableRegionInfo/minViableRegion/size2D", {});
+    LoadJsonValueByPath(v, "/registerMinViableRegionInfo/minViableRegion/size2D", registerMinViableRegionInfo.minViableRegion.size2D);
     registerMinViableRegionInfo.minViableRegion.cornerMask = GetJsonValueByPath<uint64_t>(v, "/registerMinViableRegionInfo/minViableRegion/cornerMask", 0);
     registerMinViableRegionInfo.occlusionFreeCornerMask = GetJsonValueByPath<uint64_t>(v, "/registerMinViableRegionInfo/occlusionFreeCornerMask", 0);
-    registerMinViableRegionInfo.liftedWorldOffset = GetJsonValueByPath<std::array<double, 3> >(v, "/registerMinViableRegionInfo/liftedWorldOffset", {});
-    registerMinViableRegionInfo.minCandidateSize = GetJsonValueByPath<std::array<double, 3> >(v, "/registerMinViableRegionInfo/minCandidateSize", {});
-    registerMinViableRegionInfo.maxCandidateSize = GetJsonValueByPath<std::array<double, 3> >(v, "/registerMinViableRegionInfo/maxCandidateSize", {});
+    LoadJsonValueByPath(v, "/registerMinViableRegionInfo/liftedWorldOffset", registerMinViableRegionInfo.liftedWorldOffset);
+    LoadJsonValueByPath(v, "/registerMinViableRegionInfo/minCandidateSize", registerMinViableRegionInfo.minCandidateSize);
+    LoadJsonValueByPath(v, "/registerMinViableRegionInfo/maxCandidateSize", registerMinViableRegionInfo.maxCandidateSize);
+
+    if (registerMinViableRegionInfo.translation_.size() != 3) {
+        throw MujinException("The length of registerMinViableRegionInfo.translation_ is invalid.", MEC_Failed);
+    }
+    if (registerMinViableRegionInfo.quat_.size() != 4) {
+        throw MujinException("The length of registerMinViableRegionInfo.quat_ is invalid.", MEC_Failed);
+    }
+    if (registerMinViableRegionInfo.minViableRegion.size2D.size() != 2) {
+        throw MujinException("The length of registerMinViableRegionInfo.minViableRegion.size2D is invalid.", MEC_Failed);
+    }
+    if (registerMinViableRegionInfo.liftedWorldOffset.size() != 3) {
+        throw MujinException("The length of registerMinViableRegionInfo.liftedWorldOffset is invalid.", MEC_Failed);
+    }
+    if (registerMinViableRegionInfo.minCandidateSize.size() != 3) {
+        throw MujinException("The length of registerMinViableRegionInfo.minCandidateSize is invalid.", MEC_Failed);
+    }
+    if (registerMinViableRegionInfo.maxCandidateSize.size() != 3) {
+        throw MujinException("The length of registerMinViableRegionInfo.maxCandidateSize is invalid.", MEC_Failed);
+    }
 
     removeObjectFromObjectListInfo.objectPk = GetJsonValueByPath<std::string>(v, "/removeObjectFromObjectList/objectPk", "");
     removeObjectFromObjectListInfo.timestamp = GetJsonValueByPath<double>(v, "/removeObjectFromObjectList/timestamp", 0);

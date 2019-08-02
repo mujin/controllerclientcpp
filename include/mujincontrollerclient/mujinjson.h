@@ -17,7 +17,9 @@
 #ifndef MUJIN_CONTROLLERCLIENT_JSON_H
 #define MUJIN_CONTROLLERCLIENT_JSON_H
 
+#if __cplusplus >= 201103
 #include <array>
+#endif
 #include <boost/shared_ptr.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/format.hpp>
@@ -283,7 +285,9 @@ inline void LoadJsonValue(const rapidjson::Value& v, bool& t) {
 
 template<class T> inline void LoadJsonValue(const rapidjson::Value& v, std::vector<T>& t);
 
+#if __cplusplus >= 201103
 template<class T, size_t N> inline void LoadJsonValue(const rapidjson::Value& v, std::array<T, N>& t);
+#endif
 
 template<class T> inline void LoadJsonValue(const rapidjson::Value& v, boost::shared_ptr<T>& ptr) {
     T t;
@@ -333,6 +337,7 @@ template<class T> inline void LoadJsonValue(const rapidjson::Value& v, std::vect
     }
 }
 
+#if __cplusplus >= 201103
 template<class T, size_t N> inline void LoadJsonValue(const rapidjson::Value& v, std::array<T, N>& t) {
     if (v.IsArray()) {
         if (v.GetArray().Size() != N) {
@@ -350,6 +355,7 @@ template<class T, size_t N> inline void LoadJsonValue(const rapidjson::Value& v,
         throw MujinJSONException("Cannot convert json type " + GetJsonTypeName(v) + " to Array", MJE_Failed);
     }
 }
+#endif
 
 template<class U> inline void LoadJsonValue(const rapidjson::Value& v, std::map<std::string, U>& t) {
     if (v.IsArray()) {
@@ -431,7 +437,9 @@ inline void SaveJsonValue(rapidjson::Value& v, const rapidjson::Value& t, rapidj
 
 template<class T> inline void SaveJsonValue(rapidjson::Value& v, const std::vector<T>& t, rapidjson::Document::AllocatorType& alloc);
 
+#if __cplusplus >= 201103
 template<class T, size_t N> inline void SaveJsonValue(rapidjson::Value& v, const std::array<T, N>& t, rapidjson::Document::AllocatorType& alloc);
+#endif
 
 /** do not remove: otherwise boost::shared_ptr could be treated as bool
  */
@@ -449,6 +457,7 @@ template<class T> inline void SaveJsonValue(rapidjson::Value& v, const std::vect
     }
 }
 
+#if __cplusplus >= 201103
 template<class T, size_t N> inline void SaveJsonValue(rapidjson::Value& v, const std::array<T, N>& t, rapidjson::Document::AllocatorType& alloc) {
     v.SetArray();
     v.Reserve(N, alloc);
@@ -458,7 +467,7 @@ template<class T, size_t N> inline void SaveJsonValue(rapidjson::Value& v, const
         v.PushBack(tmpv, alloc);
     }
 }
-
+#endif
 
 template<> inline void SaveJsonValue(rapidjson::Value& v, const std::vector<double>& t, rapidjson::Document::AllocatorType& alloc) {
     v.SetArray();
@@ -486,6 +495,7 @@ template<size_t N> inline void SaveJsonValue(rapidjson::Value& v, const double (
     }
 }
 
+#if __cplusplus >= 201103
 template<size_t N> inline void SaveJsonValue(rapidjson::Value& v, const std::array<double, N>& t, rapidjson::Document::AllocatorType& alloc) {
     v.SetArray();
     v.Reserve(N, alloc);
@@ -493,6 +503,7 @@ template<size_t N> inline void SaveJsonValue(rapidjson::Value& v, const std::arr
         v.PushBack(t[i], alloc);
     }
 }
+#endif
 
 template<class U> inline void SaveJsonValue(rapidjson::Value& v, const std::map<std::string, U>& t, rapidjson::Document::AllocatorType& alloc) {
     v.SetObject();
@@ -534,6 +545,21 @@ template<class T, class U> inline void LoadJsonValueByKey(const rapidjson::Value
     }
 }
 
+template<class T> inline void LoadJsonValueByPath(const rapidjson::Value& v, const char* key, T& t) {
+    const rapidjson::Value *child = rapidjson::Pointer(key).Get(v);
+    if (child && !child->IsNull()) {
+        LoadJsonValue(*child, t);
+    }
+}
+template<class T, class U> inline void LoadJsonValueByPath(const rapidjson::Value& v, const char* key, T& t, const U& d) {
+    const rapidjson::Value *child = rapidjson::Pointer(key).Get(v);
+    if (child && !child->IsNull()) {
+        LoadJsonValue(*child, t);
+    }
+    else {
+        t = d;
+    }
+}
 
 //work the same as LoadJsonValueByKey, but the value is returned instead of being passed as reference
 template<class T, class U> T GetJsonValueByKey(const rapidjson::Value& v, const char* key, const U& t) {
@@ -576,7 +602,12 @@ template<class T> inline T GetJsonValueByPath(const rapidjson::Value& v, const c
     return r;
 }
 
-template<class T, class U=T> T GetJsonValueByPath(const rapidjson::Value& v, const char* key, const U& t) {
+#if __cplusplus >= 201103
+template<class T, class U=T>
+#else
+template<class T, class U>
+#endif
+T GetJsonValueByPath(const rapidjson::Value& v, const char* key, const U& t) {
     const rapidjson::Value *child = rapidjson::Pointer(key).Get(v);
     if (child && !child->IsNull()) {
         T r;
