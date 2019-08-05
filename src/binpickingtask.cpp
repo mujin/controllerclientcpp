@@ -515,16 +515,6 @@ BinPickingTaskResource::ResultGetBinpickingState::ResultGetBinpickingState()
     placedInDest = -1;
     isControllerInError = false;
     robotbridgestatus= "";
-
-    registerMinViableRegionInfo.minViableRegion.size2D.fill(0);
-    registerMinViableRegionInfo.translation_.fill(0);
-    registerMinViableRegionInfo.quat_.fill(0);
-    registerMinViableRegionInfo.liftedWorldOffset.fill(0);
-    registerMinViableRegionInfo.maxCandidateSize.fill(0);
-    registerMinViableRegionInfo.minCandidateSize.fill(0);
-    registerMinViableRegionInfo.transferSpeedMult = 1.0;
-    registerMinViableRegionInfo.minCornerVisibleDist = 30;
-    removeObjectFromObjectListInfo.timestamp = 0;
 }
 
 BinPickingTaskResource::ResultGetBinpickingState::~ResultGetBinpickingState()
@@ -589,6 +579,31 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     LoadJsonValueByKey(v, "currentToolValues", currentToolValues);
     LoadJsonValueByKey(v, "currentJointValues", currentJointValues);
     LoadJsonValueByKey(v, "jointNames", jointNames);
+}
+
+BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionInfo::RegisterMinViableRegionInfo() :
+    sensortimestamp(0),
+    robotDepartStopTimestamp(0),
+    transferSpeedMult(1.0),
+    minCornerVisibleDist(30),
+    occlusionFreeCornerMask(0)
+{
+    translation_.fill(0);
+    quat_.fill(0);
+    liftedWorldOffset.fill(0);
+    maxCandidateSize.fill(0);
+    minCandidateSize.fill(0);
+}
+
+BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionInfo::MinViableRegionInfo::MinViableRegionInfo() :
+    cornerMask(0)
+{
+    size2D.fill(0);
+}
+
+BinPickingTaskResource::ResultGetBinpickingState::RemoveObjectFromObjectListInfo::RemoveObjectFromObjectListInfo() :
+    timestamp(0)
+{
 }
 
 BinPickingTaskResource::ResultIsRobotOccludingBody::~ResultIsRobotOccludingBody()

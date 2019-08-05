@@ -179,9 +179,11 @@ public:
          */
         struct RegisterMinViableRegionInfo {
             struct MinViableRegionInfo {
+                MinViableRegionInfo();
                 std::array<double, 2> size2D; ///< width and height on the MVR
                 uint64_t cornerMask; ///< Represents the corner(s) used for corner based detection. 4 bit. -x-y = 1, +x-y = 2, -x+y=4, +x+y = 8
             } minViableRegion;
+            RegisterMinViableRegionInfo();
             std::array<double, 3> translation_; // Translation of the 2D MVR plane (height = 0)
             std::array<double, 4> quat_; // Rotation of the 2D MVR plane (height = 0)
             uint64_t sensortimestamp; // Same as DetectedObject's timestamp sent to planning
@@ -198,6 +200,7 @@ public:
         } registerMinViableRegionInfo;
 
         struct RemoveObjectFromObjectListInfo {
+            RemoveObjectFromObjectListInfo();
             double timestamp; // timestamp this request was sent
             std::string objectPk; // objectPk to remove from the current object set vision is using
             bool IsEmpty() const {
