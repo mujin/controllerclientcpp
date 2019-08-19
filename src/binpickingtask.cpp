@@ -493,28 +493,28 @@ void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const rapid
     }
 }
 
-BinPickingTaskResource::ResultGetBinpickingState::ResultGetBinpickingState()
+BinPickingTaskResource::ResultGetBinpickingState::ResultGetBinpickingState() :
+    statusPickPlace(""),
+    statusDescPickPlace(""),
+    statusPhysics(""),
+    isDynamicEnvironmentStateEmpty(false),
+    isSourceContainerEmpty(false),
+    pickAttemptFromSourceId(-1),
+    timestamp(0),
+    lastGrabbedTargetTimeStamp(0),
+    isRobotOccludingSourceContainer(true),
+    forceRequestDetectionResultsStamp(0),
+    forceRequestDestPointCloudStamp(0),
+    isGrabbingTarget(true),
+    isGrabbingLastTarget(true),
+    hasRobotExecutionStarted(false),
+    orderNumber(-1),
+    numLeftInOrder(-1),
+    numLeftInSupply(-1),
+    placedInDest(-1),
+    isControllerInError(false),
+    robotbridgestatus("")
 {
-    statusPickPlace = "";
-    statusDescPickPlace = "";
-    statusPhysics = "";
-    isDynamicEnvironmentStateEmpty = false;
-    isSourceContainerEmpty = false;
-    pickAttemptFromSourceId = -1;
-    timestamp = 0;
-    lastGrabbedTargetTimeStamp = 0;
-    isRobotOccludingSourceContainer = true;
-    forceRequestDetectionResultsStamp = 0;
-    forceRequestDestPointCloudStamp = 0;
-    isGrabbingTarget = true;
-    isGrabbingLastTarget = true;
-    hasRobotExecutionStarted = false;
-    orderNumber = -1;
-    numLeftInOrder = -1;
-    numLeftInSupply = -1;
-    placedInDest = -1;
-    isControllerInError = false;
-    robotbridgestatus= "";
 }
 
 BinPickingTaskResource::ResultGetBinpickingState::~ResultGetBinpickingState()
