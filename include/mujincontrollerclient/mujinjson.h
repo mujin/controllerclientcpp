@@ -534,6 +534,21 @@ template<class T, class U> inline void LoadJsonValueByKey(const rapidjson::Value
     }
 }
 
+template<class T> inline void LoadJsonValueByPath(const rapidjson::Value& v, const char* key, T& t) {
+    const rapidjson::Value *child = rapidjson::Pointer(key).Get(v);
+    if (child && !child->IsNull()) {
+        LoadJsonValue(*child, t);
+    }
+}
+template<class T, class U> inline void LoadJsonValueByPath(const rapidjson::Value& v, const char* key, T& t, const U& d) {
+    const rapidjson::Value *child = rapidjson::Pointer(key).Get(v);
+    if (child && !child->IsNull()) {
+        LoadJsonValue(*child, t);
+    }
+    else {
+        t = d;
+    }
+}
 
 //work the same as LoadJsonValueByKey, but the value is returned instead of being passed as reference
 template<class T, class U> T GetJsonValueByKey(const rapidjson::Value& v, const char* key, const U& t) {
@@ -576,7 +591,12 @@ template<class T> inline T GetJsonValueByPath(const rapidjson::Value& v, const c
     return r;
 }
 
-template<class T, class U=T> T GetJsonValueByPath(const rapidjson::Value& v, const char* key, const U& t) {
+#if __cplusplus >= 201103
+template<class T, class U=T>
+#else
+template<class T, class U>
+#endif
+T GetJsonValueByPath(const rapidjson::Value& v, const char* key, const U& t) {
     const rapidjson::Value *child = rapidjson::Pointer(key).Get(v);
     if (child && !child->IsNull()) {
         T r;
