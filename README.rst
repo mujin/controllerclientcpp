@@ -186,6 +186,20 @@ Several libraries are being managed in this repository. If necessary, get upgrad
   
   - Once updated, cURL has to be recompiled just to make sure the symbols match.
 
+Updating Visual Studio
+----------------------
+
+1. Install boost from https://sourceforge.net/projects/boost/files/boost-binaries/ .
+
+  - Make sure about the Visual Studio version and buidling target (32 or 64).
+  - Note that very latest boost might not be supported by the latest CMake.
+
+2. If x64 build, need libzmq to be built from https://github.com/zeromq/libzmq . 4.3.x or later are required for CMake compatibility.
+
+  - Note that in controllerclientcpp you can set only single CMAKE_CONFIGURATION_TYPES using libzmq CMake.
+
+cURL is a C library, so vc100 binary can be linked to later VC.
+
 Licenses
 --------
 
@@ -225,4 +239,3 @@ To setup building documentation, checkout `this tutorial <https://gist.github.co
   cd ../gh-pages
   git commit -m "updated documentation" -a
   git push origin gh-pages
-
