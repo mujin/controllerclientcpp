@@ -36,7 +36,6 @@ public:
     virtual void SetProxy(const std::string& serverport, const std::string& userpw);
     virtual void SetLanguage(const std::string& language);
     virtual void RestartServer(double timeout);
-    virtual void Upgrade(const std::vector<unsigned char>& vdata);
     virtual void CancelAllJobs();
     virtual void GetRunTimeStatuses(std::vector<JobStatus>& statuses, int options);
     virtual void GetScenePrimaryKeys(std::vector<std::string>& scenekeys);
@@ -66,6 +65,9 @@ public:
 
     virtual void SaveBackup(std::ostream& outputStream, bool config, bool media, double timeout);
     virtual void RestoreBackup(std::istream& inputStream, bool config, bool media, double timeout);
+    virtual void Upgrade(std::istream* inputStream, bool autorestart, bool uploadonly, double timeout);
+    virtual bool GetUpgradeStatus(std::string& status, double &progress, double timeout);
+    virtual void Reboot(double timeout);
 
     virtual void ModifySceneAddReferenceObjectPK(const std::string &scenepk, const std::string &referenceobjectpk, double timeout = 5.0);
     virtual void ModifySceneRemoveReferenceObjectPK(const std::string &scenepk, const std::string &referenceobjectpk, double timeout = 5.0);

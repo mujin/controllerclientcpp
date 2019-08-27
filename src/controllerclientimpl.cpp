@@ -280,11 +280,6 @@ void ControllerClientImpl::RestartServer(double timeout)
     }
 }
 
-void ControllerClientImpl::Upgrade(const std::vector<unsigned char>& vdata)
-{
-    throw MUJIN_EXCEPTION_FORMAT0("Failed to upgrade server, deprecated", MEC_HTTPServer);
-}
-
 void ControllerClientImpl::CancelAllJobs()
 {
     CallDelete("job/?format=json");
@@ -1256,6 +1251,38 @@ void ControllerClientImpl::RestoreBackup(std::istream& inputStream, bool config,
     boost::mutex::scoped_lock lock(_mutex);
     std::string query=std::string("?config=")+(config ? "true" : "false")+"&media="+(media ? "true" : "false");
     _UploadFileToControllerViaForm(inputStream, "", _baseuri+"backup/"+query, timeout);
+}
+
+void ControllerClientImpl::Upgrade(std::istream* inputStream, bool autorestart, bool uploadonly, double timeout)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    std::string query=std::string("?autorestart=")+(autorestart ? "1" : "0")+("&uploadonly=")+(uploadonly ? "1" : "0");
+    if(inputStream) {
+        _UploadFileToControllerViaForm(*inputStream, "", _baseuri+"upgrade/"+query, timeout);
+    } else {
+        rapidjson::Document pt(rapidjson::kObjectType);
+        _CallPost(_baseuri+"upgrade/"+query, "", pt, 200, timeout);
+    }
+}
+
+bool ControllerClientImpl::GetUpgradeStatus(std::string& status, double &progress, double timeout)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    rapidjson::Document pt(rapidjson::kObjectType);
+    _CallGet(_baseuri+"upgrade/", pt, 200, timeout);
+    if(pt.IsNull()){
+        return false;
+    }
+    status = GetJsonValueByKey<std::string>(pt, "status");
+    progress = GetJsonValueByKey<double>(pt, "progress");
+    return true;
+}
+
+void ControllerClientImpl::Reboot(double timeout)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    rapidjson::Document pt(rapidjson::kObjectType);
+    _CallPost(_baseuri+"reboot/", "", pt, 200, timeout);
 }
 
 void ControllerClientImpl::DeleteFileOnController_UTF8(const std::string& desturi)
