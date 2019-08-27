@@ -142,7 +142,7 @@ public:
             std::string bodyname;
             int isocclusion;
         };
-        
+
         ResultGetBinpickingState();
         virtual ~ResultGetBinpickingState();
         void Parse(const rapidjson::Value& pt);
@@ -158,7 +158,7 @@ public:
         unsigned long long lastInsideDestTimeStamp; ///< ms
         bool isRobotOccludingSourceContainer;
         std::vector<OcclusionResult> vOcclusionResults;
-            
+
         uint64_t forceRequestDetectionResultsStamp; ///< time stamp when force request for source was first set on planning side
         uint64_t forceRequestDestPointCloudStamp; ///< time stamp when force request for dest was first set on planning side
         bool isGrabbingTarget;
@@ -179,29 +179,34 @@ public:
          */
         struct RegisterMinViableRegionInfo {
             struct MinViableRegionInfo {
-                std::array<double, 2> size2D {}; ///< width and height on the MVR
-                uint64_t cornerMask = 0; ///< Represents the corner(s) used for corner based detection. 4 bit. -x-y = 1, +x-y = 2, -x+y=4, +x+y = 8
+                MinViableRegionInfo();
+                std::array<double, 2> size2D; ///< width and height on the MVR
+                uint64_t cornerMask; ///< Represents the corner(s) used for corner based detection. 4 bit. -x-y = 1, +x-y = 2, -x+y=4, +x+y = 8
             } minViableRegion;
-            std::array<double, 3> translation_ {}; // Translation of the 2D MVR plane (height = 0)
-            std::array<double, 4> quat_ {}; // Rotation of the 2D MVR plane (height = 0)
-            uint64_t sensortimestamp = 0; // Same as DetectedObject's timestamp sent to planning
-            double robotDepartStopTimestamp = 0; // Force capture after robot stops
-            std::array<double, 3> liftedWorldOffset {}; // [dx, dy, dz], mm in world frame
-            std::array<double, 3> maxCandidateSize {}; ///< the max candidate size expecting
-            std::array<double, 3> minCandidateSize {}; ///< the min candidate size expecting
-            double transferSpeedMult = 1.0; // transfer speed multiplication factor
-            double minCornerVisibleDist = 30;
-            uint64_t occlusionFreeCornerMask = 0;
+            RegisterMinViableRegionInfo();
+            std::array<double, 3> translation_; // Translation of the 2D MVR plane (height = 0)
+            std::array<double, 4> quat_; // Rotation of the 2D MVR plane (height = 0)
+            uint64_t sensortimestamp; // Same as DetectedObject's timestamp sent to planning
+            double robotDepartStopTimestamp; // Force capture after robot stops
+            std::array<double, 3> liftedWorldOffset; // [dx, dy, dz], mm in world frame
+            std::array<double, 3> maxCandidateSize; ///< the max candidate size expecting
+            std::array<double, 3> minCandidateSize; ///< the min candidate size expecting
+            double transferSpeedMult; // transfer speed multiplication factor
+            double minCornerVisibleDist;
+            uint64_t occlusionFreeCornerMask;
             bool IsEmpty() const {
                 return sensortimestamp == 0;
             }
         } registerMinViableRegionInfo;
 
-        // struct MVRUpdateObjectInfo {
-        //     std::string targetname;
-        //     float height;
-        //     float mass;
-        // } mvrUpdateObjectInfo;
+        struct RemoveObjectFromObjectListInfo {
+            RemoveObjectFromObjectListInfo();
+            double timestamp; // timestamp this request was sent
+            std::string objectPk; // objectPk to remove from the current object set vision is using
+            bool IsEmpty() const {
+                return objectPk.empty();
+            }
+        } removeObjectFromObjectListInfo;
     };
 
     struct MUJINCLIENT_API ResultIsRobotOccludingBody : public ResultBase
@@ -241,6 +246,16 @@ public:
         std::vector<Real> extents;
         std::vector<Real> rotationmat;  // row major
         std::vector<Real> quaternion; // the quaternion
+    };
+
+    struct MUJINCLIENT_API ResultInstObjectInfo : public ResultBase
+    {
+        virtual ~ResultInstObjectInfo();
+        void Parse(const rapidjson::Value& pt);
+        Transform instobjecttransform;
+        ResultOBB instobjectobb;
+        ResultOBB instobjectinnerobb;
+        rapidjson::Document rGeometryInfos; ///< for every object, list of all the geometry infos
     };
 
     struct MUJINCLIENT_API ResultGetInstObjectAndSensorInfo : public ResultBase
@@ -376,11 +391,17 @@ public:
 
     virtual PlanningResultResourcePtr GetResult();
 
-    /** \brief Gets inst object
+    /** \brief Gets inst object and sensor info of existing objects in the scene
         \param unit input unit
         \param result unit is always in meter
      */
     virtual void GetInstObjectAndSensorInfo(const std::vector<std::string>& instobjectnames, const std::vector<std::string>& sensornames, ResultGetInstObjectAndSensorInfo& result, const std::string& unit="m", const double timeout /* second */=5.0);
+
+    /** \brief Gets inst object info for a particular URI
+        \param unit input unit
+        \param result unit is always in meter
+     */
+    virtual void GetInstObjectInfoFromURI(const std::string& objecturi, const Transform& instobjecttransform, ResultInstObjectInfo& result, const std::string& unit="m", const double timeout /* second */=5.0);
 
     /// \brief Get state of bin picking
     /// \param result state of bin picking
@@ -482,6 +503,9 @@ public:
     /// \param timeout timeout of communication
     virtual void Release(const std::string& targetname, const std::string& robotname = "", const std::string& toolname = "", const double timeout = 1);
 
+    /// \brief calls planning GetRobotBridgeIOVariableString and returns the contents of the signal in a string with correct endianness
+    virtual void GetRobotBridgeIOVariableString(const std::vector<std::string>& ionames, std::vector<std::string>& iovalues, const double timeout=10);
+
     /** \brief Monitors heartbeat signals from a running binpicking ZMQ server, and reinitializes the ZMQ server when heartbeat is lost.
         \param reinitializetimeout seconds to wait before re-initializing the ZMQ server after the heartbeat signal is lost
         \param execfn function to use to execute the InitializeZMQ command
@@ -495,6 +519,8 @@ public:
         const rapidjson::Document &mvrResultInfo,
         double timeout /* second */=5.0);
 
+    // send result of RemoveObjectFromObjectList request
+    virtual void SendRemoveObjectFromObjectListResult(const std::string& objectPk, bool success, double timeout /* second */=5.0);
 protected:
     std::stringstream _ss;
 
