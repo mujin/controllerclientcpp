@@ -517,6 +517,9 @@ public:
     /// \return true if the status was received (false means upgrade was not started yet).
     virtual bool GetUpgradeStatus(std::string& status, double &progress, double timeout = 5.0) = 0;
 
+    /// \brief Cancel the current upgrade process.
+    virtual void CancelUpgrade(double timeout = 5.0) = 0;
+
     /// \brief (Request to) reboot controller.
     virtual void Reboot(double timeout = 5.0) = 0;
 

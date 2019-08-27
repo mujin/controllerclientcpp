@@ -282,7 +282,7 @@ void ControllerClientImpl::RestartServer(double timeout)
 
 void ControllerClientImpl::CancelAllJobs()
 {
-    CallDelete("job/?format=json");
+    CallDelete("job/?format=json", 204);
 }
 
 void ControllerClientImpl::GetRunTimeStatuses(std::vector<JobStatus>& statuses, int options)
@@ -750,7 +750,7 @@ int ControllerClientImpl::CallPutJSON(const std::string& relativeuri, const std:
     return _CallPut(relativeuri, static_cast<const void*>(&data[0]), data.size(), pt, _httpheadersjson, expectedhttpcode, timeout);
 }
 
-void ControllerClientImpl::CallDelete(const std::string& relativeuri, double timeout)
+void ControllerClientImpl::CallDelete(const std::string& relativeuri, int expectedhttpcode, double timeout)
 {
     MUJIN_LOG_DEBUG(str(boost::format("DELETE %s%s")%_baseapiuri%relativeuri));
     boost::mutex::scoped_lock lock(_mutex);
@@ -763,7 +763,7 @@ void ControllerClientImpl::CallDelete(const std::string& relativeuri, double tim
     CURL_PERFORM(_curl);
     long http_code = 0;
     CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
-    if( http_code != 204 ) { // or 200 or 202 or 201?
+    if( http_code != expectedhttpcode ) {
         throw MUJIN_EXCEPTION_FORMAT("HTTP DELETE to '%s' returned HTTP status %s", relativeuri%http_code, MEC_HTTPServer);
     }
 }
@@ -1276,6 +1276,13 @@ bool ControllerClientImpl::GetUpgradeStatus(std::string& status, double &progres
     status = GetJsonValueByKey<std::string>(pt, "status");
     progress = GetJsonValueByKey<double>(pt, "progress");
     return true;
+}
+
+void ControllerClientImpl::CancelUpgrade(double timeout)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    rapidjson::Document pt(rapidjson::kObjectType);
+    CallDelete(_baseuri+"upgrade/", 200, timeout);
 }
 
 void ControllerClientImpl::Reboot(double timeout)
