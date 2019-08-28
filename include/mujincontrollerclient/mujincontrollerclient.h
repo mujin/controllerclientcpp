@@ -496,7 +496,7 @@ public:
 
     /// \brief Restore backup archive into controller. Restaring might be required after restoration.
     ///
-    /// \param inputStream the stream represententing the backup. It needs to be seekable to get the size (ifstream subclass is applicable for files).
+    /// \param inputStream the stream represententing the backup. It needs to be seekable to get the size for uploading (ifstream subclass is applicable for files).
     /// \param config whether to restore config. By default true (if the backup file has config).
     /// \param media whether to restore media. By default true (if the backup file has media).
     virtual void RestoreBackup(std::istream& inputStream, bool config = true, bool media = true, double timeout = 60.0) = 0;
@@ -504,11 +504,11 @@ public:
     /// \brief Upgrade controller's software.
     ///
     /// \param inputStream the stream represententing the software file provided by MUJIN.
-    ///        It needs to be seekable to get the size (ifstream subclass is applicable for files).
-    ///        NULL means using previously uploaded file.
+    ///                    It needs to be seekable to get the size for uploading (ifstream subclass is applicable for files).
+    ///                    Pass stream with size 0 to use previously uploaded file.
     /// \param autorestart whether to restart automatically after upgrading. if false, Reboot() can be called later.
     /// \param uploadonly whether to upload only (so that upgrade can be continued later without uploading).
-    virtual void Upgrade(std::istream* inputStream, bool autorestart, bool uploadonly, double timeout = 600.0) = 0;
+    virtual void Upgrade(std::istream& inputStream, bool autorestart, bool uploadonly, double timeout = 600.0) = 0;
 
     /// \brief Get upgrade status.
     ///

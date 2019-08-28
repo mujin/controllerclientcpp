@@ -10,6 +10,7 @@
 #include <boost/program_options.hpp>
 #include <signal.h>
 #include <iostream>
+#include <sstream>
 
 #if defined(_WIN32) || defined(_WIN64)
 #undef GetUserName // clashes with ControllerClient::GetUserName
@@ -93,10 +94,12 @@ int main(int argc, char ** argv)
     if(opts.count("filename")){
         const string filename = opts["filename"].as<string>();
         ifstream fin(filename.c_str(), std::ios::in | std::ios::binary);
-        controllerclient->Upgrade(&fin,autorestart,uploadonly);
+        controllerclient->Upgrade(fin,autorestart,uploadonly);
     }else{
-        controllerclient->Upgrade(NULL,autorestart,uploadonly);
+        stringstream ssempty;
+        controllerclient->Upgrade(ssempty,autorestart,uploadonly);
     }
+    cerr << "upload done." << endl;
 
     if(!uploadonly){
         for(;;){

@@ -1253,12 +1253,26 @@ void ControllerClientImpl::RestoreBackup(std::istream& inputStream, bool config,
     _UploadFileToControllerViaForm(inputStream, "", _baseuri+"backup/"+query, timeout);
 }
 
-void ControllerClientImpl::Upgrade(std::istream* inputStream, bool autorestart, bool uploadonly, double timeout)
+void ControllerClientImpl::Upgrade(std::istream& inputStream, bool autorestart, bool uploadonly, double timeout)
 {
     boost::mutex::scoped_lock lock(_mutex);
     std::string query=std::string("?autorestart=")+(autorestart ? "1" : "0")+("&uploadonly=")+(uploadonly ? "1" : "0");
-    if(inputStream) {
-        _UploadFileToControllerViaForm(*inputStream, "", _baseuri+"upgrade/"+query, timeout);
+
+    inputStream.seekg(0, std::ios::end);
+    if(inputStream.fail()) {
+        throw MUJIN_EXCEPTION_FORMAT0("failed to seek inputStream to get the length", MEC_InvalidArguments);
+    }
+    size_t contentLength = inputStream.tellg();
+    if(inputStream.fail()) {
+        throw MUJIN_EXCEPTION_FORMAT0("failed to tell the length of inputStream", MEC_InvalidArguments);
+    }
+    inputStream.seekg(0, std::ios::beg);
+    if(inputStream.fail()) {
+        throw MUJIN_EXCEPTION_FORMAT0("failed to rewind inputStream", MEC_InvalidArguments);
+    }
+
+    if(!contentLength) {
+        _UploadFileToControllerViaForm(inputStream, "", _baseuri+"upgrade/"+query, timeout);
     } else {
         rapidjson::Document pt(rapidjson::kObjectType);
         _CallPost(_baseuri+"upgrade/"+query, "", pt, 200, timeout);
