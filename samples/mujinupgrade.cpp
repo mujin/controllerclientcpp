@@ -13,7 +13,9 @@
 #include <sstream>
 
 #if defined(_WIN32) || defined(_WIN64)
+#include <windows.h>
 #undef GetUserName // clashes with ControllerClient::GetUserName
+#define sleep(n) Sleep((n)*1000)
 #endif // defined(_WIN32) || defined(_WIN64)
 
 using namespace mujinclient;

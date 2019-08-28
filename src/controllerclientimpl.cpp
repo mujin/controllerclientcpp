@@ -1272,7 +1272,7 @@ void ControllerClientImpl::Upgrade(std::istream& inputStream, bool autorestart, 
         throw MUJIN_EXCEPTION_FORMAT0("failed to rewind inputStream", MEC_InvalidArguments);
     }
 
-    if(!contentLength) {
+    if(contentLength) {
         _UploadFileToControllerViaForm(inputStream, "", _baseuri+"upgrade/"+query, timeout);
     } else {
         rapidjson::Document pt(rapidjson::kObjectType);
@@ -1722,7 +1722,7 @@ void ControllerClientImpl::_UploadFileToControllerViaForm(std::istream& inputStr
                  CURLFORM_COPYNAME, "files[]",
                  CURLFORM_FILENAME, filename.empty() ? "unused" : filename.c_str(),
                  CURLFORM_STREAM, &inputStream,
-                 CURLFORM_CONTENTSLENGTH, contentLength,
+                 CURLFORM_CONTENTSLENGTH, (std::streamoff)contentLength,
                  CURLFORM_END);
     if(!filename.empty()) {
         curl_formadd(&formpost, &lastptr,
