@@ -1258,15 +1258,16 @@ void ControllerClientImpl::Upgrade(std::istream& inputStream, bool autorestart, 
     boost::mutex::scoped_lock lock(_mutex);
     std::string query=std::string("?autorestart=")+(autorestart ? "1" : "0")+("&uploadonly=")+(uploadonly ? "1" : "0");
 
+    std::streampos originalPos = inputStream.tellg();
     inputStream.seekg(0, std::ios::end);
     if(inputStream.fail()) {
         throw MUJIN_EXCEPTION_FORMAT0("failed to seek inputStream to get the length", MEC_InvalidArguments);
     }
-    size_t contentLength = inputStream.tellg();
+    std::streampos contentLength = inputStream.tellg() - originalPos;
     if(inputStream.fail()) {
         throw MUJIN_EXCEPTION_FORMAT0("failed to tell the length of inputStream", MEC_InvalidArguments);
     }
-    inputStream.seekg(0, std::ios::beg);
+    inputStream.seekg(originalPos, std::ios::beg);
     if(inputStream.fail()) {
         throw MUJIN_EXCEPTION_FORMAT0("failed to rewind inputStream", MEC_InvalidArguments);
     }
@@ -1698,15 +1699,16 @@ void ControllerClientImpl::_UploadFileToControllerViaForm(std::istream& inputStr
     //timeout is default to 0 (never)
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_TIMEOUT_MS, 0L, (long)(timeout * 1000L));
 
+    std::streampos originalPos = inputStream.tellg();
     inputStream.seekg(0, std::ios::end);
     if(inputStream.fail()) {
         throw MUJIN_EXCEPTION_FORMAT0("failed to seek inputStream to get the length", MEC_InvalidArguments);
     }
-    size_t contentLength = inputStream.tellg();
+    std::streampos contentLength = inputStream.tellg() - originalPos;
     if(inputStream.fail()) {
         throw MUJIN_EXCEPTION_FORMAT0("failed to tell the length of inputStream", MEC_InvalidArguments);
     }
-    inputStream.seekg(0, std::ios::beg);
+    inputStream.seekg(originalPos, std::ios::beg);
     if(inputStream.fail()) {
         throw MUJIN_EXCEPTION_FORMAT0("failed to rewind inputStream", MEC_InvalidArguments);
     }
