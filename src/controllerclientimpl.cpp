@@ -280,14 +280,9 @@ void ControllerClientImpl::RestartServer(double timeout)
     }
 }
 
-void ControllerClientImpl::Upgrade(const std::vector<unsigned char>& vdata)
-{
-    throw MUJIN_EXCEPTION_FORMAT0("Failed to upgrade server, deprecated", MEC_HTTPServer);
-}
-
 void ControllerClientImpl::CancelAllJobs()
 {
-    CallDelete("job/?format=json");
+    CallDelete("job/?format=json", 204);
 }
 
 void ControllerClientImpl::GetRunTimeStatuses(std::vector<JobStatus>& statuses, int options)
@@ -755,7 +750,7 @@ int ControllerClientImpl::CallPutJSON(const std::string& relativeuri, const std:
     return _CallPut(relativeuri, static_cast<const void*>(&data[0]), data.size(), pt, _httpheadersjson, expectedhttpcode, timeout);
 }
 
-void ControllerClientImpl::CallDelete(const std::string& relativeuri, double timeout)
+void ControllerClientImpl::CallDelete(const std::string& relativeuri, int expectedhttpcode, double timeout)
 {
     MUJIN_LOG_DEBUG(str(boost::format("DELETE %s%s")%_baseapiuri%relativeuri));
     boost::mutex::scoped_lock lock(_mutex);
@@ -768,7 +763,7 @@ void ControllerClientImpl::CallDelete(const std::string& relativeuri, double tim
     CURL_PERFORM(_curl);
     long http_code = 0;
     CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
-    if( http_code != 204 ) { // or 200 or 202 or 201?
+    if( http_code != expectedhttpcode ) {
         throw MUJIN_EXCEPTION_FORMAT("HTTP DELETE to '%s' returned HTTP status %s", relativeuri%http_code, MEC_HTTPServer);
     }
 }
@@ -1258,6 +1253,60 @@ void ControllerClientImpl::RestoreBackup(std::istream& inputStream, bool config,
     _UploadFileToControllerViaForm(inputStream, "", _baseuri+"backup/"+query, timeout);
 }
 
+void ControllerClientImpl::Upgrade(std::istream& inputStream, bool autorestart, bool uploadonly, double timeout)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    std::string query=std::string("?autorestart=")+(autorestart ? "1" : "0")+("&uploadonly=")+(uploadonly ? "1" : "0");
+
+    std::streampos originalPos = inputStream.tellg();
+    inputStream.seekg(0, std::ios::end);
+    if(inputStream.fail()) {
+        throw MUJIN_EXCEPTION_FORMAT0("failed to seek inputStream to get the length", MEC_InvalidArguments);
+    }
+    std::streampos contentLength = inputStream.tellg() - originalPos;
+    if(inputStream.fail()) {
+        throw MUJIN_EXCEPTION_FORMAT0("failed to tell the length of inputStream", MEC_InvalidArguments);
+    }
+    inputStream.seekg(originalPos, std::ios::beg);
+    if(inputStream.fail()) {
+        throw MUJIN_EXCEPTION_FORMAT0("failed to rewind inputStream", MEC_InvalidArguments);
+    }
+
+    if(!contentLength) {
+        _UploadFileToControllerViaForm(inputStream, "", _baseuri+"upgrade/"+query, timeout);
+    } else {
+        rapidjson::Document pt(rapidjson::kObjectType);
+        _CallPost(_baseuri+"upgrade/"+query, "", pt, 200, timeout);
+    }
+}
+
+bool ControllerClientImpl::GetUpgradeStatus(std::string& status, double &progress, double timeout)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    rapidjson::Document pt(rapidjson::kObjectType);
+    _CallGet(_baseuri+"upgrade/", pt, 200, timeout);
+    if(pt.IsNull()){
+        return false;
+    }
+    status = GetJsonValueByKey<std::string>(pt, "status");
+    progress = GetJsonValueByKey<double>(pt, "progress");
+    return true;
+}
+
+void ControllerClientImpl::CancelUpgrade(double timeout)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    rapidjson::Document pt(rapidjson::kObjectType);
+    CallDelete(_baseuri+"upgrade/", 200, timeout);
+}
+
+void ControllerClientImpl::Reboot(double timeout)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    rapidjson::Document pt(rapidjson::kObjectType);
+    _CallPost(_baseuri+"reboot/", "", pt, 200, timeout);
+}
+
 void ControllerClientImpl::DeleteFileOnController_UTF8(const std::string& desturi)
 {
     boost::mutex::scoped_lock lock(_mutex);
@@ -1650,15 +1699,16 @@ void ControllerClientImpl::_UploadFileToControllerViaForm(std::istream& inputStr
     //timeout is default to 0 (never)
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_TIMEOUT_MS, 0L, (long)(timeout * 1000L));
 
+    std::streampos originalPos = inputStream.tellg();
     inputStream.seekg(0, std::ios::end);
     if(inputStream.fail()) {
         throw MUJIN_EXCEPTION_FORMAT0("failed to seek inputStream to get the length", MEC_InvalidArguments);
     }
-    size_t contentLength = inputStream.tellg();
+    std::streampos contentLength = inputStream.tellg() - originalPos;
     if(inputStream.fail()) {
         throw MUJIN_EXCEPTION_FORMAT0("failed to tell the length of inputStream", MEC_InvalidArguments);
     }
-    inputStream.seekg(0, std::ios::beg);
+    inputStream.seekg(originalPos, std::ios::beg);
     if(inputStream.fail()) {
         throw MUJIN_EXCEPTION_FORMAT0("failed to rewind inputStream", MEC_InvalidArguments);
     }
