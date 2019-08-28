@@ -369,9 +369,6 @@ public:
     /// The method is blocking, when it returns the MUJIN Controller would have been restarted.
     virtual void RestartServer(double timeout = 5.0) = 0;
 
-    /// \brief Upgrade the controller with this data
-    virtual void Upgrade(const std::vector<unsigned char>& vdata) = 0;
-
     /// \brief returns the mujin controller version
     virtual std::string GetVersion() = 0;
 
@@ -499,10 +496,32 @@ public:
 
     /// \brief Restore backup archive into controller. Restaring might be required after restoration.
     ///
-    /// \param inputStream the stream represententing the backup. It needs to be seekable to get the size (ifstream subclass is applicable to files).
+    /// \param inputStream the stream represententing the backup. It needs to be seekable to get the size for uploading (ifstream subclass is applicable for files).
     /// \param config whether to restore config. By default true (if the backup file has config).
     /// \param media whether to restore media. By default true (if the backup file has media).
     virtual void RestoreBackup(std::istream& inputStream, bool config = true, bool media = true, double timeout = 60.0) = 0;
+
+    /// \brief Upgrade controller's software.
+    ///
+    /// \param inputStream the stream represententing the software file provided by MUJIN.
+    ///                    It needs to be seekable to get the size for uploading (ifstream subclass is applicable for files).
+    ///                    Pass stream with size 0 to use previously uploaded file.
+    /// \param autorestart whether to restart automatically after upgrading. if false, Reboot() can be called later.
+    /// \param uploadonly whether to upload only (so that upgrade can be continued later without uploading).
+    virtual void Upgrade(std::istream& inputStream, bool autorestart, bool uploadonly, double timeout = 600.0) = 0;
+
+    /// \brief Get upgrade status.
+    ///
+    /// \param status upgrade status
+    /// \param progress progress 0 to 1
+    /// \return true if the status was received (false means upgrade was not started yet).
+    virtual bool GetUpgradeStatus(std::string& status, double &progress, double timeout = 5.0) = 0;
+
+    /// \brief Cancel the current upgrade process.
+    virtual void CancelUpgrade(double timeout = 5.0) = 0;
+
+    /// \brief (Request to) reboot controller.
+    virtual void Reboot(double timeout = 5.0) = 0;
 
     /** \brief Recursively uploads a directory to the controller network filesystem.
 

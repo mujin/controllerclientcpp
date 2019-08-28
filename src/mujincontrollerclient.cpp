@@ -124,7 +124,7 @@ void WebResource::SetJSON(const std::string& json, double timeout)
 void WebResource::Delete(double timeout)
 {
     GETCONTROLLERIMPL();
-    controller->CallDelete(str(boost::format("%s/%s/")%GetResourceName()%GetPrimaryKey()), timeout);
+    controller->CallDelete(str(boost::format("%s/%s/")%GetResourceName()%GetPrimaryKey()), 204, timeout);
 }
 
 void WebResource::Copy(const std::string& newname, int options, double timeout)
@@ -889,7 +889,7 @@ SceneResource::InstObjectPtr SceneResource::CreateInstObject(const std::string& 
 void SceneResource::DeleteInstObject(const std::string& pk)
 {
     GETCONTROLLERIMPL();
-    controller->CallDelete(str(boost::format("scene/%s/instobject/%s/")%GetPrimaryKey()%pk));
+    controller->CallDelete(str(boost::format("scene/%s/instobject/%s/")%GetPrimaryKey()%pk), 204);
 }
 
 SceneResourcePtr SceneResource::Copy(const std::string& name)
