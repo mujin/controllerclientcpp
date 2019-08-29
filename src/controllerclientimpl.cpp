@@ -221,7 +221,6 @@ ControllerClientImpl::~ControllerClientImpl()
 
 std::string ControllerClientImpl::GetVersion()
 {
-    boost::mutex::scoped_lock lock(_mutex);
     if (!_profile.IsObject()) {
         _profile.SetObject();
         CallGet("profile/", _profile);
