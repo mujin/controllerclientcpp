@@ -80,6 +80,9 @@ public:
     int CallGet(const std::string& relativeuri, std::string& outputdata, int expectedhttpcode=200, double timeout = 5.0);
 
     /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
+    int CallGet(const std::string& relativeuri, std::ostream& outputStream, int expectedhttpcode=200, double timeout = 5.0);
+
+    /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
     int CallGet(const std::string& relativeuri, std::vector<unsigned char>& outputdata, int expectedhttpcode=200, double timeout = 5.0);
 
     /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
@@ -146,6 +149,8 @@ public:
     /// \param timeout timeout of creating object geometry
     /// \return primary key for the geometry created
     std::string SetObjectGeometryMesh(const std::string& objectPk, const std::string& scenePk, const std::vector<unsigned char>& meshData, const std::string& unit = "mm", double timeout = 5);
+
+    void GetDebugLogInfos(std::vector<DebugLogResourcePtr>& debugloginfos, double timeout = 5);
 
     inline std::string GetBaseUri() const
     {

@@ -77,6 +77,7 @@ class BinPickingTaskResource;
 class OptimizationResource;
 class PlanningResultResource;
 class BinPickingResultResource;
+class DebugLogResource;
 
 typedef boost::shared_ptr<ControllerClient> ControllerClientPtr;
 typedef boost::weak_ptr<ControllerClient> ControllerClientWeakPtr;
@@ -96,6 +97,8 @@ typedef boost::shared_ptr<PlanningResultResource> PlanningResultResourcePtr;
 typedef boost::weak_ptr<PlanningResultResource> PlanningResultResourceWeakPtr;
 typedef boost::shared_ptr<BinPickingResultResource> BinPickingResultResourcePtr;
 typedef boost::weak_ptr<BinPickingResultResource> BinPickingResultResourceWeakPtr;
+typedef boost::shared_ptr<DebugLogResource> DebugLogResourcePtr;
+typedef boost::weak_ptr<DebugLogResource> DebugLogResourceWeakPtr;
 typedef double Real;
 
 inline bool FuzzyEquals(Real p, Real q, double epsilon=1e-3) {
@@ -643,6 +646,8 @@ public:
     ///
     virtual std::string SetObjectGeometryMesh(const std::string& objectPk, const std::string& geometryPk, const std::vector<unsigned char>& data, const std::string& unit = "mm", double timeout = 5) = 0;
 
+    /// \brief get debug log infos
+    virtual void GetDebugLogInfos(std::vector<DebugLogResourcePtr>& debugloginfos, double timeout = 5) = 0;
 };
 
 class MUJINCLIENT_API WebResource
@@ -1147,6 +1152,28 @@ public:
     /// \param[out] programs The programs for each robot. The best suited program for each robot is determined from its controller.
     /// \param[in] programtype The type of program to return.
     virtual void GetPrograms(RobotControllerPrograms& programs, const std::string& programtype="auto");
+};
+
+class MUJINCLIENT_API DebugLogResource : public WebResource
+{
+public:
+    DebugLogResource(ControllerClientPtr controller, const std::string& pk);
+    virtual ~DebugLogResource() {
+    }
+
+    /// \brief download the encrypted debug log to outputStream
+    virtual void Download(std::ostream &outputStream, double timeout = 60.0);
+
+    //std::string datemodified;
+    std::string description;
+    //std::string downloadUri;
+    std::string name;
+    std::string pk;
+    std::string resource_uri;
+    size_t size;
+
+protected:
+    DebugLogResource(ControllerClientPtr controller, const std::string& resource, const std::string& pk);
 };
 
 /** \en \brief creates the controller with an account. <b>This function is not thread safe.</b>

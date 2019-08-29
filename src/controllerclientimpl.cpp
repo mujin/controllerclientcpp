@@ -600,6 +600,14 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, std::string& outp
     return http_code;
 }
 
+int ControllerClientImpl::CallGet(const std::string& relativeuri, std::ostream& outputStream, int expectedhttpcode, double timeout)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    _uri = _baseapiuri;
+    _uri += relativeuri;
+    return _CallGet(_uri, outputStream, expectedhttpcode, timeout);
+}
+
 int ControllerClientImpl::_CallGet(const std::string& desturi, std::ostream& outputStream, int expectedhttpcode, double timeout)
 {
     MUJIN_LOG_VERBOSE(str(boost::format("GET %s")%desturi));
@@ -1826,6 +1834,28 @@ size_t ControllerClientImpl::_ReadInMemoryUploadCallback(void *ptr, size_t size,
         pstreamdata->second -= nBytesToRead;
     }
     return nBytesToRead;
+}
+
+void ControllerClientImpl::GetDebugLogInfos(std::vector<DebugLogResourcePtr>& debugloginfos, double timeout)
+{
+    rapidjson::Document pt(rapidjson::kObjectType);
+    CallGet(str(boost::format("debug/?format=json&limit=0")), pt, 200, timeout);
+    rapidjson::Value& objects = pt["objects"];
+
+    debugloginfos.resize(objects.Size());
+    size_t iobj = 0;
+    for (rapidjson::Document::ValueIterator it = objects.Begin(); it != objects.End(); ++it) {
+        DebugLogResourcePtr debugloginfo(new DebugLogResource(shared_from_this(), GetJsonValueByKey<std::string>(*it, "pk")));
+
+        //LoadJsonValueByKey(*it, "datemodified", debugloginfo->datemodified);
+        LoadJsonValueByKey(*it, "description", debugloginfo->description);
+        //LoadJsonValueByKey(*it, "downloadUri", debugloginfo->downloadUri);
+        LoadJsonValueByKey(*it, "name", debugloginfo->name);
+        //LoadJsonValueByKey(*it, "resource_uri", debugloginfo->resource_uri);
+        LoadJsonValueByKey(*it, "size", debugloginfo->size);
+
+        debugloginfos.at(iobj++) = debugloginfo;
+    }
 }
 
 } // end namespace mujinclient
