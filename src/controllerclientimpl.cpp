@@ -618,7 +618,7 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, std::ostream& out
         }
     };
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEFUNCTION, NULL, scallback::callback);
-    void *writerData[]{&_buffer,&outputStream};
+    void *writerData[]={&_buffer,&outputStream};
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEDATA, NULL, writerData);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPGET, 0L, 1L);
     CURL_PERFORM(_curl);
