@@ -228,7 +228,8 @@ int main(int argc, char ** argv)
         for(int i=0;i<result.dofvalues.size();i++){
             double dofResidual = 0;
             for(int j=0;j<taskstate.currentJointValues.size();j++){
-                dofResidual+=abs(result.dofvalues[i][j]-taskstate.currentJointValues[j]);
+                double dofDiff=abs(result.dofvalues[i][j]-taskstate.currentJointValues[j]);
+                dofResidual+=dofDiff*dofDiff;
             }
             dofResidual = sqrt(dofResidual);
             if(bestIndex<0 || dofResidual<minDofResidual){
@@ -253,7 +254,7 @@ int main(int argc, char ** argv)
         for(int i=0;i<result.dofvalues.size();i++){
             int j=0;
             for(;j<taskstate.currentJointValues.size();j++){
-                if(abs(result.dofvalues[i][j]-taskstate.currentJointValues[j])>0.01)break;
+                if(abs(result.dofvalues[i][j]-taskstate.currentJointValues[j])>0.02)break;
             }
             if(j==taskstate.currentJointValues.size()){
                 ik->SetJSON("{\"extra\":"+result.extra[i]+"}");
