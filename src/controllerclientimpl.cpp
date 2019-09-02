@@ -609,12 +609,15 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, std::ostream& out
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, desturi.c_str());
     _buffer.clear();
     _buffer.str("");
-    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEFUNCTION, NULL, static_cast<size_t(*)(char*, size_t, size_t, void**)>([](char *data, size_t size, size_t nmemb, void **writerData) -> size_t{
-        if(((std::stringstream*)writerData[0])->tellg() < 0x1000) {
-            _WriteStringStreamCallback(data, size, nmemb, (std::stringstream*)writerData[0]);
+    struct scallback{
+        static size_t callback(char *data, size_t size, size_t nmemb, void **writerData){
+            if(((std::stringstream*)writerData[0])->tellg() < 0x1000) {
+                _WriteStringStreamCallback(data, size, nmemb, (std::stringstream*)writerData[0]);
+            }
+            return _WriteOStreamCallback(data, size, nmemb, (std::ostream*)writerData[1]);
         }
-        return _WriteOStreamCallback(data, size, nmemb, (std::ostream*)writerData[1]);
-    }));
+    };
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEFUNCTION, NULL, scallback::callback);
     void *writerData[]{&_buffer,&outputStream};
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEDATA, NULL, writerData);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPGET, 0L, 1L);
