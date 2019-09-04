@@ -7,6 +7,7 @@
 
 #include <mujincontrollerclient/binpickingtask.h>
 #include <iostream>
+#include <cmath>
 
 #if defined(_WIN32) || defined(_WIN64)
 #undef GetUserName // clashes with ControllerClient::GetUserName
@@ -220,16 +221,35 @@ int main(int argc, char ** argv)
     rapidjson::Document taskparametersParsed;
     mujinjson::ParseJson(taskparametersParsed,opts["taskparameters"].as<string>());
     pBinpickingTask->GetPublishedTaskState(taskstate, mujinjson::GetStringJsonValueByKey(taskparametersParsed,"robotname"), "mm", timeout);
+
+    vector<double> dofResiduals;
+    double minDofResidual=HUGE_VAL;
+    int bestIndex=-1;
     for(int i=0;i<result.dofvalues.size();i++){
-        int j=0;
-        for(;j<taskstate.currentJointValues.size();j++){
-            if(abs(result.dofvalues[i][j]-taskstate.currentJointValues[j])>0.01)break;
+        double dofResidual = 0;
+        for(int j=0;j<taskstate.currentJointValues.size();j++){
+            double dofDiff=abs(result.dofvalues[i][j]-taskstate.currentJointValues[j]);
+            dofResidual+=dofDiff*dofDiff;
         }
-        if(j==taskstate.currentJointValues.size()){
-            ik->SetJSON("{\"extra\":"+result.extra[i]+"}");
+        dofResidual = sqrt(dofResidual);
+        if(bestIndex<0 || dofResidual<minDofResidual){
+            bestIndex = i;
+            minDofResidual = dofResidual;
         }
     }
-    cout << "setting extra done" << endl;
+    double maxDofDistance=0;
+    for(int j=0;j<taskstate.currentJointValues.size();j++){
+        double distance = abs(result.dofvalues[bestIndex][j]-taskstate.currentJointValues[j]);
+        if(maxDofDistance < distance){
+            maxDofDistance = distance;
+        }
+    }
+    if(maxDofDistance<=1){
+        ik->SetJSON("{\"extra\":"+result.extra[bestIndex]+"}");
+        cout << "setting extra done" << endl;
+    }else{
+        cout << "failed to set extra" << endl;
+    }
 
     return 0;
 }
