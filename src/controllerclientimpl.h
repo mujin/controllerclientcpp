@@ -176,6 +176,7 @@ protected:
     static int _WriteVectorCallback(char *data, size_t size, size_t nmemb, std::vector<unsigned char> *writerData);
     static int _WriteOStreamCallback(char *data, size_t size, size_t nmemb, std::ostream *writerData);
     static int _ReadIStreamCallback(char *data, size_t size, size_t nmemb, std::istream *writerData);
+    static int _DuplicateStreamCallback(char *data, size_t size, size_t nmemb, void **writerDataStringStreamAndOStream);
 
     /// \brief sets up http header for doing http operation with json data
     void _SetupHTTPHeadersJSON();

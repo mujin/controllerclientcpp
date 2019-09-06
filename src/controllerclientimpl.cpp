@@ -601,6 +601,14 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, std::string& outp
     return http_code;
 }
 
+int ControllerClientImpl::_DuplicateStreamCallback(char *data, size_t size, size_t nmemb, void **writerDataStringStreamAndOStream)
+{
+    if(((std::stringstream*)writerDataStringStreamAndOStream[0])->tellp() < 0x1000) {
+        ControllerClientImpl::_WriteStringStreamCallback(data, size, nmemb, (std::stringstream*)writerDataStringStreamAndOStream[0]);
+    }
+    return ControllerClientImpl::_WriteOStreamCallback(data, size, nmemb, (std::ostream*)writerDataStringStreamAndOStream[1]);
+}
+
 int ControllerClientImpl::_CallGet(const std::string& desturi, std::ostream& outputStream, int expectedhttpcode, double timeout)
 {
     MUJIN_LOG_VERBOSE(str(boost::format("GET %s")%desturi));
@@ -609,15 +617,7 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, std::ostream& out
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, desturi.c_str());
     _buffer.clear();
     _buffer.str("");
-    struct scallback{
-        static size_t callback(char *data, size_t size, size_t nmemb, void **writerData){
-            if(((std::stringstream*)writerData[0])->tellg() < 0x1000) {
-                _WriteStringStreamCallback(data, size, nmemb, (std::stringstream*)writerData[0]);
-            }
-            return _WriteOStreamCallback(data, size, nmemb, (std::ostream*)writerData[1]);
-        }
-    };
-    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEFUNCTION, NULL, scallback::callback);
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEFUNCTION, NULL, _DuplicateStreamCallback);
     void *writerData[]={&_buffer,&outputStream};
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEDATA, NULL, writerData);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPGET, 0L, 1L);
