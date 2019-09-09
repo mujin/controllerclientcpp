@@ -163,6 +163,7 @@ public:
         uint64_t forceRequestDestPointCloudStamp; ///< time stamp when force request for dest was first set on planning side
         bool isGrabbingTarget;
         bool isGrabbingLastTarget;
+        bool needSourceContainer;
         bool hasRobotExecutionStarted;
         int orderNumber; ///< -1 if not initiaized
         int numLeftInOrder; ///< -1 if not initiaized
