@@ -1722,14 +1722,14 @@ void ControllerClientImpl::_UploadFileToControllerViaForm(std::istream& inputStr
                  CURLFORM_COPYNAME, "files[]",
                  CURLFORM_FILENAME, filename.empty() ? "unused" : filename.c_str(),
                  CURLFORM_STREAM, &inputStream,
-#if LIBCURL_VERSION_MAJOR<=7 && (LIBCURL_VERSION_MAJOR==7&&LIBCURLVERSION_MINOR<46)
+#if LIBCURL_VERSION_MAJOR<7 || (LIBCURL_VERSION_MAJOR==7&&LIBCURLVERSION_MINOR<46)
                  // According to curl/lib/formdata.c, CURLFORM_CONTENTSLENGTH argument type is long.
                  // Also, as va_list is used in curl_formadd, the bit length needs to match exactly.
                  // streamoff can be directly converted to streamoff, but it does not correspond on 32bit machines.
                  CURLFORM_CONTENTSLENGTH, (long)contentLength,
 #else
                  // Actually we should use CURLFORM_CONTENTLEN, whose argument type is curl_off_t, which is 64bit.
-                 // However, it was added in curl 1.46 and cannot be used in official Windows build.
+                 // However, it was added in curl 7.46 and cannot be used in official Windows build.
                  CURLFORM_CONTENTLEN, (curl_off_t)contentLength,
 #endif
                  CURLFORM_END);
