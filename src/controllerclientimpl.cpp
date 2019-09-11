@@ -1725,7 +1725,7 @@ void ControllerClientImpl::_UploadFileToControllerViaForm(std::istream& inputStr
 #if !CURL_AT_LEAST_VERSION(7,46,0)
                  // According to curl/lib/formdata.c, CURLFORM_CONTENTSLENGTH argument type is long.
                  // Also, as va_list is used in curl_formadd, the bit length needs to match exactly.
-                 // streamoff can be directly converted to streamoff, but it does not correspond on 32bit machines.
+                 // streampos can be directly converted to streamoff, but it does not correspond on 32bit machines.
                  CURLFORM_CONTENTSLENGTH, (long)contentLength,
 #else
                  // Actually we should use CURLFORM_CONTENTLEN, whose argument type is curl_off_t, which is 64bit.
