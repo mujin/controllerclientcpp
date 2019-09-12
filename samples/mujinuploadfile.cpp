@@ -2,7 +2,7 @@
 /** \example mujinuploadfile.cpp
 
     Shows how to upload file
-    example1: mujinuploadfile --controller_hostname=yourhost --filename=sample.mujin.dae # creates an inst object at origin
+    example1: mujinuploadfile --controller_hostname=yourhost --filename=sample.mujin.dae
  */
 
 #include <mujincontrollerclient/mujincontrollerclient.h>
@@ -41,7 +41,7 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("controller_hostname", bpo::value<string>()->required(), "hostname or ip of the mujin controller, e.g. controllerXX or 192.168.0.1")
         ("controller_port", bpo::value<unsigned int>()->default_value(80), "port of the mujin controller")
         ("controller_username_password", bpo::value<string>()->default_value("testuser:pass"), "username and password to the mujin controller, e.g. username:password")
-        ("filename", bpo::value<string>(), "file name to upload")
+        ("filename", bpo::value<string>()->required(), "file name to upload")
         ;
 
     try {
