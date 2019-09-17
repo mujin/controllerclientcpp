@@ -1687,8 +1687,6 @@ void ControllerClientImpl::_UploadFileToController(FILE* fd, const std::string& 
     //printf("http code: %d, Speed: %.3f bytes/sec during %.3f seconds\n", http_code, speed_upload, total_time);
 }
 
-
-
 void ControllerClientImpl::_UploadFileToControllerViaForm(std::istream& inputStream, const std::string& filename, const std::string& endpoint, double timeout)
 {
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, endpoint.c_str());
@@ -1787,21 +1785,16 @@ void ControllerClientImpl::_UploadDataToController(const std::vector<unsigned ch
 
 void ControllerClientImpl::_DeleteFileOnController(const std::string& desturi)
 {
-    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_CUSTOMREQUEST, NULL, "DELETE");
-    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPHEADER, NULL, _httpheadersjson);
-    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, desturi.c_str());
-    CURL_PERFORM(_curl);
-    long http_code = 0;
-    CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
-    // 204 is when it overwrites the file?
-    if( http_code != 204 ) {
-        if( http_code == 400 ) {
-            throw MUJIN_EXCEPTION_FORMAT("delete failed with HTTP status %s, perhaps file exists already?", desturi%http_code, MEC_HTTPServer);
-        }
-        else {
-            throw MUJIN_EXCEPTION_FORMAT("delete failed with HTTP status %s", desturi%http_code, MEC_HTTPServer);
-        }
+    MUJIN_LOG_DEBUG(str(boost::format("delete %s")%desturi))
+
+    // the dest filename of the upload is determined by stripping the leading _basewebdavuri
+    if( desturi.size() < _basewebdavuri.size() || desturi.substr(0,_basewebdavuri.size()) != _basewebdavuri ) {
+        throw MUJIN_EXCEPTION_FORMAT("trying to upload a file outside of the webdav endpoint is not allowed: %s", desturi, MEC_HTTPServer);
     }
+    std::string filename = desturi.substr(_basewebdavuri.size());
+
+    rapidjson::Document pt(rapidjson::kObjectType);
+    _CallPost(_baseuri+"file/delete/", std::string("filename=")+filename, pt, 200, 5.0);
 }
 
 void ControllerClientImpl::_DeleteDirectoryOnController(const std::string& desturi)
