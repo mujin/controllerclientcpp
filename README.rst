@@ -171,7 +171,7 @@ Updating the Windows Libraries
 
 Several libraries are being managed in this repository. If necessary, get upgraded versions from the following places:
 
-1. `boost <http://www.boostpro.com/download/>`_ (any version >= 1.45 is fine).
+1. `boost <https://sourceforge.net/projects/boost/files/boost-binaries/>`_ (any version >= 1.45 is fine).
   
   - Select Multi-threaded DLL libraries.
   - No extra libraries need to be selected, only the header files.
@@ -196,9 +196,9 @@ Updating Visual Studio
 
 2. If x64 build, need libzmq to be built from https://github.com/zeromq/libzmq . 4.3.x or later are required for CMake compatibility.
 
-  - Note that in controllerclientcpp you can set only single CMAKE_CONFIGURATION_TYPES using libzmq CMake.
+  - Note that in controllerclientcpp you can set only single CMAKE_CONFIGURATION_TYPES if libzmq CMake is used.
 
-cURL is a C library, so vc100 binary can be linked to later VC.
+cURL and OpenSSL are C libraries, so vc100 binary can be linked to later VC.
 
 Licenses
 --------
