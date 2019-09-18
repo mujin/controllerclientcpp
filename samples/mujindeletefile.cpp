@@ -1,9 +1,8 @@
 // -*- coding: utf-8 -*-
-/** \example mujinbackup.cpp
+/** \example mujinuploadfile.cpp
 
-    Shows how to save/restore backup
-    example1: mujinbackup --controller_hostname=yourhost --filename=backup.tar.gz --useconfig=1 --usemedia=1
-    example2: mujinbackup --controller_hostname=yourhost --filename=backup.tar.gz --useconfig=1 --usemedia=0 --restore # restore only config even though backup.tar.gz has media backup
+    Shows how to upload file
+    example1: mujinuploadfile --controller_hostname=yourhost --filename=sample.mujin.dae
  */
 
 #include <mujincontrollerclient/mujincontrollerclient.h>
@@ -14,6 +13,13 @@
 
 #if defined(_WIN32) || defined(_WIN64)
 #undef GetUserName // clashes with ControllerClient::GetUserName
+#define NOMINMAX
+#include <windows.h>
+const char s_filesep = '\\';
+const wchar_t s_wfilesep = L'\\';
+#else
+const char s_filesep = '/';
+const wchar_t s_wfilesep = L'/';
 #endif // defined(_WIN32) || defined(_WIN64)
 
 using namespace mujinclient;
@@ -35,10 +41,7 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("controller_hostname", bpo::value<string>()->required(), "hostname or ip of the mujin controller, e.g. controllerXX or 192.168.0.1")
         ("controller_port", bpo::value<unsigned int>()->default_value(80), "port of the mujin controller")
         ("controller_username_password", bpo::value<string>()->default_value("testuser:pass"), "username and password to the mujin controller, e.g. username:password")
-        ("filename", bpo::value<string>()->required(), "backup file name")
-        ("restore", bpo::value<unsigned int>()->default_value(0), "if 1, will restore")
-        ("useconfig", bpo::value<unsigned int>()->default_value(1))
-        ("usemedia", bpo::value<unsigned int>()->default_value(1))
+        ("remotefilename", bpo::value<string>()->required(), "file name on controller to delete")
         ;
 
     try {
@@ -83,10 +86,7 @@ int main(int argc, char ** argv)
     const string controllerUsernamePass = opts["controller_username_password"].as<string>();
     const string hostname = opts["controller_hostname"].as<string>();
     const unsigned int controllerPort = opts["controller_port"].as<unsigned int>();
-    const unsigned int useconfig = opts["useconfig"].as<unsigned int>();
-    const unsigned int usemedia = opts["usemedia"].as<unsigned int>();
-    const unsigned int restore = opts["restore"].as<unsigned int>();
-    const string filename = opts["filename"].as<string>();
+    const string remotefilename = opts["remotefilename"].as<string>();
     stringstream urlss;
     urlss << "http://" << hostname << ":" << controllerPort;
 
@@ -94,14 +94,7 @@ int main(int argc, char ** argv)
     ControllerClientPtr controllerclient = CreateControllerClient(controllerUsernamePass, urlss.str());
     cerr << "connected to mujin controller at " << urlss.str() << endl;
 
-    vector<unsigned char>buf;
-    if(restore){
-        ifstream fin(filename.c_str(), std::ios::in | std::ios::binary);
-        controllerclient->RestoreBackup(fin,useconfig,usemedia);
-    }else{
-        ofstream fout(filename.c_str(), std::ios::out | std::ios::binary);
-        controllerclient->SaveBackup(fout,useconfig,usemedia);
-    }
+    controllerclient->DeleteFileOnController_UTF8(std::string("mujin:/")+remotefilename);
 
     return 0;
 }
