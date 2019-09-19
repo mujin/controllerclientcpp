@@ -1,8 +1,8 @@
 // -*- coding: utf-8 -*-
-/** \example mujinuploadfile.cpp
+/** \example mujindeletefile.cpp
 
-    Shows how to upload file
-    example1: mujinuploadfile --controller_hostname=yourhost --filename=sample.mujin.dae
+    Shows how to delete file
+    example1: mujindeletefile --controller_hostname=yourhost --remotefilename=sample.mujin.dae
  */
 
 #include <mujincontrollerclient/mujincontrollerclient.h>

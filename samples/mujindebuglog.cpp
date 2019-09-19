@@ -1,9 +1,9 @@
 // -*- coding: utf-8 -*-
-/** \example mujinbackup.cpp
+/** \example mujindebuglog.cpp
 
-    Shows how to save/restore backup
-    example1: mujinbackup --controller_hostname=yourhost --filename=backup.tar.gz --useconfig=1 --usemedia=1
-    example2: mujinbackup --controller_hostname=yourhost --filename=backup.tar.gz --useconfig=1 --usemedia=0 --restore # restore only config even though backup.tar.gz has media backup
+    Shows how to download debug log
+    example1: mujindebuglog --controller_hostname=yourhost # will list categories to stdout
+    example2: mujindebuglog --controller_hostname=yourhost --category=system-logs --filename=log.gpg
  */
 
 #include <mujincontrollerclient/mujincontrollerclient.h>
