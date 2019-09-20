@@ -508,6 +508,7 @@ BinPickingTaskResource::ResultGetBinpickingState::ResultGetBinpickingState() :
     isGrabbingTarget(true),
     isGrabbingLastTarget(true),
     hasRobotExecutionStarted(false),
+    needSourceContainer(-1),
     orderNumber(-1),
     numLeftInOrder(-1),
     numLeftInSupply(-1),
@@ -552,6 +553,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     forceRequestDestPointCloudStamp = GetJsonValueByKey<uint64_t>(v, "forceRequestDestPointCloudStamp", 0);
     isGrabbingTarget = GetJsonValueByKey<bool>(v, "isGrabbingTarget", true);
     isGrabbingLastTarget = GetJsonValueByKey<bool>(v, "isGrabbingLastTarget", true);
+    needSourceContainer = GetJsonValueByKey<int>(v, "needSourceContainer", -1);
     hasRobotExecutionStarted = GetJsonValueByKey<bool>(v, "hasRobotExecutionStarted", false);
     orderNumber = GetJsonValueByPath<int>(v, "/orderstate/orderNumber", -1);
     numLeftInOrder = GetJsonValueByPath<int>(v, "/orderstate/numLeftInOrder", -1);
