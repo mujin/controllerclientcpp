@@ -221,7 +221,6 @@ ControllerClientImpl::~ControllerClientImpl()
 
 std::string ControllerClientImpl::GetVersion()
 {
-    boost::mutex::scoped_lock lock(_mutex);
     if (!_profile.IsObject()) {
         _profile.SetObject();
         CallGet("profile/", _profile);
@@ -607,6 +606,14 @@ int ControllerClientImpl::_DuplicateStreamCallback(char *data, size_t size, size
         ControllerClientImpl::_WriteStringStreamCallback(data, size, nmemb, (std::stringstream*)writerDataStringStreamAndOStream[0]);
     }
     return ControllerClientImpl::_WriteOStreamCallback(data, size, nmemb, (std::ostream*)writerDataStringStreamAndOStream[1]);
+}
+
+int ControllerClientImpl::CallGet(const std::string& relativeuri, std::ostream& outputStream, int expectedhttpcode, double timeout)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    _uri = _baseapiuri;
+    _uri += relativeuri;
+    return _CallGet(_uri, outputStream, expectedhttpcode, timeout);
 }
 
 int ControllerClientImpl::_CallGet(const std::string& desturi, std::ostream& outputStream, int expectedhttpcode, double timeout)
@@ -1705,8 +1712,6 @@ void ControllerClientImpl::_UploadFileToController(FILE* fd, const std::string& 
     //printf("http code: %d, Speed: %.3f bytes/sec during %.3f seconds\n", http_code, speed_upload, total_time);
 }
 
-
-
 void ControllerClientImpl::_UploadFileToControllerViaForm(std::istream& inputStream, const std::string& filename, const std::string& endpoint, double timeout)
 {
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, endpoint.c_str());
@@ -1740,7 +1745,16 @@ void ControllerClientImpl::_UploadFileToControllerViaForm(std::istream& inputStr
                  CURLFORM_COPYNAME, "files[]",
                  CURLFORM_FILENAME, filename.empty() ? "unused" : filename.c_str(),
                  CURLFORM_STREAM, &inputStream,
-                 CURLFORM_CONTENTSLENGTH, (std::streamoff)contentLength,
+#if !CURL_AT_LEAST_VERSION(7,46,0)
+                 // According to curl/lib/formdata.c, CURLFORM_CONTENTSLENGTH argument type is long.
+                 // Also, as va_list is used in curl_formadd, the bit length needs to match exactly.
+                 // streampos can be directly converted to streamoff, but it does not correspond on 32bit machines.
+                 CURLFORM_CONTENTSLENGTH, (long)contentLength,
+#else
+                 // Actually we should use CURLFORM_CONTENTLEN, whose argument type is curl_off_t, which is 64bit.
+                 // However, it was added in curl 7.46 and cannot be used in official Windows build.
+                 CURLFORM_CONTENTLEN, (curl_off_t)contentLength,
+#endif
                  CURLFORM_END);
     if(!filename.empty()) {
         curl_formadd(&formpost, &lastptr,
@@ -1796,21 +1810,16 @@ void ControllerClientImpl::_UploadDataToController(const std::vector<unsigned ch
 
 void ControllerClientImpl::_DeleteFileOnController(const std::string& desturi)
 {
-    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_CUSTOMREQUEST, NULL, "DELETE");
-    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPHEADER, NULL, _httpheadersjson);
-    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, desturi.c_str());
-    CURL_PERFORM(_curl);
-    long http_code = 0;
-    CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
-    // 204 is when it overwrites the file?
-    if( http_code != 204 ) {
-        if( http_code == 400 ) {
-            throw MUJIN_EXCEPTION_FORMAT("delete failed with HTTP status %s, perhaps file exists already?", desturi%http_code, MEC_HTTPServer);
-        }
-        else {
-            throw MUJIN_EXCEPTION_FORMAT("delete failed with HTTP status %s", desturi%http_code, MEC_HTTPServer);
-        }
+    MUJIN_LOG_DEBUG(str(boost::format("delete %s")%desturi))
+
+    // the dest filename of the upload is determined by stripping the leading _basewebdavuri
+    if( desturi.size() < _basewebdavuri.size() || desturi.substr(0,_basewebdavuri.size()) != _basewebdavuri ) {
+        throw MUJIN_EXCEPTION_FORMAT("trying to upload a file outside of the webdav endpoint is not allowed: %s", desturi, MEC_HTTPServer);
     }
+    std::string filename = desturi.substr(_basewebdavuri.size());
+
+    rapidjson::Document pt(rapidjson::kObjectType);
+    _CallPost(_baseuri+"file/delete/", std::string("filename=")+filename, pt, 200, 5.0);
 }
 
 void ControllerClientImpl::_DeleteDirectoryOnController(const std::string& desturi)
@@ -1845,6 +1854,28 @@ size_t ControllerClientImpl::_ReadInMemoryUploadCallback(void *ptr, size_t size,
         pstreamdata->second -= nBytesToRead;
     }
     return nBytesToRead;
+}
+
+void ControllerClientImpl::GetDebugInfos(std::vector<DebugResourcePtr>& debuginfos, double timeout)
+{
+    rapidjson::Document pt(rapidjson::kObjectType);
+    CallGet(str(boost::format("debug/?format=json&limit=0")), pt, 200, timeout);
+    rapidjson::Value& objects = pt["objects"];
+
+    debuginfos.resize(objects.Size());
+    size_t iobj = 0;
+    for (rapidjson::Document::ValueIterator it = objects.Begin(); it != objects.End(); ++it) {
+        DebugResourcePtr debuginfo(new DebugResource(shared_from_this(), GetJsonValueByKey<std::string>(*it, "pk")));
+
+        //LoadJsonValueByKey(*it, "datemodified", debuginfo->datemodified);
+        LoadJsonValueByKey(*it, "description", debuginfo->description);
+        //LoadJsonValueByKey(*it, "downloadUri", debuginfo->downloadUri);
+        LoadJsonValueByKey(*it, "name", debuginfo->name);
+        //LoadJsonValueByKey(*it, "resource_uri", debuginfo->resource_uri);
+        LoadJsonValueByKey(*it, "size", debuginfo->size);
+
+        debuginfos.at(iobj++) = debuginfo;
+    }
 }
 
 } // end namespace mujinclient
