@@ -1838,25 +1838,25 @@ size_t ControllerClientImpl::_ReadInMemoryUploadCallback(void *ptr, size_t size,
     return nBytesToRead;
 }
 
-void ControllerClientImpl::GetDebugLogInfos(std::vector<DebugLogResourcePtr>& debugloginfos, double timeout)
+void ControllerClientImpl::GetDebugInfos(std::vector<DebugResourcePtr>& debuginfos, double timeout)
 {
     rapidjson::Document pt(rapidjson::kObjectType);
     CallGet(str(boost::format("debug/?format=json&limit=0")), pt, 200, timeout);
     rapidjson::Value& objects = pt["objects"];
 
-    debugloginfos.resize(objects.Size());
+    debuginfos.resize(objects.Size());
     size_t iobj = 0;
     for (rapidjson::Document::ValueIterator it = objects.Begin(); it != objects.End(); ++it) {
-        DebugLogResourcePtr debugloginfo(new DebugLogResource(shared_from_this(), GetJsonValueByKey<std::string>(*it, "pk")));
+        DebugResourcePtr debuginfo(new DebugResource(shared_from_this(), GetJsonValueByKey<std::string>(*it, "pk")));
 
-        //LoadJsonValueByKey(*it, "datemodified", debugloginfo->datemodified);
-        LoadJsonValueByKey(*it, "description", debugloginfo->description);
-        //LoadJsonValueByKey(*it, "downloadUri", debugloginfo->downloadUri);
-        LoadJsonValueByKey(*it, "name", debugloginfo->name);
-        //LoadJsonValueByKey(*it, "resource_uri", debugloginfo->resource_uri);
-        LoadJsonValueByKey(*it, "size", debugloginfo->size);
+        //LoadJsonValueByKey(*it, "datemodified", debuginfo->datemodified);
+        LoadJsonValueByKey(*it, "description", debuginfo->description);
+        //LoadJsonValueByKey(*it, "downloadUri", debuginfo->downloadUri);
+        LoadJsonValueByKey(*it, "name", debuginfo->name);
+        //LoadJsonValueByKey(*it, "resource_uri", debuginfo->resource_uri);
+        LoadJsonValueByKey(*it, "size", debuginfo->size);
 
-        debugloginfos.at(iobj++) = debugloginfo;
+        debuginfos.at(iobj++) = debuginfo;
     }
 }
 

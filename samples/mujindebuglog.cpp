@@ -1,9 +1,9 @@
 // -*- coding: utf-8 -*-
-/** \example mujindebuglog.cpp
+/** \example mujindownloaddebug.cpp
 
-    Shows how to download debug log
-    example1: mujindebuglog --controller_hostname=yourhost # will list categories to stdout
-    example2: mujindebuglog --controller_hostname=yourhost --category=system-logs --filename=log.gpg
+    Shows how to download debug
+    example1: mujindownloaddebug --controller_hostname=yourhost # will list categories to stdout
+    example2: mujindownloaddebug --controller_hostname=yourhost --category=system-logs --filename=log.gpg
  */
 
 #include <mujincontrollerclient/mujincontrollerclient.h>
@@ -36,7 +36,7 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("controller_port", bpo::value<unsigned int>()->default_value(80), "port of the mujin controller")
         ("controller_username_password", bpo::value<string>()->default_value("testuser:pass"), "username and password to the mujin controller, e.g. username:password")
         ("filename", bpo::value<string>(), "backup file name")
-        ("category", bpo::value<string>(), "category to download")
+        ("category", bpo::value<string>(), "debug category to download")
         ;
 
     try {
@@ -88,17 +88,17 @@ int main(int argc, char ** argv)
     ControllerClientPtr controllerclient = CreateControllerClient(controllerUsernamePass, urlss.str());
     cerr << "connected to mujin controller at " << urlss.str() << endl;
 
-    vector<DebugLogResourcePtr> debugloginfos;
-    controllerclient->GetDebugLogInfos(debugloginfos);
+    vector<DebugResourcePtr> debuginfos;
+    controllerclient->GetDebugLogInfos(debuginfos);
     if(!opts.count("category")){
-        for(int i=0;i<debugloginfos.size();i++){
-            cout << debugloginfos[i]->name << endl;
+        for(int i=0;i<debuginfos.size();i++){
+            cout << debuginfos[i]->name << endl;
         }
     } else if(opts.count("filename")) {
         const string category = opts["category"].as<string>();
         const string filename = opts["filename"].as<string>();
-        std::vector<DebugLogResourcePtr>::iterator it = std::find_if(debugloginfos.begin(),debugloginfos.end(),boost::bind(&DebugLogResource::name,_1)==category);
-        if(it!=debugloginfos.end()) {
+        std::vector<DebugResourcePtr>::iterator it = std::find_if(debuginfos.begin(),debuginfos.end(),boost::bind(&DebugResource::name,_1)==category);
+        if(it!=debuginfos.end()) {
             ofstream fout(filename.c_str(), std::ios::out | std::ios::binary);
             (*it)->Download(fout);
         }

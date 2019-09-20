@@ -150,7 +150,7 @@ public:
     /// \return primary key for the geometry created
     std::string SetObjectGeometryMesh(const std::string& objectPk, const std::string& scenePk, const std::vector<unsigned char>& meshData, const std::string& unit = "mm", double timeout = 5);
 
-    void GetDebugLogInfos(std::vector<DebugLogResourcePtr>& debugloginfos, double timeout = 5);
+    void GetDebugInfos(std::vector<DebugResourcePtr>& debuginfos, double timeout = 5);
 
     inline std::string GetBaseUri() const
     {

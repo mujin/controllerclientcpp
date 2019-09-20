@@ -1239,15 +1239,15 @@ void PlanningResultResource::GetPrograms(RobotControllerPrograms& programs, cons
     }
 }
 
-DebugLogResource::DebugLogResource(ControllerClientPtr controller, const std::string& pk) : WebResource(controller, "debug", pk), pk(pk)
+DebugResource::DebugResource(ControllerClientPtr controller, const std::string& pk) : WebResource(controller, "debug", pk), pk(pk)
 {
 }
 
-DebugLogResource::DebugLogResource(ControllerClientPtr controller, const std::string& resource, const std::string& pk) : WebResource(controller, resource, pk), pk(pk)
+DebugResource::DebugResource(ControllerClientPtr controller, const std::string& resource, const std::string& pk) : WebResource(controller, resource, pk), pk(pk)
 {
 }
 
-void DebugLogResource::Download(std::ostream& outputStream, double timeout)
+void DebugResource::Download(std::ostream& outputStream, double timeout)
 {
     GETCONTROLLERIMPL();
     controller->CallGet(str(boost::format("%s/%s/download/")%GetResourceName()%GetPrimaryKey()), outputStream, 200, timeout);
