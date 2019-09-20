@@ -89,7 +89,7 @@ int main(int argc, char ** argv)
     cerr << "connected to mujin controller at " << urlss.str() << endl;
 
     vector<DebugResourcePtr> debuginfos;
-    controllerclient->GetDebugLogInfos(debuginfos);
+    controllerclient->GetDebugInfos(debuginfos);
     if(!opts.count("category")){
         for(int i=0;i<debuginfos.size();i++){
             cout << debuginfos[i]->name << endl;
