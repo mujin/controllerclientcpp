@@ -221,7 +221,6 @@ ControllerClientImpl::~ControllerClientImpl()
 
 std::string ControllerClientImpl::GetVersion()
 {
-    boost::mutex::scoped_lock lock(_mutex);
     if (!_profile.IsObject()) {
         _profile.SetObject();
         CallGet("profile/", _profile);
@@ -599,6 +598,14 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, std::string& outp
         throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s", desturi%http_code, MEC_HTTPServer);
     }
     return http_code;
+}
+
+int ControllerClientImpl::CallGet(const std::string& relativeuri, std::ostream& outputStream, int expectedhttpcode, double timeout)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    _uri = _baseapiuri;
+    _uri += relativeuri;
+    return _CallGet(_uri, outputStream, expectedhttpcode, timeout);
 }
 
 int ControllerClientImpl::_CallGet(const std::string& desturi, std::ostream& outputStream, int expectedhttpcode, double timeout)
@@ -1829,6 +1836,28 @@ size_t ControllerClientImpl::_ReadInMemoryUploadCallback(void *ptr, size_t size,
         pstreamdata->second -= nBytesToRead;
     }
     return nBytesToRead;
+}
+
+void ControllerClientImpl::GetDebugInfos(std::vector<DebugResourcePtr>& debuginfos, double timeout)
+{
+    rapidjson::Document pt(rapidjson::kObjectType);
+    CallGet(str(boost::format("debug/?format=json&limit=0")), pt, 200, timeout);
+    rapidjson::Value& objects = pt["objects"];
+
+    debuginfos.resize(objects.Size());
+    size_t iobj = 0;
+    for (rapidjson::Document::ValueIterator it = objects.Begin(); it != objects.End(); ++it) {
+        DebugResourcePtr debuginfo(new DebugResource(shared_from_this(), GetJsonValueByKey<std::string>(*it, "pk")));
+
+        //LoadJsonValueByKey(*it, "datemodified", debuginfo->datemodified);
+        LoadJsonValueByKey(*it, "description", debuginfo->description);
+        //LoadJsonValueByKey(*it, "downloadUri", debuginfo->downloadUri);
+        LoadJsonValueByKey(*it, "name", debuginfo->name);
+        //LoadJsonValueByKey(*it, "resource_uri", debuginfo->resource_uri);
+        LoadJsonValueByKey(*it, "size", debuginfo->size);
+
+        debuginfos.at(iobj++) = debuginfo;
+    }
 }
 
 } // end namespace mujinclient

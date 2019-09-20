@@ -1239,6 +1239,20 @@ void PlanningResultResource::GetPrograms(RobotControllerPrograms& programs, cons
     }
 }
 
+DebugResource::DebugResource(ControllerClientPtr controller, const std::string& pk) : WebResource(controller, "debug", pk), pk(pk)
+{
+}
+
+DebugResource::DebugResource(ControllerClientPtr controller, const std::string& resource, const std::string& pk) : WebResource(controller, resource, pk), pk(pk)
+{
+}
+
+void DebugResource::Download(std::ostream& outputStream, double timeout)
+{
+    GETCONTROLLERIMPL();
+    controller->CallGet(str(boost::format("%s/%s/download/")%GetResourceName()%GetPrimaryKey()), outputStream, 200, timeout);
+}
+
 ControllerClientPtr CreateControllerClient(const std::string& usernamepassword, const std::string& baseurl, const std::string& proxyserverport, const std::string& proxyuserpw, int options, double timeout)
 {
     return ControllerClientPtr(new ControllerClientImpl(usernamepassword, baseurl, proxyserverport, proxyuserpw, options, timeout));
