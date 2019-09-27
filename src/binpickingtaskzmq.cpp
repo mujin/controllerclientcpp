@@ -64,7 +64,7 @@ BinPickingTaskZmqResource::~BinPickingTaskZmqResource()
 void BinPickingTaskZmqResource::Initialize(const std::string& defaultTaskParameters,  const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq, const double reinitializetimeout, const double timeout, const std::string& userinfo, const std::string& slaverequestid)
 {
     BinPickingTaskResource::Initialize(defaultTaskParameters, zmqPort, heartbeatPort, zmqcontext, initializezmq, reinitializetimeout, timeout, userinfo, slaverequestid);
-    
+
     if (initializezmq) {
         InitializeZMQ(reinitializetimeout, timeout);
     }
@@ -93,7 +93,7 @@ void BinPickingTaskZmqResource::ExecuteCommand(const std::string& taskparameters
     }
 
     std::string callerid = str(boost::format("controllerclientcpp%s_zmq")%MUJINCLIENT_VERSION_STRING);
-    
+
     std::stringstream ss; ss << std::setprecision(std::numeric_limits<double>::digits10+1);
     ss << "{\"fnname\": \"";
     if (_tasktype == "binpicking") {
@@ -216,7 +216,7 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
             if (pollitem.revents & ZMQ_POLLIN) {
                 zmq::message_t reply;
                 socket->recv(&reply);
-                std::string replystring((char *) reply.data (), (size_t) reply.size());
+                std::string replystring((char *)reply.data (), (size_t)reply.size());
                 rapidjson::Document pt(rapidjson::kObjectType);
                 try{
                     std::stringstream replystring_ss(replystring);
@@ -227,7 +227,7 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
                         _taskstate = heartbeat.taskstate;
                     }
                     //BINPICKING_LOG_ERROR(replystring);
-                    
+
                     if (heartbeat.status != std::string("lost") && heartbeat.status.size() > 1) {
                         lastheartbeat = GetMilliTime();
                     }
@@ -248,6 +248,6 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
     }
 }
 
-    
+
 
 } // end namespace mujinclient

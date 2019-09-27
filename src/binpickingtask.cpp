@@ -1566,7 +1566,7 @@ void BinPickingTaskResource::ExecuteCommand(const std::string& taskparameters, r
 
     std::string callerid = str(boost::format("controllerclientcpp%s_web")%MUJINCLIENT_VERSION_STRING);
 
-    std::stringstream ss;
+    std::stringstream ss; ss << std::setprecision(std::numeric_limits<double>::digits10+1);
     ss << "{\"tasktype\": \"" << _tasktype << "\", \"taskparameters\": " << taskparameters << ", ";
     ss << "\"sceneparams\": " << _sceneparams_json << ", ";
     ss << "\"userinfo\": " << _userinfo_json << ", ";
@@ -1596,7 +1596,7 @@ void BinPickingTaskResource::ExecuteCommand(const std::string& taskparameters, r
         secondspassed+=0.1;
         if( timeout != 0 && secondspassed > timeout ) {
             controller->CancelAllJobs();
-            std::stringstream ss;
+            std::stringstream ss; ss << std::setprecision(std::numeric_limits<double>::digits10+1);
             ss << secondspassed;
             throw MujinException("operation timed out after " +ss.str() + " seconds, cancelling all jobs and quitting", MEC_Timeout);
         }
@@ -1758,7 +1758,7 @@ void BinPickingTaskResource::_HeartbeatMonitorThread(const double reinitializeti
             socket.reset();
         }
         socket.reset(new zmq::socket_t((*_zmqcontext.get()),ZMQ_SUB));
-        std::stringstream ss;
+        std::stringstream ss; ss << std::setprecision(std::numeric_limits<double>::digits10+1);
         ss << _heartbeatPort;
         socket->connect (("tcp://"+ _mujinControllerIp+":"+ss.str()).c_str());
         socket->setsockopt(ZMQ_SUBSCRIBE, "", 0);
@@ -1782,7 +1782,7 @@ void BinPickingTaskResource::_HeartbeatMonitorThread(const double reinitializeti
             }
         }
         if (!_bShutdownHeartbeatMonitor) {
-            std::stringstream ss;
+            std::stringstream ss; ss << std::setprecision(std::numeric_limits<double>::digits10+1);
             ss << (double)((GetMilliTime() - lastheartbeat)/1000.0f) << " seconds passed since last heartbeat signal, re-intializing ZMQ server.";
             MUJIN_LOG_INFO(ss.str());
         }
