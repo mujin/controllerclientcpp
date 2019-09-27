@@ -94,7 +94,7 @@ void BinPickingTaskZmqResource::ExecuteCommand(const std::string& taskparameters
 
     std::string callerid = str(boost::format("controllerclientcpp%s_zmq")%MUJINCLIENT_VERSION_STRING);
     
-    std::stringstream ss;
+    std::stringstream ss; ss << std::setprecision(std::numeric_limits<double>::digits10+1);
     ss << "{\"fnname\": \"";
     if (_tasktype == "binpicking") {
         ss << "binpicking.";
@@ -201,7 +201,7 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
             socket.reset();
         }
         socket.reset(new zmq::socket_t((*_zmqcontext.get()),ZMQ_SUB));
-        std::stringstream ss;
+        std::stringstream ss; ss << std::setprecision(std::numeric_limits<double>::digits10+1);
         ss << _heartbeatPort;
         socket->connect (("tcp://"+ _mujinControllerIp+":"+ss.str()).c_str());
         socket->setsockopt(ZMQ_SUBSCRIBE, "", 0);
@@ -241,7 +241,7 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
             }
         }
         if (!_bShutdownHeartbeatMonitor) {
-            std::stringstream ss;
+            std::stringstream ss; ss << std::setprecision(std::numeric_limits<double>::digits10+1);
             ss << (double)((GetMilliTime() - lastheartbeat)/1000.0f) << " seconds passed since last heartbeat signal, re-intializing ZMQ server.";
             MUJIN_LOG_INFO(ss.str());
         }
