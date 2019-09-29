@@ -85,6 +85,15 @@ public:
     };
     typedef boost::shared_ptr<ResultBase> ResultBasePtr;
 
+    struct MUJINCLIENT_API AddPointOffsetInfo
+    {
+        AddPointOffsetInfo() : zOffsetAtBottom(0), zOffsetAtTop(0) {
+        }
+        double zOffsetAtBottom;
+        double zOffsetAtTop;
+    };
+    typedef boost::shared_ptr<AddPointOffsetInfo> AddPointOffsetInfoPtr;
+
     struct MUJINCLIENT_API ResultGetJointValues : public ResultBase
     {
         virtual ~ResultGetJointValues();
@@ -355,8 +364,9 @@ public:
         \param regionname the name of the region for which the point cloud is supposed to be captured of. isoccluded maps to this region
         \param timeout seconds until this command times out
         \param clampToContainer if true, then planning will clamp the points to the container walls specified by regionname. Otherwise, will use all the points
+        \param rExtraParameters extra parameters to be inserted
      */
-    virtual void AddPointCloudObstacle(const std::vector<float>& vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp=0, const unsigned long long endtimestamp=0, const bool executionverification=false, const std::string& unit="mm", int isoccluded=-1, const std::string& regionname=std::string(), const double timeout /* second */=5.0, bool clampToContainer=true, CropContainerMarginsXYZXYZPtr pCropContainerMargins=CropContainerMarginsXYZXYZPtr());
+    virtual void AddPointCloudObstacle(const std::vector<float>& vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp=0, const unsigned long long endtimestamp=0, const bool executionverification=false, const std::string& unit="mm", int isoccluded=-1, const std::string& regionname=std::string(), const double timeout /* second */=5.0, bool clampToContainer=true, CropContainerMarginsXYZXYZPtr pCropContainerMargins=CropContainerMarginsXYZXYZPtr(), AddPointOffsetInfoPtr pAddPointOffsetInfo=AddPointOffsetInfoPtr());
 
     /// \param locationIOName the location IO name (1, 2, 3, 4, etc) used to tell mujin controller to notify  the IO signal with detected object info
     /// \param cameranames the names of the sensors mapped to the current region used for detetion. The sensor information is used to create shadow obstacles per each part, if empty, will not be able to create the correct shadow obstacles.

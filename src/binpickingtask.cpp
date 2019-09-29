@@ -1112,7 +1112,7 @@ void BinPickingTaskResource::UpdateObjects(const std::string& objectname, const 
     ExecuteCommand(_ss.str(), d, timeout); // need to check return code
 }
 
-void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<float>&vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp, const unsigned long long endtimestamp, const bool executionverification, const std::string& unit, int isoccluded, const std::string& regionname, const double timeout, bool clampToContainer, CropContainerMarginsXYZXYZPtr pCropContainerMargins)
+void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<float>&vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp, const unsigned long long endtimestamp, const bool executionverification, const std::string& unit, int isoccluded, const std::string& regionname, const double timeout, bool clampToContainer, CropContainerMarginsXYZXYZPtr pCropContainerMargins, AddPointOffsetInfoPtr pAddPointOffsetInfo)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "AddPointCloudObstacle";
@@ -1123,6 +1123,13 @@ void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<float>&vpoi
     _ss << GetJsonString("clampToContainer", clampToContainer) << ", ";
     if( !!pCropContainerMargins ) {
         _ss << "\"cropContainerMarginsXYZXYZ\":[" << pCropContainerMargins->minMargins[0] << ", " << pCropContainerMargins->minMargins[1] << ", " << pCropContainerMargins->minMargins[2] << ", " << pCropContainerMargins->maxMargins[0] << ", " << pCropContainerMargins->maxMargins[1] << ", " << pCropContainerMargins->maxMargins[2] << "], ";
+    }
+    if( !!pAddPointOffsetInfo ) {
+        _ss << "\"addPointOffsetInfo\":{";
+        _ss << "\"zOffsetAtBottom\": " << pAddPointOffsetInfo->zOffsetAtBottom << ", ";
+        _ss << "\"zOffsetAtTop\": " << pAddPointOffsetInfo->zOffsetAtTop << ", ";
+        _ss << "\"use\": true";
+        _ss << "}, ";
     }
     PointCloudObstacle pointcloudobstacle;
     pointcloudobstacle.name = name;
@@ -1137,8 +1144,8 @@ void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<float>&vpoi
     }
     _ss << ", " << GetJsonString("unit", unit);
     _ss << "}";
-    rapidjson::Document d;
-    ExecuteCommand(_ss.str(), d, timeout); // need to check return code
+    rapidjson::Document rResult;
+    ExecuteCommand(_ss.str(), rResult, timeout); // need to check return code
 }
 
 void BinPickingTaskResource::UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<float>& vpoints, const std::string& state, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit, const double timeout, const std::string& regionname, const std::string& locationIOName, const std::vector<std::string>& cameranames, CropContainerMarginsXYZXYZPtr pCropContainerMargins)
@@ -1556,7 +1563,7 @@ const std::string& BinPickingTaskResource::GetSlaveRequestId() const
     return _slaverequestid;
 }
 
-void BinPickingTaskResource::ExecuteCommand(const std::string& taskparameters, rapidjson::Document& d, const double timeout, const bool getresult)
+void BinPickingTaskResource::ExecuteCommand(const std::string& taskparameters, rapidjson::Document& rResult, const double timeout, const bool getresult)
 {
     if (!_bIsInitialized) {
         throw MujinException("BinPicking task is not initialized, please call Initialzie() first.", MEC_Failed);
@@ -1588,7 +1595,7 @@ void BinPickingTaskResource::ExecuteCommand(const std::string& taskparameters, r
         resultresource = boost::dynamic_pointer_cast<BinPickingResultResource>(GetResult());
         if( !!resultresource ) {
             if (getresult) {
-                resultresource->GetResultJson(d);
+                resultresource->GetResultJson(rResult);
             }
             return;
         }
