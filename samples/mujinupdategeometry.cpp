@@ -16,6 +16,7 @@
 #endif // defined(_WIN32) || defined(_WIN64)
 
 using namespace mujinclient;
+namespace mujinjson = mujinclient::mujinjson_external;
 namespace bpo = boost::program_options;
 using namespace std;
 
@@ -43,9 +44,11 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("taskparameters", bpo::value<string>()->default_value("{}"), "binpicking task parameters, e.g. {'robotname': 'robot', 'robots':{'robot': {'externalCollisionIO':{}, 'gripperControlInfo':{}, 'robotControllerUri': '', robotDeviceIOUri': '', 'toolname': 'tool'}}}")
         ("zmq_port", bpo::value<unsigned int>()->default_value(11000), "port of the binpicking task on the mujin controller")
         ("heartbeat_port", bpo::value<unsigned int>()->default_value(11001), "port of the binpicking task's heartbeat signal on the mujin controller")
-        //("linkname", bpo::value<string>()->default_value(""), "link to which to add mesh")
+        ("objectname", bpo::value<string>(), "object name to which to add mesh")
+        ("linkname", bpo::value<string>(), "link to which to add mesh")
         ("filename", bpo::value<string>(), "stl file to import mesh from")
         ("geometryname", bpo::value<string>()->default_value("default name"), "geometry name")
+        ("count", bpo::value<int>()->default_value(1), "times to add/delete")
         ;
 
     try {
@@ -96,10 +99,10 @@ void InitializeTask(const bpo::variables_map& opts,
     urlss << "http://" << hostname << ":" << controllerPort;
 
     const unsigned int heartbeatPort = opts["heartbeat_port"].as<unsigned int>();
-    string slaverequestid = opts["slave_request_id"].as<string>();
+    //string slaverequestid = opts["slave_request_id"].as<string>();
     string taskScenePk = opts["task_scenepk"].as<string>();
     
-    const bool needtoobtainfromheatbeat = taskScenePk.empty() || slaverequestid.empty();
+    const bool needtoobtainfromheatbeat = taskScenePk.empty(); //|| slaverequestid.empty();
     if (needtoobtainfromheatbeat) {
         stringstream endpoint;
         endpoint << "tcp://" << hostname << ":" << heartbeatPort;
@@ -122,10 +125,10 @@ void InitializeTask(const bpo::variables_map& opts,
             taskScenePk = utils::GetScenePkFromHeatbeat(heartbeat);
             cout << "task_scenepk: " << taskScenePk << " is obtained from heatbeat\n";
         }
-        if (slaverequestid.empty()) {
-            slaverequestid = utils::GetSlaveRequestIdFromHeatbeat(heartbeat);
-            cout << "slave_request_id: " << slaverequestid << " is obtained from heatbeat\n";
-        }
+        //if (slaverequestid.empty()) {
+        //    slaverequestid = utils::GetSlaveRequestIdFromHeatbeat(heartbeat);
+        //    cout << "slave_request_id: " << slaverequestid << " is obtained from heatbeat\n";
+        //}
     }
 
     // connect to mujin controller
@@ -135,17 +138,6 @@ void InitializeTask(const bpo::variables_map& opts,
 
     SceneResourcePtr scene(new SceneResource(controllerclient, taskScenePk));
 
-    std::vector<SceneResource::InstObjectPtr> instobjects;
-    scene->GetInstObjects(instobjects);
-    cout << instobjects[0]->name << endl;
-    ObjectResourcePtr object(new ObjectResource(controllerclient, instobjects[0]->object_pk));
-    vector<ObjectResource::LinkResourcePtr> objectlinks;
-    object->GetLinks(objectlinks);
-    for (vector<ObjectResource::LinkResourcePtr>::const_iterator it = objectlinks.begin();
-         it != objectlinks.end(); ++it) {
-        cout << (**it).name << ": " << (**it).pk << endl;
-    }
-
     ifstream meshStream(opts["filename"].as<string>().c_str(), ios::binary);
     meshStream.unsetf(std::ios::skipws); // need this to not skip white space
     vector<unsigned char> meshData;
@@ -153,23 +145,41 @@ void InitializeTask(const bpo::variables_map& opts,
          std::istream_iterator<unsigned char>(),
          back_inserter(meshData));
 
-    // to demonstrate how to delete a geometry by name, delete geometry of same name if already existing. 
-    try {
-        objectlinks.back()->GetGeometryFromName(geometryName)->Delete();
-        cout << "deleted existing geometry " << geometryName << endl;
-    }
-    catch (const MujinException& e) {
-        cout << e.what() << endl;;
-    }
+int count = opts["count"].as<int>();
+for(int i=0;i<count;i++){
+    std::cout << i << endl;
+    const Real testTranslate[3]={123,456,789};
+    const Real testQuaternion[4]={sqrt(0.5),0,0,sqrt(0.5)};
+    SceneResource::InstObjectPtr instobject = scene->CreateInstObject("hello","",testQuaternion,testTranslate);
+    // https://redmine.mujin.co.jp/issues/5514
+    instobject->SetJSON(mujinjson::GetJsonStringByKey("translate",testTranslate));
+    instobject->SetJSON(mujinjson::GetJsonStringByKey("quaternion",testQuaternion));
+    ObjectResourcePtr object(new ObjectResource(controllerclient, instobject->object_pk));
 
-    cout << "Adding geometry from " << opts["filename"].as<string>() << "\n";
-    ObjectResource::GeometryResourcePtr geometryResource = objectlinks.back()->AddGeometryFromRawSTL(meshData, geometryName, "mm", 5);
-    cout << "Added geometry from " << opts["filename"].as<string>() << ", deleting after 10 seconds\n";
+    //ObjectResource::IkParamResourcePtr ik=object->AddIkParam("hello","Transform6D");
+    //const Real testTranslation[3]={123,456,789};
+    //const Real testQuaternion[4]={sqrt(0.5),0,0,sqrt(0.5)};
+    //ik->SetJSON(mujinjson::GetJsonStringByKey("translation",testTranslation));
+    //ik->SetJSON(mujinjson::GetJsonStringByKey("quaternion",testQuaternion));
+
+    std::vector<ObjectResource::LinkResourcePtr> objectlinks;
+    object->GetLinks(objectlinks);
+    std::vector<ObjectResource::LinkResourcePtr>::iterator it2 = std::find_if(objectlinks.begin(),objectlinks.end(),boost::bind(&ObjectResource::LinkResource::name,_1)=="base");
+    ObjectResource::LinkResourcePtr link = (*it2)->AddChildLink("hello",testQuaternion,testTranslate);
+
+    ObjectResource::GeometryResourcePtr geometry=link->AddGeometryFromRawSTL(meshData,"hello","mm",50);
+
+    geometry->SetJSON(mujinjson::GetJsonStringByKey("translate",testTranslate));
+    geometry->SetJSON(mujinjson::GetJsonStringByKey("quaternion",testQuaternion));
+
+    boost::this_thread::sleep(boost::posix_time::seconds(30));
+    //cout << "Deleted geometry\n";
+    std::string cmd="ls -l";
+    system(cmd.c_str());
+    instobject->Delete();
     boost::this_thread::sleep(boost::posix_time::seconds(10));
-
-    geometryResource->Delete();
-    cout << "Deleted geometry\n";
-
+    system(cmd.c_str());
+}
 }
 
 int main(int argc, char ** argv)
@@ -187,4 +197,3 @@ int main(int argc, char ** argv)
     // do interesting part
     return 0;
 }
-
