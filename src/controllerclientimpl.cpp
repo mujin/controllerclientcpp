@@ -1879,4 +1879,21 @@ void ControllerClientImpl::GetDebugInfos(std::vector<DebugResourcePtr>& debuginf
     }
 }
 
+void ControllerClientImpl::ListFilesInController(std::vector<FileEntryPtr>& fileentries, const std::string &dirname, double timeout)
+{
+    rapidjson::Document pt(rapidjson::kObjectType);
+    _CallGet(_baseuri+"file/list/?dirname="+dirname, pt, 200, timeout);
+    fileentries.resize(pt.MemberCount());
+    size_t iobj = 0;
+    for (rapidjson::Document::MemberIterator it = pt.MemberBegin(); it != pt.MemberEnd(); ++it) {
+        FileEntryPtr fileentry(new FileEntry);
+
+        fileentry->filename = it->name.GetString();
+        LoadJsonValueByKey(it->value, "modified", fileentry->modified);
+        LoadJsonValueByKey(it->value, "size", fileentry->size);
+
+        fileentries.at(iobj++) = fileentry;
+    }
+}
+
 } // end namespace mujinclient
