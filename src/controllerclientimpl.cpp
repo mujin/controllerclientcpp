@@ -269,6 +269,8 @@ void ControllerClientImpl::RestartServer(double timeout)
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPHEADER, NULL, _httpheadersjson);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, _uri.c_str());
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_POST, 0L, 1L);
+    _buffer.clear();
+    _buffer.str("");
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEFUNCTION, NULL, _WriteStringStreamCallback);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEDATA, NULL, &_buffer);
     CURL_PERFORM(_curl);
@@ -767,11 +769,19 @@ void ControllerClientImpl::CallDelete(const std::string& relativeuri, int expect
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPHEADER, NULL, _httpheadersjson);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, _uri.c_str());
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_CUSTOMREQUEST, NULL, "DELETE");
+    _buffer.clear();
+    _buffer.str("");
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEFUNCTION, NULL, _WriteStringStreamCallback);
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEDATA, NULL, &_buffer);
     CURL_PERFORM(_curl);
     long http_code = 0;
     CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
     if( http_code != expectedhttpcode ) {
-        throw MUJIN_EXCEPTION_FORMAT("HTTP DELETE to '%s' returned HTTP status %s", relativeuri%http_code, MEC_HTTPServer);
+        rapidjson::Document d;
+        ParseJson(d, _buffer.str());
+        std::string error_message = GetJsonValueByKey<std::string>(d, "error_message");
+        std::string traceback = GetJsonValueByKey<std::string>(d, "traceback");
+        throw MUJIN_EXCEPTION_FORMAT("HTTP DELETE to '%s' returned HTTP status %s: %s", relativeuri%http_code%error_message, MEC_HTTPServer);
     }
 }
 
@@ -1672,6 +1682,8 @@ void ControllerClientImpl::_UploadFileToController(FILE* fd, const std::string& 
 #endif
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_READDATA, NULL, fd);
 
+    _buffer.clear();
+    _buffer.str("");
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEFUNCTION, NULL, _WriteStringStreamCallback);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEDATA, NULL, &_buffer);
 
@@ -1763,6 +1775,8 @@ void ControllerClientImpl::_UploadDataToController(const std::vector<unsigned ch
 
     // tell it to "upload" to the URL
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_UPLOAD, 0L, 1L);
+    _buffer.clear();
+    _buffer.str("");
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEFUNCTION, NULL, _WriteStringStreamCallback);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEDATA, NULL, &_buffer);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPGET, 0L, 0L);
