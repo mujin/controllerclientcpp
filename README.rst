@@ -171,7 +171,7 @@ Updating the Windows Libraries
 
 Several libraries are being managed in this repository. If necessary, get upgraded versions from the following places:
 
-1. `boost <http://www.boostpro.com/download/>`_ (any version >= 1.45 is fine).
+1. `boost <https://sourceforge.net/projects/boost/files/boost-binaries/>`_ (any version >= 1.45 is fine).
   
   - Select Multi-threaded DLL libraries.
   - No extra libraries need to be selected, only the header files.
@@ -185,6 +185,20 @@ Several libraries are being managed in this repository. If necessary, get upgrad
 3. `OpenSSL <http://www.openssl.org>`_
   
   - Once updated, cURL has to be recompiled just to make sure the symbols match.
+
+Updating Visual Studio
+----------------------
+
+1. Install boost from https://sourceforge.net/projects/boost/files/boost-binaries/ .
+
+  - Make sure about the Visual Studio version and buidling target (32 or 64).
+  - Note that very latest boost might not be supported by the latest CMake.
+
+2. If x64 build, need libzmq to be built from https://github.com/zeromq/libzmq . 4.3.x or later are required for CMake compatibility.
+
+  - Note that in controllerclientcpp you can set only single CMAKE_CONFIGURATION_TYPES if libzmq CMake is used.
+
+cURL and OpenSSL are C libraries, so vc100 binary can be linked to later VC.
 
 Licenses
 --------
@@ -225,4 +239,3 @@ To setup building documentation, checkout `this tutorial <https://gist.github.co
   cd ../gh-pages
   git commit -m "updated documentation" -a
   git push origin gh-pages
-
