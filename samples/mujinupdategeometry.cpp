@@ -174,11 +174,11 @@ for(int i=0;i<count;i++){
 
     boost::this_thread::sleep(boost::posix_time::seconds(30));
     //cout << "Deleted geometry\n";
-    std::string cmd="ls -l";
-    system(cmd.c_str());
+    //std::string cmd="ls -l";
+    //system(cmd.c_str());
     instobject->Delete();
     boost::this_thread::sleep(boost::posix_time::seconds(10));
-    system(cmd.c_str());
+    //system(cmd.c_str());
 }
 }
 
