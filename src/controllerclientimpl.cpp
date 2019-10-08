@@ -233,6 +233,11 @@ const std::string& ControllerClientImpl::GetUserName() const
     return _username;
 }
 
+const std::string& ControllerClientImpl::GetBaseURI() const
+{
+    return _baseuri;
+}
+
 void ControllerClientImpl::SetCharacterEncoding(const std::string& newencoding)
 {
     boost::mutex::scoped_lock lock(_mutex);
@@ -1292,7 +1297,7 @@ bool ControllerClientImpl::GetUpgradeStatus(std::string& status, double &progres
     boost::mutex::scoped_lock lock(_mutex);
     rapidjson::Document pt(rapidjson::kObjectType);
     _CallGet(_baseuri+"upgrade/", pt, 200, timeout);
-    if(pt.IsNull()){
+    if(pt.IsNull()) {
         return false;
     }
     status = GetJsonValueByKey<std::string>(pt, "status");
