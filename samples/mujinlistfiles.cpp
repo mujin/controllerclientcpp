@@ -1,8 +1,8 @@
 // -*- coding: utf-8 -*-
-/** \example mujindownloadfile.cpp
+/** \example mujinlistfiles.cpp
 
-    Shows how to download file
-    example1: mujindownloadfile --controller_hostname=yourhost --remotefilename=sample.mujin.dae --filename=backup.mujin.dae
+    Shows how to list files
+    example1: mujinlistfiles --controller_hostname=yourhost
  */
 
 #include <mujincontrollerclient/mujincontrollerclient.h>
