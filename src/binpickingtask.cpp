@@ -856,7 +856,7 @@ void BinPickingTaskResource::GetJointValues(ResultGetJointValues& result, const 
     result.Parse(pt);
 }
 
-void BinPickingTaskResource::SetInstantaneousJointValues(const std::vector<Real>& jointvalues, const std::string& unit, const double timeout)
+void BinPickingTaskResource::SetInstantaneousJointValues(const std::string &objectName, const std::vector<Real>& jointvalues, const std::string& unit, const double timeout)
 {
     rapidjson::Document pt(rapidjson::kObjectType);
     {
@@ -868,6 +868,7 @@ void BinPickingTaskResource::SetInstantaneousJointValues(const std::vector<Real>
     }
     SetJsonValueByKey(pt,"command","SetInstantaneousJointValues");
     SetJsonValueByKey(pt,"tasktype",_tasktype);
+    SetJsonValueByKey(pt,"objectName",objectName);
     SetJsonValueByKey(pt,"jointvalues",jointvalues);
     SetJsonValueByKey(pt,"unit",unit);
     rapidjson::Document d;

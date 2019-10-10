@@ -315,7 +315,7 @@ public:
     virtual void ExecuteCommand(const std::string& command, rapidjson::Document&d, const double timeout /* second */=5.0, const bool getresult=true);
 
     virtual void GetJointValues(ResultGetJointValues& result, const std::string& unit="mm", const double timeout /* second */=5.0);
-    virtual void SetInstantaneousJointValues(const std::vector<Real>& jointvalues, const std::string& unit="mm", const double timeout /* second */=5.0);
+    virtual void SetInstantaneousJointValues(const std::string& objectName, const std::vector<Real>& jointvalues, const std::string& unit="mm", const double timeout /* second */=5.0);
     virtual void ComputeIkParamPosition(ResultComputeIkParamPosition& result, const std::string& name, const std::string& unit="mm", const double timeout /* second */=5.0);
     virtual void ComputeIKFromParameters(ResultComputeIKFromParameters& result, const std::string& targetname, const std::vector<std::string>& ikparamnames, const int filteroptions, const int limit=0, const double timeout /* second */=5.0);
 
