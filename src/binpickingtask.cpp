@@ -415,13 +415,13 @@ void BinPickingTaskResource::ResultInstObjectInfo::Parse(const rapidjson::Value&
 {
     BOOST_ASSERT(pt.IsObject() && pt.HasMember("output"));
     const rapidjson::Value& rOutput = pt["output"];
-    
+
     LoadJsonValueByKey(rOutput, "translation", instobjecttransform.translate);
     LoadJsonValueByKey(rOutput, "quaternion", instobjecttransform.quaternion);
     instobjectobb.Parse(rOutput["obb"]);
     instobjectinnerobb.Parse(rOutput["innerobb"]);
-    
-    rGeometryInfos = rapidjson::Document();    
+
+    rGeometryInfos = rapidjson::Document();
     if( rOutput.HasMember("geometryInfos") ) {
         rGeometryInfos.CopyFrom(rOutput["geometryInfos"], rGeometryInfos.GetAllocator());
     }
@@ -575,8 +575,11 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/minCandidateSize", registerMinViableRegionInfo.minCandidateSize);
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/maxCandidateSize", registerMinViableRegionInfo.maxCandidateSize);
 
-    removeObjectFromObjectListInfo.objectPk = GetJsonValueByPath<std::string>(v, "/removeObjectFromObjectList/objectPk", "");
     removeObjectFromObjectListInfo.timestamp = GetJsonValueByPath<double>(v, "/removeObjectFromObjectList/timestamp", 0);
+    removeObjectFromObjectListInfo.objectPk = GetJsonValueByPath<std::string>(v, "/removeObjectFromObjectList/objectPk", "");
+
+    triggerDetectionCaptureInfo.timestamp = GetJsonValueByPath<double>(v, "/triggerDetectionCaptureInfo/timestamp", 0);
+    triggerDetectionCaptureInfo.triggerType = GetJsonValueByPath<std::string>(v, "/triggerDetectionCaptureInfo/triggerType", "");
 
     LoadJsonValueByKey(v, "currentToolValues", currentToolValues);
     LoadJsonValueByKey(v, "currentJointValues", currentJointValues);
@@ -604,6 +607,11 @@ BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionInfo::M
 }
 
 BinPickingTaskResource::ResultGetBinpickingState::RemoveObjectFromObjectListInfo::RemoveObjectFromObjectListInfo() :
+    timestamp(0)
+{
+}
+
+BinPickingTaskResource::ResultGetBinpickingState::TriggerDetectionCaptureInfo::TriggerDetectionCaptureInfo() :
     timestamp(0)
 {
 }
@@ -976,6 +984,18 @@ void BinPickingTaskResource::SendRemoveObjectFromObjectListResult(
     _ss << GetJsonString("command", "SendRemoveObjectFromObjectListResult") << ", ";
     _ss << GetJsonString("objectPk", objectPk) << ", ";
     _ss << GetJsonString("success", success) << ", ";
+    _ss << "}";
+    rapidjson::Document pt(rapidjson::kObjectType);
+    ExecuteCommand(_ss.str(), pt, timeout);
+}
+
+
+void BinPickingTaskResource::SendTriggerDetectionCaptureResult(const std::string& triggerType, const std::string& returnCode, double timeout)
+{
+    SetMapTaskParameters(_ss, _mapTaskParameters);
+    _ss << GetJsonString("command", "SendTriggerDetectionCaptureResult") << ", ";
+    _ss << GetJsonString("triggerType", triggerType) << ", ";
+    _ss << GetJsonString("returnCode", returnCode) << ", ";
     _ss << "}";
     rapidjson::Document pt(rapidjson::kObjectType);
     ExecuteCommand(_ss.str(), pt, timeout);
