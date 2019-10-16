@@ -79,10 +79,11 @@ class PlanningResultResource;
 class BinPickingResultResource;
 class DebugResource;
 
+/// \brief (scene) file entry in mujin controller
 struct FileEntry
 {
     std::string filename;
-    double modified;
+    double modified; // in epoch seconds
     size_t size;
 };
 
@@ -106,8 +107,6 @@ typedef boost::shared_ptr<BinPickingResultResource> BinPickingResultResourcePtr;
 typedef boost::weak_ptr<BinPickingResultResource> BinPickingResultResourceWeakPtr;
 typedef boost::shared_ptr<DebugResource> DebugResourcePtr;
 typedef boost::weak_ptr<DebugResource> DebugResourceWeakPtr;
-typedef boost::shared_ptr<FileEntry> FileEntryPtr;
-typedef boost::weak_ptr<FileEntry> FileEntryWeakPtr;
 typedef double Real;
 
 inline bool FuzzyEquals(Real p, Real q, double epsilon=1e-3) {
@@ -589,7 +588,7 @@ public:
     /// \brief Get file list in specified directory.
     ///
     /// \param dirname UTF-8 encoded dirname to query.
-    virtual void ListFilesInController(std::vector<FileEntryPtr>& fileentries, const std::string &dirname="/", double timeout = 5.0) = 0;
+    virtual void ListFilesInController(std::vector<FileEntry>& fileentries, const std::string &dirname="/", double timeout = 5.0) = 0;
 
     /// \brief \see DeleteDirectoryOnController_UTF8
     ///

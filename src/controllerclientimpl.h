@@ -63,7 +63,7 @@ public:
     virtual void DeleteFileOnController_UTF16(const std::wstring& desturi);
     virtual void DeleteDirectoryOnController_UTF8(const std::string& desturi);
     virtual void DeleteDirectoryOnController_UTF16(const std::wstring& desturi);
-    virtual void ListFilesInController(std::vector<FileEntryPtr>& fileentries, const std::string &dirname, double timeout);
+    virtual void ListFilesInController(std::vector<FileEntry>& fileentries, const std::string &dirname, double timeout);
 
     virtual void SaveBackup(std::ostream& outputStream, bool config, bool media, double timeout);
     virtual void RestoreBackup(std::istream& inputStream, bool config, bool media, double timeout);

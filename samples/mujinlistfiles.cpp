@@ -95,10 +95,10 @@ int main(int argc, char ** argv)
     cerr << "connected to mujin controller at " << urlss.str() << endl;
 
     
-    vector<FileEntryPtr>lst;
+    vector<FileEntry>lst;
     controllerclient->ListFilesInController(lst,dirname);
     for(int i=0;i<lst.size();i++){
-        cout << lst[i]->filename << endl;
+        cout << lst[i].filename << endl;
     }
 
     return 0;
