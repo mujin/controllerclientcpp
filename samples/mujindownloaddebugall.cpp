@@ -35,6 +35,7 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("controller_port", bpo::value<unsigned int>()->default_value(80), "port of the mujin controller")
         ("controller_username_password", bpo::value<string>()->default_value("testuser:pass"), "username and password to the mujin controller, e.g. username:password")
         ("dirname", bpo::value<string>()->default_value("."), "backup dir name")
+        ("timeout", bpo::value<double>()->default_value(60), "timeout for each debuginfo")
         ;
 
     try {
@@ -80,6 +81,7 @@ int main(int argc, char ** argv)
     const string hostname = opts["controller_hostname"].as<string>();
     const unsigned int controllerPort = opts["controller_port"].as<unsigned int>();
     const string dirname = opts["dirname"].as<string>();
+    const double timeout = opts["timeout"].as<double>();
     stringstream urlss;
     urlss << "http://" << hostname << ":" << controllerPort;
 
@@ -91,7 +93,7 @@ int main(int argc, char ** argv)
     controllerclient->GetDebugInfos(debuginfos);
     for(std::vector<DebugResourcePtr>::iterator it = debuginfos.begin();it != debuginfos.end();++it){
         ofstream fout((dirname+"/"+(*it)->name+".gpg").c_str(), std::ios::out | std::ios::binary);
-        (*it)->Download(fout);
+        (*it)->Download(fout,timeout);
     }
 
     return 0;

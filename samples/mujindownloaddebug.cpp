@@ -37,6 +37,7 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("controller_username_password", bpo::value<string>()->default_value("testuser:pass"), "username and password to the mujin controller, e.g. username:password")
         ("filename", bpo::value<string>(), "backup file name")
         ("category", bpo::value<string>(), "debug category to download")
+        ("timeout", bpo::value<double>()->default_value(60), "timeout")
         ;
 
     try {
@@ -97,10 +98,11 @@ int main(int argc, char ** argv)
     } else if(opts.count("filename")) {
         const string category = opts["category"].as<string>();
         const string filename = opts["filename"].as<string>();
+        const double timeout = opts["timeout"].as<double>();
         std::vector<DebugResourcePtr>::iterator it = std::find_if(debuginfos.begin(),debuginfos.end(),boost::bind(&DebugResource::name,_1)==category);
         if(it!=debuginfos.end()) {
             ofstream fout(filename.c_str(), std::ios::out | std::ios::binary);
-            (*it)->Download(fout);
+            (*it)->Download(fout,timeout);
         }
     }
 
