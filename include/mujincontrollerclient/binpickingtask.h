@@ -211,12 +211,18 @@ public:
 
         struct RemoveObjectFromObjectListInfo {
             RemoveObjectFromObjectListInfo();
-            double timestamp; // timestamp this request was sent
+            double timestamp; // timestamp this request was sent. If non-zero, then valid.
             std::string objectPk; // objectPk to remove from the current object set vision is using
             bool IsEmpty() const {
                 return objectPk.empty();
             }
         } removeObjectFromObjectListInfo;
+
+        struct TriggerDetectionCaptureInfo {
+            TriggerDetectionCaptureInfo();
+            double timestamp; ///< timestamp this request was sent. If non-zero, then valid.
+            std::string triggerType; ///< The type of trigger this is. For now can be: "phase1Detection", "phase2Detection"
+        } triggerDetectionCaptureInfo;
     };
 
     struct MUJINCLIENT_API ResultIsRobotOccludingBody : public ResultBase
@@ -532,6 +538,10 @@ public:
 
     // send result of RemoveObjectFromObjectList request
     virtual void SendRemoveObjectFromObjectListResult(const std::string& objectPk, bool success, double timeout /* second */=5.0);
+
+    // send result of RemoveObjectFromObjectList request
+    virtual void SendTriggerDetectionCaptureResult(const std::string& triggerType, const std::string& returnCode, double timeout /* second */=5.0);
+
 protected:
     std::stringstream _ss;
 
