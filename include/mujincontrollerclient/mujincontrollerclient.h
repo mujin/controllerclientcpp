@@ -84,7 +84,7 @@ struct FileEntry
 {
     std::string filename;
     double modified; // in epoch seconds
-    size_t size;
+    size_t size; // file size in bytes
 };
 
 typedef boost::shared_ptr<ControllerClient> ControllerClientPtr;
