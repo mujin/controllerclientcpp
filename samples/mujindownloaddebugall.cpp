@@ -92,6 +92,7 @@ int main(int argc, char ** argv)
     vector<DebugResourcePtr> debuginfos;
     controllerclient->GetDebugInfos(debuginfos);
     for(std::vector<DebugResourcePtr>::iterator it = debuginfos.begin();it != debuginfos.end();++it){
+        cerr << "downloading " << (*it)->name << endl;
         ofstream fout((dirname+"/"+(*it)->name+".gpg").c_str(), std::ios::out | std::ios::binary);
         (*it)->Download(fout,timeout);
     }
