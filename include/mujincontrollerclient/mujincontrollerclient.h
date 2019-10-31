@@ -79,6 +79,14 @@ class PlanningResultResource;
 class BinPickingResultResource;
 class DebugResource;
 
+/// \brief (scene) file entry in mujin controller
+struct FileEntry
+{
+    std::string filename;
+    double modified; // in epoch seconds
+    size_t size; // file size in bytes
+};
+
 typedef boost::shared_ptr<ControllerClient> ControllerClientPtr;
 typedef boost::weak_ptr<ControllerClient> ControllerClientWeakPtr;
 typedef boost::shared_ptr<ObjectResource> ObjectResourcePtr;
@@ -576,6 +584,11 @@ public:
     ///
     /// \param uri UTF-8 encoded file in the network filesystem to delete.
     virtual void DeleteDirectoryOnController_UTF8(const std::string& uri) = 0;
+
+    /// \brief Get file list in specified directory.
+    ///
+    /// \param dirname UTF-8 encoded dirname to query.
+    virtual void ListFilesInController(std::vector<FileEntry>& fileentries, const std::string &dirname="/", double timeout = 5.0) = 0;
 
     /// \brief \see DeleteDirectoryOnController_UTF8
     ///
