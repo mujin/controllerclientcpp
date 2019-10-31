@@ -765,7 +765,9 @@ void BinPickingTaskResource::ResultHeartBeat::Parse(const rapidjson::Value& pt)
 }
 
 namespace {
-void SetMapTaskParameters(std::stringstream &ss, const std::map<std::string, std::string> &params) {
+void SetMapTaskParameters(std::stringstream &ss, const std::map<std::string, std::string> &params)
+{
+    ss << std::setprecision(std::numeric_limits<double>::digits10+1);
     ss.str("");
     ss.clear();
     ss << "{";
