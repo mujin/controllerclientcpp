@@ -323,6 +323,10 @@ public:
     virtual void GetJointValues(ResultGetJointValues& result, const std::string& unit="mm", const double timeout /* second */=5.0);
     virtual void SetInstantaneousJointValues(const std::vector<Real>& jointvalues, const std::string& unit="mm", const double timeout /* second */=5.0);
     virtual void ComputeIkParamPosition(ResultComputeIkParamPosition& result, const std::string& name, const std::string& unit="mm", const double timeout /* second */=5.0);
+
+    /// \brief computes inverse kinematics solutions for ikparameter(s)
+    /// \param inPlaneAngleDeviation maximum in-plane angle that corresponding solution is allowed to deviate from specified ik parameter. Unit is degrees.
+    /// \param outOfPlaneAngleDeviation maximum out-of-plane angle that corresponding solution is allowed to deviate from specified ik parameter. Unit is degrees.
     virtual void ComputeIKFromParameters(ResultComputeIKFromParameters& result, const std::string& targetname, const std::vector<std::string>& ikparamnames, const int filteroptions, const int limit=0, const double inPlaneAngleDeviation = 0.0, const double outOfPlaneAngleDeviation = 0.0, const double timeout /* second */=5.0);
 
     /// \brief Moves joints to specified value
