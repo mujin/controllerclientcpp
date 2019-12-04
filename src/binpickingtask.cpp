@@ -901,7 +901,7 @@ void BinPickingTaskResource::ComputeIkParamPosition(ResultComputeIkParamPosition
     result.Parse(d);
 }
 
-void BinPickingTaskResource::ComputeIKFromParameters(ResultComputeIKFromParameters& result, const std::string& targetname, const std::vector<std::string>& ikparamnames, const int filteroptions, const int limit, const double timeout)
+void BinPickingTaskResource::ComputeIKFromParameters(ResultComputeIKFromParameters& result, const std::string& targetname, const std::vector<std::string>& ikparamnames, const int filteroptions, const int limit, const double inPlaneAngleDeviation, const double outOfPlaneAngleDeviation, const double timeout)
 {
     rapidjson::Document pt(rapidjson::kObjectType);
     {
@@ -917,6 +917,8 @@ void BinPickingTaskResource::ComputeIKFromParameters(ResultComputeIKFromParamete
     SetJsonValueByKey(pt,"ikparamnames",ikparamnames);
     SetJsonValueByKey(pt,"filteroptions",filteroptions); // 0
     SetJsonValueByKey(pt,"limit",limit); // 0
+    SetJsonValueByKey(pt,"inPlaneAngleDeviation",inPlaneAngleDeviation);
+    SetJsonValueByKey(pt,"outOfPlaneAngleDeviation",outOfPlaneAngleDeviation);
     rapidjson::Document d;
     ExecuteCommand(DumpJson(pt), d, timeout);
     result.Parse(d);
