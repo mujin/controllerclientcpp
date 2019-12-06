@@ -882,7 +882,7 @@ void BinPickingTaskResource::SetInstantaneousJointValues(const std::vector<Real>
     ExecuteCommand(DumpJson(pt), d, timeout); // need to check return code
 }
 
-void BinPickingTaskResource::ComputeIkParamPosition(ResultComputeIkParamPosition& result, const std::string& name, const std::string& unit, const double timeout)
+void BinPickingTaskResource::ComputeIkParamPosition(ResultComputeIkParamPosition& result, const std::string& name, const std::vector<Real>& jointvalues, const std::string& unit, const double timeout)
 {
     rapidjson::Document pt(rapidjson::kObjectType);
     {
@@ -894,6 +894,7 @@ void BinPickingTaskResource::ComputeIkParamPosition(ResultComputeIkParamPosition
     }
     SetJsonValueByKey(pt,"command","ComputeIkParamPosition");
     SetJsonValueByKey(pt,"tasktype",_tasktype);
+    SetJsonValueByKey(pt,"jointvalues",jointvalues);
     SetJsonValueByKey(pt,"name",name);
     SetJsonValueByKey(pt,"unit",unit);
     rapidjson::Document d;
