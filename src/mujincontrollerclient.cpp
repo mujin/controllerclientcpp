@@ -628,7 +628,7 @@ TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& t
 #endif
         }
         else {
-            task.reset(new BinPickingTaskResource(GetController(), pk, GetPrimaryKey()));
+            task.reset(new BinPickingTaskResource(GetController(), pk, GetPrimaryKey(), tasktype));
         }
         return task;
     }
