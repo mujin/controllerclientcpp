@@ -204,6 +204,9 @@ public:
             double transferSpeedMult; // transfer speed multiplication factor
             double minCornerVisibleDist;
             uint64_t occlusionFreeCornerMask;
+            double boxDeformedRegionSlope; // slope of enlarged portion of MVR along enlargement axis
+            double boxDeformedRegionCurvature; // curvature of enlarged portion of MVR along enlargement axis
+            std::array<double, 4> boxLiftedPlaneModel; // plane model of top surface of lifted box
             bool IsEmpty() const {
                 return sensortimestamp == 0;
             }

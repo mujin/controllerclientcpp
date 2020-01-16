@@ -574,6 +574,9 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/liftedWorldOffset", registerMinViableRegionInfo.liftedWorldOffset);
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/minCandidateSize", registerMinViableRegionInfo.minCandidateSize);
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/maxCandidateSize", registerMinViableRegionInfo.maxCandidateSize);
+    LoadJsonValueByPath(v, "/registerMinViableRegionInfo/boxDeformedRegionSlope", registerMinViableRegionInfo.boxDeformedRegionSlope);
+    LoadJsonValueByPath(v, "/registerMinViableRegionInfo/boxDeformedRegionCurvature", registerMinViableRegionInfo.boxDeformedRegionCurvature);
+    LoadJsonValueByPath(v, "/registerMinViableRegionInfo/boxLiftedPlaneModel", registerMinViableRegionInfo.boxLiftedPlaneModel);
 
     removeObjectFromObjectListInfo.timestamp = GetJsonValueByPath<double>(v, "/removeObjectFromObjectList/timestamp", 0);
     removeObjectFromObjectListInfo.objectPk = GetJsonValueByPath<std::string>(v, "/removeObjectFromObjectList/objectPk", "");
@@ -591,13 +594,16 @@ BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionInfo::R
     robotDepartStopTimestamp(0),
     transferSpeedMult(1.0),
     minCornerVisibleDist(30),
-    occlusionFreeCornerMask(0)
+    occlusionFreeCornerMask(0),
+    boxDeformedRegionSlope(0),
+    boxDeformedRegionCurvature(0)
 {
     translation_.fill(0);
     quat_.fill(0);
     liftedWorldOffset.fill(0);
     maxCandidateSize.fill(0);
     minCandidateSize.fill(0);
+    boxLiftedPlaneModel.fill(0);
 }
 
 BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionInfo::MinViableRegionInfo::MinViableRegionInfo() :
