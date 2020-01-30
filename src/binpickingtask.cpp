@@ -425,6 +425,11 @@ void BinPickingTaskResource::ResultInstObjectInfo::Parse(const rapidjson::Value&
     if( rOutput.HasMember("geometryInfos") ) {
         rGeometryInfos.CopyFrom(rOutput["geometryInfos"], rGeometryInfos.GetAllocator());
     }
+
+    rDetectionParameters = rapidjson::Document();
+    if( rOutput.HasMember("detectionParameters") ) {
+        rDetectionParameters.CopyFrom(rOutput["detectionParameters"], rDetectionParameters.GetAllocator());
+    }
 }
 
 BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::~ResultGetInstObjectAndSensorInfo()
