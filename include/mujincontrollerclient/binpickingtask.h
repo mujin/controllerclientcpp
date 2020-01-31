@@ -272,7 +272,7 @@ public:
         ResultOBB instobjectobb;
         ResultOBB instobjectinnerobb;
         rapidjson::Document rGeometryInfos; ///< for every object, list of all the geometry infos
-        rapidjson::Document rDetectionParameters; ///< detection parameters for each objct
+        rapidjson::Document rDetectionParameters; ///< detection parameters for each object
     };
 
     struct MUJINCLIENT_API ResultGetInstObjectAndSensorInfo : public ResultBase
@@ -285,6 +285,7 @@ public:
         std::map<std::string, Transform> msensortransform;
         std::map<std::string, RobotResource::AttachedSensorResource::SensorData> msensordata;
         std::map<std::string, boost::shared_ptr<rapidjson::Document> > mrGeometryInfos; ///< for every object, list of all the geometry infos
+        std::map<std::string, boost::shared_ptr<rapidjson::Document> > mrDetectionParameters; ///< for every object, list of all detection parameters
     };
 
     struct MUJINCLIENT_API ResultHeartBeat : public ResultBase
