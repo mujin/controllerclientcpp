@@ -1528,34 +1528,62 @@ void BinPickingTaskResource::ExecuteSingleXMLTrajectory(const std::string& traje
 
 void BinPickingTaskResource::Grab(const std::string& targetname, const std::string& robotname, const std::string& toolname, const double timeout)
 {
-    SetMapTaskParameters(_ss, _mapTaskParameters);
-    _ss << GetJsonString("command", "Grab") << ", ";
-    _ss << GetJsonString("targetname", targetname) << ", ";
+    rapidjson::Document pt(rapidjson::kObjectType);
+    {
+        for(std::map<std::string,std::string>::iterator it=_mapTaskParameters.begin(); it!=_mapTaskParameters.end(); ++it) {
+            rapidjson::Document t;
+            ParseJson(t,it->second);
+            SetJsonValueByKey(pt,it->first,t);
+        }
+    }
+    if(!toolname.empty() && _mapTaskParameters.find("robots") != _mapTaskParameters.end()) {
+        std::string robotid = robotname.empty() ? _mapTaskParameters["robotname"] : robotname;
+        rapidjson::Document robots;
+        ParseJson(robots,_mapTaskParameters["robots"]);
+        SetJsonValueByPath(robots,("/"+robotid+"/toolname").c_str(),toolname);
+        SetJsonValueByKey(pt,"robots",robots);
+    }
+    SetJsonValueByKey(pt,"command","Grab");
+    SetJsonValueByKey(pt,"targetname",targetname);
     if (!robotname.empty()) {
-        _ss << GetJsonString("robotname", robotname) << ", ";
+        SetJsonValueByKey(pt,"robotname",robotname);
     }
     if (!toolname.empty()) {
-        _ss << GetJsonString("toolname", toolname) << ", ";
+        SetJsonValueByKey(pt,"toolname",toolname);
     }
-    _ss << "}";
     rapidjson::Document d;
-    ExecuteCommand(_ss.str(), d, timeout);
+    std::cout << DumpJson(pt) << std::endl;
+    ExecuteCommand(DumpJson(pt), d, timeout);
 }
 
 void BinPickingTaskResource::Release(const std::string& targetname, const std::string& robotname, const std::string& toolname, const double timeout)
 {
-    SetMapTaskParameters(_ss, _mapTaskParameters);
-    _ss << GetJsonString("command", "Release") << ", ";
-    _ss << GetJsonString("targetname", targetname) << ", ";
+    rapidjson::Document pt(rapidjson::kObjectType);
+    {
+        for(std::map<std::string,std::string>::iterator it=_mapTaskParameters.begin(); it!=_mapTaskParameters.end(); ++it) {
+            rapidjson::Document t;
+            ParseJson(t,it->second);
+            SetJsonValueByKey(pt,it->first,t);
+        }
+    }
+    if(!toolname.empty() && _mapTaskParameters.find("robots") != _mapTaskParameters.end()) {
+        std::string robotid = robotname.empty() ? _mapTaskParameters["robotname"] : robotname;
+        rapidjson::Document robots;
+        ParseJson(robots,_mapTaskParameters["robots"]);
+        SetJsonValueByPath(robots,("/"+robotid+"/toolname").c_str(),toolname);
+        SetJsonValueByKey(pt,"robots",robots);
+    }
+    SetJsonValueByKey(pt,"command","Release");
+    SetJsonValueByKey(pt,"targetname",targetname);
     if (!robotname.empty()) {
-        _ss << GetJsonString("robotname", robotname) << ", ";
+        SetJsonValueByKey(pt,"robotname",robotname);
     }
     if (!toolname.empty()) {
-        _ss << GetJsonString("toolname", toolname) << ", ";
+        SetJsonValueByKey(pt,"toolname",toolname);
     }
-    _ss << "}";
     rapidjson::Document d;
-    ExecuteCommand(_ss.str(), d, timeout);
+    std::cout << DumpJson(pt) << std::endl;
+    ExecuteCommand(DumpJson(pt), d, timeout);
 }
 
 void BinPickingTaskResource::GetRobotBridgeIOVariableString(const std::vector<std::string>& ionames, std::vector<std::string>& iovalues, const double timeout)
