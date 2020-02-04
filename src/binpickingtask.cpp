@@ -1552,7 +1552,6 @@ void BinPickingTaskResource::Grab(const std::string& targetname, const std::stri
         SetJsonValueByKey(pt,"toolname",toolname);
     }
     rapidjson::Document d;
-    std::cout << DumpJson(pt) << std::endl;
     ExecuteCommand(DumpJson(pt), d, timeout);
 }
 
@@ -1582,7 +1581,6 @@ void BinPickingTaskResource::Release(const std::string& targetname, const std::s
         SetJsonValueByKey(pt,"toolname",toolname);
     }
     rapidjson::Document d;
-    std::cout << DumpJson(pt) << std::endl;
     ExecuteCommand(DumpJson(pt), d, timeout);
 }
 
