@@ -1536,13 +1536,6 @@ void BinPickingTaskResource::Grab(const std::string& targetname, const std::stri
             SetJsonValueByKey(pt,it->first,t);
         }
     }
-    if(!toolname.empty() && _mapTaskParameters.find("robots") != _mapTaskParameters.end()) {
-        std::string robotid = robotname.empty() ? _mapTaskParameters["robotname"] : robotname;
-        rapidjson::Document robots;
-        ParseJson(robots,_mapTaskParameters["robots"]);
-        SetJsonValueByPath(robots,("/"+robotid+"/toolname").c_str(),toolname);
-        SetJsonValueByKey(pt,"robots",robots);
-    }
     SetJsonValueByKey(pt,"command","Grab");
     SetJsonValueByKey(pt,"targetname",targetname);
     if (!robotname.empty()) {
@@ -1564,13 +1557,6 @@ void BinPickingTaskResource::Release(const std::string& targetname, const std::s
             ParseJson(t,it->second);
             SetJsonValueByKey(pt,it->first,t);
         }
-    }
-    if(!toolname.empty() && _mapTaskParameters.find("robots") != _mapTaskParameters.end()) {
-        std::string robotid = robotname.empty() ? _mapTaskParameters["robotname"] : robotname;
-        rapidjson::Document robots;
-        ParseJson(robots,_mapTaskParameters["robots"]);
-        SetJsonValueByPath(robots,("/"+robotid+"/toolname").c_str(),toolname);
-        SetJsonValueByKey(pt,"robots",robots);
     }
     SetJsonValueByKey(pt,"command","Release");
     SetJsonValueByKey(pt,"targetname",targetname);
