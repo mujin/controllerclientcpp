@@ -425,6 +425,11 @@ void BinPickingTaskResource::ResultInstObjectInfo::Parse(const rapidjson::Value&
     if( rOutput.HasMember("geometryInfos") ) {
         rGeometryInfos.CopyFrom(rOutput["geometryInfos"], rGeometryInfos.GetAllocator());
     }
+
+    rDetectionParameters = rapidjson::Document();
+    if( rOutput.HasMember("detectionParameters") ) {
+        rDetectionParameters.CopyFrom(rOutput["detectionParameters"], rDetectionParameters.GetAllocator());
+    }
 }
 
 BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::~ResultGetInstObjectAndSensorInfo()
@@ -456,6 +461,12 @@ void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const rapid
             boost::shared_ptr<rapidjson::Document> pr(new rapidjson::Document());;
             pr->CopyFrom(it->value["geometryInfos"], pr->GetAllocator());
             mrGeometryInfos[objname] = pr;
+        }
+
+        if( it->value.HasMember("detectionParameters") ) {
+            boost::shared_ptr<rapidjson::Document> pr(new rapidjson::Document());;
+            pr->CopyFrom(it->value["detectionParameters"], pr->GetAllocator());
+            mrDetectionParameters[objname] = pr;
         }
     }
 
