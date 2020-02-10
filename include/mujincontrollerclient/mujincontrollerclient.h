@@ -695,6 +695,7 @@ public:
     virtual void Set(const std::string& field, const std::string& newvalue, double timeout = 5.0);
 
     /// \brief sets an attribute of this web resource
+    /// \param json string to set attributes. see mujinjson.h for constructing json.
     virtual void SetJSON(const std::string& json, double timeout = 5.0);
 
     /// \brief delete the resource and all its child resources
@@ -732,8 +733,17 @@ public:
         Real height;
         Real radius;
 
+        /// \brief Get mesh data
+        /// \param primitive primitive name (triangleset etc)
+        /// \param indices 2D vector, each of which represents vertices indices conforming a face
+        /// \param vertices 2D vector, each of which represents a vertex coordinate
         virtual void GetMesh(std::string& primitive, std::vector<std::vector<int> >& indices, std::vector<std::vector<Real> >& vertices);
+
+        /// \brief Set geometry using STL data
+        /// \param rawstldata bytes representing stl file
+        /// \param unit stl data unit m, mm or etc
         virtual void SetGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& unit, double timeout = 5.0);
+
         virtual void SetVisible(bool visible);
         /// 0 -> off, 1 -> on
         virtual int GetVisible();
@@ -761,13 +771,22 @@ public:
         virtual ~LinkResource() {
         }
 
+        /// \brief Add a primitive geometry under the link.
+        /// \param name geometry name
+        /// \param geomtype geomery type (box, cylinder, sphere)
         virtual GeometryResourcePtr AddGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& name, const std::string& unit, double timeout = 5.0);
+
+        /// \brief Add a primitive geometry under the link.
+        /// \param name geometry name
+        /// \param geomtype geomery type (box, cylinder, sphere)
         virtual GeometryResourcePtr AddPrimitiveGeometry(const std::string& name, const std::string& geomtype, double timeout = 5.0);
 
+        /// \brief Get a geometry with specified name.
         virtual GeometryResourcePtr GetGeometryFromName(const std::string& geometryName);
 
         virtual void GetGeometries(std::vector<GeometryResourcePtr>& links);
 
+        /// \brief Add a child link under the link.
         virtual boost::shared_ptr<LinkResource> AddChildLink(const std::string& name, const Real quaternion[4], const Real translate[3]);
 
         virtual void SetCollision(bool collision);
@@ -796,7 +815,10 @@ public:
 
     virtual void GetIkParams(std::vector<IkParamResourcePtr>& ikparams);
 
+    /// \brief Add a link under the object.
     virtual LinkResourcePtr AddLink(const std::string& name, const Real quaternion[4], const Real translate[3]);
+
+    /// \brief Add an ikparameter under the object.
     virtual IkParamResourcePtr AddIkParam(const std::string& name, const std::string& iktype);
 
     virtual void SetCollision(bool collision);
