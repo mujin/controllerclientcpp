@@ -320,7 +320,12 @@ public:
 
     virtual void ExecuteCommand(const std::string& command, rapidjson::Document&d, const double timeout /* second */=5.0, const bool getresult=true);
 
+    /// \brief Get joint values for the robot specifed in robotname.
     virtual void GetJointValues(ResultGetJointValues& result, const std::string& unit="mm", const double timeout /* second */=5.0);
+
+    /// \brief Set joint values of a machine which is not controlled by robotbridge. The machine needs to be modelled as a robot.
+    /// \param jointvalues joint values to set for the machine. For revolutional joints, the unit is degrees. For prismatic joints, the unit argument will be used.
+    /// \note taskparameters need to have objectName field, where the SetInstantaneousJointValues target machine is specified. robotname field must be mujin-controlling robot, or the robotbridge environment will not be updated properly.
     virtual void SetInstantaneousJointValues(const std::vector<Real>& jointvalues, const std::string& unit="mm", const double timeout /* second */=5.0);
 
     /// \brief computes ikparameterization
@@ -343,7 +348,11 @@ public:
     /// \param timeout timeout of communication
     /// \param pTraj if not NULL, planned trajectory is set but not executed. Otherwise, trajectory is planed and executed but not set.
     virtual void MoveJoints(const std::vector<Real>& jointvalues, const std::vector<int>& jointindices, const Real envclearance, const Real speed /* 0.1-1 */, ResultMoveJoints& result, const double timeout /* second */=5.0, std::string* pTraj = NULL);
+
+    /// \brief Get current transform of targetname object.
     virtual void GetTransform(const std::string& targetname, Transform& result, const std::string& unit="mm", const double timeout /* second */=5.0);
+
+    /// \brief Set transform of targetname object without modifying the scene file.
     virtual void SetTransform(const std::string& targetname, const Transform& transform, const std::string& unit="mm", const double timeout /* second */=5.0);
 
     virtual void GetManipTransformToRobot(Transform& result, const std::string& unit="mm", const double timeout /* second */=5.0);
@@ -507,6 +516,7 @@ public:
     /// \param pTraj if not NULL, planned trajectory is set but not executed. Otherwise, trajectory is planed and executed but not set.
     virtual void MoveToHandPosition(const std::string& instobjectname, const std::string& ikparamname, const std::string& robotname = "", const std::string& toolname = "", const double robotspeed = -1, const double timeout = 10, Real envclearance = -1.0, std::string* pTraj = NULL);
 
+    /// \brief Get list of grabbed objects
     virtual void GetGrabbed(std::vector<std::string>& grabbed, const std::string& robotname = "", const double timeout = 10);
 
     /// \brief Executes a trajectory
