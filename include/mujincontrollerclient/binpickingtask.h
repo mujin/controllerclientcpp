@@ -204,6 +204,7 @@ public:
             double transferSpeedMult; // transfer speed multiplication factor
             double minCornerVisibleDist;
             uint64_t occlusionFreeCornerMask;
+            bool waitForTriggerOnCapturing; // if true, sensor will wait trigger on capturing
             bool IsEmpty() const {
                 return sensortimestamp == 0;
             }

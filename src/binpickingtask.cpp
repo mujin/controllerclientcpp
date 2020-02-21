@@ -591,7 +591,8 @@ BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionInfo::R
     robotDepartStopTimestamp(0),
     transferSpeedMult(1.0),
     minCornerVisibleDist(30),
-    occlusionFreeCornerMask(0)
+    occlusionFreeCornerMask(0),
+    waitForTriggerOnCapturing(false)
 {
     translation_.fill(0);
     quat_.fill(0);
