@@ -1694,7 +1694,7 @@ void utils::DeleteObject(SceneResource& scene, const std::string& name)
     scene.GetInstObjects(instobjects);
 
     for(unsigned int i = 0; i < instobjects.size(); ++i) {
-        const unsigned int found_at = instobjects[i]->name.find(name);
+        const std::size_t found_at = instobjects[i]->name.find(name);
         if (found_at != std::string::npos) {
             instobjects[i]->Delete();
             break;
@@ -1710,7 +1710,7 @@ void utils::UpdateObjects(SceneResource& scene,const std::string& basename, cons
     // get all instobjects from mujin controller
     scene.GetInstObjects(oldinstobjects);
     for(unsigned int i = 0; i < oldinstobjects.size(); ++i) {
-        const unsigned int found_at = oldinstobjects[i]->name.find(basename);
+        const std::size_t found_at = oldinstobjects[i]->name.find(basename);
         if (found_at != std::string::npos) {
             oldtargets.push_back(oldinstobjects[i]);
         }
