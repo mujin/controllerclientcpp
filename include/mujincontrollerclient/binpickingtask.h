@@ -222,6 +222,7 @@ public:
             TriggerDetectionCaptureInfo();
             double timestamp; ///< timestamp this request was sent. If non-zero, then valid.
             std::string triggerType; ///< The type of trigger this is. For now can be: "phase1Detection", "phase2Detection"
+            std::string regionname; ///< The name of the region for this detection trigger.
         } triggerDetectionCaptureInfo;
     };
 
