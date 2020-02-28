@@ -581,6 +581,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
 
     triggerDetectionCaptureInfo.timestamp = GetJsonValueByPath<double>(v, "/triggerDetectionCaptureInfo/timestamp", 0);
     triggerDetectionCaptureInfo.triggerType = GetJsonValueByPath<std::string>(v, "/triggerDetectionCaptureInfo/triggerType", "");
+    triggerDetectionCaptureInfo.regionname = GetJsonValueByPath<std::string>(v, "/triggerDetectionCaptureInfo/regionname", "");
 
     LoadJsonValueByKey(v, "currentToolValues", currentToolValues);
     LoadJsonValueByKey(v, "currentJointValues", currentJointValues);
