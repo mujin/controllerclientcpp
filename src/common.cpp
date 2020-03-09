@@ -75,7 +75,7 @@ std::map<int, std::string> InitializeCodePageMap()
     mapCodePageToCharset[1255] = "windows-1255";
     mapCodePageToCharset[1252] = "windows-1252";
     mapCodePageToCharset[1253] = "windows-1253";
-    mapCodePageToCharset[1250] = "x-cp1250";
+    mapCodePageToCharset[1250] = "cp1250";
     mapCodePageToCharset[950] = "x-x-big5";
     mapCodePageToCharset[932] = "Shift_JIS";
     mapCodePageToCharset[51932 /*CODE_JPN_EUC*/] = "EUC-JP";
