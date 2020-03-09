@@ -65,9 +65,9 @@ std::map<int, std::string> InitializeCodePageMap()
     mapCodePageToCharset[852] = "IBM852";
     mapCodePageToCharset[949] = "KS_C_5601-1987";
     mapCodePageToCharset[50220 /*CODE_JPN_JIS*/] = "ISO-2022-JP";
-    mapCodePageToCharset[874] = "windows-874";
+    mapCodePageToCharset[874] = "cp874";
     mapCodePageToCharset[20866] = "koi8-r";
-    mapCodePageToCharset[1251] = "x-cp1251";
+    mapCodePageToCharset[1251] = "cp1251";
     mapCodePageToCharset[50225] = "ISO-2022-KR";
     mapCodePageToCharset[1256] = "windows-1256";
     mapCodePageToCharset[1257] = "windows-1257";
@@ -76,7 +76,7 @@ std::map<int, std::string> InitializeCodePageMap()
     mapCodePageToCharset[1252] = "windows-1252";
     mapCodePageToCharset[1253] = "windows-1253";
     mapCodePageToCharset[1250] = "cp1250";
-    mapCodePageToCharset[950] = "x-x-big5";
+    mapCodePageToCharset[950] = "cp950";
     mapCodePageToCharset[932] = "Shift_JIS";
     mapCodePageToCharset[51932 /*CODE_JPN_EUC*/] = "EUC-JP";
     mapCodePageToCharset[28592] = "latin2";
