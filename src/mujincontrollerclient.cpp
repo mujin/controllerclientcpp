@@ -167,7 +167,9 @@ void ObjectResource::GeometryResource::GetMesh(std::string& primitive, std::vect
 void ObjectResource::GeometryResource::SetGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& unit, double timeout)
 {
     GETCONTROLLERIMPL();
-    MUJIN_ASSERT_OP_FORMAT(this->geomtype,!=,"mesh", "geomtype is not mesh: %s", this->geomtype, MEC_InvalidArguments);
+    if (this->geomtype != "mesh") {
+        throw MUJIN_EXCEPTION_FORMAT("geomtype is not mesh: %s", this->geomtype, MEC_InvalidArguments);
+    }
     controller->SetObjectGeometryMesh(this->objectpk, this->pk, rawstldata, unit, timeout);
 }
 
@@ -660,7 +662,9 @@ TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& t
 void SceneResource::SetInstObjectsState(const std::vector<SceneResource::InstObjectPtr>& instobjects, const std::vector<InstanceObjectState>& states)
 {
     GETCONTROLLERIMPL();
-    MUJIN_ASSERT_OP_FORMAT(instobjects.size(), ==, states.size(), "the size of instobjects (%d) and the one of states (%d) must be the same",instobjects.size()%states.size(),MEC_InvalidArguments);
+    if (instobjects.size() != states.size()) {
+        throw MUJIN_EXCEPTION_FORMAT("the size of instobjects (%d) and the one of states (%d) must be the same",instobjects.size()%states.size(),MEC_InvalidArguments);
+    }
     boost::format transformtemplate("{\"pk\":\"%s\",\"quaternion\":[%.15f, %.15f, %.15f, %.15f], \"translate\":[%.15f, %.15f, %.15f] %s}");
     std::string datastring, sdofvalues;
     for(size_t i = 0; i < instobjects.size(); ++i) {
