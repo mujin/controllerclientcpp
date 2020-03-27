@@ -1775,7 +1775,7 @@ void utils::UpdateObjects(SceneResource& scene,const std::string& basename, cons
     }
     // create new objects
     for(unsigned int i = 0; i < name_create_pool.size(); i++) {
-        scene.CreateInstObject(name_create_pool[i], ("mujin:/"+basename+".mujin.dae"), transform_create_pool[i].quaternion, transform_create_pool[i].translate);
+        scene.CreateInstObject(name_create_pool[i], ("mujin:/"+basename+".mujin.dae"), transform_create_pool[i].quaternion, transform_create_pool[i].translate, 0);
     }
 }
 

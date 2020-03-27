@@ -142,7 +142,7 @@ int main(int argc, char ** argv)
     }
     const string name(opts["name"].as<string>());
     cout << "scene->GetPrimaryKey()" <<  scene->GetPrimaryKey() << endl;
-    const SceneResource::InstObjectPtr instobj = scene->CreateInstObject(name, "", quaternion, translate);
+    const SceneResource::InstObjectPtr instobj = scene->CreateInstObject(name, "", quaternion, translate, 0);
     cout << instobj << endl;
     cout << instobj->object_pk << endl;
 

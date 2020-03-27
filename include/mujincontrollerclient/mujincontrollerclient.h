@@ -964,6 +964,7 @@ public:
         std::string pk;
         std::string object_pk;
         std::string reference_uri;
+        int externalref;
         Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
         Real translate[3];
         std::vector<Grab> grabs;
@@ -1031,8 +1032,9 @@ public:
     /// \param referenceUri uri to reference. Leave empty to reference nothing.
     /// \param quaternion quaternion of the object
     /// \param translate translation of the object
+    /// \param externalref determines if referenceUri is external reference
     /// \return pointer to inst object created
-    virtual SceneResource::InstObjectPtr CreateInstObject(const std::string& name, const std::string& referenceUri, const Real quaternion[4], const Real translate[3], double timeout = 300);
+    virtual SceneResource::InstObjectPtr CreateInstObject(const std::string& name, const std::string& referenceUri, const Real quaternion[4], const Real translate[3], int externalref, double timeout = 300);
 
     /// \brief deletes an inst object in scene
     /// \param pk primary key of the object to delete
