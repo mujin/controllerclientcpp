@@ -538,6 +538,43 @@ void ControllerClientImpl::SyncUpload_UTF16(const std::wstring& _sourcefilename_
 }
 
 /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
+int ControllerClientImpl::CallGetBody(const std::string& relativeuri, const std::string& data, rapidjson::Document& pt, int expectedhttpcode, double timeout)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    _uri = _baseapiuri;
+    _uri += relativeuri;
+    return _CallGetBody(_uri, data, pt, expectedhttpcode, timeout);
+}
+
+int ControllerClientImpl::_CallGetBody(const std::string& desturi, const std::string& data, rapidjson::Document& pt, int expectedhttpcode, double timeout)
+{
+    MUJIN_LOG_INFO(str(boost::format("GET %s")%desturi));
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_TIMEOUT_MS, 0L, (long)(timeout * 1000L));
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPHEADER, NULL, _httpheadersjson);
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, desturi.c_str());
+    _buffer.clear();
+    _buffer.str("");
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEFUNCTION, NULL, _WriteStringStreamCallback);
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEDATA, NULL, &_buffer);
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPGET, 0L, 1L);
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_CUSTOMREQUEST, NULL, "GET");
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_POSTFIELDSIZE, 0, data.size());
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_POSTFIELDS, NULL, data.size() > 0 ? data.c_str() : NULL);
+    CURL_PERFORM(_curl);
+    long http_code = 0;
+    CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
+    if( _buffer.rdbuf()->in_avail() > 0 ) {
+        mujinjson::ParseJson(pt, _buffer.str());
+    }
+    if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
+        std::string error_message = GetJsonValueByKey<std::string>(pt, "error_message");
+        std::string traceback = GetJsonValueByKey<std::string>(pt, "traceback");
+        throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s: %s", desturi%http_code%error_message, MEC_HTTPServer);
+    }
+    return http_code;
+}
+
+/// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
 int ControllerClientImpl::CallGet(const std::string& relativeuri, rapidjson::Document& pt, int expectedhttpcode, double timeout)
 {
     boost::mutex::scoped_lock lock(_mutex);
