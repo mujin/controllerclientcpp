@@ -159,6 +159,10 @@ void BinPickingTaskZmqResource::ExecuteCommand(const std::string& taskparameters
                 throw MujinException(str(boost::format("Error when calling binpicking.RunCommand: %s")%serror), MEC_BinPickingError);
             }
         }
+        BOOST_ASSERT(pt.IsObject() && pt.HasMember("output"));
+        rapidjson::Value v;
+        v.Swap(pt["output"]);
+        v.Swap(pt);
     } else {
         try{
             _zmqmujincontrollerclient->Call(command, timeout);

@@ -76,6 +76,9 @@ public:
     virtual void ModifySceneRemoveReferenceObjectPK(const std::string &scenepk, const std::string &referenceobjectpk, double timeout = 5.0);
 
     /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
+    int CallGetBody(const std::string& relativeuri, const std::string& data, rapidjson::Document& pt, int expectedhttpcode=200, double timeout = 5.0);
+
+    /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
     int CallGet(const std::string& relativeuri, rapidjson::Document& pt, int expectedhttpcode=200, double timeout = 5.0);
 
     /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
@@ -215,6 +218,7 @@ protected:
     int _CallGet(const std::string& desturi, std::string& outputdata, int expectedhttpcode=200, double timeout = 5.0);
     int _CallGet(const std::string& desturi, std::vector<unsigned char>& outputdata, int expectedhttpcode=200, double timeout = 5.0);
     int _CallGet(const std::string& desturi, std::ostream& outputStream, int expectedhttpcode=200, double timeout = 5.0);
+    int _CallGetBody(const std::string& desturi, const std::string& data, rapidjson::Document& pt, int expectedhttpcode=200, double timeout = 5.0);
     int _CallPost(const std::string& desturi, const std::string& data, rapidjson::Document& pt, int expectedhttpcode=201, double timeout = 5.0);
 
     /// \brief desturi is URL-encoded. Also assume _mutex is locked.
