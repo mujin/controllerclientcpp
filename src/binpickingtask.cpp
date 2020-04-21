@@ -1621,7 +1621,7 @@ void BinPickingTaskResource::ExecuteCommand(const std::string& taskparameters, r
     const std::string taskgoalput = ss.str();
     rapidjson::Document pt(rapidjson::kObjectType);
     //controller->CallPutJSON(str(boost::format("task/%s/?format=json")%GetPrimaryKey()), taskgoalput, pt);
-    controller->CallGetBody(str(boost::format("scene/%s/resultget/?format=json") % _scenepk), taskgoalput, rResult);
+    controller->CallGetBody(str(boost::format("scene/%s/resultget/?format=json") % _scenepk), taskgoalput, rResult, timeout);
 /*
     Execute();
 
