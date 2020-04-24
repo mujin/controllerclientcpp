@@ -290,7 +290,7 @@ std::string ZmqClient::Call(const std::string& msg, const double timeout, const 
         ss << "Timed out trying to send request.";
         MUJIN_LOG_ERROR(ss.str());
         if (msg.length() > 1000) {
-            MUJIN_LOG_INFO(msg.substr(0,1000) << "...");
+            MUJIN_LOG_INFO(msg.substr(0,1000)+"...");
         } else {
             MUJIN_LOG_INFO(msg);
         }
@@ -354,7 +354,7 @@ std::string ZmqClient::Call(const std::string& msg, const double timeout, const 
             } else {
                 MUJIN_LOG_INFO("failed to send");
                 if (msg.length() > 1000) {
-                    MUJIN_LOG_INFO(msg.substr(0,1000) << "...");
+                    MUJIN_LOG_INFO(msg.substr(0,1000)+"...");
                 } else {
                     MUJIN_LOG_INFO(msg);
                 }
@@ -379,7 +379,7 @@ std::string ZmqClient::Call(const std::string& msg, const double timeout, const 
         ss << "timed out trying to receive request";
         MUJIN_LOG_ERROR(ss.str());
         if (msg.length() > 1000) {
-            MUJIN_LOG_INFO(msg.substr(0,1000) << "...");
+            MUJIN_LOG_INFO(msg.substr(0,1000)+"...");
         } else {
             MUJIN_LOG_INFO(msg);
         }

@@ -19,6 +19,14 @@
 #define MUJIN_LOG_INFO(msg) LOG4CXX_INFO(logger, msg);
 #define MUJIN_LOG_ERROR(msg) LOG4CXX_ERROR(logger, msg);
 
+#elif MUJINCLIENT_OUTPUTDEBUGSTRING
+
+#define MUJIN_LOGGER(name)
+#define MUJIN_LOG_VERBOSE(msg) // empty
+#define MUJIN_LOG_DEBUG(msg) OutputDebugString(std::string(msg).c_str());
+#define MUJIN_LOG_INFO(msg) OutputDebugString(std::string(msg).c_str());
+#define MUJIN_LOG_ERROR(msg) OutputDebugString(std::string(msg).c_str());
+
 #else
 
 #define MUJIN_LOGGER(name)

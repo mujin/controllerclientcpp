@@ -38,6 +38,7 @@ option(OPT_SAMPLES "Build the samples" ON)
 option(OPT_BUILD_TESTS "Build the tests" OFF)
 option(OPT_BUILD_STATIC "Build static libraries for the client" ON)
 option(OPT_LOG4CXX "Use log4cxx for logging" ON)
+option(OPT_OUTPUTDEBUGSTRING "Use OutputDebugString logging (only Windows, log4cxx preferred)" OFF)
 
 # Use, i.e. don't skip the full RPATH for the build tree
 set(CMAKE_SKIP_BUILD_RPATH  FALSE)
@@ -135,6 +136,11 @@ else()
 endif()
 
 set(MUJINCLIENT_LINK_DIRS)
+
+set(MUJINCLIENT_OUTPUTDEBUGSTRING 0)
+if(OPT_OUTPUTDEBUGSTRING AND MSVC)
+  set(MUJINCLIENT_OUTPUTDEBUGSTRING 1)
+endif()
 
 find_package(PkgConfig)
 set(MUJINCLIENT_LOG4CXX 0)
