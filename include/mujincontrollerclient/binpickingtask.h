@@ -142,7 +142,7 @@ public:
     /// \brief the picking history being published from the slave. Anytime the robot goes inside of the source container, its pick history will be udpated.
     struct MUJINCLIENT_API PickPlaceHistoryItem
     {
-        std::string pickPlaceType; ///< the type of action that ocurred can be: "picked", "placed"
+        std::string pickPlaceType; ///< the type of action that ocurred can be: "picked", "placed", "touched"
         std::string regionname; ///< the name of the region where picking occurred
         unsigned long long eventTimeStampUS; ///< time that the event ocurred in us (from Linux epoch)
         std::string object_uri; ///< the object uri
