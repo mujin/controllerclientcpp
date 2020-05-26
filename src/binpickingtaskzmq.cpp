@@ -15,8 +15,6 @@
 #include "common.h"
 #include "controllerclientimpl.h"
 #include "binpickingtaskzmq.h"
-#include <boost/property_tree/json_parser.hpp>
-#include <boost/property_tree/exceptions.hpp>
 #include "mujincontrollerclient/mujinzmq.h"
 
 #include <algorithm> // find
@@ -192,7 +190,6 @@ void BinPickingTaskZmqResource::InitializeZMQ(const double reinitializetimeout, 
 void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializetimeout, const double commandtimeout)
 {
     boost::shared_ptr<zmq::socket_t>  socket;
-    boost::property_tree::ptree pt;
     BinPickingTaskResource::ResultHeartBeat heartbeat;
     heartbeat._slaverequestid = _slaverequestid;
     while (!_bShutdownHeartbeatMonitor) {

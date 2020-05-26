@@ -16,7 +16,6 @@
 #if BOOST_VERSION > 104800
 #include <boost/algorithm/string/replace.hpp>
 #endif
-#include <boost/property_tree/ptree.hpp>
 #include <boost/thread.hpp> // for sleep
 #include "mujincontrollerclient/binpickingtask.h"
 
@@ -583,6 +582,35 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     triggerDetectionCaptureInfo.triggerType = GetJsonValueByPath<std::string>(v, "/triggerDetectionCaptureInfo/triggerType", "");
     triggerDetectionCaptureInfo.regionname = GetJsonValueByPath<std::string>(v, "/triggerDetectionCaptureInfo/regionname", "");
 
+    pickPlaceHistoryItems.clear();
+    if( v.HasMember("pickPlaceHistoryItems") && v["pickPlaceHistoryItems"].IsArray() ) {
+        pickPlaceHistoryItems.resize(v["pickPlaceHistoryItems"].Size());
+        for(int iitem = 0; iitem < (int)pickPlaceHistoryItems.size(); ++iitem) {
+            const rapidjson::Value& rItem = v["pickPlaceHistoryItems"][iitem];
+            pickPlaceHistoryItems[iitem].pickPlaceType = GetJsonValueByKey<std::string,std::string>(rItem, "pickPlaceType", std::string());
+            pickPlaceHistoryItems[iitem].regionname = GetJsonValueByKey<std::string,std::string>(rItem, "regionname", std::string());
+            pickPlaceHistoryItems[iitem].eventTimeStampUS = GetJsonValueByKey<unsigned long long>(rItem, "eventTimeStampUS", 0);
+            pickPlaceHistoryItems[iitem].object_uri = GetJsonValueByKey<std::string,std::string>(rItem, "object_uri", std::string());
+
+            pickPlaceHistoryItems[iitem].objectpose = Transform();
+            if( rItem.HasMember("objectpose") ) {
+                const rapidjson::Value& rObjectPose = rItem["objectpose"];
+                if( rObjectPose.IsArray() && rObjectPose.Size() == 7 ) {
+                    LoadJsonValue(rObjectPose[0], pickPlaceHistoryItems[iitem].objectpose.quaternion[0]);
+                    LoadJsonValue(rObjectPose[1], pickPlaceHistoryItems[iitem].objectpose.quaternion[1]);
+                    LoadJsonValue(rObjectPose[2], pickPlaceHistoryItems[iitem].objectpose.quaternion[2]);
+                    LoadJsonValue(rObjectPose[3], pickPlaceHistoryItems[iitem].objectpose.quaternion[3]);
+                    LoadJsonValue(rObjectPose[4], pickPlaceHistoryItems[iitem].objectpose.translate[0]);
+                    LoadJsonValue(rObjectPose[5], pickPlaceHistoryItems[iitem].objectpose.translate[1]);
+                    LoadJsonValue(rObjectPose[6], pickPlaceHistoryItems[iitem].objectpose.translate[2]);
+                }
+            }
+
+            pickPlaceHistoryItems[iitem].sensorTimeStampUS = GetJsonValueByKey<unsigned long long>(rItem, "sensorTimeStampUS", 0);
+        }
+    }
+
+    
     LoadJsonValueByKey(v, "currentToolValues", currentToolValues);
     LoadJsonValueByKey(v, "currentJointValues", currentJointValues);
     LoadJsonValueByKey(v, "jointNames", jointNames);
@@ -1847,7 +1875,7 @@ std::string utils::GetHeartbeat(const std::string& endpoint) {
 #ifndef _WIN32
     return received;
 #else
-    // sometimes buffer can container \n or \\, which windows boost property_tree does not like
+    // sometimes buffer can container \n or \\, which windows does not like
     std::string newbuffer;
     std::vector< std::pair<std::string, std::string> > serachpairs(2);
     serachpairs[0].first = "\n"; serachpairs[0].second = "";

@@ -21,9 +21,6 @@
 #include <mujincontrollerclient/mujincontrollerclient.h>
 
 #include <boost/thread/mutex.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
-#include <boost/property_tree/xml_parser.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/static_assert.hpp>
 #include <boost/foreach.hpp>
@@ -355,12 +352,6 @@ const char s_filesep = '/';
 const wchar_t s_wfilesep = L'/';
 #endif
 
-/// \brief parses string into boost property_tree
-/// do string manipulation so that boost in Windows can parse input string without throwing exception
-/// \param originalStr input string to be parsed into property_tree
-/// \param pt output property_tree
-void ParsePropertyTreeWin(const std::string& originalStr,
-                          boost::property_tree::ptree& pt);
 } // end namespace mujinclient
 
 #endif

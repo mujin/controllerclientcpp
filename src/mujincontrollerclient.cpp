@@ -439,7 +439,6 @@ void RobotResource::GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& a
     GETCONTROLLERIMPL();
     rapidjson::Document pt(rapidjson::kObjectType);
     controller->CallGet(str(boost::format("robot/%s/attachedsensor/?format=json&limit=0&fields=attachedsensors")%GetPrimaryKey()), pt);
-    //boost::property_tree::ptree& objects = pt.get_child("attachedsensors");
     rapidjson::Value& objects = pt["attachedsensors"];
     attachedsensors.resize(objects.Size());
     size_t i = 0;

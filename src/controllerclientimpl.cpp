@@ -16,6 +16,8 @@
 
 #include <boost/algorithm/string.hpp>
 
+#include <boost/property_tree/xml_parser.hpp>
+
 #define SKIP_PEER_VERIFICATION // temporary
 //#define SKIP_HOSTNAME_VERIFICATION
 
@@ -320,7 +322,6 @@ void ControllerClientImpl::GetScenePrimaryKeys(std::vector<std::string>& sceneke
     rapidjson::Document pt(rapidjson::kObjectType);
     CallGet("scene/?format=json&limit=0&fields=pk", pt);
     rapidjson::Value& objects = pt["objects"];
-    //boost::property_tree::ptree& objects = pt.get_child("objects");
     scenekeys.resize(objects.Size());
     size_t i = 0;
     for (rapidjson::Document::ValueIterator it=objects.Begin(); it != objects.End(); ++it) {
