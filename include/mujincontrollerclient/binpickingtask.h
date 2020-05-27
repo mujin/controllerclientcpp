@@ -143,11 +143,11 @@ public:
     struct MUJINCLIENT_API PickPlaceHistoryItem
     {
         std::string pickPlaceType; ///< the type of action that ocurred can be: "picked", "placed", "touched"
-        std::string regionname; ///< the name of the region where picking occurred
-        unsigned long long eventTimeStampUS; ///< time that the event ocurred in us (from Linux epoch)
+        std::string regionname; ///< the name of the region where picking occurred for "picked", where placing occurred when "placed", and where touching occurred for "touched"
+        unsigned long long eventTimeStampUS; ///< time that the event ocurred in us (from Linux epoch). For "picked" this is the chuck time, for "placed this is the unchuck time, for "touched" this is the time when the robot supposedly stopped touching/disturbing the object.
         std::string object_uri; ///< the object uri
-        Transform objectpose; ///< 7-values in world
-        unsigned long long sensorTimeStampUS; ///< sensor timestamp in us (from Linux epoch) of when the object was originally detected in the scene
+        Transform objectpose; ///< 7-values in world, unit is usually mm
+        unsigned long long sensorTimeStampUS; ///< sensor timestamp in us (from Linux epoch) of when the object was detected in the scene
     };
 
     struct MUJINCLIENT_API ResultGetBinpickingState : public ResultBase
@@ -233,8 +233,8 @@ public:
             std::string triggerType; ///< The type of trigger this is. For now can be: "phase1Detection", "phase2Detection"
             std::string regionname; ///< The name of the region for this detection trigger.
         } triggerDetectionCaptureInfo;
-
-        std::vector<PickPlaceHistoryItem> pickPlaceHistoryItems; ///< history of pick/place actions that occurred in planning
+        
+        std::vector<PickPlaceHistoryItem> pickPlaceHistoryItems; ///< history of pick/place actions that occurred in planning. Events should be sorted in the order they happen, ie event [0] happens before event [1], meaning event[0].eventTimeStampUS is before event[1].eventTimeStampUS
     };
 
     struct MUJINCLIENT_API ResultIsRobotOccludingBody : public ResultBase
