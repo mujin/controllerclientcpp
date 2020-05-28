@@ -180,6 +180,9 @@ ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::AddGeometryFro
     const std::string geometryPk = controller->CreateObjectGeometry(this->objectpk, name, linkpk, "mesh", timeout);
 
     ObjectResource::GeometryResourcePtr geometry(new GeometryResource(controller, this->objectpk, geometryPk));
+    geometry->name = name;
+    geometry->geomtype = "mesh";
+    geometry->linkpk = linkpk;
     geometry->SetGeometryFromRawSTL(rawstldata, unit, timeout);
     return geometry;
 }
@@ -191,6 +194,9 @@ ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::AddPrimitiveGe
     const std::string geometryPk = controller->CreateObjectGeometry(this->objectpk, name, linkpk, geomtype, timeout);
 
     ObjectResource::GeometryResourcePtr geometry(new GeometryResource(controller, this->objectpk, geometryPk));
+    geometry->name = name;
+    geometry->geomtype = geomtype;
+    geometry->linkpk = linkpk;
     return geometry;
 }
 
@@ -360,7 +366,10 @@ ObjectResource::LinkResourcePtr ObjectResource::AddLink(const std::string& name,
     GETCONTROLLERIMPL();
     const std::string linkPk = controller->CreateLink(this->pk, "", name,quaternion, translate);
 
-    return ObjectResource::LinkResourcePtr(new LinkResource(controller, this->pk, linkPk));
+    ObjectResource::LinkResourcePtr link(new LinkResource(controller, this->pk, linkPk));
+    link->name = name;
+    link->parentlinkpk = "";
+    return link;
 }
 
 ObjectResource::LinkResourcePtr ObjectResource::LinkResource::AddChildLink(const std::string& name, const Real quaternion[4], const Real translate[3])
@@ -368,7 +377,10 @@ ObjectResource::LinkResourcePtr ObjectResource::LinkResource::AddChildLink(const
     GETCONTROLLERIMPL();
     const std::string linkPk = controller->CreateLink(this->objectpk, this->pk, name,quaternion, translate);
 
-    return ObjectResource::LinkResourcePtr(new LinkResource(controller, this->objectpk, linkPk));
+    ObjectResource::LinkResourcePtr link(new LinkResource(controller, this->objectpk, linkPk));
+    link->name = name;
+    link->parentlinkpk = this->pk;
+    return link;
 }
 
 ObjectResource::IkParamResourcePtr ObjectResource::AddIkParam(const std::string& name, const std::string& iktype)
