@@ -100,7 +100,7 @@ void GrabRelease(BinPickingTaskResourcePtr& pBinpickingTask,
          << goals[3] << ", " << goals[4] << ", " << goals[5] << endl;
     pBinpickingTask->MoveToHandPosition(goaltype, goals, robotname, toolname, speed, 30);
 
-    pBinpickingTask->Grab(targetname);
+    pBinpickingTask->Grab(targetname, robotname, toolname);
 
     goals[movealong] += moveby;
     cout << "after grabbing " << targetname << ", moving tool to "
@@ -108,7 +108,7 @@ void GrabRelease(BinPickingTaskResourcePtr& pBinpickingTask,
          << goals[3] << ", " << goals[4] << ", " << goals[5] << endl;
     pBinpickingTask->MoveToHandPosition(goaltype, goals, robotname, toolname, speed, 30);
 
-    pBinpickingTask->Release(targetname);
+    pBinpickingTask->Release(targetname, robotname, toolname);
     goals[movealong] -= moveby;
     cout << "after releasing " << targetname << ", moving tool to "
          << goals[0] << ", " << goals[1] << ", " << goals[2] << ", "
