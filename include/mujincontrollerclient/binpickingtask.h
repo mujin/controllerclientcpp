@@ -18,7 +18,6 @@
 #define MUJIN_CONTROLLERCLIENT_BINPICKINGTASK_H
 
 #include <mujincontrollerclient/mujincontrollerclient.h>
-#include <boost/property_tree/ptree.hpp>
 #include <boost/thread.hpp>
 #ifdef MUJIN_USEZMQ
 #include "zmq.hpp"
@@ -55,9 +54,9 @@ public:
     {
         std::string name;             // "name": "detectionresutl_1"
         std::string object_uri;       // "object_uri": "mujin:/box0.mujin.dae"
-        Transform transform;
+        Transform transform; ///< pose of the object in the world coordinate system
         std::string confidence;
-        unsigned long long timestamp;
+        unsigned long long timestamp; ///< sensor timestamp in ms (from Linux epoch)
         std::string extra;            // (OPTIONAL) "extra": {"type":"randombox", "length":100, "width":100, "height":100}
         bool isPickable; ///< whether the object is pickable
     };
@@ -79,8 +78,6 @@ public:
 
     struct MUJINCLIENT_API ResultBase
     {
-        //boost::property_tree::ptree _pt; ///< property tree of result, if user ever wants it for logging purposes
-
         virtual void Parse(const rapidjson::Value& pt) = 0;
     };
     typedef boost::shared_ptr<ResultBase> ResultBasePtr;
@@ -140,6 +137,17 @@ public:
         void Parse(const rapidjson::Value& pt);
         std::vector<std::vector<Real> > dofvalues;
         std::vector<std::string> extra;
+    };
+
+    /// \brief the picking history being published from the slave. Anytime the robot goes inside of the source container, its pick history will be udpated.
+    struct MUJINCLIENT_API PickPlaceHistoryItem
+    {
+        std::string pickPlaceType; ///< the type of action that ocurred can be: "picked", "placed", "touched"
+        std::string regionname; ///< the name of the region where picking occurred for "picked", where placing occurred when "placed", and where touching occurred for "touched"
+        unsigned long long eventTimeStampUS; ///< time that the event ocurred in us (from Linux epoch). For "picked" this is the chuck time, for "placed this is the unchuck time, for "touched" this is the time when the robot supposedly stopped touching/disturbing the object.
+        std::string object_uri; ///< the object uri
+        Transform objectpose; ///< 7-values in world, unit is usually mm
+        unsigned long long sensorTimeStampUS; ///< sensor timestamp in us (from Linux epoch) of when the object was detected in the scene
     };
 
     struct MUJINCLIENT_API ResultGetBinpickingState : public ResultBase
@@ -204,6 +212,7 @@ public:
             double transferSpeedMult; // transfer speed multiplication factor
             double minCornerVisibleDist;
             uint64_t occlusionFreeCornerMask;
+            bool waitForTriggerOnCapturing; // if true, sensor will wait trigger on capturing
             bool IsEmpty() const {
                 return sensortimestamp == 0;
             }
@@ -222,7 +231,10 @@ public:
             TriggerDetectionCaptureInfo();
             double timestamp; ///< timestamp this request was sent. If non-zero, then valid.
             std::string triggerType; ///< The type of trigger this is. For now can be: "phase1Detection", "phase2Detection"
+            std::string regionname; ///< The name of the region for this detection trigger.
         } triggerDetectionCaptureInfo;
+        
+        std::vector<PickPlaceHistoryItem> pickPlaceHistoryItems; ///< history of pick/place actions that occurred in planning. Events should be sorted in the order they happen, ie event [0] happens before event [1], meaning event[0].eventTimeStampUS is before event[1].eventTimeStampUS
     };
 
     struct MUJINCLIENT_API ResultIsRobotOccludingBody : public ResultBase
