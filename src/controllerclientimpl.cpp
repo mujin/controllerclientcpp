@@ -187,6 +187,8 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
     CURL_OPTION_SETTER(_curl, CURLOPT_POSTFIELDSIZE, 0L);
     CURL_OPTION_SETTER(_curl, CURLOPT_POSTFIELDS, NULL);
 
+    CURL_OPTION_SETTER(_curl, CURLOPT_ACCEPT_ENCODING, "gzip, deflate");
+
     // csrftoken can be any non-empty string
     _csrfmiddlewaretoken = "csrftoken";
     std::string cookie = "Set-Cookie: csrftoken=" + _csrfmiddlewaretoken;
@@ -951,8 +953,6 @@ void ControllerClientImpl::_SetupHTTPHeadersJSON()
     _httpheadersjson = curl_slist_append(_httpheadersjson, s.c_str());
     _httpheadersjson = curl_slist_append(_httpheadersjson, "Connection: Keep-Alive");
     _httpheadersjson = curl_slist_append(_httpheadersjson, "Keep-Alive: 20"); // keep alive for 20s?
-    // test on windows first
-    //_httpheadersjson = curl_slist_append(_httpheadersjson, "Accept-Encoding: gzip, deflate");
 }
 
 void ControllerClientImpl::_SetupHTTPHeadersSTL()
