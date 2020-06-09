@@ -18,6 +18,7 @@ using namespace mujinclient;
 namespace mujinjson = mujinclient::mujinjson_external;
 
 #include <boost/program_options.hpp>
+#include <boost/bind.hpp>
 
 namespace bpo = boost::program_options;
 using namespace std;
