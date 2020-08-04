@@ -167,7 +167,7 @@ public:
         std::string statusDescPickPlace;
         std::string statusPhysics;
         bool isDynamicEnvironmentStateEmpty;
-        bool isSourceContainerEmpty;
+        std::map<std::string, bool> isContainerEmptyMap;
         int pickAttemptFromSourceId;
         unsigned long long timestamp;  ///< ms
         unsigned long long lastGrabbedTargetTimeStamp;   ///< ms
@@ -234,7 +234,7 @@ public:
             std::string regionname; ///< The name of the region for this detection trigger.
             std::string targetupdatename; ///< if not empty, use this new targetupdatename for the triggering, otherwise do not change the original targetupdatename
         } triggerDetectionCaptureInfo;
-        
+
         std::vector<PickPlaceHistoryItem> pickPlaceHistoryItems; ///< history of pick/place actions that occurred in planning. Events should be sorted in the order they happen, ie event [0] happens before event [1], meaning event[0].eventTimeStampUS is before event[1].eventTimeStampUS
     };
 
