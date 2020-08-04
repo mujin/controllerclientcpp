@@ -167,7 +167,7 @@ public:
         std::string statusDescPickPlace;
         std::string statusPhysics;
         bool isDynamicEnvironmentStateEmpty;
-        std::map<std::string, bool> isContainerEmptyMap;
+        std::map<std::string, int> isContainerEmptyMap; ///< key is a container name, value is an integer in {-1, 0, 1}. 1 means container is empty. 0 means container is not empty. -1 means unknown.
         int pickAttemptFromSourceId;
         unsigned long long timestamp;  ///< ms
         unsigned long long lastGrabbedTargetTimeStamp;   ///< ms
