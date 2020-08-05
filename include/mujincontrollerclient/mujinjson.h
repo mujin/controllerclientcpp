@@ -291,7 +291,7 @@ template<class T> inline void LoadJsonValue(const rapidjson::Value& v, boost::sh
     ptr = boost::shared_ptr<T>(new T(t));
 }
 
-template<class T> inline void LoadJsonValue(const rapidjson::Value& v, std::pair<std::string, T>& t) {
+template<typename T, typename U> inline void LoadJsonValue(const rapidjson::Value& v, std::pair<T, U>& t) {
     if (v.IsArray()) {
         if (v.GetArray().Size() == 2) {
             LoadJsonValue(v[0], t.first);
