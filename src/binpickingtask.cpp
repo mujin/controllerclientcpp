@@ -497,7 +497,6 @@ BinPickingTaskResource::ResultGetBinpickingState::ResultGetBinpickingState() :
     statusDescPickPlace(""),
     statusPhysics(""),
     isDynamicEnvironmentStateEmpty(false),
-    isSourceContainerEmpty(false),
     pickAttemptFromSourceId(-1),
     timestamp(0),
     lastGrabbedTargetTimeStamp(0),
@@ -531,7 +530,8 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     cycleIndex = GetJsonValueByKey<std::string>(v, "statusPickPlaceCycleIndex", "");
     statusPhysics = GetJsonValueByKey<std::string>(v, "statusPhysics", "unknown");
     pickAttemptFromSourceId = GetJsonValueByKey<int>(v, "pickAttemptFromSourceId", -1);
-    isSourceContainerEmpty = GetJsonValueByKey<bool>(v, "isSourceContainerEmpty", false);
+    isContainerEmptyMap.clear();
+    LoadJsonValueByKey(v, "isContainerEmptyMap", isContainerEmptyMap);
     lastInsideSourceTimeStamp = (unsigned long long)(GetJsonValueByKey<double>(v, "lastInsideSourceTimeStamp", 0) * 1000.0); // s -> ms
     lastInsideDestTimeStamp = (unsigned long long)(GetJsonValueByKey<double>(v, "lastInsideDestTimeStamp", 0) * 1000.0); // s -> ms
     timestamp = (unsigned long long)(GetJsonValueByKey<double>(v, "timestamp", 0) * 1000.0); // s -> ms
@@ -611,7 +611,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
         }
     }
 
-    
+
     LoadJsonValueByKey(v, "currentToolValues", currentToolValues);
     LoadJsonValueByKey(v, "currentJointValues", currentJointValues);
     LoadJsonValueByKey(v, "jointNames", jointNames);
