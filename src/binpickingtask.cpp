@@ -1918,12 +1918,12 @@ std::string GetValueForSmallestSlaveRequestId(const std::string& heartbeat,
 }
 
 
-std::string mujinclient::utils::GetScenePkFromHeatbeat(const std::string& heartbeat) {
+std::string mujinclient::utils::GetScenePkFromHeartbeat(const std::string& heartbeat) {
     static const std::string prefix("mujin:/");
     return GetValueForSmallestSlaveRequestId(heartbeat, "currentsceneuri").substr(prefix.length());
 }
 
-std::string utils::GetSlaveRequestIdFromHeatbeat(const std::string& heartbeat) {
+std::string utils::GetSlaveRequestIdFromHeartbeat(const std::string& heartbeat) {
     rapidjson::Document pt;
     std::stringstream ss(heartbeat);
     ParseJson(pt, ss.str());
