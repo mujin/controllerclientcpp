@@ -1863,14 +1863,17 @@ std::string FindSmallestSlaveRequestId(const rapidjson::Value& pt) {
     if (pt.IsObject() && pt.HasMember("slavestates")) {
         const rapidjson::Value& slavestates = pt["slavestates"];
         for (rapidjson::Document::ConstMemberIterator it = slavestates.MemberBegin(); it != slavestates.MemberEnd(); ++it) {
-            slavereqids.push_back(it->name.GetString());
+            static const std::string prefix("slaverequestid-");
+            if (std::string(it->name.GetString()).substr(0,prefix.length()) == prefix) {
+                slavereqids.push_back(std::string(it->name.GetString()).substr(prefix.length()));
+            }
         }
     }
 
     // find numerically smallest suffix (find one with smallest ### in slave request id of form hostname_slave###)
     int smallest_suffix_index = -1;
     int smallest_suffix = INT_MAX;
-    static const std::string searchstr("_slave");
+    static const char searchstr('_');
     for (std::vector<std::string>::const_iterator it = slavereqids.begin();
          it != slavereqids.end(); ++it) {
         const size_t foundindex = it->rfind(searchstr);
@@ -1878,11 +1881,13 @@ std::string FindSmallestSlaveRequestId(const rapidjson::Value& pt) {
             continue;
         }
 
-        std::stringstream suffix_ss(it->substr(foundindex + searchstr.length()));
-        int suffix;
-        suffix_ss >> suffix;
-        if (suffix_ss.fail()) {
+        if ((*it)[it->length()-1] < '0' || '9' < (*it)[it->length()-1]) {
             continue;
+        }
+        int suffix = 0;
+        int po = 1;
+        for (int i = it->length()-1; i >= 0 && '0' <= (*it)[i] && (*it)[i] <= '9'; i--, po *= 10) {
+            suffix = suffix + ((*it)[i] - '0')*po;
         }
 
         if (smallest_suffix > suffix) {
@@ -1928,8 +1933,7 @@ std::string utils::GetSlaveRequestIdFromHeartbeat(const std::string& heartbeat) 
     std::stringstream ss(heartbeat);
     ParseJson(pt, ss.str());
     try {
-        static const std::string prefix("slaverequestid-");
-        return FindSmallestSlaveRequestId(pt).substr(prefix.length());
+        return FindSmallestSlaveRequestId(pt);
     }
     catch (const MujinException& ex) {
         throw MujinException(boost::str(boost::format("%s from heartbeat:\n%s")%ex.what()%heartbeat));
