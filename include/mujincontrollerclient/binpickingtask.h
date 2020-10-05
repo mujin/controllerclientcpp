@@ -622,13 +622,13 @@ MUJINCLIENT_API void UpdateObjects(SceneResource& scene, const std::string& base
 
 
 #ifdef MUJIN_USEZMQ
-/// \brief get heatbeat
+/// \brief get heartbeat
 /// \param endopoint endpoint to get heartbeat from. looks like protocol://hostname:port (ex. tcp://localhost:11001)
 /// \return heartbeat as string
 MUJINCLIENT_API std::string GetHeartbeat(const std::string& endpoint);
 
-MUJINCLIENT_API std::string GetScenePkFromHeatbeat(const std::string& heartbeat);
-MUJINCLIENT_API std::string GetSlaveRequestIdFromHeatbeat(const std::string& heartbeat);
+MUJINCLIENT_API std::string GetScenePkFromHeartbeat(const std::string& heartbeat);
+MUJINCLIENT_API std::string GetSlaveRequestIdFromHeartbeat(const std::string& heartbeat);
 #endif
 } // namespace utils
 
