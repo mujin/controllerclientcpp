@@ -205,6 +205,8 @@ void Run(BinPickingTaskResourcePtr& pTask,
     // print state
     BinPickingTaskResource::ResultGetBinpickingState result;
     pTask->GetPublishedTaskState(result, robotname, "mm", timeout);
+    cout << "received published task state" << endl;
+/*
     if (duration == 0.0) {
         cout << ConvertStateToString(result) << endl;
         return;
@@ -228,6 +230,7 @@ void Run(BinPickingTaskResourcePtr& pTask,
     // print state
     pTask->GetPublishedTaskState(result, robotname, "mm", timeout);
     cout << "Finished:\n" << ConvertStateToString(result) << endl;
+*/
 }
 
 int main(int argc, char ** argv)
