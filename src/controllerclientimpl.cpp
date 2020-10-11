@@ -1827,7 +1827,7 @@ void ControllerClientImpl::_DeleteFileOnController(const std::string& desturi)
     std::string filename = desturi.substr(_basewebdavuri.size());
 
     rapidjson::Document pt(rapidjson::kObjectType);
-    _CallPost(_baseuri+"file/delete/", std::string("filename=")+filename, pt, 200, 5.0);
+    _CallPost(_baseuri+"file/delete/?filename="+filename, "", pt, 200, 5.0);
 }
 
 void ControllerClientImpl::_DeleteDirectoryOnController(const std::string& desturi)
