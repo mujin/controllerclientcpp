@@ -330,7 +330,8 @@ public:
     /// \brief computes inverse kinematics solutions for ikparameter(s)
     /// \param inPlaneAngleDeviation maximum in-plane angle that corresponding solution is allowed to deviate from specified ik parameter. Unit is degrees.
     /// \param outOfPlaneAngleDeviation maximum out-of-plane angle that corresponding solution is allowed to deviate from specified ik parameter. Unit is degrees.
-    virtual void ComputeIKFromParameters(ResultComputeIKFromParameters& result, const std::string& targetname, const std::vector<std::string>& ikparamnames, const int filteroptions, const int limit=0, const double inPlaneAngleDeviation = 0.0, const double outOfPlaneAngleDeviation = 0.0, const double timeout /* second */=5.0);
+    /// \param returnClosestToCurrent limit the result to the robot's current dof value
+    virtual void ComputeIKFromParameters(ResultComputeIKFromParameters& result, const std::string& targetname, const std::vector<std::string>& ikparamnames, const int filteroptions, const int limit=0, const double inPlaneAngleDeviation = 0.0, const double outOfPlaneAngleDeviation = 0.0, const bool returnClosestToCurrent = false, const double timeout /* second */=5.0);
 
     /// \brief Moves joints to specified value
     /// \param jointvalues goal joint values
