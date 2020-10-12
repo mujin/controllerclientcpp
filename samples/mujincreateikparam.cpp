@@ -216,36 +216,9 @@ int main(int argc, char ** argv)
     BinPickingTaskResource::ResultComputeIKFromParameters result;
     vector<string> iknames;
     iknames.push_back("sample");
-    pBinpickingTask->ComputeIKFromParameters(result,object_name,iknames,0);
-    BinPickingTaskResource::ResultGetBinpickingState taskstate;
-    rapidjson::Document taskparametersParsed;
-    mujinjson::ParseJson(taskparametersParsed,opts["taskparameters"].as<string>());
-    pBinpickingTask->GetPublishedTaskState(taskstate, mujinjson::GetStringJsonValueByKey(taskparametersParsed,"robotname"), "mm", timeout);
-
-    vector<double> dofResiduals;
-    double minDofResidual=HUGE_VAL;
-    int bestIndex=-1;
-    for(int i=0;i<result.dofvalues.size();i++){
-        double dofResidual = 0;
-        for(int j=0;j<taskstate.currentJointValues.size();j++){
-            double dofDiff=abs(result.dofvalues[i][j]-taskstate.currentJointValues[j]);
-            dofResidual+=dofDiff*dofDiff;
-        }
-        dofResidual = sqrt(dofResidual);
-        if(bestIndex<0 || dofResidual<minDofResidual){
-            bestIndex = i;
-            minDofResidual = dofResidual;
-        }
-    }
-    double maxDofDistance=0;
-    for(int j=0;j<taskstate.currentJointValues.size();j++){
-        double distance = abs(result.dofvalues[bestIndex][j]-taskstate.currentJointValues[j]);
-        if(maxDofDistance < distance){
-            maxDofDistance = distance;
-        }
-    }
-    if(maxDofDistance<=1){
-        ik->SetJSON("{\"extra\":"+result.extra[bestIndex]+"}");
+    pBinpickingTask->ComputeIKFromParameters(result,object_name,iknames,0,0,0,0,true);
+    if(result.extra.size()==1){
+        ik->SetJSON("{\"extra\":"+result.extra[0]+"}");
         cout << "setting extra done" << endl;
     }else{
         cout << "failed to set extra" << endl;
