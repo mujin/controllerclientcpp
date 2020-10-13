@@ -1896,7 +1896,8 @@ std::string FindSmallestSlaveRequestId(const rapidjson::Value& pt) {
         for (rapidjson::Document::ConstMemberIterator it = slavestates.MemberBegin(); it != slavestates.MemberEnd(); ++it) {
             static const std::string prefix("slaverequestid-");
             if (std::string(it->name.GetString()).substr(0,prefix.length()) == prefix) {
-                slavereqids.push_back(std::string(it->name.GetString()).substr(prefix.length()));
+                // GetValueForSmallestSlaveRequestId uses slavereqid directly, so cannot substr here
+                slavereqids.push_back(it->name.GetString());
             }
         }
     }
@@ -1964,7 +1965,8 @@ std::string utils::GetSlaveRequestIdFromHeatbeat(const std::string& heartbeat) {
     std::stringstream ss(heartbeat);
     ParseJson(pt, ss.str());
     try {
-        return FindSmallestSlaveRequestId(pt);
+        static const std::string prefix("slaverequestid-");
+        return FindSmallestSlaveRequestId(pt).substr(prefix.length());
     }
     catch (const MujinException& ex) {
         throw MujinException(boost::str(boost::format("%s from heartbeat:\n%s")%ex.what()%heartbeat));
