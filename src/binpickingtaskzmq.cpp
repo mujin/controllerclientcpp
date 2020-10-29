@@ -199,9 +199,9 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
         }
         socket.reset(new zmq::socket_t((*_zmqcontext.get()),ZMQ_SUB));
         socket->setsockopt(ZMQ_TCP_KEEPALIVE, 1); // turn on tcp keepalive, do these configuration before connect
-        socket->setsockopt(ZMQ_TCP_KEEPALIVE_IDLE, 1); // the interval between the last data packet sent (simple ACKs are not considered data) and the first keepalive probe; after the connection is marked to need keepalive, this counter is not used any further
-        socket->setsockopt(ZMQ_TCP_KEEPALIVE_INTVL, 1); // the interval between subsequential keepalive probes, regardless of what the connection has exchanged in the meantime
-        socket->setsockopt(ZMQ_TCP_KEEPALIVE_CNT, 1); // the number of unacknowledged probes to send before considering the connection dead and notifying the application layer
+        socket->setsockopt(ZMQ_TCP_KEEPALIVE_IDLE, 2); // the interval between the last data packet sent (simple ACKs are not considered data) and the first keepalive probe; after the connection is marked to need keepalive, this counter is not used any further
+        socket->setsockopt(ZMQ_TCP_KEEPALIVE_INTVL, 2); // the interval between subsequential keepalive probes, regardless of what the connection has exchanged in the meantime
+        socket->setsockopt(ZMQ_TCP_KEEPALIVE_CNT, 2); // the number of unacknowledged probes to send before considering the connection dead and notifying the application layer
         std::stringstream ss; ss << std::setprecision(std::numeric_limits<double>::digits10+1);
         ss << _heartbeatPort;
         socket->connect (("tcp://"+ _mujinControllerIp+":"+ss.str()).c_str());
