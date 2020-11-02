@@ -196,10 +196,11 @@ protected:
     /// \brief given a raw uri with "mujin:/", return the real network uri
     ///
     /// mutex should be locked
+    /// \param bEncodeURI if true, encode URI. must be false for form data.
     /// \param bEnsurePath if true, will make sure the directories on the server side are created
     /// \param bEnsureSlash if true, will ensure returned uri ends with slash /
-    std::string _PrepareDestinationURI_UTF8(const std::string& rawuri, bool bEnsurePath=true, bool bEnsureSlash=false, bool bIsDirectory=false);
-    std::string _PrepareDestinationURI_UTF16(const std::wstring& rawuri, bool bEnsurePath=true, bool bEnsureSlash=false, bool bIsDirectory=false);
+    std::string _PrepareDestinationURI_UTF8(const std::string& rawuri, bool bEncodeURI=true, bool bEnsurePath=true, bool bEnsureSlash=false, bool bIsDirectory=false);
+    std::string _PrepareDestinationURI_UTF16(const std::wstring& rawuri, bool bEncodeURI=true, bool bEnsurePath=true, bool bEnsureSlash=false, bool bIsDirectory=false);
 
     // encode a URL without the / separator
     std::string _EncodeWithoutSeparator(const std::string& raw);
