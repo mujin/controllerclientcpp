@@ -87,8 +87,8 @@ int main(int argc, char ** argv)
     const unsigned int heartbeatPort = opts["heartbeat_port"].as<unsigned int>();
     string taskScenePk = opts["task_scenepk"].as<string>();
     
-    const bool needtoobtainfromheatbeat = taskScenePk.empty();
-    if (needtoobtainfromheatbeat) {
+    const bool needtoobtainfromheartbeat = taskScenePk.empty();
+    if (needtoobtainfromheartbeat) {
         stringstream endpoint;
         endpoint << "tcp://" << hostname << ":" << heartbeatPort;
         cout << "connecting to heartbeat at " << endpoint.str() << endl;
@@ -107,8 +107,8 @@ int main(int argc, char ** argv)
         }
         
         if (taskScenePk.empty()) {
-            taskScenePk = utils::GetScenePkFromHeatbeat(heartbeat);
-            cout << "task_scenepk: " << taskScenePk << " is obtained from heatbeat\n";
+            taskScenePk = utils::GetScenePkFromHeartbeat(heartbeat);
+            cout << "task_scenepk: " << taskScenePk << " is obtained from heartbeat\n";
         }
     }
 
