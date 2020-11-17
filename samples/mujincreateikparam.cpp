@@ -2,7 +2,7 @@
 /** \example mujincreateikparam.cpp
 
     Shows how to create ikparam using current coordinate
-    example: mujincreateikparam --controller_hostname localhost --task_scenepk machine.mujin.dae --iktype Transform6D --object_name object --taskparameters '{"robotname":"machine","robots":{"machine":{"toolname":"tool"}}}'
+    example: mujincreateikparam --controller_hostname localhost --task_scenepk machine.mujin.dae --iktype Transform6D --object_name object --taskparameters '{"robotname":"robot","toolname":"tool"}'
  */
 
 #include <mujincontrollerclient/binpickingtask.h>
@@ -152,7 +152,7 @@ void InitializeTask(const bpo::variables_map& opts,
 void ReinitializeTask(boost::shared_ptr<zmq::context_t>& zmqcontext,
                       BinPickingTaskResourcePtr& pBinpickingTask)
 {
-    const string taskparameters("{\"robotname\": \"robot\", \"robots\":{\"robot\": {\"robotControllerUri\": \"\"}}}");
+    const string taskparameters("{\"robotname\": \"robot\"}");
     const unsigned int taskZmqPort(11000);
     const double controllerCommandTimeout(10);
     const string userinfo("");
