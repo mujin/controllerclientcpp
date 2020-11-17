@@ -150,7 +150,7 @@ void InitializeTask(const bpo::variables_map& opts,
 void ReinitializeTask(boost::shared_ptr<zmq::context_t>& zmqcontext,
                       BinPickingTaskResourcePtr& pBinpickingTask)
 {
-    const string taskparameters("{\"robotname\": \"robot\", \"robots\":{\"robot\": {\"robotControllerUri\": \"\"}}}");
+    const string taskparameters("{\"robotname\": \"robot\"}");
     const unsigned int taskZmqPort(11000);
     const double controllerCommandTimeout(10);
     const string userinfo("");
