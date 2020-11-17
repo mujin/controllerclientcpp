@@ -497,7 +497,6 @@ BinPickingTaskResource::ResultGetBinpickingState::ResultGetBinpickingState() :
     statusDescPickPlace(""),
     statusPhysics(""),
     isDynamicEnvironmentStateEmpty(false),
-    isSourceContainerEmpty(false),
     pickAttemptFromSourceId(-1),
     timestamp(0),
     lastGrabbedTargetTimeStamp(0),
@@ -531,7 +530,8 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     cycleIndex = GetJsonValueByKey<std::string>(v, "statusPickPlaceCycleIndex", "");
     statusPhysics = GetJsonValueByKey<std::string>(v, "statusPhysics", "unknown");
     pickAttemptFromSourceId = GetJsonValueByKey<int>(v, "pickAttemptFromSourceId", -1);
-    isSourceContainerEmpty = GetJsonValueByKey<bool>(v, "isSourceContainerEmpty", false);
+    isContainerEmptyMap.clear();
+    LoadJsonValueByKey(v, "isContainerEmptyMap", isContainerEmptyMap);
     lastInsideSourceTimeStamp = (unsigned long long)(GetJsonValueByKey<double>(v, "lastInsideSourceTimeStamp", 0) * 1000.0); // s -> ms
     lastInsideDestTimeStamp = (unsigned long long)(GetJsonValueByKey<double>(v, "lastInsideDestTimeStamp", 0) * 1000.0); // s -> ms
     timestamp = (unsigned long long)(GetJsonValueByKey<double>(v, "timestamp", 0) * 1000.0); // s -> ms
@@ -581,6 +581,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     triggerDetectionCaptureInfo.timestamp = GetJsonValueByPath<double>(v, "/triggerDetectionCaptureInfo/timestamp", 0);
     triggerDetectionCaptureInfo.triggerType = GetJsonValueByPath<std::string>(v, "/triggerDetectionCaptureInfo/triggerType", "");
     triggerDetectionCaptureInfo.regionname = GetJsonValueByPath<std::string>(v, "/triggerDetectionCaptureInfo/regionname", "");
+    triggerDetectionCaptureInfo.targetupdatename = GetJsonValueByPath<std::string>(v, "/triggerDetectionCaptureInfo/targetupdatename", "");
 
     pickPlaceHistoryItems.clear();
     if( v.HasMember("pickPlaceHistoryItems") && v["pickPlaceHistoryItems"].IsArray() ) {
@@ -610,7 +611,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
         }
     }
 
-    
+
     LoadJsonValueByKey(v, "currentToolValues", currentToolValues);
     LoadJsonValueByKey(v, "currentJointValues", currentJointValues);
     LoadJsonValueByKey(v, "jointNames", jointNames);
@@ -1818,9 +1819,13 @@ void BinPickingTaskResource::_HeartbeatMonitorThread(const double reinitializeti
             socket.reset();
         }
         socket.reset(new zmq::socket_t((*_zmqcontext.get()),ZMQ_SUB));
+        socket->setsockopt(ZMQ_TCP_KEEPALIVE, 1); // turn on tcp keepalive, do these configuration before connect
+        socket->setsockopt(ZMQ_TCP_KEEPALIVE_IDLE, 2); // the interval between the last data packet sent (simple ACKs are not considered data) and the first keepalive probe; after the connection is marked to need keepalive, this counter is not used any further
+        socket->setsockopt(ZMQ_TCP_KEEPALIVE_INTVL, 2); // the interval between subsequential keepalive probes, regardless of what the connection has exchanged in the meantime
+        socket->setsockopt(ZMQ_TCP_KEEPALIVE_CNT, 2); // the number of unacknowledged probes to send before considering the connection dead and notifying the application layer
         std::stringstream ss; ss << std::setprecision(std::numeric_limits<double>::digits10+1);
         ss << _heartbeatPort;
-        socket->connect (("tcp://"+ _mujinControllerIp+":"+ss.str()).c_str());
+        socket->connect(("tcp://"+ _mujinControllerIp+":"+ss.str()).c_str());
         socket->setsockopt(ZMQ_SUBSCRIBE, "", 0);
 
         zmq::pollitem_t pollitem;

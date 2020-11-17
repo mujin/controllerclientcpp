@@ -180,6 +180,9 @@ ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::AddGeometryFro
     const std::string geometryPk = controller->CreateObjectGeometry(this->objectpk, name, linkpk, "mesh", timeout);
 
     ObjectResource::GeometryResourcePtr geometry(new GeometryResource(controller, this->objectpk, geometryPk));
+    geometry->name = name;
+    geometry->geomtype = "mesh";
+    geometry->linkpk = linkpk;
     geometry->SetGeometryFromRawSTL(rawstldata, unit, timeout);
     return geometry;
 }
@@ -191,6 +194,9 @@ ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::AddPrimitiveGe
     const std::string geometryPk = controller->CreateObjectGeometry(this->objectpk, name, linkpk, geomtype, timeout);
 
     ObjectResource::GeometryResourcePtr geometry(new GeometryResource(controller, this->objectpk, geometryPk));
+    geometry->name = name;
+    geometry->geomtype = geomtype;
+    geometry->linkpk = linkpk;
     return geometry;
 }
 
@@ -360,7 +366,10 @@ ObjectResource::LinkResourcePtr ObjectResource::AddLink(const std::string& name,
     GETCONTROLLERIMPL();
     const std::string linkPk = controller->CreateLink(this->pk, "", name,quaternion, translate);
 
-    return ObjectResource::LinkResourcePtr(new LinkResource(controller, this->pk, linkPk));
+    ObjectResource::LinkResourcePtr link(new LinkResource(controller, this->pk, linkPk));
+    link->name = name;
+    link->parentlinkpk = "";
+    return link;
 }
 
 ObjectResource::LinkResourcePtr ObjectResource::LinkResource::AddChildLink(const std::string& name, const Real quaternion[4], const Real translate[3])
@@ -368,7 +377,10 @@ ObjectResource::LinkResourcePtr ObjectResource::LinkResource::AddChildLink(const
     GETCONTROLLERIMPL();
     const std::string linkPk = controller->CreateLink(this->objectpk, this->pk, name,quaternion, translate);
 
-    return ObjectResource::LinkResourcePtr(new LinkResource(controller, this->objectpk, linkPk));
+    ObjectResource::LinkResourcePtr link(new LinkResource(controller, this->objectpk, linkPk));
+    link->name = name;
+    link->parentlinkpk = this->pk;
+    return link;
 }
 
 ObjectResource::IkParamResourcePtr ObjectResource::AddIkParam(const std::string& name, const std::string& iktype)
@@ -601,17 +613,22 @@ TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& t
     // task exists
     std::string pk;
 
+    std::string tasktype_internal = tasktype;
+    if( tasktype == "realtimeitlplanning" ) {
+        tasktype_internal = "realtimeitlplanning3";
+    }
+
     if (pt.IsObject() && pt.HasMember("objects") && pt["objects"].IsArray() && pt["objects"].Size() > 0) {
         rapidjson::Value& objects = pt["objects"];
         pk = GetJsonValueByKey<std::string>(objects[0], "pk");
         std::string currenttasktype = GetJsonValueByKey<std::string>(objects[0], "tasktype");
-        if( currenttasktype != tasktype ) {
-            throw MUJIN_EXCEPTION_FORMAT("task pk %s exists and has type %s, expected is %s", pk%currenttasktype%tasktype, MEC_InvalidState);
+        if( currenttasktype != tasktype_internal && (currenttasktype != "realtimeitlplanning" || tasktype_internal != "realtimeitlplanning3")) {
+            throw MUJIN_EXCEPTION_FORMAT("task pk %s exists and has type %s, expected is %s", pk%currenttasktype%tasktype_internal, MEC_InvalidState);
         }
     }
     else {
         pt.SetObject();
-        controller->CallPost(str(boost::format("scene/%s/task/?format=json&fields=pk")%GetPrimaryKey()), str(boost::format("{\"name\":\"%s\", \"tasktype\":\"%s\", \"scenepk\":\"%s\"}")%taskname%tasktype%GetPrimaryKey()), pt);
+        controller->CallPost(str(boost::format("scene/%s/task/?format=json&fields=pk")%GetPrimaryKey()), str(boost::format("{\"name\":\"%s\", \"tasktype\":\"%s\", \"scenepk\":\"%s\"}")%taskname%tasktype_internal%GetPrimaryKey()), pt);
         LoadJsonValueByKey(pt, "pk", pk);
     }
 
@@ -619,11 +636,11 @@ TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& t
         return TaskResourcePtr();
     }
 
-    if( tasktype == "binpicking" || tasktype == "realtimeitlplanning") {
+    if( tasktype_internal == "binpicking" || tasktype_internal == "realtimeitlplanning3") {
         BinPickingTaskResourcePtr task;
         if( options & 1 ) {
 #ifdef MUJIN_USEZMQ
-            task.reset(new BinPickingTaskZmqResource(GetController(), pk, GetPrimaryKey(), tasktype));
+            task.reset(new BinPickingTaskZmqResource(GetController(), pk, GetPrimaryKey(), tasktype_internal));
 #else
             throw MujinException("cannot create binpicking zmq task since not compiled with zeromq library", MEC_Failed);
 #endif
@@ -633,7 +650,7 @@ TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& t
         }
         return task;
     }
-    else if( tasktype == "cablepicking" ) { // TODO create CablePickingTaskResource
+    else if( tasktype_internal == "cablepicking" ) { // TODO create CablePickingTaskResource
         BinPickingTaskResourcePtr task;
         if( options & 1 ) {
 #ifdef MUJIN_USEZMQ
