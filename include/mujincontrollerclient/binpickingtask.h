@@ -1,5 +1,5 @@
 // -*- coding: utf-8 -*-
-// Copyright (C) 2012-2016 MUJIN Inc. <rosen.diankov@mujin.co.jp>
+// Copyright (C) 2012-2020 MUJIN Inc. <rosen.diankov@mujin.co.jp>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -150,6 +150,18 @@ public:
         unsigned long long sensorTimeStampUS; ///< sensor timestamp in us (from Linux epoch) of when the object was detected in the scene
     };
 
+    /// \brief Holds the state of each region coming from the planning side.
+    struct RegionStateInfo
+    {
+        std::string regionname;
+        uint64_t forceRequestStampMS=0; ///< ms, (linux epoch) of when the requestion for results (detection or point cloud) came in. If there is no request, then this will be 0
+        uint64_t lastInsideContainerStampMS = 0; ///< ms, (linux epoch) of when the robot (or something else) was inside the container and could have potentially disturbed the contents.
+
+        int needContainer = -1; ///< 1 if source container is needed, 0 if not needed, -1 if unknown or planning does not publish
+        int isContainerEmpty = -1; ///< value is an integer in {-1, 0, 1}. 1 means container in the region is empty. 0 means container is not empty. -1 means unknown. deprecated.
+        uint64_t emptyUpdateTimeStampMS = 0; ///< ms, (linux epoch) of when "isContainerEmpty" was last updated.
+    };
+
     struct MUJINCLIENT_API ResultGetBinpickingState : public ResultBase
     {
         /// \brief holds published occlusion results of camera and container pairs
@@ -167,41 +179,38 @@ public:
         std::string statusDescPickPlace;
         std::string statusPhysics;
         bool isDynamicEnvironmentStateEmpty;
-        std::map<std::string, std::pair<int, double> > isContainerEmptyMap; ///< key is a container name, value is an integer in {-1, 0, 1}. 1 means container is empty. 0 means container is not empty. -1 means unknown.
+
         int pickAttemptFromSourceId;
         unsigned long long timestamp;  ///< ms
         unsigned long long lastGrabbedTargetTimeStamp;   ///< ms
-        unsigned long long lastInsideSourceTimeStamp; ///< ms
-        unsigned long long lastInsideDestTimeStamp; ///< ms
-        bool isRobotOccludingSourceContainer;
+        //bool isRobotOccludingSourceContainer; ///?
         std::vector<OcclusionResult> vOcclusionResults;
+        std::vector<RegionStateInfo> regionStateInfos;
 
-        uint64_t forceRequestDetectionResultsStamp; ///< time stamp when force request for source was first set on planning side
-        uint64_t forceRequestDestPointCloudStamp; ///< time stamp when force request for dest was first set on planning side
         bool isGrabbingTarget;
         bool isGrabbingLastTarget;
-        int needSourceContainer; ///< 1 if source container is needed, 0 if not needed, -1 if unknown or planning does not publish
-        bool hasRobotExecutionStarted;
+
+        bool hasRobotExecutionStarted=false;
         int orderNumber; ///< -1 if not initiaized
         int numLeftInOrder; ///< -1 if not initiaized
         int numLeftInSupply; ///< -1 if not initiaized
         int placedInDest; ///< -1 if not initiaized
-        std::vector<double> currentJointValues;
-        std::vector<double> currentToolValues;
-        std::vector<std::string> jointNames;
-        bool isControllerInError;
-        std::string robotbridgestatus;
-        std::string cycleIndex; ///< index of the published cycle
+        std::string cycleIndex; ///< index of the published cycle that pickworker is currently executing
+
         /**
          * Information needed to register a new object using a min viable region
          */
-        struct RegisterMinViableRegionInfo {
-            struct MinViableRegionInfo {
+        struct RegisterMinViableRegionInfo
+        {
+            RegisterMinViableRegionInfo();
+
+            struct MinViableRegionInfo
+            {
                 MinViableRegionInfo();
                 std::array<double, 2> size2D; ///< width and height on the MVR
                 uint64_t cornerMask; ///< Represents the corner(s) used for corner based detection. 4 bit. -x-y = 1, +x-y = 2, -x+y=4, +x+y = 8
             } minViableRegion;
-            RegisterMinViableRegionInfo();
+
             std::array<double, 3> translation_; // Translation of the 2D MVR plane (height = 0)
             std::array<double, 4> quat_; // Rotation of the 2D MVR plane (height = 0)
             uint64_t sensortimestamp; // Same as DetectedObject's timestamp sent to planning

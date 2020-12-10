@@ -500,19 +500,13 @@ BinPickingTaskResource::ResultGetBinpickingState::ResultGetBinpickingState() :
     pickAttemptFromSourceId(-1),
     timestamp(0),
     lastGrabbedTargetTimeStamp(0),
-    isRobotOccludingSourceContainer(true),
-    forceRequestDetectionResultsStamp(0),
-    forceRequestDestPointCloudStamp(0),
     isGrabbingTarget(true),
     isGrabbingLastTarget(true),
-    needSourceContainer(-1),
     hasRobotExecutionStarted(false),
     orderNumber(-1),
     numLeftInOrder(-1),
     numLeftInSupply(-1),
-    placedInDest(-1),
-    isControllerInError(false),
-    robotbridgestatus("")
+    placedInDest(-1)
 {
 }
 
@@ -530,13 +524,12 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     cycleIndex = GetJsonValueByKey<std::string>(v, "statusPickPlaceCycleIndex", "");
     statusPhysics = GetJsonValueByKey<std::string>(v, "statusPhysics", "unknown");
     pickAttemptFromSourceId = GetJsonValueByKey<int>(v, "pickAttemptFromSourceId", -1);
-    isContainerEmptyMap.clear();
-    LoadJsonValueByKey(v, "isContainerEmptyMap", isContainerEmptyMap);
-    lastInsideSourceTimeStamp = (unsigned long long)(GetJsonValueByKey<double>(v, "lastInsideSourceTimeStamp", 0) * 1000.0); // s -> ms
-    lastInsideDestTimeStamp = (unsigned long long)(GetJsonValueByKey<double>(v, "lastInsideDestTimeStamp", 0) * 1000.0); // s -> ms
+    //isContainerEmptyMap.clear();
+    //LoadJsonValueByKey(v, "isContainerEmptyMap", isContainerEmptyMap);
+    //lastInsideSourceTimeStamp = (unsigned long long)(GetJsonValueByKey<double>(v, "lastInsideSourceTimeStamp", 0) * 1000.0); // s -> ms
+    //lastInsideDestTimeStamp = (unsigned long long)(GetJsonValueByKey<double>(v, "lastInsideDestTimeStamp", 0) * 1000.0); // s -> ms
     timestamp = (unsigned long long)(GetJsonValueByKey<double>(v, "timestamp", 0) * 1000.0); // s -> ms
     lastGrabbedTargetTimeStamp = (unsigned long long)(GetJsonValueByKey<double>(v, "lastGrabbedTargetTimeStamp", 0) * 1000.0); // s -> ms
-    isRobotOccludingSourceContainer = GetJsonValueByKey<bool>(v, "isRobotOccludingSourceContainer", true);
 
     vOcclusionResults.clear();
     if( v.HasMember("occlusionResults") && v["occlusionResults"].IsArray() ) {
@@ -548,18 +541,13 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
         }
     }
 
-    forceRequestDetectionResultsStamp = GetJsonValueByKey<uint64_t>(v, "forceRequestDetectionResultsStamp", 0);
-    forceRequestDestPointCloudStamp = GetJsonValueByKey<uint64_t>(v, "forceRequestDestPointCloudStamp", 0);
     isGrabbingTarget = GetJsonValueByKey<bool>(v, "isGrabbingTarget", true);
     isGrabbingLastTarget = GetJsonValueByKey<bool>(v, "isGrabbingLastTarget", true);
-    needSourceContainer = GetJsonValueByKey<int>(v, "needSourceContainer", -1);
     hasRobotExecutionStarted = GetJsonValueByKey<bool>(v, "hasRobotExecutionStarted", false);
     orderNumber = GetJsonValueByPath<int>(v, "/orderstate/orderNumber", -1);
     numLeftInOrder = GetJsonValueByPath<int>(v, "/orderstate/numLeftInOrder", -1);
     numLeftInSupply = GetJsonValueByPath<int>(v, "/orderstate/numLeftInSupply", -1);
     placedInDest = GetJsonValueByPath<int>(v, "/orderstate/placedInDest", -1);
-    isControllerInError = GetJsonValueByKey<bool>(v, "isControllerInError", false);
-    robotbridgestatus = GetJsonValueByKey<std::string>(v, "robotbridgestatus", "unknown");
 
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/translation_", registerMinViableRegionInfo.translation_);
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/quat_", registerMinViableRegionInfo.quat_);
@@ -582,6 +570,21 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     triggerDetectionCaptureInfo.triggerType = GetJsonValueByPath<std::string>(v, "/triggerDetectionCaptureInfo/triggerType", "");
     triggerDetectionCaptureInfo.regionname = GetJsonValueByPath<std::string>(v, "/triggerDetectionCaptureInfo/regionname", "");
     triggerDetectionCaptureInfo.targetupdatename = GetJsonValueByPath<std::string>(v, "/triggerDetectionCaptureInfo/targetupdatename", "");
+
+    regionStateInfos.clear();
+    if( v.HasMember("regionStateInfos") && v["regionStateInfos"].IsArray()) {
+        const rapidjson::Value& rRegionStateInfos = v["regionStateInfos"];
+        regionStateInfos.resize(rRegionStateInfos.Size());
+        for(int iitem = 0; iitem < (int)rRegionStateInfos.Size(); ++iitem) {
+            const rapidjson::Value& rInfo = rRegionStateInfos[iitem];
+            regionStateInfos[iitem].regionname = GetJsonValueByKey<std::string,std::string>(rInfo, "regionname", std::string());
+            regionStateInfos[iitem].forceRequestStampMS = GetJsonValueByKey<uint64_t, uint64_t>(rInfo, "forceRequestStampMS", 0);
+            regionStateInfos[iitem].lastInsideContainerStampMS = GetJsonValueByKey<uint64_t, uint64_t>(rInfo, "lastInsideContainerStampMS", 0);
+            regionStateInfos[iitem].needContainer = GetJsonValueByKey<int, int>(rInfo, "needContainer", -1);
+            regionStateInfos[iitem].isContainerEmpty = GetJsonValueByKey<int, int>(rInfo, "isContainerEmpty", -1);
+            regionStateInfos[iitem].emptyUpdateTimeStampMS = GetJsonValueByKey<uint64_t, uint64_t>(rInfo, "emptyUpdateTimeStampMS", 0);
+        }
+    }
 
     pickPlaceHistoryItems.clear();
     if( v.HasMember("pickPlaceHistoryItems") && v["pickPlaceHistoryItems"].IsArray() ) {
@@ -610,11 +613,6 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
             pickPlaceHistoryItems[iitem].sensorTimeStampUS = GetJsonValueByKey<unsigned long long>(rItem, "sensorTimeStampUS", 0);
         }
     }
-
-
-    LoadJsonValueByKey(v, "currentToolValues", currentToolValues);
-    LoadJsonValueByKey(v, "currentJointValues", currentJointValues);
-    LoadJsonValueByKey(v, "jointNames", jointNames);
 }
 
 BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionInfo::RegisterMinViableRegionInfo() :

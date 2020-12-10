@@ -192,13 +192,13 @@ bool ZmqPublisher::Publish(const std::string& messagestr)
     return _socket->send(message);
 }
 
-
 void ZmqPublisher::_InitializeSocket(boost::shared_ptr<zmq::context_t> context)
 {
     if (!!context) {
         _context = context;
         _sharedcontext = true;
-    } else {
+    }
+    else {
         _context.reset(new zmq::context_t(1));
         _sharedcontext = false;
     }
