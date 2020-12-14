@@ -158,8 +158,9 @@ public:
         uint64_t lastInsideContainerStampMS = 0; ///< ms, (linux epoch) of when the robot (or something else) was inside the container and could have potentially disturbed the contents.
 
         int needContainer = -1; ///< 1 if source container is needed, 0 if not needed, -1 if unknown or planning does not publish
-        int isContainerEmpty = -1; ///< value is an integer in {-1, 0, 1}. 1 means container in the region is empty. 0 means container is not empty. -1 means unknown. deprecated.
-        uint64_t emptyUpdateTimeStampMS = 0; ///< ms, (linux epoch) of when "isContainerEmpty" was last updated.
+        int isContainerEmpty = -1; ///< value is an integer in {-1, 0, 1}. 1 means container in the region is empty. 0 means container is not empty. -1 means unknown.
+        int isContainerPresent = -1; ///< value is an integer in {-1, 0, 1}. 1 means container is present. 0 means container is not present. -1 means unknown.
+        uint64_t containerUpdateTimeStampMS = 0; ///< ms, (linux epoch) of when "isContainerEmpty"/"isContainerPresent" was last updated.
     };
 
     struct MUJINCLIENT_API ResultGetBinpickingState : public ResultBase

@@ -582,7 +582,8 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
             regionStateInfos[iitem].lastInsideContainerStampMS = GetJsonValueByKey<uint64_t, uint64_t>(rInfo, "lastInsideContainerStampMS", 0);
             regionStateInfos[iitem].needContainer = GetJsonValueByKey<int, int>(rInfo, "needContainer", -1);
             regionStateInfos[iitem].isContainerEmpty = GetJsonValueByKey<int, int>(rInfo, "isContainerEmpty", -1);
-            regionStateInfos[iitem].emptyUpdateTimeStampMS = GetJsonValueByKey<uint64_t, uint64_t>(rInfo, "emptyUpdateTimeStampMS", 0);
+            regionStateInfos[iitem].isContainerPresent = GetJsonValueByKey<int, int>(rInfo, "isContainerPresent", -1);
+            regionStateInfos[iitem].containerUpdateTimeStampMS = GetJsonValueByKey<uint64_t, uint64_t>(rInfo, "containerUpdateTimeStampMS", 0);
         }
     }
 
