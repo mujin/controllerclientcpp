@@ -320,7 +320,12 @@ public:
 
     virtual void ExecuteCommand(const std::string& command, rapidjson::Document&d, const double timeout /* second */=5.0, const bool getresult=true);
 
+    /// \brief Get joint values for the robot specifed in robotname.
     virtual void GetJointValues(ResultGetJointValues& result, const std::string& unit="mm", const double timeout /* second */=5.0);
+
+    /// \brief Set joint values of a machine which is not controlled by robotbridge. The machine needs to be modelled as a robot.
+    /// \param jointvalues joint values to set for the machine. For revolutional joints, the unit is degrees. For prismatic joints, the unit argument will be used.
+    /// \note taskparameters need to have objectName field, where the SetInstantaneousJointValues target machine is specified. robotname field must be mujin-controlling robot, or the robotbridge environment will not be updated properly.
     virtual void SetInstantaneousJointValues(const std::vector<Real>& jointvalues, const std::string& unit="mm", const double timeout /* second */=5.0);
 
     /// \brief computes ikparameterization
@@ -328,9 +333,11 @@ public:
     virtual void ComputeIkParamPosition(ResultComputeIkParamPosition& result, const std::string& name, const std::vector<Real>& jointvalues = std::vector<Real>(), const std::string& unit="mm", const double timeout /* second */=5.0);
 
     /// \brief computes inverse kinematics solutions for ikparameter(s)
+    /// \param limit if greater than 0, limit the number of returned solutions to that value
     /// \param inPlaneAngleDeviation maximum in-plane angle that corresponding solution is allowed to deviate from specified ik parameter. Unit is degrees.
     /// \param outOfPlaneAngleDeviation maximum out-of-plane angle that corresponding solution is allowed to deviate from specified ik parameter. Unit is degrees.
-    virtual void ComputeIKFromParameters(ResultComputeIKFromParameters& result, const std::string& targetname, const std::vector<std::string>& ikparamnames, const int filteroptions, const int limit=0, const double inPlaneAngleDeviation = 0.0, const double outOfPlaneAngleDeviation = 0.0, const double timeout /* second */=5.0);
+    /// \param returnClosestToCurrent limit the result to the robot's current dof value
+    virtual void ComputeIKFromParameters(ResultComputeIKFromParameters& result, const std::string& targetname, const std::vector<std::string>& ikparamnames, const int filteroptions, const int limit=0, const double inPlaneAngleDeviation = 0.0, const double outOfPlaneAngleDeviation = 0.0, const bool returnClosestToCurrent = false, const double timeout /* second */=5.0);
 
     /// \brief Moves joints to specified value
     /// \param jointvalues goal joint values
@@ -341,7 +348,11 @@ public:
     /// \param timeout timeout of communication
     /// \param pTraj if not NULL, planned trajectory is set but not executed. Otherwise, trajectory is planed and executed but not set.
     virtual void MoveJoints(const std::vector<Real>& jointvalues, const std::vector<int>& jointindices, const Real envclearance, const Real speed /* 0.1-1 */, ResultMoveJoints& result, const double timeout /* second */=5.0, std::string* pTraj = NULL);
+
+    /// \brief Get current transform of targetname object.
     virtual void GetTransform(const std::string& targetname, Transform& result, const std::string& unit="mm", const double timeout /* second */=5.0);
+
+    /// \brief Set transform of targetname object without modifying the scene file.
     virtual void SetTransform(const std::string& targetname, const Transform& transform, const std::string& unit="mm", const double timeout /* second */=5.0);
 
     virtual void GetManipTransformToRobot(Transform& result, const std::string& unit="mm", const double timeout /* second */=5.0);
@@ -505,6 +516,7 @@ public:
     /// \param pTraj if not NULL, planned trajectory is set but not executed. Otherwise, trajectory is planed and executed but not set.
     virtual void MoveToHandPosition(const std::string& instobjectname, const std::string& ikparamname, const std::string& robotname = "", const std::string& toolname = "", const double robotspeed = -1, const double timeout = 10, Real envclearance = -1.0, std::string* pTraj = NULL);
 
+    /// \brief Get list of grabbed objects
     virtual void GetGrabbed(std::vector<std::string>& grabbed, const std::string& robotname = "", const double timeout = 10);
 
     /// \brief Executes a trajectory
@@ -616,13 +628,13 @@ MUJINCLIENT_API void UpdateObjects(SceneResource& scene, const std::string& base
 
 
 #ifdef MUJIN_USEZMQ
-/// \brief get heatbeat
+/// \brief get heartbeat
 /// \param endopoint endpoint to get heartbeat from. looks like protocol://hostname:port (ex. tcp://localhost:11001)
 /// \return heartbeat as string
 MUJINCLIENT_API std::string GetHeartbeat(const std::string& endpoint);
 
-MUJINCLIENT_API std::string GetScenePkFromHeatbeat(const std::string& heartbeat);
-MUJINCLIENT_API std::string GetSlaveRequestIdFromHeatbeat(const std::string& heartbeat);
+MUJINCLIENT_API std::string GetScenePkFromHeartbeat(const std::string& heartbeat);
+MUJINCLIENT_API std::string GetSlaveRequestIdFromHeartbeat(const std::string& heartbeat);
 #endif
 } // namespace utils
 

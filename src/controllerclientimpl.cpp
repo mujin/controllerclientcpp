@@ -818,7 +818,9 @@ const std::string& ControllerClientImpl::GetDefaultTaskType()
 std::string ControllerClientImpl::GetScenePrimaryKeyFromURI_UTF8(const std::string& uri)
 {
     size_t index = uri.find(":/");
-    MUJIN_ASSERT_OP_FORMAT(index,!=,std::string::npos, "bad URI: %s", uri, MEC_InvalidArguments);
+    if (index == std::string::npos) {
+        throw MUJIN_EXCEPTION_FORMAT("bad URI: %s", uri, MEC_InvalidArguments);
+    }
     return EscapeString(uri.substr(index+2));
 }
 
@@ -1412,7 +1414,9 @@ void ControllerClientImpl::_UploadDirectoryToController_UTF8(const std::string& 
         }
     }
     else {
-        MUJIN_ASSERT_OP_FORMAT(copydir_utf8.at(copydir_utf8.size()-1),!=,s_filesep,"copydir '%s' cannot end in slash '%s'", copydir_utf8%s_filesep, MEC_InvalidArguments);
+        if (copydir_utf8.at(copydir_utf8.size()-1) == s_filesep) {
+            throw MUJIN_EXCEPTION_FORMAT("copydir '%s' cannot end in slash '%s'", copydir_utf8%s_filesep, MEC_InvalidArguments);
+        }
         uri = rawuri;
     }
 
@@ -1526,7 +1530,9 @@ void ControllerClientImpl::_UploadDirectoryToController_UTF16(const std::wstring
         }
     }
     else {
-        MUJIN_ASSERT_OP_FORMAT(copydir_utf16.at(copydir_utf16.size()-1),!=,s_wfilesep,"copydir '%s' cannot end in slash '%s'", encoding::ConvertUTF16ToFileSystemEncoding(copydir_utf16)%s_filesep, MEC_InvalidArguments);
+        if (copydir_utf16.at(copydir_utf16.size()-1) == s_wfilesep) {
+            throw MUJIN_EXCEPTION_FORMAT("copydir '%s' cannot end in slash '%s'", encoding::ConvertUTF16ToFileSystemEncoding(copydir_utf16)%s_filesep, MEC_InvalidArguments);
+        }
         uri = rawuri;
     }
 
@@ -1820,7 +1826,7 @@ void ControllerClientImpl::_DeleteFileOnController(const std::string& desturi)
     std::string filename = desturi.substr(_basewebdavuri.size());
 
     rapidjson::Document pt(rapidjson::kObjectType);
-    _CallPost(_baseuri+"file/delete/", std::string("filename=")+filename, pt, 200, 5.0);
+    _CallPost(_baseuri+"file/delete/?filename="+filename, "", pt, 200, 5.0);
 }
 
 void ControllerClientImpl::_DeleteDirectoryOnController(const std::string& desturi)
