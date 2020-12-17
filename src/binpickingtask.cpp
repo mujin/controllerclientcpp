@@ -902,7 +902,7 @@ void BinPickingTaskResource::ComputeIkParamPosition(ResultComputeIkParamPosition
     result.Parse(d);
 }
 
-void BinPickingTaskResource::ComputeIKFromParameters(ResultComputeIKFromParameters& result, const std::string& targetname, const std::vector<std::string>& ikparamnames, const int filteroptions, const int limit, const double inPlaneAngleDeviation, const double outOfPlaneAngleDeviation, const double timeout)
+void BinPickingTaskResource::ComputeIKFromParameters(ResultComputeIKFromParameters& result, const std::string& targetname, const std::vector<std::string>& ikparamnames, const int filteroptions, const int limit, const double inPlaneAngleDeviation, const double outOfPlaneAngleDeviation, const bool returnClosestToCurrent, const double timeout)
 {
     rapidjson::Document pt(rapidjson::kObjectType);
     {
@@ -920,6 +920,7 @@ void BinPickingTaskResource::ComputeIKFromParameters(ResultComputeIKFromParamete
     SetJsonValueByKey(pt,"limit",limit); // 0
     SetJsonValueByKey(pt,"inPlaneAngleDeviation",inPlaneAngleDeviation);
     SetJsonValueByKey(pt,"outOfPlaneAngleDeviation",outOfPlaneAngleDeviation);
+    SetJsonValueByKey(pt,"returnClosestToCurrent",returnClosestToCurrent);
     rapidjson::Document d;
     ExecuteCommand(DumpJson(pt), d, timeout, true);
     result.Parse(d);
@@ -1932,12 +1933,12 @@ std::string GetValueForSmallestSlaveRequestId(const std::string& heartbeat,
 }
 
 
-std::string mujinclient::utils::GetScenePkFromHeatbeat(const std::string& heartbeat) {
+std::string mujinclient::utils::GetScenePkFromHeartbeat(const std::string& heartbeat) {
     static const std::string prefix("mujin:/");
     return GetValueForSmallestSlaveRequestId(heartbeat, "currentsceneuri").substr(prefix.length());
 }
 
-std::string utils::GetSlaveRequestIdFromHeatbeat(const std::string& heartbeat) {
+std::string utils::GetSlaveRequestIdFromHeartbeat(const std::string& heartbeat) {
     rapidjson::Document pt;
     std::stringstream ss(heartbeat);
     ParseJson(pt, ss.str());

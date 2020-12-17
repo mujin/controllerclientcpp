@@ -167,7 +167,9 @@ void ObjectResource::GeometryResource::GetMesh(std::string& primitive, std::vect
 void ObjectResource::GeometryResource::SetGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& unit, double timeout)
 {
     GETCONTROLLERIMPL();
-    MUJIN_ASSERT_OP_FORMAT(this->geomtype,!=,"mesh", "geomtype is not mesh: %s", this->geomtype, MEC_InvalidArguments);
+    if (this->geomtype != "mesh") {
+        throw MUJIN_EXCEPTION_FORMAT("geomtype is not mesh: %s", this->geomtype, MEC_InvalidArguments);
+    }
     controller->SetObjectGeometryMesh(this->objectpk, this->pk, rawstldata, unit, timeout);
 }
 
@@ -178,6 +180,9 @@ ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::AddGeometryFro
     const std::string geometryPk = controller->CreateObjectGeometry(this->objectpk, name, linkpk, "mesh", timeout);
 
     ObjectResource::GeometryResourcePtr geometry(new GeometryResource(controller, this->objectpk, geometryPk));
+    geometry->name = name;
+    geometry->geomtype = "mesh";
+    geometry->linkpk = linkpk;
     geometry->SetGeometryFromRawSTL(rawstldata, unit, timeout);
     return geometry;
 }
@@ -189,6 +194,9 @@ ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::AddPrimitiveGe
     const std::string geometryPk = controller->CreateObjectGeometry(this->objectpk, name, linkpk, geomtype, timeout);
 
     ObjectResource::GeometryResourcePtr geometry(new GeometryResource(controller, this->objectpk, geometryPk));
+    geometry->name = name;
+    geometry->geomtype = geomtype;
+    geometry->linkpk = linkpk;
     return geometry;
 }
 
@@ -358,7 +366,10 @@ ObjectResource::LinkResourcePtr ObjectResource::AddLink(const std::string& name,
     GETCONTROLLERIMPL();
     const std::string linkPk = controller->CreateLink(this->pk, "", name,quaternion, translate);
 
-    return ObjectResource::LinkResourcePtr(new LinkResource(controller, this->pk, linkPk));
+    ObjectResource::LinkResourcePtr link(new LinkResource(controller, this->pk, linkPk));
+    link->name = name;
+    link->parentlinkpk = "";
+    return link;
 }
 
 ObjectResource::LinkResourcePtr ObjectResource::LinkResource::AddChildLink(const std::string& name, const Real quaternion[4], const Real translate[3])
@@ -366,7 +377,10 @@ ObjectResource::LinkResourcePtr ObjectResource::LinkResource::AddChildLink(const
     GETCONTROLLERIMPL();
     const std::string linkPk = controller->CreateLink(this->objectpk, this->pk, name,quaternion, translate);
 
-    return ObjectResource::LinkResourcePtr(new LinkResource(controller, this->objectpk, linkPk));
+    ObjectResource::LinkResourcePtr link(new LinkResource(controller, this->objectpk, linkPk));
+    link->name = name;
+    link->parentlinkpk = this->pk;
+    return link;
 }
 
 ObjectResource::IkParamResourcePtr ObjectResource::AddIkParam(const std::string& name, const std::string& iktype)
@@ -600,17 +614,22 @@ TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& t
     // task exists
     std::string pk;
 
+    std::string tasktype_internal = tasktype;
+    if( tasktype == "realtimeitlplanning" ) {
+        tasktype_internal = "realtimeitlplanning3";
+    }
+
     if (pt.IsObject() && pt.HasMember("objects") && pt["objects"].IsArray() && pt["objects"].Size() > 0) {
         rapidjson::Value& objects = pt["objects"];
         pk = GetJsonValueByKey<std::string>(objects[0], "pk");
         std::string currenttasktype = GetJsonValueByKey<std::string>(objects[0], "tasktype");
-        if( currenttasktype != tasktype ) {
-            throw MUJIN_EXCEPTION_FORMAT("task pk %s exists and has type %s, expected is %s", pk%currenttasktype%tasktype, MEC_InvalidState);
+        if( currenttasktype != tasktype_internal && (currenttasktype != "realtimeitlplanning" || tasktype_internal != "realtimeitlplanning3")) {
+            throw MUJIN_EXCEPTION_FORMAT("task pk %s exists and has type %s, expected is %s", pk%currenttasktype%tasktype_internal, MEC_InvalidState);
         }
     }
     else {
         pt.SetObject();
-        controller->CallPost(str(boost::format("scene/%s/task/?format=json&fields=pk")%GetPrimaryKey()), str(boost::format("{\"name\":\"%s\", \"tasktype\":\"%s\", \"scenepk\":\"%s\"}")%taskname%tasktype%GetPrimaryKey()), pt);
+        controller->CallPost(str(boost::format("scene/%s/task/?format=json&fields=pk")%GetPrimaryKey()), str(boost::format("{\"name\":\"%s\", \"tasktype\":\"%s\", \"scenepk\":\"%s\"}")%taskname%tasktype_internal%GetPrimaryKey()), pt);
         LoadJsonValueByKey(pt, "pk", pk);
     }
 
@@ -618,11 +637,11 @@ TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& t
         return TaskResourcePtr();
     }
 
-    if( tasktype == "binpicking" || tasktype == "realtimeitlplanning") {
+    if( tasktype_internal == "binpicking" || tasktype_internal == "realtimeitlplanning3") {
         BinPickingTaskResourcePtr task;
         if( options & 1 ) {
 #ifdef MUJIN_USEZMQ
-            task.reset(new BinPickingTaskZmqResource(GetController(), pk, GetPrimaryKey(), tasktype));
+            task.reset(new BinPickingTaskZmqResource(GetController(), pk, GetPrimaryKey(), tasktype_internal));
 #else
             throw MujinException("cannot create binpicking zmq task since not compiled with zeromq library", MEC_Failed);
 #endif
@@ -632,7 +651,7 @@ TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& t
         }
         return task;
     }
-    else if( tasktype == "cablepicking" ) { // TODO create CablePickingTaskResource
+    else if( tasktype_internal == "cablepicking" ) { // TODO create CablePickingTaskResource
         BinPickingTaskResourcePtr task;
         if( options & 1 ) {
 #ifdef MUJIN_USEZMQ
@@ -655,7 +674,9 @@ TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& t
 void SceneResource::SetInstObjectsState(const std::vector<SceneResource::InstObjectPtr>& instobjects, const std::vector<InstanceObjectState>& states)
 {
     GETCONTROLLERIMPL();
-    MUJIN_ASSERT_OP_FORMAT(instobjects.size(), ==, states.size(), "the size of instobjects (%d) and the one of states (%d) must be the same",instobjects.size()%states.size(),MEC_InvalidArguments);
+    if (instobjects.size() != states.size()) {
+        throw MUJIN_EXCEPTION_FORMAT("the size of instobjects (%d) and the one of states (%d) must be the same",instobjects.size()%states.size(),MEC_InvalidArguments);
+    }
     boost::format transformtemplate("{\"pk\":\"%s\",\"quaternion\":[%.15f, %.15f, %.15f, %.15f], \"translate\":[%.15f, %.15f, %.15f] %s}");
     std::string datastring, sdofvalues;
     for(size_t i = 0; i < instobjects.size(); ++i) {
