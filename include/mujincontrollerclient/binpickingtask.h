@@ -328,6 +328,7 @@ public:
     virtual void ComputeIkParamPosition(ResultComputeIkParamPosition& result, const std::string& name, const std::vector<Real>& jointvalues = std::vector<Real>(), const std::string& unit="mm", const double timeout /* second */=5.0);
 
     /// \brief computes inverse kinematics solutions for ikparameter(s)
+    /// \param limit if greater than 0, limit the number of returned solutions to that value
     /// \param inPlaneAngleDeviation maximum in-plane angle that corresponding solution is allowed to deviate from specified ik parameter. Unit is degrees.
     /// \param outOfPlaneAngleDeviation maximum out-of-plane angle that corresponding solution is allowed to deviate from specified ik parameter. Unit is degrees.
     /// \param returnClosestToCurrent limit the result to the robot's current dof value
