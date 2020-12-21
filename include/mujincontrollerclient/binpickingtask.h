@@ -341,6 +341,8 @@ public:
     virtual void Initialize(const std::string& defaultTaskParameters, const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq=false, const double reinitializetimeout=10, const double commandtimeout=0, const std::string& userinfo="{}", const std::string& slaverequestid="");
 #endif
 
+    virtual void SetCallerId(const std::string& callerid);
+
     virtual void ExecuteCommand(const std::string& command, rapidjson::Document&d, const double timeout /* second */=5.0, const bool getresult=true);
 
     virtual void GetJointValues(ResultGetJointValues& result, const std::string& unit="mm", const double timeout /* second */=5.0);
@@ -566,6 +568,8 @@ public:
     virtual void SendTriggerDetectionCaptureResult(const std::string& triggerType, const std::string& returnCode, double timeout /* second */=5.0);
 
 protected:
+    const std::string& _GetCallerId() const;
+
     std::stringstream _ss;
 
     std::map<std::string, std::string> _mapTaskParameters; ///< set of key value pairs that should be included
@@ -581,12 +585,12 @@ protected:
     std::string _sceneparams_json; ///\ parameters of the scene to run tasks on the backend zmq slave
     std::string _slaverequestid; ///< to ensure the same slave is used for binpicking task
     std::string _scenepk; ///< scene pk
+    std::string _callerid; ///< string identifying the caller
     const std::string _tasktype; ///< the specific task type to create internally. As long as the task supports the binpicking interface, it can be used.
     boost::shared_ptr<boost::thread> _pHeartbeatMonitorThread;
 
     bool _bIsInitialized;
     bool _bShutdownHeartbeatMonitor;
-
 };
 
 

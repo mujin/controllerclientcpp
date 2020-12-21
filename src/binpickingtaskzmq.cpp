@@ -53,6 +53,7 @@ ZmqMujinControllerClient::~ZmqMujinControllerClient()
 
 BinPickingTaskZmqResource::BinPickingTaskZmqResource(ControllerClientPtr c, const std::string& pk, const std::string& scenepk, const std::string& tasktype) : BinPickingTaskResource(c, pk, scenepk, tasktype)
 {
+    _callerid = str(boost::format("controllerclientcpp%s_zmq")%MUJINCLIENT_VERSION_STRING);
 }
 
 BinPickingTaskZmqResource::~BinPickingTaskZmqResource()
@@ -90,8 +91,6 @@ void BinPickingTaskZmqResource::ExecuteCommand(const std::string& taskparameters
         _zmqmujincontrollerclient.reset(new ZmqMujinControllerClient(_zmqcontext, _mujinControllerIp, _zmqPort));
     }
 
-    std::string callerid = str(boost::format("controllerclientcpp%s_zmq")%MUJINCLIENT_VERSION_STRING);
-
     std::stringstream ss; ss << std::setprecision(std::numeric_limits<double>::digits10+1);
     ss << "{\"fnname\": \"";
     if (_tasktype == "binpicking") {
@@ -99,7 +98,7 @@ void BinPickingTaskZmqResource::ExecuteCommand(const std::string& taskparameters
     }
     ss << "RunCommand\", ";
     ss << "\"stamp\": " << (GetMilliTime()*1e-3) << ", ";
-    ss << "\"callerid\": \"" << callerid << "\", ";
+    ss << "\"callerid\": \"" << _GetCallerId() << "\", ";
     ss << "\"taskparams\": {\"tasktype\": \"" << _tasktype << "\", ";
 
     ss << "\"taskparameters\": " << taskparameters << ", ";

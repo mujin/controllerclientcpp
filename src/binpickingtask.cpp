@@ -54,6 +54,7 @@ BinPickingResultResource::~BinPickingResultResource()
 
 BinPickingTaskResource::BinPickingTaskResource(ControllerClientPtr pcontroller, const std::string& pk, const std::string& scenepk, const std::string& tasktype) : TaskResource(pcontroller,pk), _zmqPort(-1), _heartbeatPort(-1), _tasktype(tasktype), _bIsInitialized(false)
 {
+    _callerid = str(boost::format("controllerclientcpp%s_web")%MUJINCLIENT_VERSION_STRING);
     _scenepk = scenepk;
     // get hostname from uri
     GETCONTROLLERIMPL();
@@ -129,6 +130,16 @@ void BinPickingTaskResource::Initialize(const std::string& defaultTaskParameters
     _bIsInitialized = true;
     _userinfo_json = userinfo;
     _slaverequestid = slaverequestid;
+}
+
+void BinPickingTaskResource::SetCallerId(const std::string& callerid)
+{
+    _callerid = callerid;
+}
+
+const std::string& BinPickingTaskResource::_GetCallerId() const
+{
+    return _callerid;
 }
 
 #ifdef MUJIN_USEZMQ
@@ -1624,8 +1635,6 @@ void BinPickingTaskResource::ExecuteCommand(const std::string& taskparameters, r
 
     GETCONTROLLERIMPL();
 
-    std::string callerid = str(boost::format("controllerclientcpp%s_web")%MUJINCLIENT_VERSION_STRING);
-
     std::stringstream ss; ss << std::setprecision(std::numeric_limits<double>::digits10+1);
     ss << "{\"tasktype\": \"" << _tasktype << "\", \"taskparameters\": " << taskparameters << ", ";
     ss << "\"sceneparams\": " << _sceneparams_json << ", ";
@@ -1634,7 +1643,7 @@ void BinPickingTaskResource::ExecuteCommand(const std::string& taskparameters, r
         ss << GetJsonString("slaverequestid", _slaverequestid) << ", ";
     }
     ss << "\"stamp\": " << (GetMilliTime()*1e-3) << ", ";
-    ss << "\"callerid\": \"" << callerid << "\"";
+    ss << "\"callerid\": \"" << _GetCallerId() << "\"";
     ss << "}";
     const std::string taskgoalput = ss.str();
     rapidjson::Document pt(rapidjson::kObjectType);
