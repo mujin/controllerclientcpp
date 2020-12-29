@@ -143,7 +143,7 @@ public:
     struct MUJINCLIENT_API PickPlaceHistoryItem
     {
         std::string pickPlaceType; ///< the type of action that ocurred can be: "picked", "placed", "touched"
-        std::string regionname; ///< the name of the region where picking occurred for "picked", where placing occurred when "placed", and where touching occurred for "touched"
+        std::string locationName; ///< the name of the region where picking occurred for "picked", where placing occurred when "placed", and where touching occurred for "touched"
         unsigned long long eventTimeStampUS; ///< time that the event ocurred in us (from Linux epoch). For "picked" this is the chuck time, for "placed this is the unchuck time, for "touched" this is the time when the robot supposedly stopped touching/disturbing the object.
         std::string object_uri; ///< the object uri
         Transform objectpose; ///< 7-values in world, unit is usually mm
@@ -151,9 +151,9 @@ public:
     };
 
     /// \brief Holds the state of each region coming from the planning side.
-    struct RegionStateInfo
+    struct LocationStateInfo
     {
-        std::string regionname;
+        std::string locationName;
         uint64_t forceRequestStampMS=0; ///< ms, (linux epoch) of when the requestion for results (detection or point cloud) came in. If there is no request, then this will be 0
         uint64_t lastInsideContainerStampMS = 0; ///< ms, (linux epoch) of when the robot (or something else) was inside the container and could have potentially disturbed the contents.
 
@@ -186,7 +186,7 @@ public:
         unsigned long long lastGrabbedTargetTimeStamp;   ///< ms
         //bool isRobotOccludingSourceContainer; ///?
         std::vector<OcclusionResult> vOcclusionResults;
-        std::vector<RegionStateInfo> regionStateInfos;
+        std::vector<LocationStateInfo> locationStateInfos;
 
         bool isGrabbingTarget;
         bool isGrabbingLastTarget;
@@ -241,7 +241,7 @@ public:
             TriggerDetectionCaptureInfo();
             double timestamp; ///< timestamp this request was sent. If non-zero, then valid.
             std::string triggerType; ///< The type of trigger this is. For now can be: "phase1Detection", "phase2Detection"
-            std::string regionname; ///< The name of the region for this detection trigger.
+            std::string locationName; ///< The name of the region for this detection trigger.
             std::string targetupdatename; ///< if not empty, use this new targetupdatename for the triggering, otherwise do not change the original targetupdatename
         } triggerDetectionCaptureInfo;
 
@@ -392,16 +392,16 @@ public:
         \param pointsize size of each point in meter
         \param name name of the obstacle
         \param isoccluded occlusion status of robot with the container: -1 if unknown, 0 if not occluding, 1 if robot is occluding region in camera
-        \param regionname the name of the region for which the point cloud is supposed to be captured of. isoccluded maps to this region
+        \param locationName the name of the region for which the point cloud is supposed to be captured of. isoccluded maps to this region
         \param timeout seconds until this command times out
-        \param clampToContainer if true, then planning will clamp the points to the container walls specified by regionname. Otherwise, will use all the points
+        \param clampToContainer if true, then planning will clamp the points to the container walls specified by locationName. Otherwise, will use all the points
         \param rExtraParameters extra parameters to be inserted
      */
-    virtual void AddPointCloudObstacle(const std::vector<float>& vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp=0, const unsigned long long endtimestamp=0, const bool executionverification=false, const std::string& unit="mm", int isoccluded=-1, const std::string& regionname=std::string(), const double timeout /* second */=5.0, bool clampToContainer=true, CropContainerMarginsXYZXYZPtr pCropContainerMargins=CropContainerMarginsXYZXYZPtr(), AddPointOffsetInfoPtr pAddPointOffsetInfo=AddPointOffsetInfoPtr());
+    virtual void AddPointCloudObstacle(const std::vector<float>& vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp=0, const unsigned long long endtimestamp=0, const bool executionverification=false, const std::string& unit="mm", int isoccluded=-1, const std::string& locationName=std::string(), const double timeout /* second */=5.0, bool clampToContainer=true, CropContainerMarginsXYZXYZPtr pCropContainerMargins=CropContainerMarginsXYZXYZPtr(), AddPointOffsetInfoPtr pAddPointOffsetInfo=AddPointOffsetInfoPtr());
 
     /// \param locationIOName the location IO name (1, 2, 3, 4, etc) used to tell mujin controller to notify  the IO signal with detected object info
     /// \param cameranames the names of the sensors mapped to the current region used for detetion. The sensor information is used to create shadow obstacles per each part, if empty, will not be able to create the correct shadow obstacles.
-    virtual void UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<float>& vpoints, const std::string& resultstate, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit="mm", const double timeout=0, const std::string& regionname=std::string(), const std::string& locationIOName="1", const std::vector<std::string>& cameranames=std::vector<std::string>(), CropContainerMarginsXYZXYZPtr pCropContainerMargins=CropContainerMarginsXYZXYZPtr());
+    virtual void UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<float>& vpoints, const std::string& resultstate, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit="mm", const double timeout=0, const std::string& locationName=std::string(), const std::string& locationIOName="1", const std::vector<std::string>& cameranames=std::vector<std::string>(), CropContainerMarginsXYZXYZPtr pCropContainerMargins=CropContainerMarginsXYZXYZPtr());
 
     /// \brief removes objects by thier prefix
     /// \param prefix prefix of the objects to remove

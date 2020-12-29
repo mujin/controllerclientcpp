@@ -579,22 +579,22 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
 
     triggerDetectionCaptureInfo.timestamp = GetJsonValueByPath<double>(v, "/triggerDetectionCaptureInfo/timestamp", 0);
     triggerDetectionCaptureInfo.triggerType = GetJsonValueByPath<std::string>(v, "/triggerDetectionCaptureInfo/triggerType", "");
-    triggerDetectionCaptureInfo.regionname = GetJsonValueByPath<std::string>(v, "/triggerDetectionCaptureInfo/regionname", "");
+    triggerDetectionCaptureInfo.locationName = GetJsonValueByPath<std::string>(v, "/triggerDetectionCaptureInfo/locationName", "");
     triggerDetectionCaptureInfo.targetupdatename = GetJsonValueByPath<std::string>(v, "/triggerDetectionCaptureInfo/targetupdatename", "");
 
-    regionStateInfos.clear();
-    if( v.HasMember("regionStateInfos") && v["regionStateInfos"].IsArray()) {
-        const rapidjson::Value& rRegionStateInfos = v["regionStateInfos"];
-        regionStateInfos.resize(rRegionStateInfos.Size());
-        for(int iitem = 0; iitem < (int)rRegionStateInfos.Size(); ++iitem) {
-            const rapidjson::Value& rInfo = rRegionStateInfos[iitem];
-            regionStateInfos[iitem].regionname = GetJsonValueByKey<std::string,std::string>(rInfo, "regionname", std::string());
-            regionStateInfos[iitem].forceRequestStampMS = GetJsonValueByKey<uint64_t, uint64_t>(rInfo, "forceRequestStampMS", 0);
-            regionStateInfos[iitem].lastInsideContainerStampMS = GetJsonValueByKey<uint64_t, uint64_t>(rInfo, "lastInsideContainerStampMS", 0);
-            regionStateInfos[iitem].needContainer = GetJsonValueByKey<int, int>(rInfo, "needContainer", -1);
-            regionStateInfos[iitem].isContainerEmpty = GetJsonValueByKey<int, int>(rInfo, "isContainerEmpty", -1);
-            regionStateInfos[iitem].isContainerPresent = GetJsonValueByKey<int, int>(rInfo, "isContainerPresent", -1);
-            regionStateInfos[iitem].containerUpdateTimeStampMS = GetJsonValueByKey<uint64_t, uint64_t>(rInfo, "containerUpdateTimeStampMS", 0);
+    locationStateInfos.clear();
+    if( v.HasMember("locationStateInfos") && v["locationStateInfos"].IsArray()) {
+        const rapidjson::Value& rLocationStateInfos = v["locationStateInfos"];
+        locationStateInfos.resize(rLocationStateInfos.Size());
+        for(int iitem = 0; iitem < (int)rLocationStateInfos.Size(); ++iitem) {
+            const rapidjson::Value& rInfo = rLocationStateInfos[iitem];
+            locationStateInfos[iitem].locationName = GetJsonValueByKey<std::string,std::string>(rInfo, "locationName", std::string());
+            locationStateInfos[iitem].forceRequestStampMS = GetJsonValueByKey<uint64_t, uint64_t>(rInfo, "forceRequestStampMS", 0);
+            locationStateInfos[iitem].lastInsideContainerStampMS = GetJsonValueByKey<uint64_t, uint64_t>(rInfo, "lastInsideContainerStampMS", 0);
+            locationStateInfos[iitem].needContainer = GetJsonValueByKey<int, int>(rInfo, "needContainer", -1);
+            locationStateInfos[iitem].isContainerEmpty = GetJsonValueByKey<int, int>(rInfo, "isContainerEmpty", -1);
+            locationStateInfos[iitem].isContainerPresent = GetJsonValueByKey<int, int>(rInfo, "isContainerPresent", -1);
+            locationStateInfos[iitem].containerUpdateTimeStampMS = GetJsonValueByKey<uint64_t, uint64_t>(rInfo, "containerUpdateTimeStampMS", 0);
         }
     }
 
@@ -604,7 +604,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
         for(int iitem = 0; iitem < (int)pickPlaceHistoryItems.size(); ++iitem) {
             const rapidjson::Value& rItem = v["pickPlaceHistoryItems"][iitem];
             pickPlaceHistoryItems[iitem].pickPlaceType = GetJsonValueByKey<std::string,std::string>(rItem, "pickPlaceType", std::string());
-            pickPlaceHistoryItems[iitem].regionname = GetJsonValueByKey<std::string,std::string>(rItem, "regionname", std::string());
+            pickPlaceHistoryItems[iitem].locationName = GetJsonValueByKey<std::string,std::string>(rItem, "locationName", std::string());
             pickPlaceHistoryItems[iitem].eventTimeStampUS = GetJsonValueByKey<unsigned long long>(rItem, "eventTimeStampUS", 0);
             pickPlaceHistoryItems[iitem].object_uri = GetJsonValueByKey<std::string,std::string>(rItem, "object_uri", std::string());
 
@@ -1176,14 +1176,14 @@ void BinPickingTaskResource::UpdateObjects(const std::string& objectname, const 
     ExecuteCommand(_ss.str(), d, timeout); // need to check return code
 }
 
-void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<float>&vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp, const unsigned long long endtimestamp, const bool executionverification, const std::string& unit, int isoccluded, const std::string& regionname, const double timeout, bool clampToContainer, CropContainerMarginsXYZXYZPtr pCropContainerMargins, AddPointOffsetInfoPtr pAddPointOffsetInfo)
+void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<float>&vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp, const unsigned long long endtimestamp, const bool executionverification, const std::string& unit, int isoccluded, const std::string& locationName, const double timeout, bool clampToContainer, CropContainerMarginsXYZXYZPtr pCropContainerMargins, AddPointOffsetInfoPtr pAddPointOffsetInfo)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "AddPointCloudObstacle";
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("tasktype", _tasktype) << ", ";
     _ss << GetJsonString("isoccluded", isoccluded) << ", ";
-    _ss << GetJsonString("regionname", regionname) << ", ";
+    _ss << GetJsonString("locationName", locationName) << ", ";
     _ss << GetJsonString("clampToContainer", clampToContainer) << ", ";
     if( !!pCropContainerMargins ) {
         _ss << "\"cropContainerMarginsXYZXYZ\":[" << pCropContainerMargins->minMargins[0] << ", " << pCropContainerMargins->minMargins[1] << ", " << pCropContainerMargins->minMargins[2] << ", " << pCropContainerMargins->maxMargins[0] << ", " << pCropContainerMargins->maxMargins[1] << ", " << pCropContainerMargins->maxMargins[2] << "], ";
@@ -1212,14 +1212,14 @@ void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<float>&vpoi
     ExecuteCommand(_ss.str(), rResult, timeout); // need to check return code
 }
 
-void BinPickingTaskResource::UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<float>& vpoints, const std::string& state, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit, const double timeout, const std::string& regionname, const std::string& locationIOName, const std::vector<std::string>& cameranames, CropContainerMarginsXYZXYZPtr pCropContainerMargins)
+void BinPickingTaskResource::UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<float>& vpoints, const std::string& state, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit, const double timeout, const std::string& locationName, const std::string& locationIOName, const std::vector<std::string>& cameranames, CropContainerMarginsXYZXYZPtr pCropContainerMargins)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "UpdateEnvironmentState";
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("tasktype", _tasktype) << ", ";
     _ss << GetJsonString("objectname", objectname) << ", ";
-    _ss << GetJsonString("regionname", regionname) << ", ";
+    _ss << GetJsonString("locationName", locationName) << ", ";
     _ss << GetJsonString("locationIOName", locationIOName) << ", ";
     _ss << "\"cameranames\":" << GetJsonString(cameranames) << ", ";
     _ss << GetJsonString("envstate") << ": [";
