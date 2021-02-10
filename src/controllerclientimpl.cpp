@@ -1331,8 +1331,6 @@ void ControllerClientImpl::Reboot(double timeout)
 
 void ControllerClientImpl::DeleteAllScenes(double timeout)
 {
-    boost::mutex::scoped_lock lock(_mutex);
-    rapidjson::Document pt(rapidjson::kObjectType);
     CallDelete("scene/", 204, timeout);
 }
 
