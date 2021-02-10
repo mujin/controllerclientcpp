@@ -1319,8 +1319,6 @@ bool ControllerClientImpl::GetUpgradeStatus(std::string& status, double &progres
 
 void ControllerClientImpl::CancelUpgrade(double timeout)
 {
-    boost::mutex::scoped_lock lock(_mutex);
-    rapidjson::Document pt(rapidjson::kObjectType);
     CallDelete(_baseuri+"upgrade/", 200, timeout);
 }
 
