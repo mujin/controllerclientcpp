@@ -212,6 +212,7 @@ public:
                 uint64_t cornerMask; ///< Represents the corner(s) used for corner based detection. 4 bit. -x-y = 1, +x-y = 2, -x+y=4, +x+y = 8
             } minViableRegion;
 
+            std::string locationName; ///< The name of the location where the minViableRegion was triggered for
             std::array<double, 3> translation_; // Translation of the 2D MVR plane (height = 0)
             std::array<double, 4> quat_; // Rotation of the 2D MVR plane (height = 0)
             uint64_t sensortimestamp; // Same as DetectedObject's timestamp sent to planning
@@ -241,7 +242,7 @@ public:
             TriggerDetectionCaptureInfo();
             double timestamp; ///< timestamp this request was sent. If non-zero, then valid.
             std::string triggerType; ///< The type of trigger this is. For now can be: "phase1Detection", "phase2Detection"
-            std::string locationName; ///< The name of the region for this detection trigger.
+            std::string locationName; ///< The name of the location for this detection trigger.
             std::string targetupdatename; ///< if not empty, use this new targetupdatename for the triggering, otherwise do not change the original targetupdatename
         } triggerDetectionCaptureInfo;
 
