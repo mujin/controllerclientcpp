@@ -209,6 +209,7 @@ public:
             {
                 MinViableRegionInfo();
                 std::array<double, 2> size2D; ///< width and height on the MVR
+                std::array<double, 3> maxPossibleSize; ///< the max possible size of actual item
                 uint64_t cornerMask; ///< Represents the corner(s) used for corner based detection. 4 bit. -x-y = 1, +x-y = 2, -x+y=4, +x+y = 8
             } minViableRegion;
 
@@ -219,7 +220,6 @@ public:
             std::array<double, 3> liftedWorldOffset; // [dx, dy, dz], mm in world frame
             std::array<double, 3> maxCandidateSize; ///< the max candidate size expecting
             std::array<double, 3> minCandidateSize; ///< the min candidate size expecting
-            std::array<double, 3> maxPossibleSize; ///< the max possible size of actual item
             double transferSpeedMult; // transfer speed multiplication factor
             double minCornerVisibleDist;
             uint64_t occlusionFreeCornerMask;

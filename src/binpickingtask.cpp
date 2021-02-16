@@ -573,7 +573,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/liftedWorldOffset", registerMinViableRegionInfo.liftedWorldOffset);
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/minCandidateSize", registerMinViableRegionInfo.minCandidateSize);
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/maxCandidateSize", registerMinViableRegionInfo.maxCandidateSize);
-    LoadJsonValueByPath(v, "/registerMinViableRegionInfo/maxPossibleSize", registerMinViableRegionInfo.maxPossibleSize);
+    LoadJsonValueByPath(v, "/registerMinViableRegionInfo/minViableRegion/maxPossibleSize", registerMinViableRegionInfo.minViableRegion.maxPossibleSize);
 
     removeObjectFromObjectListInfo.timestamp = GetJsonValueByPath<double>(v, "/removeObjectFromObjectList/timestamp", 0);
     removeObjectFromObjectListInfo.objectPk = GetJsonValueByPath<std::string>(v, "/removeObjectFromObjectList/objectPk", "");
