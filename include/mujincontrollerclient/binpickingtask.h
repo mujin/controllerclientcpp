@@ -219,6 +219,7 @@ public:
             std::array<double, 3> liftedWorldOffset; // [dx, dy, dz], mm in world frame
             std::array<double, 3> maxCandidateSize; ///< the max candidate size expecting
             std::array<double, 3> minCandidateSize; ///< the min candidate size expecting
+            std::array<double, 3> maxPossibleSize; ///< the max possible size of actual item
             double transferSpeedMult; // transfer speed multiplication factor
             double minCornerVisibleDist;
             uint64_t occlusionFreeCornerMask;
