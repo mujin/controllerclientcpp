@@ -1201,10 +1201,10 @@ void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<float>&vpoi
     pointcloudobstacle.pointsize = pointsize;
     pointcloudobstacle.points = vpoints;
     _ss << GetJsonString(pointcloudobstacle);
+    _ss << ", \"starttimestamp\": " << starttimestamp; // in ms
+    _ss << ", \"endtimestamp\": " << endtimestamp; // in ms
 
     if (executionverification) {
-        _ss << ", \"starttimestamp\": " << starttimestamp;
-        _ss << ", \"endtimestamp\": " << endtimestamp;
         _ss << ", \"executionverification\": " << (int) executionverification;
     }
     _ss << ", " << GetJsonString("unit", unit);
