@@ -79,7 +79,7 @@ int main(int argc, char ** argv)
         ("taskparameters", bpo::value<std::string>()->required(), "binpicking task parameters, e.g. {'robotname': 'robot', 'robots':{'robot': {'externalCollisionIO':{}, 'gripperControlInfo':{}, 'robotControllerUri': '', robotDeviceIOUri': '', 'toolname': 'tool'}}}")
         ("slaverequestid", bpo::value<std::string>()->required(), "slaverequestid, e.g. hostname_slave0")
         ("robotname", bpo::value<std::string>()->required(), "robot name, e.g. VS060A3-AV6-NNN-NNN")
-        ("regionname", bpo::value<std::string>()->required(), "regionname, e.g. smallcontainer")
+        ("locationName", bpo::value<std::string>()->required(), "locationName, e.g. smallcontainer")
         ("objectupdatename", bpo::value<std::string>()->required(), "target object name, e.g. detected")
         ("objecturi", bpo::value<std::string>()->required(), "target object uri, e.g. mujin:/bolt0.mujin.dae")
         ("objectconfidence", bpo::value<std::string>()->default_value("{\"global_confidence\":1.0}"), "target object confidence")
@@ -116,7 +116,7 @@ int main(int argc, char ** argv)
     const std::string objecturi = opts["objecturi"].as<std::string>();
     const std::string objectconfidence = opts["objectconfidence"].as<std::string>();
     const std::string objectextra = opts["objectextra"].as<std::string>();
-    const std::string regionname = opts["regionname"].as<std::string>();
+    const std::string locationName = opts["locationName"].as<std::string>();
     const std::string taskparameters = opts["taskparameters"].as<std::string>();
     const std::string slaverequestid = opts["slaverequestid"].as<std::string>();
     const unsigned int waitinterval = opts["waitinterval"].as<unsigned int>();

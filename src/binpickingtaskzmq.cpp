@@ -15,8 +15,6 @@
 #include "common.h"
 #include "controllerclientimpl.h"
 #include "binpickingtaskzmq.h"
-#include <boost/property_tree/json_parser.hpp>
-#include <boost/property_tree/exceptions.hpp>
 #include "mujincontrollerclient/mujinzmq.h"
 
 #include <algorithm> // find
@@ -55,6 +53,7 @@ ZmqMujinControllerClient::~ZmqMujinControllerClient()
 
 BinPickingTaskZmqResource::BinPickingTaskZmqResource(ControllerClientPtr c, const std::string& pk, const std::string& scenepk, const std::string& tasktype) : BinPickingTaskResource(c, pk, scenepk, tasktype)
 {
+    _callerid = str(boost::format("controllerclientcpp%s_zmq")%MUJINCLIENT_VERSION_STRING);
 }
 
 BinPickingTaskZmqResource::~BinPickingTaskZmqResource()
@@ -92,8 +91,6 @@ void BinPickingTaskZmqResource::ExecuteCommand(const std::string& taskparameters
         _zmqmujincontrollerclient.reset(new ZmqMujinControllerClient(_zmqcontext, _mujinControllerIp, _zmqPort));
     }
 
-    std::string callerid = str(boost::format("controllerclientcpp%s_zmq")%MUJINCLIENT_VERSION_STRING);
-
     std::stringstream ss; ss << std::setprecision(std::numeric_limits<double>::digits10+1);
     ss << "{\"fnname\": \"";
     if (_tasktype == "binpicking") {
@@ -101,7 +98,7 @@ void BinPickingTaskZmqResource::ExecuteCommand(const std::string& taskparameters
     }
     ss << "RunCommand\", ";
     ss << "\"stamp\": " << (GetMilliTime()*1e-3) << ", ";
-    ss << "\"callerid\": \"" << callerid << "\", ";
+    ss << "\"callerid\": \"" << _GetCallerId() << "\", ";
     ss << "\"taskparams\": {\"tasktype\": \"" << _tasktype << "\", ";
 
     ss << "\"taskparameters\": " << taskparameters << ", ";
@@ -192,7 +189,6 @@ void BinPickingTaskZmqResource::InitializeZMQ(const double reinitializetimeout, 
 void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializetimeout, const double commandtimeout)
 {
     boost::shared_ptr<zmq::socket_t>  socket;
-    boost::property_tree::ptree pt;
     BinPickingTaskResource::ResultHeartBeat heartbeat;
     heartbeat._slaverequestid = _slaverequestid;
     while (!_bShutdownHeartbeatMonitor) {
@@ -201,6 +197,10 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
             socket.reset();
         }
         socket.reset(new zmq::socket_t((*_zmqcontext.get()),ZMQ_SUB));
+        socket->setsockopt(ZMQ_TCP_KEEPALIVE, 1); // turn on tcp keepalive, do these configuration before connect
+        socket->setsockopt(ZMQ_TCP_KEEPALIVE_IDLE, 2); // the interval between the last data packet sent (simple ACKs are not considered data) and the first keepalive probe; after the connection is marked to need keepalive, this counter is not used any further
+        socket->setsockopt(ZMQ_TCP_KEEPALIVE_INTVL, 2); // the interval between subsequential keepalive probes, regardless of what the connection has exchanged in the meantime
+        socket->setsockopt(ZMQ_TCP_KEEPALIVE_CNT, 2); // the number of unacknowledged probes to send before considering the connection dead and notifying the application layer
         std::stringstream ss; ss << std::setprecision(std::numeric_limits<double>::digits10+1);
         ss << _heartbeatPort;
         socket->connect (("tcp://"+ _mujinControllerIp+":"+ss.str()).c_str());
