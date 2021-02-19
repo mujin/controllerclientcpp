@@ -1202,11 +1202,11 @@ void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<float>&vpoi
     pointcloudobstacle.points = vpoints;
     _ss << GetJsonString(pointcloudobstacle);
 
-    if (executionverification) {
-        _ss << ", \"starttimestamp\": " << starttimestamp;
-        _ss << ", \"endtimestamp\": " << endtimestamp;
-        _ss << ", \"executionverification\": " << (int) executionverification;
-    }
+    // send timestamp regardless of the pointcloud definition
+    _ss << ", \"starttimestamp\": " << starttimestamp;
+    _ss << ", \"endtimestamp\": " << endtimestamp;
+    _ss << ", \"executionverification\": " << (int) executionverification;
+
     _ss << ", " << GetJsonString("unit", unit);
     _ss << "}";
     rapidjson::Document rResult;
