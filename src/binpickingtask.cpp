@@ -560,6 +560,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     numLeftInSupply = GetJsonValueByPath<int>(v, "/orderstate/numLeftInSupply", -1);
     placedInDest = GetJsonValueByPath<int>(v, "/orderstate/placedInDest", -1);
 
+    registerMinViableRegionInfo.locationName = GetJsonValueByPath<std::string>(v, "/registerMinViableRegionInfo/locationName", std::string());
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/translation_", registerMinViableRegionInfo.translation_);
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/quat_", registerMinViableRegionInfo.quat_);
     registerMinViableRegionInfo.sensortimestamp = GetJsonValueByPath<uint64_t>(v, "/registerMinViableRegionInfo/sensortimestamp", 0);
@@ -1202,11 +1203,11 @@ void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<float>&vpoi
     pointcloudobstacle.points = vpoints;
     _ss << GetJsonString(pointcloudobstacle);
 
-    if (executionverification) {
-        _ss << ", \"starttimestamp\": " << starttimestamp;
-        _ss << ", \"endtimestamp\": " << endtimestamp;
-        _ss << ", \"executionverification\": " << (int) executionverification;
-    }
+    // send timestamp regardless of the pointcloud definition
+    _ss << ", \"starttimestamp\": " << starttimestamp;
+    _ss << ", \"endtimestamp\": " << endtimestamp;
+    _ss << ", \"executionverification\": " << (int) executionverification;
+
     _ss << ", " << GetJsonString("unit", unit);
     _ss << "}";
     rapidjson::Document rResult;
