@@ -631,6 +631,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
 }
 
 BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionInfo::RegisterMinViableRegionInfo() :
+    objectWeight(0.0),
     sensortimestamp(0),
     robotDepartStopTimestamp(0),
     transferSpeedMult(1.0),
@@ -649,6 +650,7 @@ BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionInfo::M
     cornerMask(0)
 {
     size2D.fill(0);
+    maxPossibleSize.fill(0);
 }
 
 BinPickingTaskResource::ResultGetBinpickingState::RemoveObjectFromObjectListInfo::RemoveObjectFromObjectListInfo() :
