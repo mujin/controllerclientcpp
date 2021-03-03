@@ -216,6 +216,7 @@ public:
             std::string locationName; ///< The name of the location where the minViableRegion was triggered for
             std::array<double, 3> translation_; // Translation of the 2D MVR plane (height = 0)
             std::array<double, 4> quat_; // Rotation of the 2D MVR plane (height = 0)
+            double objectWeight; // If non-zero, use this weight fo registration. unit is kg. zero means unknown.
             uint64_t sensortimestamp; // Same as DetectedObject's timestamp sent to planning
             double robotDepartStopTimestamp; // Force capture after robot stops
             std::array<double, 3> liftedWorldOffset; // [dx, dy, dz], mm in world frame
