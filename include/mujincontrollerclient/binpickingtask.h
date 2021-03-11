@@ -348,6 +348,11 @@ public:
 
     virtual void ExecuteCommand(const std::string& command, rapidjson::Document&d, const double timeout /* second */=5.0, const bool getresult=true);
 
+    /// \brief executes command directly from rapidjson::Value struct.
+    ///
+    /// \param rTaskParameters will be destroyed after the call due to r-value moves
+    virtual void ExecuteCommand(rapidjson::Value& rTaskParameters, rapidjson::Document& rOutput, const double timeout /* second */=5.0);
+
     virtual void GetJointValues(ResultGetJointValues& result, const std::string& unit="mm", const double timeout /* second */=5.0);
     virtual void SetInstantaneousJointValues(const std::vector<Real>& jointvalues, const std::string& unit="mm", const double timeout /* second */=5.0);
     virtual void ComputeIkParamPosition(ResultComputeIkParamPosition& result, const std::string& name, const std::string& unit="mm", const double timeout /* second */=5.0);
@@ -584,8 +589,11 @@ protected:
 #endif
     int _zmqPort;
     int _heartbeatPort;
-    std::string _userinfo_json;  ///< userinfo json
-    std::string _sceneparams_json; ///\ parameters of the scene to run tasks on the backend zmq slave
+
+    rapidjson::Document _rUserInfo;  ///< userinfo json
+    rapidjson::Document _rSceneParams; ///\ parameters of the scene to run tasks on the backend zmq slave
+    std::string _sceneparams_json, _userinfo_json;
+    
     std::string _slaverequestid; ///< to ensure the same slave is used for binpicking task
     std::string _scenepk; ///< scene pk
     std::string _callerid; ///< string identifying the caller

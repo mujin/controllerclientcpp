@@ -83,27 +83,25 @@ BinPickingTaskResource::BinPickingTaskResource(ControllerClientPtr pcontroller, 
     std::string::const_iterator hostend = std::find(protocolend, (pathstart != uriend) ? pathstart : querystart, ':');
     _mujinControllerIp = std::string(hoststart, hostend);
 
-    /// HACK until can think of proper way to send sceneparams
-    std::stringstream ss;
-    ss.str("");
-    ss << "{";
-    ss << GetJsonString("scenetype", "mujincollada") << ", ";
+    {
+        /// HACK until can think of proper way to send sceneparams
+        std::string scenebasename = pcontroller->GetNameFromPrimaryKey_UTF8(scenepk);
 
-    std::string scenebasename = pcontroller->GetNameFromPrimaryKey_UTF8(scenepk);
-    ss << GetJsonString("sceneuri", std::string("mujin:/")+scenebasename) << ", ";
+        _rSceneParams.SetObject();
+        mujinjson::SetJsonValueByKey(_rSceneParams, "scenetype", "mujincollada");
+        mujinjson::SetJsonValueByKey(_rSceneParams, "sceneuri", std::string("mujin:/")+scenebasename);
 
-    // should stop sending scenefilename since it is a hack!
-    std::string MUJIN_MEDIA_ROOT_DIR = "/var/www/media/u";
-    char* pMUJIN_MEDIA_ROOT_DIR = getenv("MUJIN_MEDIA_ROOT_DIR");
-    if( !!pMUJIN_MEDIA_ROOT_DIR ) {
-        MUJIN_MEDIA_ROOT_DIR = pMUJIN_MEDIA_ROOT_DIR;
+        // should stop sending scenefilename since it is a hack!
+        std::string MUJIN_MEDIA_ROOT_DIR = "/var/www/media/u";
+        char* pMUJIN_MEDIA_ROOT_DIR = getenv("MUJIN_MEDIA_ROOT_DIR");
+        if( !!pMUJIN_MEDIA_ROOT_DIR ) {
+            MUJIN_MEDIA_ROOT_DIR = pMUJIN_MEDIA_ROOT_DIR;
+        }
+
+        std::string scenefilename = MUJIN_MEDIA_ROOT_DIR + std::string("/") + pcontroller->GetUserName() + std::string("/") + scenebasename;
+        mujinjson::SetJsonValueByKey(_rSceneParams, "scenefilename", scenefilename);
+        _sceneparams_json = mujinjson::DumpJson(_rSceneParams);
     }
-
-    std::string scenefilename = MUJIN_MEDIA_ROOT_DIR + std::string("/") + pcontroller->GetUserName() + std::string("/") + scenebasename;
-    ss << GetJsonString("scenefilename", scenefilename);
-    // ss << GetJsonString("scale", "[1.0, 1.0,1.0]");
-    ss << "}";
-    _sceneparams_json = ss.str();
 }
 
 BinPickingTaskResource::~BinPickingTaskResource()
@@ -128,6 +126,7 @@ void BinPickingTaskResource::Initialize(const std::string& defaultTaskParameters
     }
 
     _bIsInitialized = true;
+    ParseJson(_rUserInfo, userinfo);
     _userinfo_json = userinfo;
     _slaverequestid = slaverequestid;
 }
@@ -161,6 +160,7 @@ void BinPickingTaskResource::Initialize(const std::string& defaultTaskParameters
     _heartbeatPort = heartbeatPort;
     _bIsInitialized = true;
     _zmqcontext = zmqcontext;
+    ParseJson(_rUserInfo, userinfo);
     _userinfo_json = userinfo;
     _slaverequestid = slaverequestid;
 }
@@ -1650,10 +1650,8 @@ void BinPickingTaskResource::ExecuteCommand(const std::string& taskparameters, r
     ss << "\"stamp\": " << (GetMilliTime()*1e-3) << ", ";
     ss << "\"callerid\": \"" << _GetCallerId() << "\"";
     ss << "}";
-    const std::string taskgoalput = ss.str();
     rapidjson::Document pt(rapidjson::kObjectType);
-    controller->CallPutJSON(str(boost::format("task/%s/?format=json")%GetPrimaryKey()), taskgoalput, pt);
-    //controller->CallGet(str(boost::format("scene/%s/resultget") % _scenepk), taskgoalput, pt);
+    controller->CallPutJSON(str(boost::format("task/%s/?format=json")%GetPrimaryKey()), ss.str(), pt);
     Execute();
 
     double secondspassed = 0;
@@ -1675,6 +1673,11 @@ void BinPickingTaskResource::ExecuteCommand(const std::string& taskparameters, r
             throw MujinException("operation timed out after " +ss.str() + " seconds, cancelling all jobs and quitting", MEC_Timeout);
         }
     }
+}
+
+void BinPickingTaskResource::ExecuteCommand(rapidjson::Value& rTaskParameters, rapidjson::Document& rOutput, const double timeout)
+{
+    BOOST_ASSERT(0); // not supported
 }
 
 void utils::GetAttachedSensors(SceneResource& scene, const std::string& bodyname, std::vector<RobotResource::AttachedSensorResourcePtr>& attachedsensors)
