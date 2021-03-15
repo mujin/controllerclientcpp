@@ -298,6 +298,7 @@ public:
         ResultOBB instobjectobb;
         ResultOBB instobjectinnerobb;
         rapidjson::Document rGeometryInfos; ///< for every object, list of all the geometry infos
+        rapidjson::Document rIkParamPoses; ///< for every object, dict of ikparam name and its pose
     };
 
     struct MUJINCLIENT_API ResultGetInstObjectAndSensorInfo : public ResultBase
