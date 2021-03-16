@@ -431,11 +431,10 @@ void BinPickingTaskResource::ResultInstObjectInfo::Parse(const rapidjson::Value&
     instobjectobb.Parse(rOutput["obb"]);
     instobjectinnerobb.Parse(rOutput["innerobb"]);
 
-    rGeometryInfos = rapidjson::Document();
     if( rOutput.HasMember("geometryInfos") ) {
         rGeometryInfos.CopyFrom(rOutput["geometryInfos"], rGeometryInfos.GetAllocator());
     }
-    rIkParams = rapidjson::Document(rapidjson::kObjectType);
+
     if( rOutput.HasMember("ikparams") ) {
         rIkParams.CopyFrom(rOutput["ikparams"], rIkParams.GetAllocator());
     }
