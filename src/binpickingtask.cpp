@@ -1386,6 +1386,7 @@ void BinPickingTaskResource::GetInstObjectInfoFromURI(const std::string& objectu
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "GetInstObjectInfoFromURI";
     _ss << GetJsonString("command", command) << ", ";
+    _ss << GetJsonString("unit", unit) << ", ";
     _ss << "\"objecturi\":" << GetJsonString(objecturi) << ", ";
     _ss << "\"instobjectpose\":[";
     _ss << instobjecttransform.quaternion[0] << ", " << instobjecttransform.quaternion[1] << ", " << instobjecttransform.quaternion[2] << ", " << instobjecttransform.quaternion[3] << ", ";
@@ -1720,7 +1721,7 @@ void utils::GetSensorTransform(SceneResource& scene, const std::string& bodyname
                 Transform transform;
                 std::copy(cameraobj->attachedsensors.at(i).quaternion, cameraobj->attachedsensors.at(i).quaternion+4, transform.quaternion);
                 std::copy(cameraobj->attachedsensors.at(i).translate, cameraobj->attachedsensors.at(i).translate+3, transform.translate);
-                if (unit == "m") {
+                if (unit == "m") { //?!
                     transform.translate[0] *= 0.001;
                     transform.translate[1] *= 0.001;
                     transform.translate[2] *= 0.001;
@@ -1748,82 +1749,6 @@ void utils::DeleteObject(SceneResource& scene, const std::string& name)
             instobjects[i]->Delete();
             break;
         }
-    }
-}
-
-void utils::UpdateObjects(SceneResource& scene,const std::string& basename, const std::vector<BinPickingTaskResource::DetectedObject>&detectedobjects, const std::string& unit)
-{
-    std::vector<SceneResource::InstObjectPtr> oldinstobjects;
-    std::vector<SceneResource::InstObjectPtr> oldtargets;
-
-    // get all instobjects from mujin controller
-    scene.GetInstObjects(oldinstobjects);
-    for(unsigned int i = 0; i < oldinstobjects.size(); ++i) {
-        const std::size_t found_at = oldinstobjects[i]->name.find(basename);
-        if (found_at != std::string::npos) {
-            oldtargets.push_back(oldinstobjects[i]);
-        }
-    }
-
-    std::vector<InstanceObjectState> state_update_pool;
-    std::vector<SceneResource::InstObjectPtr> instobject_update_pool;
-    std::vector<Transform> transform_create_pool;
-    std::vector<std::string> name_create_pool;
-
-    Real conversion = 1.0f;
-    if (unit=="m") {
-        // detectedobject->translation is in meter, need to convert to millimeter
-        conversion = 1000.0f;
-    }
-
-    for (unsigned int obj_i = 0; obj_i < detectedobjects.size(); ++obj_i) {
-        Transform objecttransform;
-        objecttransform.translate[0] = detectedobjects[obj_i].transform.translate[0] * conversion;
-        objecttransform.translate[1] = detectedobjects[obj_i].transform.translate[1] * conversion;
-        objecttransform.translate[2] = detectedobjects[obj_i].transform.translate[2] * conversion;
-        objecttransform.quaternion[0] = detectedobjects[obj_i].transform.quaternion[0];
-        objecttransform.quaternion[1] = detectedobjects[obj_i].transform.quaternion[1];
-        objecttransform.quaternion[2] = detectedobjects[obj_i].transform.quaternion[2];
-        objecttransform.quaternion[3] = detectedobjects[obj_i].transform.quaternion[3];
-
-        if ( oldtargets.size() == 0 ) {
-            // create new object
-            transform_create_pool.push_back(objecttransform);
-            const std::string name = boost::str(boost::format("%s_%d")%basename%obj_i);
-            name_create_pool.push_back(name);
-        } else {
-            int nearest_index = 0;
-            double maxdist = (std::numeric_limits<double>::max)();
-            // update existing object
-            for (unsigned int j = 0; j < oldtargets.size(); ++j) {
-                double dist=0;
-                for (int x = 0; x < 3; x++) {
-                    dist += std::pow(objecttransform.translate[x] - oldtargets[j]->translate[x], 2);
-                }
-                if ( dist < maxdist ) {
-                    nearest_index = j;
-                    maxdist = dist;
-                }
-            }
-            instobject_update_pool.push_back(oldtargets[nearest_index]);
-            InstanceObjectState state;
-            state.transform = objecttransform;
-            state_update_pool.push_back(state);
-            oldtargets.erase(oldtargets.begin() + nearest_index);
-        }
-    }
-    // remove non-existent oldtargets
-    for(unsigned int i = 0; i < oldtargets.size(); i++) {
-        oldtargets[i]->Delete();
-    }
-
-    // update existing objects
-    if (instobject_update_pool.size() != 0 ) {
-        scene.SetInstObjectsState(instobject_update_pool, state_update_pool);
-    }
-    // create new objects
-    for(unsigned int i = 0; i < name_create_pool.size(); i++) {
-        scene.CreateInstObject(name_create_pool[i], ("mujin:/"+basename+".mujin.dae"), transform_create_pool[i].quaternion, transform_create_pool[i].translate);
     }
 }
 
