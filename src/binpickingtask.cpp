@@ -88,7 +88,7 @@ BinPickingTaskResource::BinPickingTaskResource(ControllerClientPtr pcontroller, 
         std::string scenebasename = pcontroller->GetNameFromPrimaryKey_UTF8(scenepk);
 
         _rSceneParams.SetObject();
-        mujinjson::SetJsonValueByKey(_rSceneParams, "scenetype", "mujincollada");
+        mujinjson::SetJsonValueByKey(_rSceneParams, "scenetype", "mujin");
         mujinjson::SetJsonValueByKey(_rSceneParams, "sceneuri", std::string("mujin:/")+scenebasename);
 
         // should stop sending scenefilename since it is a hack!
