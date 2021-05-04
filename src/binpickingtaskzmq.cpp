@@ -257,6 +257,7 @@ void BinPickingTaskZmqResource::InitializeZMQ(const double reinitializetimeout, 
 
 void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializetimeout, const double commandtimeout)
 {
+    MUJIN_LOG_DEBUG(str(boost::format("starting controller %s monitoring thread on port %d for slaverequestid=%s.")%_mujinControllerIp%_heartbeatPort%_slaverequestid));
     boost::shared_ptr<zmq::socket_t>  socket;
     BinPickingTaskResource::ResultHeartBeat heartbeat;
     heartbeat._slaverequestid = _slaverequestid;
@@ -315,6 +316,7 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
             MUJIN_LOG_INFO(ss.str());
         }
     }
+    MUJIN_LOG_DEBUG(str(boost::format("Stopped controller %s monitoring thread on port %d for slaverequestid=%s.")%_mujinControllerIp%_heartbeatPort%_slaverequestid));
 }
 
 
