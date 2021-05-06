@@ -54,6 +54,7 @@ BinPickingResultResource::~BinPickingResultResource()
 
 BinPickingTaskResource::BinPickingTaskResource(ControllerClientPtr pcontroller, const std::string& pk, const std::string& scenepk, const std::string& tasktype) : TaskResource(pcontroller,pk), _zmqPort(-1), _heartbeatPort(-1), _tasktype(tasktype), _bIsInitialized(false)
 {
+    _callerid = str(boost::format("controllerclientcpp%s_web")%MUJINCLIENT_VERSION_STRING);
     _scenepk = scenepk;
     // get hostname from uri
     GETCONTROLLERIMPL();
@@ -82,27 +83,25 @@ BinPickingTaskResource::BinPickingTaskResource(ControllerClientPtr pcontroller, 
     std::string::const_iterator hostend = std::find(protocolend, (pathstart != uriend) ? pathstart : querystart, ':');
     _mujinControllerIp = std::string(hoststart, hostend);
 
-    /// HACK until can think of proper way to send sceneparams
-    std::stringstream ss;
-    ss.str("");
-    ss << "{";
-    ss << GetJsonString("scenetype", "mujincollada") << ", ";
+    {
+        /// HACK until can think of proper way to send sceneparams
+        std::string scenebasename = pcontroller->GetNameFromPrimaryKey_UTF8(scenepk);
 
-    std::string scenebasename = pcontroller->GetNameFromPrimaryKey_UTF8(scenepk);
-    ss << GetJsonString("sceneuri", std::string("mujin:/")+scenebasename) << ", ";
+        _rSceneParams.SetObject();
+        mujinjson::SetJsonValueByKey(_rSceneParams, "scenetype", "mujin");
+        mujinjson::SetJsonValueByKey(_rSceneParams, "sceneuri", std::string("mujin:/")+scenebasename);
 
-    // should stop sending scenefilename since it is a hack!
-    std::string MUJIN_MEDIA_ROOT_DIR = "/var/www/media/u";
-    char* pMUJIN_MEDIA_ROOT_DIR = getenv("MUJIN_MEDIA_ROOT_DIR");
-    if( !!pMUJIN_MEDIA_ROOT_DIR ) {
-        MUJIN_MEDIA_ROOT_DIR = pMUJIN_MEDIA_ROOT_DIR;
+        // should stop sending scenefilename since it is a hack!
+        std::string MUJIN_MEDIA_ROOT_DIR = "/var/www/media/u";
+        char* pMUJIN_MEDIA_ROOT_DIR = getenv("MUJIN_MEDIA_ROOT_DIR");
+        if( !!pMUJIN_MEDIA_ROOT_DIR ) {
+            MUJIN_MEDIA_ROOT_DIR = pMUJIN_MEDIA_ROOT_DIR;
+        }
+
+        std::string scenefilename = MUJIN_MEDIA_ROOT_DIR + std::string("/") + pcontroller->GetUserName() + std::string("/") + scenebasename;
+        mujinjson::SetJsonValueByKey(_rSceneParams, "scenefilename", scenefilename);
+        _sceneparams_json = mujinjson::DumpJson(_rSceneParams);
     }
-
-    std::string scenefilename = MUJIN_MEDIA_ROOT_DIR + std::string("/") + pcontroller->GetUserName() + std::string("/") + scenebasename;
-    ss << GetJsonString("scenefilename", scenefilename);
-    // ss << GetJsonString("scale", "[1.0, 1.0,1.0]");
-    ss << "}";
-    _sceneparams_json = ss.str();
 }
 
 BinPickingTaskResource::~BinPickingTaskResource()
@@ -127,8 +126,19 @@ void BinPickingTaskResource::Initialize(const std::string& defaultTaskParameters
     }
 
     _bIsInitialized = true;
+    ParseJson(_rUserInfo, userinfo);
     _userinfo_json = userinfo;
     _slaverequestid = slaverequestid;
+}
+
+void BinPickingTaskResource::SetCallerId(const std::string& callerid)
+{
+    _callerid = callerid;
+}
+
+const std::string& BinPickingTaskResource::_GetCallerId() const
+{
+    return _callerid;
 }
 
 #ifdef MUJIN_USEZMQ
@@ -150,6 +160,7 @@ void BinPickingTaskResource::Initialize(const std::string& defaultTaskParameters
     _heartbeatPort = heartbeatPort;
     _bIsInitialized = true;
     _zmqcontext = zmqcontext;
+    ParseJson(_rUserInfo, userinfo);
     _userinfo_json = userinfo;
     _slaverequestid = slaverequestid;
 }
@@ -420,9 +431,12 @@ void BinPickingTaskResource::ResultInstObjectInfo::Parse(const rapidjson::Value&
     instobjectobb.Parse(rOutput["obb"]);
     instobjectinnerobb.Parse(rOutput["innerobb"]);
 
-    rGeometryInfos = rapidjson::Document();
     if( rOutput.HasMember("geometryInfos") ) {
         rGeometryInfos.CopyFrom(rOutput["geometryInfos"], rGeometryInfos.GetAllocator());
+    }
+
+    if( rOutput.HasMember("ikparams") ) {
+        rIkParams.CopyFrom(rOutput["ikparams"], rIkParams.GetAllocator());
     }
 }
 
@@ -497,23 +511,16 @@ BinPickingTaskResource::ResultGetBinpickingState::ResultGetBinpickingState() :
     statusDescPickPlace(""),
     statusPhysics(""),
     isDynamicEnvironmentStateEmpty(false),
-    isSourceContainerEmpty(false),
     pickAttemptFromSourceId(-1),
     timestamp(0),
     lastGrabbedTargetTimeStamp(0),
-    isRobotOccludingSourceContainer(true),
-    forceRequestDetectionResultsStamp(0),
-    forceRequestDestPointCloudStamp(0),
     isGrabbingTarget(true),
     isGrabbingLastTarget(true),
-    needSourceContainer(-1),
     hasRobotExecutionStarted(false),
     orderNumber(-1),
     numLeftInOrder(-1),
     numLeftInSupply(-1),
-    placedInDest(-1),
-    isControllerInError(false),
-    robotbridgestatus("")
+    placedInDest(-1)
 {
 }
 
@@ -531,12 +538,12 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     cycleIndex = GetJsonValueByKey<std::string>(v, "statusPickPlaceCycleIndex", "");
     statusPhysics = GetJsonValueByKey<std::string>(v, "statusPhysics", "unknown");
     pickAttemptFromSourceId = GetJsonValueByKey<int>(v, "pickAttemptFromSourceId", -1);
-    isSourceContainerEmpty = GetJsonValueByKey<bool>(v, "isSourceContainerEmpty", false);
-    lastInsideSourceTimeStamp = (unsigned long long)(GetJsonValueByKey<double>(v, "lastInsideSourceTimeStamp", 0) * 1000.0); // s -> ms
-    lastInsideDestTimeStamp = (unsigned long long)(GetJsonValueByKey<double>(v, "lastInsideDestTimeStamp", 0) * 1000.0); // s -> ms
+    //isContainerEmptyMap.clear();
+    //LoadJsonValueByKey(v, "isContainerEmptyMap", isContainerEmptyMap);
+    //lastInsideSourceTimeStamp = (unsigned long long)(GetJsonValueByKey<double>(v, "lastInsideSourceTimeStamp", 0) * 1000.0); // s -> ms
+    //lastInsideDestTimeStamp = (unsigned long long)(GetJsonValueByKey<double>(v, "lastInsideDestTimeStamp", 0) * 1000.0); // s -> ms
     timestamp = (unsigned long long)(GetJsonValueByKey<double>(v, "timestamp", 0) * 1000.0); // s -> ms
     lastGrabbedTargetTimeStamp = (unsigned long long)(GetJsonValueByKey<double>(v, "lastGrabbedTargetTimeStamp", 0) * 1000.0); // s -> ms
-    isRobotOccludingSourceContainer = GetJsonValueByKey<bool>(v, "isRobotOccludingSourceContainer", true);
 
     vOcclusionResults.clear();
     if( v.HasMember("occlusionResults") && v["occlusionResults"].IsArray() ) {
@@ -548,26 +555,24 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
         }
     }
 
-    forceRequestDetectionResultsStamp = GetJsonValueByKey<uint64_t>(v, "forceRequestDetectionResultsStamp", 0);
-    forceRequestDestPointCloudStamp = GetJsonValueByKey<uint64_t>(v, "forceRequestDestPointCloudStamp", 0);
     isGrabbingTarget = GetJsonValueByKey<bool>(v, "isGrabbingTarget", true);
     isGrabbingLastTarget = GetJsonValueByKey<bool>(v, "isGrabbingLastTarget", true);
-    needSourceContainer = GetJsonValueByKey<int>(v, "needSourceContainer", -1);
     hasRobotExecutionStarted = GetJsonValueByKey<bool>(v, "hasRobotExecutionStarted", false);
     orderNumber = GetJsonValueByPath<int>(v, "/orderstate/orderNumber", -1);
     numLeftInOrder = GetJsonValueByPath<int>(v, "/orderstate/numLeftInOrder", -1);
     numLeftInSupply = GetJsonValueByPath<int>(v, "/orderstate/numLeftInSupply", -1);
     placedInDest = GetJsonValueByPath<int>(v, "/orderstate/placedInDest", -1);
-    isControllerInError = GetJsonValueByKey<bool>(v, "isControllerInError", false);
-    robotbridgestatus = GetJsonValueByKey<std::string>(v, "robotbridgestatus", "unknown");
 
+    registerMinViableRegionInfo.locationName = GetJsonValueByPath<std::string>(v, "/registerMinViableRegionInfo/locationName", std::string());
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/translation_", registerMinViableRegionInfo.translation_);
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/quat_", registerMinViableRegionInfo.quat_);
+    registerMinViableRegionInfo.objectWeight = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/objectWeight", 0);
     registerMinViableRegionInfo.sensortimestamp = GetJsonValueByPath<uint64_t>(v, "/registerMinViableRegionInfo/sensortimestamp", 0);
     registerMinViableRegionInfo.robotDepartStopTimestamp = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/robotDepartStopTimestamp", 0);
     registerMinViableRegionInfo.transferSpeedMult = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/transferSpeedMult", 1.0);
     registerMinViableRegionInfo.minCornerVisibleDist = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/minCornerVisibleDist", 30);
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/minViableRegion/size2D", registerMinViableRegionInfo.minViableRegion.size2D);
+    LoadJsonValueByPath(v, "/registerMinViableRegionInfo/minViableRegion/maxPossibleSize", registerMinViableRegionInfo.minViableRegion.maxPossibleSize);
     registerMinViableRegionInfo.minViableRegion.cornerMask = GetJsonValueByPath<uint64_t>(v, "/registerMinViableRegionInfo/minViableRegion/cornerMask", 0);
     registerMinViableRegionInfo.occlusionFreeCornerMask = GetJsonValueByPath<uint64_t>(v, "/registerMinViableRegionInfo/occlusionFreeCornerMask", 0);
     registerMinViableRegionInfo.waitForTriggerOnCapturing = GetJsonValueByPath<bool>(v, "/registerMinViableRegionInfo/waitForTriggerOnCapturing", false);
@@ -580,8 +585,24 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
 
     triggerDetectionCaptureInfo.timestamp = GetJsonValueByPath<double>(v, "/triggerDetectionCaptureInfo/timestamp", 0);
     triggerDetectionCaptureInfo.triggerType = GetJsonValueByPath<std::string>(v, "/triggerDetectionCaptureInfo/triggerType", "");
-    triggerDetectionCaptureInfo.regionname = GetJsonValueByPath<std::string>(v, "/triggerDetectionCaptureInfo/regionname", "");
+    triggerDetectionCaptureInfo.locationName = GetJsonValueByPath<std::string>(v, "/triggerDetectionCaptureInfo/locationName", "");
     triggerDetectionCaptureInfo.targetupdatename = GetJsonValueByPath<std::string>(v, "/triggerDetectionCaptureInfo/targetupdatename", "");
+
+    locationStateInfos.clear();
+    if( v.HasMember("locationStateInfos") && v["locationStateInfos"].IsArray()) {
+        const rapidjson::Value& rLocationStateInfos = v["locationStateInfos"];
+        locationStateInfos.resize(rLocationStateInfos.Size());
+        for(int iitem = 0; iitem < (int)rLocationStateInfos.Size(); ++iitem) {
+            const rapidjson::Value& rInfo = rLocationStateInfos[iitem];
+            locationStateInfos[iitem].locationName = GetJsonValueByKey<std::string,std::string>(rInfo, "locationName", std::string());
+            locationStateInfos[iitem].forceRequestStampMS = GetJsonValueByKey<uint64_t, uint64_t>(rInfo, "forceRequestStampMS", 0);
+            locationStateInfos[iitem].lastInsideContainerStampMS = GetJsonValueByKey<uint64_t, uint64_t>(rInfo, "lastInsideContainerStampMS", 0);
+            locationStateInfos[iitem].needContainer = GetJsonValueByKey<int, int>(rInfo, "needContainer", -1);
+            locationStateInfos[iitem].isContainerEmpty = GetJsonValueByKey<int, int>(rInfo, "isContainerEmpty", -1);
+            locationStateInfos[iitem].isContainerPresent = GetJsonValueByKey<int, int>(rInfo, "isContainerPresent", -1);
+            locationStateInfos[iitem].containerUpdateTimeStampMS = GetJsonValueByKey<uint64_t, uint64_t>(rInfo, "containerUpdateTimeStampMS", 0);
+        }
+    }
 
     pickPlaceHistoryItems.clear();
     if( v.HasMember("pickPlaceHistoryItems") && v["pickPlaceHistoryItems"].IsArray() ) {
@@ -589,7 +610,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
         for(int iitem = 0; iitem < (int)pickPlaceHistoryItems.size(); ++iitem) {
             const rapidjson::Value& rItem = v["pickPlaceHistoryItems"][iitem];
             pickPlaceHistoryItems[iitem].pickPlaceType = GetJsonValueByKey<std::string,std::string>(rItem, "pickPlaceType", std::string());
-            pickPlaceHistoryItems[iitem].regionname = GetJsonValueByKey<std::string,std::string>(rItem, "regionname", std::string());
+            pickPlaceHistoryItems[iitem].locationName = GetJsonValueByKey<std::string,std::string>(rItem, "locationName", std::string());
             pickPlaceHistoryItems[iitem].eventTimeStampUS = GetJsonValueByKey<unsigned long long>(rItem, "eventTimeStampUS", 0);
             pickPlaceHistoryItems[iitem].object_uri = GetJsonValueByKey<std::string,std::string>(rItem, "object_uri", std::string());
 
@@ -610,14 +631,10 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
             pickPlaceHistoryItems[iitem].sensorTimeStampUS = GetJsonValueByKey<unsigned long long>(rItem, "sensorTimeStampUS", 0);
         }
     }
-
-    
-    LoadJsonValueByKey(v, "currentToolValues", currentToolValues);
-    LoadJsonValueByKey(v, "currentJointValues", currentJointValues);
-    LoadJsonValueByKey(v, "jointNames", jointNames);
 }
 
 BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionInfo::RegisterMinViableRegionInfo() :
+    objectWeight(0.0),
     sensortimestamp(0),
     robotDepartStopTimestamp(0),
     transferSpeedMult(1.0),
@@ -636,6 +653,7 @@ BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionInfo::M
     cornerMask(0)
 {
     size2D.fill(0);
+    maxPossibleSize.fill(0);
 }
 
 BinPickingTaskResource::ResultGetBinpickingState::RemoveObjectFromObjectListInfo::RemoveObjectFromObjectListInfo() :
@@ -1166,14 +1184,14 @@ void BinPickingTaskResource::UpdateObjects(const std::string& objectname, const 
     ExecuteCommand(_ss.str(), d, timeout); // need to check return code
 }
 
-void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<float>&vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp, const unsigned long long endtimestamp, const bool executionverification, const std::string& unit, int isoccluded, const std::string& regionname, const double timeout, bool clampToContainer, CropContainerMarginsXYZXYZPtr pCropContainerMargins, AddPointOffsetInfoPtr pAddPointOffsetInfo)
+void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<float>&vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp, const unsigned long long endtimestamp, const bool executionverification, const std::string& unit, int isoccluded, const std::string& locationName, const double timeout, bool clampToContainer, CropContainerMarginsXYZXYZPtr pCropContainerMargins, AddPointOffsetInfoPtr pAddPointOffsetInfo)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "AddPointCloudObstacle";
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("tasktype", _tasktype) << ", ";
     _ss << GetJsonString("isoccluded", isoccluded) << ", ";
-    _ss << GetJsonString("regionname", regionname) << ", ";
+    _ss << GetJsonString("locationName", locationName) << ", ";
     _ss << GetJsonString("clampToContainer", clampToContainer) << ", ";
     if( !!pCropContainerMargins ) {
         _ss << "\"cropContainerMarginsXYZXYZ\":[" << pCropContainerMargins->minMargins[0] << ", " << pCropContainerMargins->minMargins[1] << ", " << pCropContainerMargins->minMargins[2] << ", " << pCropContainerMargins->maxMargins[0] << ", " << pCropContainerMargins->maxMargins[1] << ", " << pCropContainerMargins->maxMargins[2] << "], ";
@@ -1191,25 +1209,25 @@ void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<float>&vpoi
     pointcloudobstacle.points = vpoints;
     _ss << GetJsonString(pointcloudobstacle);
 
-    if (executionverification) {
-        _ss << ", \"starttimestamp\": " << starttimestamp;
-        _ss << ", \"endtimestamp\": " << endtimestamp;
-        _ss << ", \"executionverification\": " << (int) executionverification;
-    }
+    // send timestamp regardless of the pointcloud definition
+    _ss << ", \"starttimestamp\": " << starttimestamp;
+    _ss << ", \"endtimestamp\": " << endtimestamp;
+    _ss << ", \"executionverification\": " << (int) executionverification;
+
     _ss << ", " << GetJsonString("unit", unit);
     _ss << "}";
     rapidjson::Document rResult;
     ExecuteCommand(_ss.str(), rResult, timeout); // need to check return code
 }
 
-void BinPickingTaskResource::UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<float>& vpoints, const std::string& state, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit, const double timeout, const std::string& regionname, const std::string& locationIOName, const std::vector<std::string>& cameranames, CropContainerMarginsXYZXYZPtr pCropContainerMargins)
+void BinPickingTaskResource::UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<float>& vpoints, const std::string& state, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit, const double timeout, const std::string& locationName, const std::string& locationIOName, const std::vector<std::string>& cameranames, CropContainerMarginsXYZXYZPtr pCropContainerMargins)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "UpdateEnvironmentState";
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("tasktype", _tasktype) << ", ";
     _ss << GetJsonString("objectname", objectname) << ", ";
-    _ss << GetJsonString("regionname", regionname) << ", ";
+    _ss << GetJsonString("locationName", locationName) << ", ";
     _ss << GetJsonString("locationIOName", locationIOName) << ", ";
     _ss << "\"cameranames\":" << GetJsonString(cameranames) << ", ";
     _ss << GetJsonString("envstate") << ": [";
@@ -1368,6 +1386,7 @@ void BinPickingTaskResource::GetInstObjectInfoFromURI(const std::string& objectu
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "GetInstObjectInfoFromURI";
     _ss << GetJsonString("command", command) << ", ";
+    _ss << GetJsonString("unit", unit) << ", ";
     _ss << "\"objecturi\":" << GetJsonString(objecturi) << ", ";
     _ss << "\"instobjectpose\":[";
     _ss << instobjecttransform.quaternion[0] << ", " << instobjecttransform.quaternion[1] << ", " << instobjecttransform.quaternion[2] << ", " << instobjecttransform.quaternion[3] << ", ";
@@ -1394,11 +1413,12 @@ void BinPickingTaskResource::GetPublishedTaskState(ResultGetBinpickingState& res
     }
 
     if (taskstate.timestamp == 0) {
-        MUJIN_LOG_INFO("have not received published message yet, getting published state from GetBinpickingState() or GetITLState()");
         if (_tasktype == "binpicking") {
+            MUJIN_LOG_INFO("Have not received published message yet, getting published state from GetBinpickingState()");
             GetBinpickingState(result, robotname, unit, timeout);
         }
         else {
+            MUJIN_LOG_INFO("Have not received published message yet, getting published state from GetITLState()");
             GetITLState(result, robotname, unit, timeout);
         }
         {
@@ -1412,7 +1432,7 @@ void BinPickingTaskResource::GetPublishedTaskState(ResultGetBinpickingState& res
 
 void BinPickingTaskResource::GetBinpickingState(ResultGetBinpickingState& result, const std::string& robotname, const std::string& unit, const double timeout)
 {
-    SerializeGetStateCommand(_ss, _mapTaskParameters, "GetBinpickingState", _tasktype, robotname, unit, timeout);
+    SerializeGetStateCommand(_ss, _mapTaskParameters, "GetState", _tasktype, robotname, unit, timeout);
     rapidjson::Document pt(rapidjson::kObjectType);
     ExecuteCommand(_ss.str(), pt, timeout);
     result.Parse(pt);
@@ -1420,7 +1440,7 @@ void BinPickingTaskResource::GetBinpickingState(ResultGetBinpickingState& result
 
 void BinPickingTaskResource::GetITLState(ResultGetBinpickingState& result, const std::string& robotname, const std::string& unit, const double timeout)
 {
-    SerializeGetStateCommand(_ss, _mapTaskParameters, "GetITLState", _tasktype, robotname, unit, timeout);
+    SerializeGetStateCommand(_ss, _mapTaskParameters, "GetState", _tasktype, robotname, unit, timeout);
     rapidjson::Document pt(rapidjson::kObjectType);
     ExecuteCommand(_ss.str(), pt, timeout);
     result.Parse(pt);
@@ -1625,8 +1645,6 @@ void BinPickingTaskResource::ExecuteCommand(const std::string& taskparameters, r
 
     GETCONTROLLERIMPL();
 
-    std::string callerid = str(boost::format("controllerclientcpp%s_web")%MUJINCLIENT_VERSION_STRING);
-
     std::stringstream ss; ss << std::setprecision(std::numeric_limits<double>::digits10+1);
     ss << "{\"tasktype\": \"" << _tasktype << "\", \"taskparameters\": " << taskparameters << ", ";
     ss << "\"sceneparams\": " << _sceneparams_json << ", ";
@@ -1635,12 +1653,10 @@ void BinPickingTaskResource::ExecuteCommand(const std::string& taskparameters, r
         ss << GetJsonString("slaverequestid", _slaverequestid) << ", ";
     }
     ss << "\"stamp\": " << (GetMilliTime()*1e-3) << ", ";
-    ss << "\"callerid\": \"" << callerid << "\"";
+    ss << "\"callerid\": \"" << _GetCallerId() << "\"";
     ss << "}";
-    const std::string taskgoalput = ss.str();
     rapidjson::Document pt(rapidjson::kObjectType);
-    controller->CallPutJSON(str(boost::format("task/%s/?format=json")%GetPrimaryKey()), taskgoalput, pt);
-    //controller->CallGet(str(boost::format("scene/%s/resultget") % _scenepk), taskgoalput, pt);
+    controller->CallPutJSON(str(boost::format("task/%s/?format=json")%GetPrimaryKey()), ss.str(), pt);
     Execute();
 
     double secondspassed = 0;
@@ -1662,6 +1678,11 @@ void BinPickingTaskResource::ExecuteCommand(const std::string& taskparameters, r
             throw MujinException("operation timed out after " +ss.str() + " seconds, cancelling all jobs and quitting", MEC_Timeout);
         }
     }
+}
+
+void BinPickingTaskResource::ExecuteCommand(rapidjson::Value& rTaskParameters, rapidjson::Document& rOutput, const double timeout)
+{
+    BOOST_ASSERT(0); // not supported
 }
 
 void utils::GetAttachedSensors(SceneResource& scene, const std::string& bodyname, std::vector<RobotResource::AttachedSensorResourcePtr>& attachedsensors)
@@ -1701,7 +1722,7 @@ void utils::GetSensorTransform(SceneResource& scene, const std::string& bodyname
                 Transform transform;
                 std::copy(cameraobj->attachedsensors.at(i).quaternion, cameraobj->attachedsensors.at(i).quaternion+4, transform.quaternion);
                 std::copy(cameraobj->attachedsensors.at(i).translate, cameraobj->attachedsensors.at(i).translate+3, transform.translate);
-                if (unit == "m") {
+                if (unit == "m") { //?!
                     transform.translate[0] *= 0.001;
                     transform.translate[1] *= 0.001;
                     transform.translate[2] *= 0.001;
@@ -1732,82 +1753,6 @@ void utils::DeleteObject(SceneResource& scene, const std::string& name)
     }
 }
 
-void utils::UpdateObjects(SceneResource& scene,const std::string& basename, const std::vector<BinPickingTaskResource::DetectedObject>&detectedobjects, const std::string& unit)
-{
-    std::vector<SceneResource::InstObjectPtr> oldinstobjects;
-    std::vector<SceneResource::InstObjectPtr> oldtargets;
-
-    // get all instobjects from mujin controller
-    scene.GetInstObjects(oldinstobjects);
-    for(unsigned int i = 0; i < oldinstobjects.size(); ++i) {
-        const std::size_t found_at = oldinstobjects[i]->name.find(basename);
-        if (found_at != std::string::npos) {
-            oldtargets.push_back(oldinstobjects[i]);
-        }
-    }
-
-    std::vector<InstanceObjectState> state_update_pool;
-    std::vector<SceneResource::InstObjectPtr> instobject_update_pool;
-    std::vector<Transform> transform_create_pool;
-    std::vector<std::string> name_create_pool;
-
-    Real conversion = 1.0f;
-    if (unit=="m") {
-        // detectedobject->translation is in meter, need to convert to millimeter
-        conversion = 1000.0f;
-    }
-
-    for (unsigned int obj_i = 0; obj_i < detectedobjects.size(); ++obj_i) {
-        Transform objecttransform;
-        objecttransform.translate[0] = detectedobjects[obj_i].transform.translate[0] * conversion;
-        objecttransform.translate[1] = detectedobjects[obj_i].transform.translate[1] * conversion;
-        objecttransform.translate[2] = detectedobjects[obj_i].transform.translate[2] * conversion;
-        objecttransform.quaternion[0] = detectedobjects[obj_i].transform.quaternion[0];
-        objecttransform.quaternion[1] = detectedobjects[obj_i].transform.quaternion[1];
-        objecttransform.quaternion[2] = detectedobjects[obj_i].transform.quaternion[2];
-        objecttransform.quaternion[3] = detectedobjects[obj_i].transform.quaternion[3];
-
-        if ( oldtargets.size() == 0 ) {
-            // create new object
-            transform_create_pool.push_back(objecttransform);
-            const std::string name = boost::str(boost::format("%s_%d")%basename%obj_i);
-            name_create_pool.push_back(name);
-        } else {
-            int nearest_index = 0;
-            double maxdist = (std::numeric_limits<double>::max)();
-            // update existing object
-            for (unsigned int j = 0; j < oldtargets.size(); ++j) {
-                double dist=0;
-                for (int x = 0; x < 3; x++) {
-                    dist += std::pow(objecttransform.translate[x] - oldtargets[j]->translate[x], 2);
-                }
-                if ( dist < maxdist ) {
-                    nearest_index = j;
-                    maxdist = dist;
-                }
-            }
-            instobject_update_pool.push_back(oldtargets[nearest_index]);
-            InstanceObjectState state;
-            state.transform = objecttransform;
-            state_update_pool.push_back(state);
-            oldtargets.erase(oldtargets.begin() + nearest_index);
-        }
-    }
-    // remove non-existent oldtargets
-    for(unsigned int i = 0; i < oldtargets.size(); i++) {
-        oldtargets[i]->Delete();
-    }
-
-    // update existing objects
-    if (instobject_update_pool.size() != 0 ) {
-        scene.SetInstObjectsState(instobject_update_pool, state_update_pool);
-    }
-    // create new objects
-    for(unsigned int i = 0; i < name_create_pool.size(); i++) {
-        scene.CreateInstObject(name_create_pool[i], ("mujin:/"+basename+".mujin.dae"), transform_create_pool[i].quaternion, transform_create_pool[i].translate);
-    }
-}
-
 void BinPickingTaskResource::_HeartbeatMonitorThread(const double reinitializetimeout, const double commandtimeout)
 {
 #ifdef MUJIN_USEZMQ
@@ -1819,9 +1764,13 @@ void BinPickingTaskResource::_HeartbeatMonitorThread(const double reinitializeti
             socket.reset();
         }
         socket.reset(new zmq::socket_t((*_zmqcontext.get()),ZMQ_SUB));
+        socket->setsockopt(ZMQ_TCP_KEEPALIVE, 1); // turn on tcp keepalive, do these configuration before connect
+        socket->setsockopt(ZMQ_TCP_KEEPALIVE_IDLE, 2); // the interval between the last data packet sent (simple ACKs are not considered data) and the first keepalive probe; after the connection is marked to need keepalive, this counter is not used any further
+        socket->setsockopt(ZMQ_TCP_KEEPALIVE_INTVL, 2); // the interval between subsequential keepalive probes, regardless of what the connection has exchanged in the meantime
+        socket->setsockopt(ZMQ_TCP_KEEPALIVE_CNT, 2); // the number of unacknowledged probes to send before considering the connection dead and notifying the application layer
         std::stringstream ss; ss << std::setprecision(std::numeric_limits<double>::digits10+1);
         ss << _heartbeatPort;
-        socket->connect (("tcp://"+ _mujinControllerIp+":"+ss.str()).c_str());
+        socket->connect(("tcp://"+ _mujinControllerIp+":"+ss.str()).c_str());
         socket->setsockopt(ZMQ_SUBSCRIBE, "", 0);
 
         zmq::pollitem_t pollitem;

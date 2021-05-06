@@ -180,6 +180,9 @@ ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::AddGeometryFro
     const std::string geometryPk = controller->CreateObjectGeometry(this->objectpk, name, linkpk, "mesh", timeout);
 
     ObjectResource::GeometryResourcePtr geometry(new GeometryResource(controller, this->objectpk, geometryPk));
+    geometry->name = name;
+    geometry->geomtype = "mesh";
+    geometry->linkpk = linkpk;
     geometry->SetGeometryFromRawSTL(rawstldata, unit, timeout);
     return geometry;
 }
@@ -191,6 +194,9 @@ ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::AddPrimitiveGe
     const std::string geometryPk = controller->CreateObjectGeometry(this->objectpk, name, linkpk, geomtype, timeout);
 
     ObjectResource::GeometryResourcePtr geometry(new GeometryResource(controller, this->objectpk, geometryPk));
+    geometry->name = name;
+    geometry->geomtype = geomtype;
+    geometry->linkpk = linkpk;
     return geometry;
 }
 
@@ -360,7 +366,10 @@ ObjectResource::LinkResourcePtr ObjectResource::AddLink(const std::string& name,
     GETCONTROLLERIMPL();
     const std::string linkPk = controller->CreateLink(this->pk, "", name,quaternion, translate);
 
-    return ObjectResource::LinkResourcePtr(new LinkResource(controller, this->pk, linkPk));
+    ObjectResource::LinkResourcePtr link(new LinkResource(controller, this->pk, linkPk));
+    link->name = name;
+    link->parentlinkpk = "";
+    return link;
 }
 
 ObjectResource::LinkResourcePtr ObjectResource::LinkResource::AddChildLink(const std::string& name, const Real quaternion[4], const Real translate[3])
@@ -368,7 +377,10 @@ ObjectResource::LinkResourcePtr ObjectResource::LinkResource::AddChildLink(const
     GETCONTROLLERIMPL();
     const std::string linkPk = controller->CreateLink(this->objectpk, this->pk, name,quaternion, translate);
 
-    return ObjectResource::LinkResourcePtr(new LinkResource(controller, this->objectpk, linkPk));
+    ObjectResource::LinkResourcePtr link(new LinkResource(controller, this->objectpk, linkPk));
+    link->name = name;
+    link->parentlinkpk = this->pk;
+    return link;
 }
 
 ObjectResource::IkParamResourcePtr ObjectResource::AddIkParam(const std::string& name, const std::string& iktype)
@@ -601,17 +613,22 @@ TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& t
     // task exists
     std::string pk;
 
+    std::string tasktype_internal = tasktype;
+    if( tasktype == "realtimeitlplanning" ) {
+        tasktype_internal = "realtimeitlplanning3";
+    }
+
     if (pt.IsObject() && pt.HasMember("objects") && pt["objects"].IsArray() && pt["objects"].Size() > 0) {
         rapidjson::Value& objects = pt["objects"];
         pk = GetJsonValueByKey<std::string>(objects[0], "pk");
         std::string currenttasktype = GetJsonValueByKey<std::string>(objects[0], "tasktype");
-        if( currenttasktype != tasktype ) {
-            throw MUJIN_EXCEPTION_FORMAT("task pk %s exists and has type %s, expected is %s", pk%currenttasktype%tasktype, MEC_InvalidState);
+        if( currenttasktype != tasktype_internal && (currenttasktype != "realtimeitlplanning" || tasktype_internal != "realtimeitlplanning3")) {
+            throw MUJIN_EXCEPTION_FORMAT("task pk %s exists and has type %s, expected is %s", pk%currenttasktype%tasktype_internal, MEC_InvalidState);
         }
     }
     else {
         pt.SetObject();
-        controller->CallPost(str(boost::format("scene/%s/task/?format=json&fields=pk")%GetPrimaryKey()), str(boost::format("{\"name\":\"%s\", \"tasktype\":\"%s\", \"scenepk\":\"%s\"}")%taskname%tasktype%GetPrimaryKey()), pt);
+        controller->CallPost(str(boost::format("scene/%s/task/?format=json&fields=pk")%GetPrimaryKey()), str(boost::format("{\"name\":\"%s\", \"tasktype\":\"%s\", \"scenepk\":\"%s\"}")%taskname%tasktype_internal%GetPrimaryKey()), pt);
         LoadJsonValueByKey(pt, "pk", pk);
     }
 
@@ -619,11 +636,11 @@ TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& t
         return TaskResourcePtr();
     }
 
-    if( tasktype == "binpicking" || tasktype == "realtimeitlplanning") {
+    if( tasktype_internal == "binpicking" || tasktype_internal == "realtimeitlplanning3") {
         BinPickingTaskResourcePtr task;
         if( options & 1 ) {
 #ifdef MUJIN_USEZMQ
-            task.reset(new BinPickingTaskZmqResource(GetController(), pk, GetPrimaryKey(), tasktype));
+            task.reset(new BinPickingTaskZmqResource(GetController(), pk, GetPrimaryKey(), tasktype_internal));
 #else
             throw MujinException("cannot create binpicking zmq task since not compiled with zeromq library", MEC_Failed);
 #endif
@@ -633,7 +650,7 @@ TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& t
         }
         return task;
     }
-    else if( tasktype == "cablepicking" ) { // TODO create CablePickingTaskResource
+    else if( tasktype_internal == "cablepicking" ) { // TODO create CablePickingTaskResource
         BinPickingTaskResourcePtr task;
         if( options & 1 ) {
 #ifdef MUJIN_USEZMQ
@@ -753,24 +770,45 @@ void SceneResource::GetSensorMapping(std::map<std::string, std::string>& sensorm
 {
     GETCONTROLLERIMPL();
     sensormapping.clear();
-    rapidjson::Document pt(rapidjson::kObjectType);
-    controller->CallGet(str(boost::format("scene/%s/instobject/?format=json&limit=0")%GetPrimaryKey()), pt);
-    rapidjson::Value& objects = pt["objects"];
-    for (rapidjson::Document::ValueIterator it = objects.Begin(); it != objects.End(); ++it) {
-        if ( it->HasMember("attachedsensors") ) {
-            rapidjson::Value& jsonattachedsensors = (*it)["attachedsensors"];
-            if (jsonattachedsensors.IsArray() && jsonattachedsensors.Size() > 0) {
-                std::string object_pk = GetJsonValueByKey<std::string>(*it, "object_pk");
-                std::string cameracontainername = GetJsonValueByKey<std::string>(*it, "name");
-                rapidjson::Document pt_robot(rapidjson::kObjectType);
-                controller->CallGet(str(boost::format("robot/%s/attachedsensor/?format=json")%object_pk), pt_robot);
-                rapidjson::Value& pt_attachedsensors = pt_robot["attachedsensors"];
-                for (rapidjson::Document::ValueIterator itsensor = pt_attachedsensors.Begin();
-                     itsensor != pt_attachedsensors.End(); ++itsensor) {
-                    std::string sensorname = GetJsonValueByKey<std::string>(*itsensor, "name");
-                    std::string camerafullname = str(boost::format("%s/%s")%cameracontainername%sensorname);
-                    std::string cameraid = GetJsonValueByPath<std::string>(*itsensor, "/sensordata/hardware_id");
-                    sensormapping[camerafullname] = cameraid;
+    rapidjson::Document rInstObjects(rapidjson::kObjectType);
+    controller->CallGet(str(boost::format("scene/%s/instobject/?format=json&limit=0&fields=attachedsensors,connectedBodies,object_pk,name")%GetPrimaryKey()), rInstObjects);
+    for (rapidjson::Document::ConstValueIterator itInstObject = rInstObjects["objects"].Begin(); itInstObject != rInstObjects["objects"].End(); ++itInstObject) {
+        std::string cameracontainername = GetJsonValueByKey<std::string>(*itInstObject, "name");
+        std::string objectPk = GetJsonValueByKey<std::string>(*itInstObject, "object_pk");
+        if ( itInstObject->HasMember("attachedsensors") && (*itInstObject)["attachedsensors"].IsArray() && (*itInstObject)["attachedsensors"].Size() > 0) {
+            rapidjson::Document rRobotAttachedSensors(rapidjson::kObjectType);
+            controller->CallGet(str(boost::format("robot/%s/attachedsensor/?format=json")%objectPk), rRobotAttachedSensors);
+            const rapidjson::Value& rAttachedSensors = rRobotAttachedSensors["attachedsensors"];
+            for (rapidjson::Document::ConstValueIterator itAttachedSensor = rAttachedSensors.Begin(); itAttachedSensor != rAttachedSensors.End(); ++itAttachedSensor) {
+                std::string sensorname = GetJsonValueByKey<std::string>(*itAttachedSensor, "name");
+                std::string camerafullname = str(boost::format("%s/%s")%cameracontainername%sensorname);
+                std::string cameraid = GetJsonValueByPath<std::string>(*itAttachedSensor, "/sensordata/hardware_id");
+                sensormapping[camerafullname] = cameraid;
+            }
+        }
+        if ( itInstObject->HasMember("connectedBodies") && (*itInstObject)["connectedBodies"].IsArray() && (*itInstObject)["connectedBodies"].Size() > 0 ) {
+            rapidjson::Document rRobotConnectedBodies(rapidjson::kObjectType);
+            controller->CallGet(str(boost::format("robot/%s/connectedBody/?format=json")%objectPk), rRobotConnectedBodies);
+            rapidjson::Value& rConnectedBodies = rRobotConnectedBodies["connectedBodies"];
+            for (rapidjson::Document::ConstValueIterator itConnectedBody = rConnectedBodies.Begin(); itConnectedBody != rConnectedBodies.End(); ++itConnectedBody) {
+                std::string connectedBodyScenePk = controller->GetScenePrimaryKeyFromURI_UTF8(GetJsonValueByKey<std::string>(*itConnectedBody, "url"));
+                std::string connectedBodyName = GetJsonValueByKey<std::string>(*itConnectedBody, "name");
+                rapidjson::Document rConnectedBodyInstObjects(rapidjson::kObjectType);
+                controller->CallGet(str(boost::format("scene/%s/instobject/?format=json&limit=0&fields=attachedsensors,object_pk,name")%connectedBodyScenePk), rConnectedBodyInstObjects);
+                for (rapidjson::Document::ConstValueIterator itConnectedBodyInstObject = rConnectedBodyInstObjects["objects"].Begin(); itConnectedBodyInstObject != rConnectedBodyInstObjects["objects"].End(); ++itConnectedBodyInstObject) {
+                    if (!itConnectedBodyInstObject->HasMember("attachedsensors") || !(*itConnectedBodyInstObject)["attachedsensors"].IsArray() || (*itConnectedBodyInstObject)["attachedsensors"].Size() == 0) {
+                        continue;
+                    }
+                    std::string connectedBodyObjectPk = GetJsonValueByKey<std::string>(*itConnectedBodyInstObject, "object_pk");
+                    rapidjson::Document rConnectedBodyRobotAttachedSensors(rapidjson::kObjectType);
+                    controller->CallGet(str(boost::format("robot/%s/attachedsensor/?format=json")%connectedBodyObjectPk), rConnectedBodyRobotAttachedSensors);
+                    rapidjson::Value& rConnectedBodyAttachedSensors = rConnectedBodyRobotAttachedSensors["attachedsensors"];
+                    for (rapidjson::Document::ConstValueIterator itConnectedBodyAttachedSensor = rConnectedBodyAttachedSensors.Begin(); itConnectedBodyAttachedSensor != rConnectedBodyAttachedSensors.End(); ++itConnectedBodyAttachedSensor) {
+                        std::string sensorname = GetJsonValueByKey<std::string>(*itConnectedBodyAttachedSensor, "name");
+                        std::string camerafullname = str(boost::format("%s/%s_%s")%cameracontainername%connectedBodyName%sensorname);
+                        std::string cameraid = GetJsonValueByPath<std::string>(*itConnectedBodyAttachedSensor, "/sensordata/hardware_id");
+                        sensormapping[camerafullname] = cameraid;
+                    }
                 }
             }
         }

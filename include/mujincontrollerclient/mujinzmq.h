@@ -57,6 +57,10 @@ public:
 
     bool Publish(const std::string& messagestr);
 
+    inline boost::shared_ptr<zmq::socket_t> GetSocket() {
+        return _socket;
+    }
+
 protected:
     void _InitializeSocket(boost::shared_ptr<zmq::context_t> context);
     void _DestroySocket();

@@ -1320,8 +1320,6 @@ bool ControllerClientImpl::GetUpgradeStatus(std::string& status, double &progres
 
 void ControllerClientImpl::CancelUpgrade(double timeout)
 {
-    boost::mutex::scoped_lock lock(_mutex);
-    rapidjson::Document pt(rapidjson::kObjectType);
     CallDelete(_baseuri+"upgrade/", 200, timeout);
 }
 
@@ -1827,7 +1825,7 @@ void ControllerClientImpl::_DeleteFileOnController(const std::string& desturi)
     std::string filename = desturi.substr(_basewebdavuri.size());
 
     rapidjson::Document pt(rapidjson::kObjectType);
-    _CallPost(_baseuri+"file/delete/", std::string("filename=")+filename, pt, 200, 5.0);
+    _CallPost(_baseuri+"file/delete/?filename="+filename, "", pt, 200, 5.0);
 }
 
 void ControllerClientImpl::_DeleteDirectoryOnController(const std::string& desturi)
