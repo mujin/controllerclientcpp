@@ -1415,11 +1415,12 @@ void BinPickingTaskResource::GetPublishedTaskState(ResultGetBinpickingState& res
     }
 
     if (taskstate.timestamp == 0) {
-        MUJIN_LOG_INFO("have not received published message yet, getting published state from GetBinpickingState() or GetITLState()");
         if (_tasktype == "binpicking") {
+            MUJIN_LOG_INFO("Have not received published message yet, getting published state from GetBinpickingState()");
             GetBinpickingState(result, robotname, unit, timeout);
         }
         else {
+            MUJIN_LOG_INFO("Have not received published message yet, getting published state from GetITLState()");
             GetITLState(result, robotname, unit, timeout);
         }
         {
@@ -1433,7 +1434,7 @@ void BinPickingTaskResource::GetPublishedTaskState(ResultGetBinpickingState& res
 
 void BinPickingTaskResource::GetBinpickingState(ResultGetBinpickingState& result, const std::string& robotname, const std::string& unit, const double timeout)
 {
-    SerializeGetStateCommand(_ss, _mapTaskParameters, "GetBinpickingState", _tasktype, robotname, unit, timeout);
+    SerializeGetStateCommand(_ss, _mapTaskParameters, "GetState", _tasktype, robotname, unit, timeout);
     rapidjson::Document pt(rapidjson::kObjectType);
     ExecuteCommand(_ss.str(), pt, timeout);
     result.Parse(pt);
@@ -1441,7 +1442,7 @@ void BinPickingTaskResource::GetBinpickingState(ResultGetBinpickingState& result
 
 void BinPickingTaskResource::GetITLState(ResultGetBinpickingState& result, const std::string& robotname, const std::string& unit, const double timeout)
 {
-    SerializeGetStateCommand(_ss, _mapTaskParameters, "GetITLState", _tasktype, robotname, unit, timeout);
+    SerializeGetStateCommand(_ss, _mapTaskParameters, "GetState", _tasktype, robotname, unit, timeout);
     rapidjson::Document pt(rapidjson::kObjectType);
     ExecuteCommand(_ss.str(), pt, timeout);
     result.Parse(pt);
