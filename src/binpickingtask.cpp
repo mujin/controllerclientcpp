@@ -432,11 +432,11 @@ void BinPickingTaskResource::ResultInstObjectInfo::Parse(const rapidjson::Value&
     instobjectinnerobb.Parse(rOutput["innerobb"]);
 
     if( rOutput.HasMember("geometryInfos") ) {
-        rGeometryInfos.CopyFrom(rOutput["geometryInfos"], rGeometryInfos.GetAllocator());
+        mujinjson::SaveJsonValue(rGeometryInfos, rOutput["geometryInfos"]);
     }
 
     if( rOutput.HasMember("ikparams") ) {
-        rIkParams.CopyFrom(rOutput["ikparams"], rIkParams.GetAllocator());
+        mujinjson::SaveJsonValue(rIkParams, rOutput["ikparams"]);
     }
 }
 
@@ -467,7 +467,7 @@ void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const rapid
 
         if( it->value.HasMember("geometryInfos") ) {
             boost::shared_ptr<rapidjson::Document> pr(new rapidjson::Document());;
-            pr->CopyFrom(it->value["geometryInfos"], pr->GetAllocator());
+            mujinjson::SaveJsonValue(*pr, it->value["geometryInfos"]);
             mrGeometryInfos[objname] = pr;
         }
     }
@@ -803,7 +803,7 @@ void BinPickingTaskResource::ResultHeartBeat::Parse(const rapidjson::Value& pt)
         std::string key = "slaverequestid-" + _slaverequestid;
         //try {
         if (pt["slavestates"].HasMember(key.c_str()) && pt["slavestates"][key.c_str()].HasMember("taskstate")) {
-            taskstatejson.CopyFrom(pt["slavestates"][key.c_str()]["taskstate"], taskstatejson.GetAllocator());
+            mujinjson::SaveJsonValue(taskstatejson, pt["slavestates"][key.c_str()]["taskstate"]);
             SetJsonValueByKey(d, "output", taskstatejson);
             taskstate.Parse(d);
         }
