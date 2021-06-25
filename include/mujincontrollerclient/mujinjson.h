@@ -156,7 +156,7 @@ inline void ParseJson(rapidjson::Document& d, const std::string& str) {
         } else {
             substr = str;
         }
-        throw MujinJSONException(boost::str(boost::format("Json string is invalid (offset %u) %s str=%s")%((unsigned)d.GetErrorOffset())%GetParseError_En(d.GetParseError())%substr), MJE_Failed);
+        throw MujinJSONException(boost::str(boost::format("Json string is invalid (offset %u) %s str=%s")%((unsigned)tempDoc.GetErrorOffset())%GetParseError_En(tempDoc.GetParseError())%substr), MJE_Failed);
     }
     d.Swap(tempDoc);
 }
@@ -167,7 +167,7 @@ inline void ParseJson(rapidjson::Document& d, std::istream& is) {
     rapidjson::Document(tempDoc);
     tempDoc.ParseStream<rapidjson::kParseFullPrecisionFlag>(isw); // parse float in full precision mode
     if (tempDoc.HasParseError()) {
-        throw MujinJSONException(boost::str(boost::format("Json stream is invalid (offset %u) %s")%((unsigned)d.GetErrorOffset())%GetParseError_En(d.GetParseError())), MJE_Failed);
+        throw MujinJSONException(boost::str(boost::format("Json stream is invalid (offset %u) %s")%((unsigned)tempDoc.GetErrorOffset())%GetParseError_En(tempDoc.GetParseError())), MJE_Failed);
     }
     d.Swap(tempDoc);
 }
