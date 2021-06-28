@@ -1888,6 +1888,26 @@ void ControllerClientImpl::GetDebugInfos(std::vector<DebugResourcePtr>& debuginf
     }
 }
 
+void ControllerClientImpl::ResultGetSystemInfo::Parse(const rapidjson::Value& pt)
+{
+    LoadJsonValueByKey(pt, "id", id);
+    LoadJsonValueByKey(pt, "product", product);
+    LoadJsonValueByKey(pt, "hardware", hardware);
+    LoadJsonValueByKey(pt, "controllerId", controllerId);
+    LoadJsonValueByKey(pt, "productId", productId);
+    LoadJsonValueByKey(pt, "hardwareModel", hardwareModel);
+    LoadJsonValueByKey(pt, "kernelVersion", kernelVersion);
+    LoadJsonValueByKey(pt, "systemVersion", systemVersion);
+    LoadJsonValueByKey(pt, "applicationVersion", applicationVersion);
+}
+
+void ControllerClientImpl::GetSystemInfo(ResultGetSystemInfo& systeminfo, double timeout)
+{
+    rapidjson::Document pt(rapidjson::kObjectType);
+    _CallGet(str(boost::format(_baseuri+"systeminfo/?format=json")), pt, 200, timeout);
+    systeminfo.Parse(pt);
+}
+
 void ControllerClientImpl::ListFilesInController(std::vector<FileEntry>& fileentries, const std::string &dirname, double timeout)
 {
     rapidjson::Document pt(rapidjson::kObjectType);
