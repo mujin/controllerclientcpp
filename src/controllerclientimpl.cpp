@@ -1890,9 +1890,6 @@ void ControllerClientImpl::GetDebugInfos(std::vector<DebugResourcePtr>& debuginf
 
 void ControllerClientImpl::ResultGetSystemInfo::Parse(const rapidjson::Value& pt)
 {
-    LoadJsonValueByKey(pt, "id", id);
-    LoadJsonValueByKey(pt, "product", product);
-    LoadJsonValueByKey(pt, "hardware", hardware);
     LoadJsonValueByKey(pt, "controllerId", controllerId);
     LoadJsonValueByKey(pt, "productId", productId);
     LoadJsonValueByKey(pt, "hardwareModel", hardwareModel);

@@ -671,9 +671,6 @@ public:
     struct MUJINCLIENT_API ResultGetSystemInfo
     {
         void Parse(const rapidjson::Value& pt);
-        std::string id;
-        std::string product;
-        std::string hardware;
         std::string controllerId;
         std::string productId;
         std::string hardwareModel;
