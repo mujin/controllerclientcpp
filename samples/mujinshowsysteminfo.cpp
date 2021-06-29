@@ -92,9 +92,6 @@ int main(int argc, char ** argv)
 
     ControllerClient::ResultGetSystemInfo systeminfo;
     controllerclient->GetSystemInfo(systeminfo);
-    cout << "id: " << systeminfo.id << endl;
-    cout << "product: " << systeminfo.product << endl;
-    cout << "hardware: " << systeminfo.hardware << endl;
     cout << "controllerId: " << systeminfo.controllerId << endl;
     cout << "productId: " << systeminfo.productId << endl;
     cout << "hardwareModel: " << systeminfo.hardwareModel << endl;
