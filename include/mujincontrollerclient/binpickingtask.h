@@ -597,6 +597,14 @@ public:
         const rapidjson::Document &mvrResultInfo,
         double timeout /* second */=5.0);
 
+    virtual void SendRuntimeRegistrationManipPoses(
+        const rapidjson::Document &manipPosesInfo,
+        double timeout /* second */=5.0);
+
+    virtual void SendSendRuntimeRegistrationResult(
+        const rapidjson::Document &registrationResultInfo,
+        double timeout /* second */=5.0);
+
     // send result of RemoveObjectFromObjectList request
     virtual void SendRemoveObjectFromObjectListResult(const std::string& objectPk, bool success, double timeout /* second */=5.0);
 

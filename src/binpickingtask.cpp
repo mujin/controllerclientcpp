@@ -1051,7 +1051,26 @@ void BinPickingTaskResource::SendMVRRegistrationResult(
     _ss << "}";
     rapidjson::Document pt(rapidjson::kObjectType);
     ExecuteCommand(_ss.str(), pt, timeout);
+}
 
+void BinPickingTaskResource::SendRuntimeRegistrationManipPoses(const rapidjson::Document &manipPosesInfo, double timeout)
+{
+    SetMapTaskParameters(_ss, _mapTaskParameters);
+    _ss << GetJsonString("command", "SendRuntimeRegistrationManipPoses") << ", ";
+    _ss << GetJsonString("manipPosesInfo", DumpJson(manipPosesInfo)) << ", ";
+    _ss << "}";
+    rapidjson::Document pt(rapidjson::kObjectType);
+    ExecuteCommand(_ss.str(), pt, timeout);
+}
+
+void BinPickingTaskResource::SendSendRuntimeRegistrationResult(const rapidjson::Document &registrationResultInfo, double timeout)
+{
+    SetMapTaskParameters(_ss, _mapTaskParameters);
+    _ss << GetJsonString("command", "SendSendRuntimeRegistrationResult") << ", ";
+    _ss << GetJsonString("registrationResultInfo", DumpJson(registrationResultInfo)) << ", ";
+    _ss << "}";
+    rapidjson::Document pt(rapidjson::kObjectType);
+    ExecuteCommand(_ss.str(), pt, timeout);
 }
 
 void BinPickingTaskResource::SendRemoveObjectFromObjectListResult(
