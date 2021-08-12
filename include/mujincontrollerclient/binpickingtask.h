@@ -231,6 +231,33 @@ public:
             }
         } registerMinViableRegionInfo;
 
+        /**
+         * Information needed to register a new object at runtime
+         */
+        struct RuntimeRegistrationInfo
+        {
+            RuntimeRegistrationInfo();
+
+            struct ObjectInfo
+            {
+                ObjectInfo();
+
+                int hypothesisId; ///< hypothesis id of the item. -1 means invalid.
+                std::string locationName; ///< The name of the location where the item was
+                double objectWeight; ///< If non-zero, use this weight fo registration. unit is kg. zero means unknown.
+                uint64_t sensorTimeStampMS; ///< sensor timestamp of the item
+            } objectInfo;
+
+            struct ManipPoseInfo
+            {
+                ManipPoseInfo();
+
+                int index; ///< pose index in the flow of this runtime registration
+                std::array<double, 3> translation; ///< translation of manipulator w.r.t. world
+                std::array<double, 4> quaternion; ///< quaternion of manipulator w.r.t. world
+            } manipPoseInfo;
+        } runtimeRegistrationInfo;
+
         struct RemoveObjectFromObjectListInfo {
             RemoveObjectFromObjectListInfo();
             double timestamp; // timestamp this request was sent. If non-zero, then valid.
