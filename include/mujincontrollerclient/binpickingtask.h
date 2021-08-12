@@ -255,6 +255,7 @@ public:
                 int index; ///< pose index in the flow of this runtime registration
                 std::array<double, 3> translation; ///< translation of manipulator w.r.t. world
                 std::array<double, 4> quaternion; ///< quaternion of manipulator w.r.t. world
+                std::string unit; ///< the unit of translation
             } manipPoseInfo;
         } runtimeRegistrationInfo;
 
