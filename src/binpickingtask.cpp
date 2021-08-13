@@ -581,7 +581,8 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/maxCandidateSize", registerMinViableRegionInfo.maxCandidateSize);
 
     runtimeRegistrationInfo.objectInfo.hypothesisId = GetJsonValueByPath<int>(v, "/runtimeRegistrationInfo/objectInfo/hypothesisId", -1);
-    runtimeRegistrationInfo.objectInfo.locationName = GetJsonValueByPath<std::string>(v, "/runtimeRegistrationInfo/objectInfo/locationName", "");
+    runtimeRegistrationInfo.objectInfo.pickLocationName = GetJsonValueByPath<std::string>(v, "/runtimeRegistrationInfo/objectInfo/pickLocationName", "");
+    runtimeRegistrationInfo.objectInfo.cameraLocationName = GetJsonValueByPath<std::string>(v, "/runtimeRegistrationInfo/objectInfo/cameraLocationName", "");
     runtimeRegistrationInfo.objectInfo.objectWeight = GetJsonValueByPath<double>(v, "/runtimeRegistrationInfo/objectInfo/objectWeight", 0.0);
     runtimeRegistrationInfo.objectInfo.sensorTimeStampMS = GetJsonValueByPath<uint64_t>(v, "/runtimeRegistrationInfo/objectInfo/sensorTimeStampMS", 0);
     runtimeRegistrationInfo.objectInfo.updateTimeStampMS = GetJsonValueByPath<uint64_t>(v, "/runtimeRegistrationInfo/objectInfo/updateTimeStampMS", 0);
@@ -590,7 +591,6 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     LoadJsonValueByPath(v, "/runtimeRegistrationInfo/manipPoseInfo/quaternion", runtimeRegistrationInfo.manipPoseInfo.quaternion);
     runtimeRegistrationInfo.manipPoseInfo.unit = GetJsonValueByPath<std::string>(v, "/runtimeRegistrationInfo/manipPoseInfo/unit", "mm");
     runtimeRegistrationInfo.manipPoseInfo.updateTimeStampMS = GetJsonValueByPath<uint64_t>(v, "/runtimeRegistrationInfo/manipPoseInfo/updateTimeStampMS", 0);
-    runtimeRegistrationInfo.manipPoseInfo.waitForTriggerOnCapturing = GetJsonValueByPath<bool>(v, "/runtimeRegistrationInfo/manipPoseInfo/waitForTriggerOnCapturing", false);
 
     removeObjectFromObjectListInfo.timestamp = GetJsonValueByPath<double>(v, "/removeObjectFromObjectList/timestamp", 0);
     removeObjectFromObjectListInfo.objectPk = GetJsonValueByPath<std::string>(v, "/removeObjectFromObjectList/objectPk", "");
@@ -674,7 +674,8 @@ BinPickingTaskResource::ResultGetBinpickingState::RuntimeRegistrationInfo::Runti
 
 BinPickingTaskResource::ResultGetBinpickingState::RuntimeRegistrationInfo::ObjectInfo::ObjectInfo() :
     hypothesisId(-1),
-    locationName(""),
+    pickLocationName(""),
+    cameraLocationName(""),
     objectWeight(0.0),
     sensorTimeStampMS(0),
     updateTimeStampMS(0)
