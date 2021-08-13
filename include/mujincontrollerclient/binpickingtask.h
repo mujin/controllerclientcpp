@@ -605,7 +605,7 @@ public:
         const rapidjson::Document &manipPosesInfo,
         double timeout /* second */=5.0);
 
-    virtual void SendSendRuntimeRegistrationResult(
+    virtual void SendRuntimeRegistrationResult(
         const rapidjson::Document &registrationResultInfo,
         double timeout /* second */=5.0);
 

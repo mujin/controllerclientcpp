@@ -1072,10 +1072,10 @@ void BinPickingTaskResource::SendRuntimeRegistrationManipPoses(const rapidjson::
     ExecuteCommand(_ss.str(), pt, timeout);
 }
 
-void BinPickingTaskResource::SendSendRuntimeRegistrationResult(const rapidjson::Document &registrationResultInfo, double timeout)
+void BinPickingTaskResource::SendRuntimeRegistrationResult(const rapidjson::Document &registrationResultInfo, double timeout)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
-    _ss << GetJsonString("command", "SendSendRuntimeRegistrationResult") << ", ";
+    _ss << GetJsonString("command", "SendRuntimeRegistrationResult") << ", ";
     _ss << GetJsonString("registrationResultInfo", DumpJson(registrationResultInfo)) << ", ";
     _ss << "}";
     rapidjson::Document pt(rapidjson::kObjectType);
