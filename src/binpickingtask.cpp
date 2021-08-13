@@ -687,8 +687,7 @@ BinPickingTaskResource::ResultGetBinpickingState::RuntimeRegistrationInfo::Manip
     translation({0, 0, 0}),
     quaternion({1, 0, 0, 0}),
     unit("mm"),
-    updateTimeStampMS(0),
-    waitForTriggerOnCapturing(false)
+    updateTimeStampMS(0)
 {
 }
 
