@@ -258,6 +258,7 @@ public:
                 std::array<double, 4> quaternion; ///< quaternion of manipulator w.r.t. world
                 std::string unit; ///< the unit of translation
                 uint64_t updateTimeStampMS; ///< timestamp this request was sent. If non-zero, then valid.
+                bool waitForTriggerOnCapturing; // if true, sensor will wait trigger on capturing
             } manipPoseInfo;
         } runtimeRegistrationInfo;
 

@@ -590,6 +590,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     LoadJsonValueByPath(v, "/runtimeRegistrationInfo/manipPoseInfo/quaternion", runtimeRegistrationInfo.manipPoseInfo.quaternion);
     runtimeRegistrationInfo.manipPoseInfo.unit = GetJsonValueByPath<std::string>(v, "/runtimeRegistrationInfo/manipPoseInfo/unit", "mm");
     runtimeRegistrationInfo.manipPoseInfo.updateTimeStampMS = GetJsonValueByPath<uint64_t>(v, "/runtimeRegistrationInfo/manipPoseInfo/updateTimeStampMS", 0);
+    runtimeRegistrationInfo.manipPoseInfo.waitForTriggerOnCapturing = GetJsonValueByPath<bool>(v, "/runtimeRegistrationInfo/manipPoseInfo/waitForTriggerOnCapturing", false);
 
     removeObjectFromObjectListInfo.timestamp = GetJsonValueByPath<double>(v, "/removeObjectFromObjectList/timestamp", 0);
     removeObjectFromObjectListInfo.objectPk = GetJsonValueByPath<std::string>(v, "/removeObjectFromObjectList/objectPk", "");
@@ -685,7 +686,8 @@ BinPickingTaskResource::ResultGetBinpickingState::RuntimeRegistrationInfo::Manip
     translation({0, 0, 0}),
     quaternion({1, 0, 0, 0}),
     unit("mm"),
-    updateTimeStampMS(0)
+    updateTimeStampMS(0),
+    waitForTriggerOnCapturing(false)
 {
 }
 
