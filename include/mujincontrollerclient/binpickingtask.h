@@ -244,7 +244,7 @@ public:
 
                 int hypothesisId; ///< hypothesis id of the item. -1 means invalid.
                 std::string pickLocationName; ///< The name of the location where the item was
-                std::string cameraLocationName; ///< The name of the location where a camera for registration is
+                std::string registrationLocationName; ///< The name of the location for registering object
                 double objectWeight; ///< If non-zero, use this weight fo registration. unit is kg. zero means unknown.
                 uint64_t sensorTimeStampMS; ///< sensor timestamp of the item. If non-zero, then valid.
                 uint64_t updateTimeStampMS; ///< timestamp this request was sent. If non-zero, then valid.

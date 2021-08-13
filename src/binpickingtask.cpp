@@ -582,7 +582,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
 
     runtimeRegistrationInfo.objectInfo.hypothesisId = GetJsonValueByPath<int>(v, "/runtimeRegistrationInfo/objectInfo/hypothesisId", -1);
     runtimeRegistrationInfo.objectInfo.pickLocationName = GetJsonValueByPath<std::string>(v, "/runtimeRegistrationInfo/objectInfo/pickLocationName", "");
-    runtimeRegistrationInfo.objectInfo.cameraLocationName = GetJsonValueByPath<std::string>(v, "/runtimeRegistrationInfo/objectInfo/cameraLocationName", "");
+    runtimeRegistrationInfo.objectInfo.registrationLocationName = GetJsonValueByPath<std::string>(v, "/runtimeRegistrationInfo/objectInfo/registrationLocationName", "");
     runtimeRegistrationInfo.objectInfo.objectWeight = GetJsonValueByPath<double>(v, "/runtimeRegistrationInfo/objectInfo/objectWeight", 0.0);
     runtimeRegistrationInfo.objectInfo.sensorTimeStampMS = GetJsonValueByPath<uint64_t>(v, "/runtimeRegistrationInfo/objectInfo/sensorTimeStampMS", 0);
     runtimeRegistrationInfo.objectInfo.updateTimeStampMS = GetJsonValueByPath<uint64_t>(v, "/runtimeRegistrationInfo/objectInfo/updateTimeStampMS", 0);
@@ -675,7 +675,7 @@ BinPickingTaskResource::ResultGetBinpickingState::RuntimeRegistrationInfo::Runti
 BinPickingTaskResource::ResultGetBinpickingState::RuntimeRegistrationInfo::ObjectInfo::ObjectInfo() :
     hypothesisId(-1),
     pickLocationName(""),
-    cameraLocationName(""),
+    registrationLocationName(""),
     objectWeight(0.0),
     sensorTimeStampMS(0),
     updateTimeStampMS(0)
