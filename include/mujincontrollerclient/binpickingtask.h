@@ -245,7 +245,8 @@ public:
                 int hypothesisId; ///< hypothesis id of the item. -1 means invalid.
                 std::string locationName; ///< The name of the location where the item was
                 double objectWeight; ///< If non-zero, use this weight fo registration. unit is kg. zero means unknown.
-                uint64_t sensorTimeStampMS; ///< sensor timestamp of the item
+                uint64_t sensorTimeStampMS; ///< sensor timestamp of the item. If non-zero, then valid.
+                uint64_t updateTimeStampMS; ///< timestamp this request was sent. If non-zero, then valid.
             } objectInfo;
 
             struct ManipPoseInfo
@@ -256,6 +257,7 @@ public:
                 std::array<double, 3> translation; ///< translation of manipulator w.r.t. world
                 std::array<double, 4> quaternion; ///< quaternion of manipulator w.r.t. world
                 std::string unit; ///< the unit of translation
+                uint64_t updateTimeStampMS; ///< timestamp this request was sent. If non-zero, then valid.
             } manipPoseInfo;
         } runtimeRegistrationInfo;
 

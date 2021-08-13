@@ -584,10 +584,12 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     runtimeRegistrationInfo.objectInfo.locationName = GetJsonValueByPath<std::string>(v, "/runtimeRegistrationInfo/objectInfo/locationName", "");
     runtimeRegistrationInfo.objectInfo.objectWeight = GetJsonValueByPath<double>(v, "/runtimeRegistrationInfo/objectInfo/objectWeight", 0.0);
     runtimeRegistrationInfo.objectInfo.sensorTimeStampMS = GetJsonValueByPath<uint64_t>(v, "/runtimeRegistrationInfo/objectInfo/sensorTimeStampMS", 0);
+    runtimeRegistrationInfo.objectInfo.updateTimeStampMS = GetJsonValueByPath<uint64_t>(v, "/runtimeRegistrationInfo/objectInfo/updateTimeStampMS", 0);
     runtimeRegistrationInfo.manipPoseInfo.index = GetJsonValueByPath<int>(v, "/runtimeRegistrationInfo/manipPoseInfo/index", -1);
     LoadJsonValueByPath(v, "/runtimeRegistrationInfo/manipPoseInfo/translation", runtimeRegistrationInfo.manipPoseInfo.translation);
     LoadJsonValueByPath(v, "/runtimeRegistrationInfo/manipPoseInfo/quaternion", runtimeRegistrationInfo.manipPoseInfo.quaternion);
     runtimeRegistrationInfo.manipPoseInfo.unit = GetJsonValueByPath<std::string>(v, "/runtimeRegistrationInfo/manipPoseInfo/unit", "mm");
+    runtimeRegistrationInfo.manipPoseInfo.updateTimeStampMS = GetJsonValueByPath<uint64_t>(v, "/runtimeRegistrationInfo/manipPoseInfo/updateTimeStampMS", 0);
 
     removeObjectFromObjectListInfo.timestamp = GetJsonValueByPath<double>(v, "/removeObjectFromObjectList/timestamp", 0);
     removeObjectFromObjectListInfo.objectPk = GetJsonValueByPath<std::string>(v, "/removeObjectFromObjectList/objectPk", "");
@@ -673,7 +675,8 @@ BinPickingTaskResource::ResultGetBinpickingState::RuntimeRegistrationInfo::Objec
     hypothesisId(-1),
     locationName(""),
     objectWeight(0.0),
-    sensorTimeStampMS(0)
+    sensorTimeStampMS(0),
+    updateTimeStampMS(0)
 {
 }
 
@@ -681,7 +684,8 @@ BinPickingTaskResource::ResultGetBinpickingState::RuntimeRegistrationInfo::Manip
     index(-1),
     translation({0, 0, 0}),
     quaternion({1, 0, 0, 0}),
-    unit("mm")
+    unit("mm"),
+    updateTimeStampMS(0)
 {
 }
 
