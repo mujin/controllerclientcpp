@@ -809,6 +809,7 @@ void SceneResource::GetInstObjects(std::vector<SceneResource::InstObjectPtr>& in
 
         LoadJsonValueByKey(*it, "name", instobject->name);
         LoadJsonValueByKey(*it, "object_pk", instobject->object_pk);
+        LoadJsonValueByKey(*it, "reference_object_pk", instobject->reference_object_pk, std::string());
         LoadJsonValueByKey(*it, "reference_uri", instobject->reference_uri);
         LoadJsonValueByKey(*it, "dofvalues", instobject->dofvalues);
         LoadJsonValueByKey(*it, "quaternion", instobject->quaternion);
@@ -888,7 +889,7 @@ bool SceneResource::FindInstObject(const std::string& name, SceneResource::InstO
 SceneResource::InstObjectPtr SceneResource::CreateInstObject(const std::string& name, const std::string& referenceUri, const Real quaternion[4], const Real translate[3], double timeout)
 {
     GETCONTROLLERIMPL();
-    const std::string uri(str(boost::format("scene/%s/instobject/?format=json&fields=pk,object_pk,reference_uri,dofvalues,quaternion,translate")%GetPrimaryKey()));
+    const std::string uri(str(boost::format("scene/%s/instobject/?format=json&fields=pk,object_pk,reference_object_pk,reference_uri,dofvalues,quaternion,translate")%GetPrimaryKey()));
     std::string data(str(boost::format("{\"name\":\"%s\", \"quaternion\":[%.15f,%.15f,%.15f,%.15f], \"translate\":[%.15f,%.15f,%.15f]")%name%quaternion[0]%quaternion[1]%quaternion[2]%quaternion[3]%translate[0]%translate[1]%translate[2]));
     if (!referenceUri.empty()) {
         data += ", \"reference_uri\": \"" + referenceUri + "\"";
@@ -900,6 +901,7 @@ SceneResource::InstObjectPtr SceneResource::CreateInstObject(const std::string& 
     std::string inst_pk = GetJsonValueByKey<std::string>(pt, "pk");
     SceneResource::InstObjectPtr instobject(new SceneResource::InstObject(GetController(), GetPrimaryKey(),  inst_pk));
     LoadJsonValueByKey(pt, "object_pk", instobject->object_pk);
+    LoadJsonValueByKey(pt, "reference_object_pk", instobject->reference_object_pk, std::string());
     LoadJsonValueByKey(pt, "reference_uri", instobject->reference_uri);
     LoadJsonValueByKey(pt, "dofvalues", instobject->dofvalues);
     LoadJsonValueByKey(pt, "quaternion", instobject->quaternion);

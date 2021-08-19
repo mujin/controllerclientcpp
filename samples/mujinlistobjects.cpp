@@ -119,7 +119,7 @@ int main(int argc, char ** argv)
     std::vector<SceneResource::InstObjectPtr> instobjects;
     scene->GetInstObjects(instobjects);
     for(std::vector<SceneResource::InstObjectPtr>::iterator e=instobjects.begin();e!=instobjects.end();++e){
-        puts(((*e)->name+"("+(*e)->pk+")").c_str());
+        puts(((*e)->name+"("+(*e)->pk+" / "+(*e)->object_pk+" / "+(*e)->reference_object_pk+")").c_str());
         ObjectResourcePtr object(new ObjectResource(controllerclient, (*e)->object_pk));
         std::vector<ObjectResource::IkParamResourcePtr> ikparams;
         object->GetIkParams(ikparams);
