@@ -810,6 +810,9 @@ void SceneResource::GetInstObjects(std::vector<SceneResource::InstObjectPtr>& in
         LoadJsonValueByKey(*it, "name", instobject->name);
         LoadJsonValueByKey(*it, "object_pk", instobject->object_pk);
         LoadJsonValueByKey(*it, "reference_object_pk", instobject->reference_object_pk, std::string());
+#if 1
+        if (!instobject->reference_object_pk.empty()) {instobject->object_pk = instobject->reference_object_pk;}
+#endif
         LoadJsonValueByKey(*it, "reference_uri", instobject->reference_uri);
         LoadJsonValueByKey(*it, "dofvalues", instobject->dofvalues);
         LoadJsonValueByKey(*it, "quaternion", instobject->quaternion);
@@ -902,6 +905,9 @@ SceneResource::InstObjectPtr SceneResource::CreateInstObject(const std::string& 
     SceneResource::InstObjectPtr instobject(new SceneResource::InstObject(GetController(), GetPrimaryKey(),  inst_pk));
     LoadJsonValueByKey(pt, "object_pk", instobject->object_pk);
     LoadJsonValueByKey(pt, "reference_object_pk", instobject->reference_object_pk, std::string());
+#if 1
+    if (!instobject->reference_object_pk.empty()) {instobject->object_pk = instobject->reference_object_pk;}
+#endif
     LoadJsonValueByKey(pt, "reference_uri", instobject->reference_uri);
     LoadJsonValueByKey(pt, "dofvalues", instobject->dofvalues);
     LoadJsonValueByKey(pt, "quaternion", instobject->quaternion);
