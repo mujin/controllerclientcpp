@@ -254,7 +254,7 @@ public:
             {
                 ManipPoseInfo();
 
-                int index; ///< pose index in the flow of this runtime registration
+                int poseId; ///< id to represent which pose this is among manip poses given from vision
                 std::array<double, 3> translation; ///< translation of manipulator w.r.t. world
                 std::array<double, 4> quaternion; ///< quaternion of manipulator w.r.t. world
                 std::string unit; ///< the unit of translation

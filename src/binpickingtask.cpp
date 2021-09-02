@@ -586,7 +586,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     runtimeRegistrationInfo.objectInfo.objectWeight = GetJsonValueByPath<double>(v, "/runtimeRegistrationInfo/objectInfo/objectWeight", 0.0);
     runtimeRegistrationInfo.objectInfo.sensorTimeStampMS = GetJsonValueByPath<uint64_t>(v, "/runtimeRegistrationInfo/objectInfo/sensorTimeStampMS", 0);
     runtimeRegistrationInfo.objectInfo.updateTimeStampMS = GetJsonValueByPath<uint64_t>(v, "/runtimeRegistrationInfo/objectInfo/updateTimeStampMS", 0);
-    runtimeRegistrationInfo.manipPoseInfo.index = GetJsonValueByPath<int>(v, "/runtimeRegistrationInfo/manipPoseInfo/index", -1);
+    runtimeRegistrationInfo.manipPoseInfo.poseId = GetJsonValueByPath<int>(v, "/runtimeRegistrationInfo/manipPoseInfo/poseId", -1);
     LoadJsonValueByPath(v, "/runtimeRegistrationInfo/manipPoseInfo/translation", runtimeRegistrationInfo.manipPoseInfo.translation);
     LoadJsonValueByPath(v, "/runtimeRegistrationInfo/manipPoseInfo/quaternion", runtimeRegistrationInfo.manipPoseInfo.quaternion);
     runtimeRegistrationInfo.manipPoseInfo.unit = GetJsonValueByPath<std::string>(v, "/runtimeRegistrationInfo/manipPoseInfo/unit", "mm");
@@ -683,7 +683,7 @@ BinPickingTaskResource::ResultGetBinpickingState::RuntimeRegistrationInfo::Objec
 }
 
 BinPickingTaskResource::ResultGetBinpickingState::RuntimeRegistrationInfo::ManipPoseInfo::ManipPoseInfo() :
-    index(-1),
+    poseId(-1),
     translation({0, 0, 0}),
     quaternion({1, 0, 0, 0}),
     unit("mm"),
