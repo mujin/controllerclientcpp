@@ -582,19 +582,19 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
 
     LoadJsonValueByPath(v, "/runtimeRegistrationInfo/objectInfo/translation", runtimeRegistrationInfo.objectInfo.translation);
     LoadJsonValueByPath(v, "/runtimeRegistrationInfo/objectInfo/quaternion", runtimeRegistrationInfo.objectInfo.quaternion);
-    LoadJsonValueByPath(v, "/runtimeRegistrationInfo/objectInfo/translationInManip", runtimeRegistrationInfo.objectInfo.translationInManip);
-    LoadJsonValueByPath(v, "/runtimeRegistrationInfo/objectInfo/quaternionInManip", runtimeRegistrationInfo.objectInfo.quaternionInManip);
+    LoadJsonValueByPath(v, "/runtimeRegistrationInfo/objectInfo/translationInEndEffector", runtimeRegistrationInfo.objectInfo.translationInEndEffector);
+    LoadJsonValueByPath(v, "/runtimeRegistrationInfo/objectInfo/quaternionInEndEffector", runtimeRegistrationInfo.objectInfo.quaternionInEndEffector);
     runtimeRegistrationInfo.objectInfo.unit = GetJsonValueByPath<std::string>(v, "/runtimeRegistrationInfo/objectInfo/unit", "mm");
     runtimeRegistrationInfo.objectInfo.pickLocationName = GetJsonValueByPath<std::string>(v, "/runtimeRegistrationInfo/objectInfo/pickLocationName", "");
     runtimeRegistrationInfo.objectInfo.registrationLocationName = GetJsonValueByPath<std::string>(v, "/runtimeRegistrationInfo/objectInfo/registrationLocationName", "");
     runtimeRegistrationInfo.objectInfo.objectWeight = GetJsonValueByPath<double>(v, "/runtimeRegistrationInfo/objectInfo/objectWeight", 0.0);
     runtimeRegistrationInfo.objectInfo.sensorTimeStampMS = GetJsonValueByPath<uint64_t>(v, "/runtimeRegistrationInfo/objectInfo/sensorTimeStampMS", 0);
     runtimeRegistrationInfo.objectInfo.updateTimeStampMS = GetJsonValueByPath<uint64_t>(v, "/runtimeRegistrationInfo/objectInfo/updateTimeStampMS", 0);
-    runtimeRegistrationInfo.manipPoseInfo.poseId = GetJsonValueByPath<int>(v, "/runtimeRegistrationInfo/manipPoseInfo/poseId", -1);
-    LoadJsonValueByPath(v, "/runtimeRegistrationInfo/manipPoseInfo/translation", runtimeRegistrationInfo.manipPoseInfo.translation);
-    LoadJsonValueByPath(v, "/runtimeRegistrationInfo/manipPoseInfo/quaternion", runtimeRegistrationInfo.manipPoseInfo.quaternion);
-    runtimeRegistrationInfo.manipPoseInfo.unit = GetJsonValueByPath<std::string>(v, "/runtimeRegistrationInfo/manipPoseInfo/unit", "mm");
-    runtimeRegistrationInfo.manipPoseInfo.updateTimeStampMS = GetJsonValueByPath<uint64_t>(v, "/runtimeRegistrationInfo/manipPoseInfo/updateTimeStampMS", 0);
+    runtimeRegistrationInfo.endEffectorPoseInfo.poseId = GetJsonValueByPath<int>(v, "/runtimeRegistrationInfo/endEffectorPoseInfo/poseId", -1);
+    LoadJsonValueByPath(v, "/runtimeRegistrationInfo/endEffectorPoseInfo/translation", runtimeRegistrationInfo.endEffectorPoseInfo.translation);
+    LoadJsonValueByPath(v, "/runtimeRegistrationInfo/endEffectorPoseInfo/quaternion", runtimeRegistrationInfo.endEffectorPoseInfo.quaternion);
+    runtimeRegistrationInfo.endEffectorPoseInfo.unit = GetJsonValueByPath<std::string>(v, "/runtimeRegistrationInfo/endEffectorPoseInfo/unit", "mm");
+    runtimeRegistrationInfo.endEffectorPoseInfo.updateTimeStampMS = GetJsonValueByPath<uint64_t>(v, "/runtimeRegistrationInfo/endEffectorPoseInfo/updateTimeStampMS", 0);
 
     removeObjectFromObjectListInfo.timestamp = GetJsonValueByPath<double>(v, "/removeObjectFromObjectList/timestamp", 0);
     removeObjectFromObjectListInfo.objectPk = GetJsonValueByPath<std::string>(v, "/removeObjectFromObjectList/objectPk", "");
@@ -679,8 +679,8 @@ BinPickingTaskResource::ResultGetBinpickingState::RuntimeRegistrationInfo::Runti
 BinPickingTaskResource::ResultGetBinpickingState::RuntimeRegistrationInfo::ObjectInfo::ObjectInfo() :
     translation({0, 0, 0}),
     quaternion({1, 0, 0, 0}),
-    translationInManip({0, 0, 0}),
-    quaternionInManip({1, 0, 0, 0}),
+    translationInEndEffector({0, 0, 0}),
+    quaternionInEndEffector({1, 0, 0, 0}),
     unit("mm"),
     pickLocationName(""),
     registrationLocationName(""),
@@ -690,7 +690,7 @@ BinPickingTaskResource::ResultGetBinpickingState::RuntimeRegistrationInfo::Objec
 {
 }
 
-BinPickingTaskResource::ResultGetBinpickingState::RuntimeRegistrationInfo::ManipPoseInfo::ManipPoseInfo() :
+BinPickingTaskResource::ResultGetBinpickingState::RuntimeRegistrationInfo::EndEffectorPoseInfo::EndEffectorPoseInfo() :
     poseId(-1),
     translation({0, 0, 0}),
     quaternion({1, 0, 0, 0}),
@@ -1069,11 +1069,11 @@ void BinPickingTaskResource::SendMVRRegistrationResult(
     ExecuteCommand(_ss.str(), pt, timeout);
 }
 
-void BinPickingTaskResource::SendRuntimeRegistrationManipPoses(const rapidjson::Document &manipPosesInfo, double timeout)
+void BinPickingTaskResource::SendRuntimeRegistrationEndEffectorPoses(const rapidjson::Document &endEffectorPosesInfo, double timeout)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
-    _ss << GetJsonString("command", "SendRuntimeRegistrationManipPoses") << ", ";
-    _ss << GetJsonString("manipPosesInfo", DumpJson(manipPosesInfo)) << ", ";
+    _ss << GetJsonString("command", "SendRuntimeRegistrationEndEffectorPoses") << ", ";
+    _ss << GetJsonString("endEffectorPosesInfo", DumpJson(endEffectorPosesInfo)) << ", ";
     _ss << "}";
     rapidjson::Document pt(rapidjson::kObjectType);
     ExecuteCommand(_ss.str(), pt, timeout);

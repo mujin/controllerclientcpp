@@ -244,8 +244,8 @@ public:
 
                 std::array<double, 3> translation; ///< translation of object w.r.t. world
                 std::array<double, 4> quaternion; ///< quaternion of object w.r.t. world
-                std::array<double, 3> translationInManip; ///< translation of object w.r.t. manipulator
-                std::array<double, 4> quaternionInManip; ///< quaternion of object w.r.t. manipulator
+                std::array<double, 3> translationInEndEffector; ///< translation of object w.r.t. end effector
+                std::array<double, 4> quaternionInEndEffector; ///< quaternion of object w.r.t. end effector
                 std::string unit; ///< the unit of translation
                 std::string pickLocationName; ///< The name of the location where the item was
                 std::string registrationLocationName; ///< The name of the location for registering object
@@ -254,16 +254,16 @@ public:
                 uint64_t updateTimeStampMS; ///< timestamp this request was sent. If non-zero, then valid.
             } objectInfo;
 
-            struct ManipPoseInfo
+            struct EndEffectorPoseInfo
             {
-                ManipPoseInfo();
+                EndEffectorPoseInfo();
 
-                int poseId; ///< id to represent which pose this is among manip poses given from vision
-                std::array<double, 3> translation; ///< translation of manipulator w.r.t. world
-                std::array<double, 4> quaternion; ///< quaternion of manipulator w.r.t. world
+                int poseId; ///< id to represent which pose this is among end effector poses given from vision
+                std::array<double, 3> translation; ///< translation of end effector w.r.t. world
+                std::array<double, 4> quaternion; ///< quaternion of end effector w.r.t. world
                 std::string unit; ///< the unit of translation
                 uint64_t updateTimeStampMS; ///< timestamp this request was sent. If non-zero, then valid.
-            } manipPoseInfo;
+            } endEffectorPoseInfo;
         } runtimeRegistrationInfo;
 
         struct RemoveObjectFromObjectListInfo {
@@ -605,8 +605,8 @@ public:
         const rapidjson::Document &mvrResultInfo,
         double timeout /* second */=5.0);
 
-    virtual void SendRuntimeRegistrationManipPoses(
-        const rapidjson::Document &manipPosesInfo,
+    virtual void SendRuntimeRegistrationEndEffectorPoses(
+        const rapidjson::Document &endEffectorPosesInfo,
         double timeout /* second */=5.0);
 
     virtual void SendRuntimeRegistrationResult(
