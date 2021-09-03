@@ -245,6 +245,7 @@ public:
                 int hypothesisId; ///< hypothesis id of the item. -1 means invalid.
                 std::array<double, 3> translation; ///< translation of object w.r.t. manipulator
                 std::array<double, 4> quaternion; ///< quaternion of object w.r.t. manipulator
+                std::string unit; ///< the unit of translation
                 std::string pickLocationName; ///< The name of the location where the item was
                 std::string registrationLocationName; ///< The name of the location for registering object
                 double objectWeight; ///< If non-zero, use this weight fo registration. unit is kg. zero means unknown.

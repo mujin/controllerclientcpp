@@ -583,6 +583,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     runtimeRegistrationInfo.objectInfo.hypothesisId = GetJsonValueByPath<int>(v, "/runtimeRegistrationInfo/objectInfo/hypothesisId", -1);
     LoadJsonValueByPath(v, "/runtimeRegistrationInfo/objectInfo/translation", runtimeRegistrationInfo.objectInfo.translation);
     LoadJsonValueByPath(v, "/runtimeRegistrationInfo/objectInfo/quaternion", runtimeRegistrationInfo.objectInfo.quaternion);
+    runtimeRegistrationInfo.objectInfo.unit = GetJsonValueByPath<std::string>(v, "/runtimeRegistrationInfo/objectInfo/unit", "mm");
     runtimeRegistrationInfo.objectInfo.pickLocationName = GetJsonValueByPath<std::string>(v, "/runtimeRegistrationInfo/objectInfo/pickLocationName", "");
     runtimeRegistrationInfo.objectInfo.registrationLocationName = GetJsonValueByPath<std::string>(v, "/runtimeRegistrationInfo/objectInfo/registrationLocationName", "");
     runtimeRegistrationInfo.objectInfo.objectWeight = GetJsonValueByPath<double>(v, "/runtimeRegistrationInfo/objectInfo/objectWeight", 0.0);
@@ -678,6 +679,7 @@ BinPickingTaskResource::ResultGetBinpickingState::RuntimeRegistrationInfo::Objec
     hypothesisId(-1),
     translation({0, 0, 0}),
     quaternion({1, 0, 0, 0}),
+    unit("mm"),
     pickLocationName(""),
     registrationLocationName(""),
     objectWeight(0.0),
