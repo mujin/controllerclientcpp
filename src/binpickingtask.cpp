@@ -1282,7 +1282,7 @@ void BinPickingTaskResource::AddPointCloudObstacle(const std::vector<float>&vpoi
     ExecuteCommand(_ss.str(), rResult, timeout); // need to check return code
 }
 
-void BinPickingTaskResource::UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<float>& vpoints, const std::string& state, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit, const double timeout, const std::string& locationName, const std::string& locationIOName, const std::vector<std::string>& cameranames, CropContainerMarginsXYZXYZPtr pCropContainerMargins)
+void BinPickingTaskResource::UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<float>& vpoints, const std::string& state, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit, const double timeout, const std::string& locationName, const std::vector<std::string>& cameranames, CropContainerMarginsXYZXYZPtr pCropContainerMargins)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "UpdateEnvironmentState";
@@ -1290,7 +1290,6 @@ void BinPickingTaskResource::UpdateEnvironmentState(const std::string& objectnam
     _ss << GetJsonString("tasktype", _tasktype) << ", ";
     _ss << GetJsonString("objectname", objectname) << ", ";
     _ss << GetJsonString("locationName", locationName) << ", ";
-    _ss << GetJsonString("locationIOName", locationIOName) << ", ";
     _ss << "\"cameranames\":" << GetJsonString(cameranames) << ", ";
     _ss << GetJsonString("envstate") << ": [";
     for (unsigned int i=0; i<detectedobjects.size(); i++) {
