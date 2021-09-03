@@ -580,9 +580,10 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/minCandidateSize", registerMinViableRegionInfo.minCandidateSize);
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/maxCandidateSize", registerMinViableRegionInfo.maxCandidateSize);
 
-    runtimeRegistrationInfo.objectInfo.hypothesisId = GetJsonValueByPath<int>(v, "/runtimeRegistrationInfo/objectInfo/hypothesisId", -1);
     LoadJsonValueByPath(v, "/runtimeRegistrationInfo/objectInfo/translation", runtimeRegistrationInfo.objectInfo.translation);
     LoadJsonValueByPath(v, "/runtimeRegistrationInfo/objectInfo/quaternion", runtimeRegistrationInfo.objectInfo.quaternion);
+    LoadJsonValueByPath(v, "/runtimeRegistrationInfo/objectInfo/translationInManip", runtimeRegistrationInfo.objectInfo.translationInManip);
+    LoadJsonValueByPath(v, "/runtimeRegistrationInfo/objectInfo/quaternionInManip", runtimeRegistrationInfo.objectInfo.quaternionInManip);
     runtimeRegistrationInfo.objectInfo.unit = GetJsonValueByPath<std::string>(v, "/runtimeRegistrationInfo/objectInfo/unit", "mm");
     runtimeRegistrationInfo.objectInfo.pickLocationName = GetJsonValueByPath<std::string>(v, "/runtimeRegistrationInfo/objectInfo/pickLocationName", "");
     runtimeRegistrationInfo.objectInfo.registrationLocationName = GetJsonValueByPath<std::string>(v, "/runtimeRegistrationInfo/objectInfo/registrationLocationName", "");
@@ -676,9 +677,10 @@ BinPickingTaskResource::ResultGetBinpickingState::RuntimeRegistrationInfo::Runti
 }
 
 BinPickingTaskResource::ResultGetBinpickingState::RuntimeRegistrationInfo::ObjectInfo::ObjectInfo() :
-    hypothesisId(-1),
     translation({0, 0, 0}),
     quaternion({1, 0, 0, 0}),
+    translationInManip({0, 0, 0}),
+    quaternionInManip({1, 0, 0, 0}),
     unit("mm"),
     pickLocationName(""),
     registrationLocationName(""),
