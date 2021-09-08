@@ -47,6 +47,7 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("heartbeat_port", bpo::value<unsigned int>()->default_value(11001), "port of the binpicking task's heartbeat signal on the mujin controller")
         ("unit", bpo::value<string>()->default_value("mm"), "length unit of pose")
         ("object_name", bpo::value<string>()->default_value(""), "object name to create ikparam for")
+        ("update_external_reference", bpo::value<unsigned int>()->default_value(0), "if 1, update external reference")
         ("iktype", bpo::value<string>()->default_value("Transform6D"), "iktype")
         ;
 
@@ -195,7 +196,11 @@ int main(int argc, char ** argv)
     std::vector<SceneResource::InstObjectPtr> instobjects;
     scene->GetInstObjects(instobjects);
     std::vector<SceneResource::InstObjectPtr>::iterator it1 = std::find_if(instobjects.begin(),instobjects.end(),boost::bind(&SceneResource::InstObject::name,_1)==object_name);
-    ObjectResourcePtr object(new ObjectResource(controllerclient, (*it1)->object_pk));
+    std::string object_pk = (*it1)->object_pk;
+    if(opts["update_external_reference"].as<unsigned int>() && !(*it1)->reference_object_pk.empty()){
+        object_pk = (*it1)->reference_object_pk;
+    }
+    ObjectResourcePtr object(new ObjectResource(controllerclient, object_pk));
     cout << "obtaining object done" << endl;
 
     string ikType = opts["iktype"].as<string>();
