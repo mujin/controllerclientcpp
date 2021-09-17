@@ -65,7 +65,7 @@ public:
     virtual void DeleteDirectoryOnController_UTF16(const std::wstring& desturi);
     virtual void ListFilesInController(std::vector<FileEntry>& fileentries, const std::string &dirname, double timeout);
 
-    virtual void SaveBackup(std::ostream& outputStream, bool config, bool media, double timeout);
+    virtual void SaveBackup(std::ostream& outputStream, bool config, const std::string& media, const std::string& currentscenepk, double timeout);
     virtual void RestoreBackup(std::istream& inputStream, bool config, bool media, double timeout);
     virtual void Upgrade(std::istream& inputStream, bool autorestart, bool uploadonly, double timeout);
     virtual bool GetUpgradeStatus(std::string& status, double &progress, double timeout);
