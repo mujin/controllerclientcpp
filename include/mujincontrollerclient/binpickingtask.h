@@ -246,7 +246,6 @@ public:
                 std::array<double, 4> quaternion; ///< quaternion of object w.r.t. world
                 std::array<double, 3> translationInEndEffector; ///< translation of object w.r.t. end effector
                 std::array<double, 4> quaternionInEndEffector; ///< quaternion of object w.r.t. end effector
-                std::array<double, 3> grabbedFaceOffset; ///< offset to grabbed face of object  w.r.t. object
                 std::string unit; ///< the unit of translation
                 std::string pickLocationName; ///< The name of the location where the item was
                 std::string registrationLocationName; ///< The name of the location for registering object
