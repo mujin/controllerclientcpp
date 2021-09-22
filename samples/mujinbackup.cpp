@@ -39,7 +39,7 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("restore", bpo::value<unsigned int>()->default_value(0), "if 1, will restore")
         ("save_config", bpo::value<unsigned int>()->default_value(1))
         ("save_media", bpo::value<string>()->default_value("all"))
-        ("currentscenepk", bpo::value<string>()->default_value(""), "pk of the current scene for backup, should be used together with `save_media=current`")
+        ("currentscenename", bpo::value<string>()->default_value(""), "name of the current scene for backup, should be used together with `save_media=current`")
         ("restore_config", bpo::value<unsigned int>()->default_value(1))
         ("restore_media", bpo::value<unsigned int>()->default_value(1))
         ;
@@ -88,7 +88,7 @@ int main(int argc, char ** argv)
     const unsigned int controllerPort = opts["controller_port"].as<unsigned int>();
     const unsigned int save_config = opts["save_config"].as<unsigned int>();
     const string save_media = opts["save_media"].as<string>();
-    const string currentscenepk = opts["currentscenepk"].as<string>();
+    const string currentscenename = opts["currentscenename"].as<string>();
     const unsigned int restore_config = opts["restore_config"].as<unsigned int>();
     const unsigned int restore_media = opts["restore_media"].as<unsigned int>();
     const unsigned int restore = opts["restore"].as<unsigned int>();
@@ -106,7 +106,7 @@ int main(int argc, char ** argv)
         controllerclient->RestoreBackup(fin,restore_config,restore_media);
     }else{
         ofstream fout(filename.c_str(), std::ios::out | std::ios::binary);
-        controllerclient->SaveBackup(fout,save_config,save_media,currentscenepk);
+        controllerclient->SaveBackup(fout,save_config,save_media,currentscenename);
     }
 
     return 0;
