@@ -504,9 +504,9 @@ public:
     ///
     /// \param outputStream filled with the contents of the backup. the backup is tar.gz format.
     /// \param config whether to backup config. By default true.
-    /// \param media whether to include all, current, or none of the media in the backup. By default 'all'
-    /// \param currentscenename name of the current scene in use. By default empty.
-    virtual void SaveBackup(std::ostream& outputStream, bool config = true, const std::string& media = "all", const std::string& currentscenename = "", double timeout = 60.0) = 0;
+    /// \param media whether to include media files in the backup. By default true
+    /// \param backupscenepks comma separated list of scenes to backup. By default empty.
+    virtual void SaveBackup(std::ostream& outputStream, bool config = true, bool media = true, const std::string& backupscenepks = "", double timeout = 60.0) = 0;
 
     /// \brief Restore backup archive into controller. Restaring might be required after restoration.
     ///
