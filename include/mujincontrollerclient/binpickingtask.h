@@ -242,10 +242,11 @@ public:
             {
                 ObjectInfo();
 
-                std::array<double, 3> translation; ///< translation of object w.r.t. world
-                std::array<double, 4> quaternion; ///< quaternion of object w.r.t. world
-                std::array<double, 3> translationInEndEffector; ///< translation of object w.r.t. end effector
-                std::array<double, 4> quaternionInEndEffector; ///< quaternion of object w.r.t. end effector
+                /** Information about the object that was picked **/
+                std::array<double, 3> translation; ///< translation of object w.r.t. world when picked in the container
+                std::array<double, 4> quaternion; ///< quaternion of object w.r.t. world when picked in the container
+                std::array<double, 3> translationInEndEffector; ///< translation of picked object w.r.t. end effector
+                std::array<double, 4> quaternionInEndEffector; ///< quaternion of picked object w.r.t. end effector
                 std::string unit; ///< the unit of translation
                 std::string pickLocationName; ///< The name of the location where the item was
                 std::string registrationLocationName; ///< The name of the location for registering object
@@ -258,6 +259,7 @@ public:
             {
                 EndEffectorPoseInfo();
 
+                /** Information about the current EndEffectorPose **/
                 int poseId; ///< id to represent which pose this is among end effector poses given from vision
                 std::array<double, 3> translation; ///< translation of end effector w.r.t. world
                 std::array<double, 4> quaternion; ///< quaternion of end effector w.r.t. world
