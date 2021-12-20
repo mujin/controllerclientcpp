@@ -589,19 +589,21 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     triggerDetectionCaptureInfo.locationName = GetJsonValueByPath<std::string>(v, "/triggerDetectionCaptureInfo/locationName", "");
     triggerDetectionCaptureInfo.targetupdatename = GetJsonValueByPath<std::string>(v, "/triggerDetectionCaptureInfo/targetupdatename", "");
 
-    locationStateInfos.clear();
-    if( v.HasMember("locationStateInfos") && v["locationStateInfos"].IsArray()) {
-        const rapidjson::Value& rLocationStateInfos = v["locationStateInfos"];
-        locationStateInfos.resize(rLocationStateInfos.Size());
-        for(int iitem = 0; iitem < (int)rLocationStateInfos.Size(); ++iitem) {
-            const rapidjson::Value& rInfo = rLocationStateInfos[iitem];
-            locationStateInfos[iitem].locationName = GetJsonValueByKey<std::string,std::string>(rInfo, "locationName", std::string());
-            locationStateInfos[iitem].forceRequestStampMS = GetJsonValueByKey<uint64_t, uint64_t>(rInfo, "forceRequestStampMS", 0);
-            locationStateInfos[iitem].lastInsideContainerStampMS = GetJsonValueByKey<uint64_t, uint64_t>(rInfo, "lastInsideContainerStampMS", 0);
-            locationStateInfos[iitem].needContainer = GetJsonValueByKey<int, int>(rInfo, "needContainer", -1);
-            locationStateInfos[iitem].isContainerEmpty = GetJsonValueByKey<int, int>(rInfo, "isContainerEmpty", -1);
-            locationStateInfos[iitem].isContainerPresent = GetJsonValueByKey<int, int>(rInfo, "isContainerPresent", -1);
-            locationStateInfos[iitem].containerUpdateTimeStampMS = GetJsonValueByKey<uint64_t, uint64_t>(rInfo, "containerUpdateTimeStampMS", 0);
+    activeLocationTrackingInfos.clear();
+    if( v.HasMember("activeLocationTrackingInfos") && v["activeLocationTrackingInfos"].IsArray()) {
+        const rapidjson::Value& rLocationTrackingInfo = v["activeLocationTrackingInfos"];
+        activeLocationTrackingInfos.resize(rLocationTrackingInfo.Size());
+        for(int iitem = 0; iitem < (int)rLocationTrackingInfo.Size(); ++iitem) {
+            const rapidjson::Value& rInfo = rLocationTrackingInfo[iitem];
+            activeLocationTrackingInfos[iitem].locationName = GetJsonValueByKey<std::string,std::string>(rInfo, "locationName", std::string());
+            activeLocationTrackingInfos[iitem].containerId = GetJsonValueByKey<std::string,std::string>(rInfo, "containerId", std::string());
+            activeLocationTrackingInfos[iitem].containerName = GetJsonValueByKey<std::string,std::string>(rInfo, "containerName", std::string());
+            activeLocationTrackingInfos[iitem].containerUsage = GetJsonValueByKey<std::string,std::string>(rInfo, "containerUsage", std::string());
+            activeLocationTrackingInfos[iitem].cycleIndex = GetJsonValueByKey<std::string,std::string>(rInfo, "cycleIndex", std::string());
+
+            activeLocationTrackingInfos[iitem].forceRequestStampMS = GetJsonValueByKey<uint64_t, uint64_t>(rInfo, "forceRequestStampMS", 0);
+            activeLocationTrackingInfos[iitem].lastInsideContainerStampMS = GetJsonValueByKey<uint64_t, uint64_t>(rInfo, "lastInsideContainerStampMS", 0);
+            activeLocationTrackingInfos[iitem].needContainerState = GetJsonValueByKey<std::string,std::string>(rInfo, "needContainerState", std::string());
         }
     }
 
