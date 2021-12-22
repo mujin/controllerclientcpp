@@ -1888,7 +1888,7 @@ void ControllerClientImpl::GetDebugInfos(std::vector<DebugResourcePtr>& debuginf
     }
 }
 
-void ControllerClientImpl::GetITLPrograms(std::vector<std::string>& itlprogramnames, double timeout)
+void ControllerClientImpl::GetITLProgramNames(std::vector<std::string>& itlprogramnames, double timeout)
 {
     rapidjson::Document pt(rapidjson::kObjectType);
     CallGet(str(boost::format("itl/?format=json&limit=0")), pt, 200, timeout);

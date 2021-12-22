@@ -155,7 +155,7 @@ public:
 
     void GetDebugInfos(std::vector<DebugResourcePtr>& debuginfos, double timeout = 5);
 
-    void GetITLPrograms(std::vector<std::string>& itlprogramnames, double timeout = 60);
+    void GetITLProgramNames(std::vector<std::string>& itlprogramnames, double timeout = 60);
     void DeleteITLProgram(const std::string& itlprogramname, double timeout = 5);
 
     inline std::string GetBaseUri() const
