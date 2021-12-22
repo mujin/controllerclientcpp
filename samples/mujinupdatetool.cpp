@@ -8,6 +8,7 @@
 #include <mujincontrollerclient/binpickingtask.h>
 
 #include <boost/program_options.hpp>
+#include <boost/bind.hpp>
 #include <signal.h>
 #include <iostream>
 
