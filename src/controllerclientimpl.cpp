@@ -1888,6 +1888,25 @@ void ControllerClientImpl::GetDebugInfos(std::vector<DebugResourcePtr>& debuginf
     }
 }
 
+void ControllerClientImpl::GetITLPrograms(std::vector<std::string>& itlprogramnames, double timeout)
+{
+    rapidjson::Document pt(rapidjson::kObjectType);
+    CallGet(str(boost::format("itl/?format=json&limit=0")), pt, 200, timeout);
+    rapidjson::Value& objects = pt["objects"];
+
+    itlprogramnames.resize(objects.Size());
+    size_t iobj = 0;
+    for (rapidjson::Document::ValueIterator it = objects.Begin(); it != objects.End(); ++it) {
+        itlprogramnames.at(iobj++) = GetJsonValueByKey<std::string>(*it, "programName");
+    }
+}
+
+void ControllerClientImpl::DeleteITLProgram(const std::string& itlprogramname, double timeout)
+{
+    rapidjson::Document pt(rapidjson::kObjectType);
+    CallDelete(str(boost::format("itl/%s/?format=json&limit=0")%itlprogramname), 204, timeout);
+}
+
 void ControllerClientImpl::ListFilesInController(std::vector<FileEntry>& fileentries, const std::string &dirname, double timeout)
 {
     rapidjson::Document pt(rapidjson::kObjectType);

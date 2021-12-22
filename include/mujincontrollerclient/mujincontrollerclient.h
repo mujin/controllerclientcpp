@@ -667,6 +667,9 @@ public:
 
     /// \brief get debug infos
     virtual void GetDebugInfos(std::vector<DebugResourcePtr>& debuginfos, double timeout = 5) = 0;
+
+    virtual void GetITLPrograms(std::vector<std::string>& itlprogramnames, double timeout = 60) = 0;
+    virtual void DeleteITLProgram(const std::string& itlprogramname, double timeout = 5) = 0;
 };
 
 class MUJINCLIENT_API WebResource
