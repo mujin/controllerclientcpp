@@ -190,6 +190,8 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
     // csrftoken can be any non-empty string
     _csrfmiddlewaretoken = "csrftoken";
     std::string cookie = "Set-Cookie: csrftoken=" + _csrfmiddlewaretoken;
+#if CURL_AT_LEAST_VERSION(7,60,0)
+    // with https://github.com/curl/curl/commit/b8d5036ec9b702d6392c97a6fc2e141d6c7cce1f, setting domain param to cookie is required.
     if(_baseuri.find('/') == _baseuri.size()-1) {
         // _baseuri should be hostname with trailing slash
         cookie += "; domain=";
@@ -209,6 +211,7 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
         }
         curl_url_cleanup(url);
     }
+#endif
     CURL_OPTION_SETTER(_curl, CURLOPT_COOKIELIST, cookie.c_str());
 
     _charset = "utf-8";
