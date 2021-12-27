@@ -226,6 +226,8 @@ public:
             double minCornerVisibleDist;
             uint64_t occlusionFreeCornerMask;
             bool waitForTriggerOnCapturing; // if true, sensor will wait trigger on capturing
+            std::vector<double> fullDofValues; ///< robot configuration state on capturing
+            std::vector<int8_t> connectedBodyActiveStates; ///< robot configuration state on capturing
             bool IsEmpty() const {
                 return sensortimestamp == 0;
             }
