@@ -188,6 +188,25 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
     // csrftoken can be any non-empty string
     _csrfmiddlewaretoken = "csrftoken";
     std::string cookie = "Set-Cookie: csrftoken=" + _csrfmiddlewaretoken;
+    if(_baseuri.find('/') == _baseuri.size()-1) {
+        // _baseuri should be hostname with trailing slash
+        cookie += "; domain=";
+        cookie += _baseuri.substr(0,_baseuri.size()-1);
+    } else {
+        CURLUcode rc;
+        CURLU *url = curl_url();
+        rc = curl_url_set(url, CURLUPART_URL, _baseuri.c_str(), 0);
+        if(!rc) {
+            char *host;
+            rc = curl_url_get(url, CURLUPART_HOST, &host, 0);
+            if(!rc) {
+                cookie += "; domain=";
+                cookie += host;
+                curl_free(host);
+            }
+        }
+        curl_url_cleanup(url);
+    }
     CURL_OPTION_SETTER(_curl, CURLOPT_COOKIELIST, cookie.c_str());
 
     _charset = "utf-8";
