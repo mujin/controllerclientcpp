@@ -15,6 +15,7 @@
 #include "controllerclientimpl.h"
 
 #include <boost/algorithm/string.hpp>
+#include <boost/scope_exit.hpp>
 
 #define SKIP_PEER_VERIFICATION // temporary
 //#define SKIP_HOSTNAME_VERIFICATION
@@ -197,17 +198,23 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
     } else {
         CURLUcode rc;
         CURLU *url = curl_url();
+        BOOST_SCOPE_EXIT_ALL(&url) {
+            curl_url_cleanup(url);
+        };
         rc = curl_url_set(url, CURLUPART_URL, _baseuri.c_str(), 0);
         if(!rc) {
-            char *host;
+            char *host = NULL;
+            BOOST_SCOPE_EXIT_ALL(&host) {
+                if(host) {
+                    curl_free(host);
+                }
+            };
             rc = curl_url_get(url, CURLUPART_HOST, &host, 0);
             if(!rc) {
                 cookie += "; domain=";
                 cookie += host;
-                curl_free(host);
             }
         }
-        curl_url_cleanup(url);
     }
 #endif
     CURL_OPTION_SETTER(_curl, CURLOPT_COOKIELIST, cookie.c_str());
