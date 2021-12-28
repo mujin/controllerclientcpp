@@ -15,7 +15,7 @@
 #include "controllerclientimpl.h"
 
 #include <boost/algorithm/string.hpp>
-
+#include <boost/scope_exit.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
 #define SKIP_PEER_VERIFICATION // temporary
@@ -190,6 +190,29 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
     // csrftoken can be any non-empty string
     _csrfmiddlewaretoken = "csrftoken";
     std::string cookie = "Set-Cookie: csrftoken=" + _csrfmiddlewaretoken;
+#if CURL_AT_LEAST_VERSION(7,60,0)
+    // with https://github.com/curl/curl/commit/b8d5036ec9b702d6392c97a6fc2e141d6c7cce1f, setting domain param to cookie is required.
+    if(_baseuri.find('/') == _baseuri.size()-1) {
+        // _baseuri should be hostname with trailing slash
+        cookie += "; domain=";
+        cookie += _baseuri.substr(0,_baseuri.size()-1);
+    } else {
+        CURLU *url = curl_url();
+        BOOST_SCOPE_EXIT_ALL(&url) {
+            curl_url_cleanup(url);
+        };
+        CHECKCURLUCODE(curl_url_set(url, CURLUPART_URL, _baseuri.c_str(), 0), "cannot parse url");
+        char *host = NULL;
+        BOOST_SCOPE_EXIT_ALL(&host) {
+            if(host) {
+                curl_free(host);
+            }
+        };
+        CHECKCURLUCODE(curl_url_get(url, CURLUPART_HOST, &host, 0), "cannot determine hostname from url");
+        cookie += "; domain=";
+        cookie += host;
+    }
+#endif
     CURL_OPTION_SETTER(_curl, CURLOPT_COOKIELIST, cookie.c_str());
 
     _charset = "utf-8";
