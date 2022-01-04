@@ -1131,7 +1131,6 @@ std::string ControllerClientImpl::_PrepareDestinationURI_UTF8(const std::string&
 
 std::string ControllerClientImpl::_PrepareDestinationURI_UTF16(const std::wstring& rawuri_utf16, bool bEnsurePath, bool bEnsureSlash, bool bIsDirectory)
 {
-    boost::mutex::scoped_lock lock(_mutex);
     std::string baseuploaduri;
     std::string desturi_utf8;
     utf8::utf16to8(rawuri_utf16.begin(), rawuri_utf16.end(), std::back_inserter(desturi_utf8));
