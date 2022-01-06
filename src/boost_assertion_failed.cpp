@@ -1,5 +1,6 @@
 #ifdef BOOST_ENABLE_ASSERT_HANDLER
 
+#define BOOST_SYSTEM_NO_DEPRECATED
 #include <boost/format.hpp>
 #include <mujincontrollerclient/mujinexceptions.h>
 
