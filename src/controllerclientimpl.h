@@ -72,6 +72,7 @@ public:
     virtual void CancelUpgrade(double timeout);
     virtual void Reboot(double timeout);
     virtual void DeleteAllScenes(double timeout);
+    virtual void DeleteAllITLPrograms(double timeout);
 
     virtual void ModifySceneAddReferenceObjectPK(const std::string &scenepk, const std::string &referenceobjectpk, double timeout = 5.0);
     virtual void ModifySceneRemoveReferenceObjectPK(const std::string &scenepk, const std::string &referenceobjectpk, double timeout = 5.0);
