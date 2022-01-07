@@ -267,14 +267,14 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
             socket.reset();
         }
         socket.reset(new zmq::socket_t((*_zmqcontext.get()),ZMQ_SUB));
-        socket->setsockopt(ZMQ_TCP_KEEPALIVE, 1); // turn on tcp keepalive, do these configuration before connect
-        socket->setsockopt(ZMQ_TCP_KEEPALIVE_IDLE, 2); // the interval between the last data packet sent (simple ACKs are not considered data) and the first keepalive probe; after the connection is marked to need keepalive, this counter is not used any further
-        socket->setsockopt(ZMQ_TCP_KEEPALIVE_INTVL, 2); // the interval between subsequential keepalive probes, regardless of what the connection has exchanged in the meantime
-        socket->setsockopt(ZMQ_TCP_KEEPALIVE_CNT, 2); // the number of unacknowledged probes to send before considering the connection dead and notifying the application layer
+        socket->set(zmq::sockopt::tcp_keepalive, 1); // turn on tcp keepalive, do these configuration before connect
+        socket->set(zmq::sockopt::tcp_keepalive_idle, 2); // the interval between the last data packet sent (simple ACKs are not considered data) and the first keepalive probe; after the connection is marked to need keepalive, this counter is not used any further
+        socket->set(zmq::sockopt::tcp_keepalive_intvl, 2); // the interval between subsequential keepalive probes, regardless of what the connection has exchanged in the meantime
+        socket->set(zmq::sockopt::tcp_keepalive_cnt, 2); // the number of unacknowledged probes to send before considering the connection dead and notifying the application layer
         std::stringstream ss; ss << std::setprecision(std::numeric_limits<double>::digits10+1);
         ss << _heartbeatPort;
-        socket->connect (("tcp://"+ _mujinControllerIp+":"+ss.str()).c_str());
-        socket->setsockopt(ZMQ_SUBSCRIBE, "", 0);
+        socket->connect("tcp://"+ _mujinControllerIp+":"+ss.str());
+        socket->set(zmq::sockopt::subscribe, "");
 
         zmq::pollitem_t pollitem;
         memset(&pollitem, 0, sizeof(zmq::pollitem_t));
@@ -282,14 +282,13 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
         pollitem.events = ZMQ_POLLIN;
         unsigned long long lastheartbeat = GetMilliTime();
         while (!_bShutdownHeartbeatMonitor && (GetMilliTime() - lastheartbeat) / 1000.0f < reinitializetimeout) {
-            zmq::poll(&pollitem,1, 50); // wait 50 ms for message
+            zmq::poll(&pollitem, 1, std::chrono::milliseconds{50}); // wait 50 ms for message
             if (pollitem.revents & ZMQ_POLLIN) {
                 zmq::message_t reply;
-                socket->recv(&reply);
-                std::string replystring((char *)reply.data (), (size_t)reply.size());
+                socket->recv(reply);
                 rapidjson::Document pt(rapidjson::kObjectType);
                 try{
-                    std::stringstream replystring_ss(replystring);
+                    std::stringstream replystring_ss(reply.to_string());
                     ParseJson(pt, replystring_ss.str());
                     heartbeat.Parse(pt);
                     {
@@ -304,7 +303,7 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
                 }
                 catch (std::exception const &e) {
                     MUJIN_LOG_ERROR("HeartBeat reply is not JSON");
-                    MUJIN_LOG_ERROR(replystring);
+                    MUJIN_LOG_ERROR(reply.to_string());
                     MUJIN_LOG_ERROR(e.what());
                     continue;
                 }
@@ -318,7 +317,5 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
     }
     MUJIN_LOG_DEBUG(str(boost::format("Stopped controller %s monitoring thread on port %d for slaverequestid=%s.")%_mujinControllerIp%_heartbeatPort%_slaverequestid));
 }
-
-
 
 } // end namespace mujinclient

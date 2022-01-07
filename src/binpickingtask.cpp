@@ -1767,14 +1767,14 @@ void BinPickingTaskResource::_HeartbeatMonitorThread(const double reinitializeti
             socket.reset();
         }
         socket.reset(new zmq::socket_t((*_zmqcontext.get()),ZMQ_SUB));
-        socket->setsockopt(ZMQ_TCP_KEEPALIVE, 1); // turn on tcp keepalive, do these configuration before connect
-        socket->setsockopt(ZMQ_TCP_KEEPALIVE_IDLE, 2); // the interval between the last data packet sent (simple ACKs are not considered data) and the first keepalive probe; after the connection is marked to need keepalive, this counter is not used any further
-        socket->setsockopt(ZMQ_TCP_KEEPALIVE_INTVL, 2); // the interval between subsequential keepalive probes, regardless of what the connection has exchanged in the meantime
-        socket->setsockopt(ZMQ_TCP_KEEPALIVE_CNT, 2); // the number of unacknowledged probes to send before considering the connection dead and notifying the application layer
+        socket->set(zmq::sockopt::tcp_keepalive, 1); // turn on tcp keepalive, do these configuration before connect
+        socket->set(zmq::sockopt::tcp_keepalive_idle, 2); // the interval between the last data packet sent (simple ACKs are not considered data) and the first keepalive probe; after the connection is marked to need keepalive, this counter is not used any further
+        socket->set(zmq::sockopt::tcp_keepalive_intvl, 2); // the interval between subsequential keepalive probes, regardless of what the connection has exchanged in the meantime
+        socket->set(zmq::sockopt::tcp_keepalive_cnt, 2); // the number of unacknowledged probes to send before considering the connection dead and notifying the application layer
         std::stringstream ss; ss << std::setprecision(std::numeric_limits<double>::digits10+1);
         ss << _heartbeatPort;
-        socket->connect(("tcp://"+ _mujinControllerIp+":"+ss.str()).c_str());
-        socket->setsockopt(ZMQ_SUBSCRIBE, "", 0);
+        socket->connect("tcp://"+ _mujinControllerIp+":"+ss.str());
+        socket->set(zmq::sockopt::subscribe, "");
 
         zmq::pollitem_t pollitem;
         memset(&pollitem, 0, sizeof(zmq::pollitem_t));
@@ -1783,13 +1783,12 @@ void BinPickingTaskResource::_HeartbeatMonitorThread(const double reinitializeti
 
         unsigned long long lastheartbeat = GetMilliTime();
         while (!_bShutdownHeartbeatMonitor && (GetMilliTime() - lastheartbeat) / 1000.0f < reinitializetimeout) {
-            zmq::poll(&pollitem,1, 50); // wait 50 ms for message
+            zmq::poll(&pollitem, 1, std::chrono::milliseconds{50}); // wait 50 ms for message
             if (pollitem.revents & ZMQ_POLLIN) {
                 zmq::message_t reply;
-                socket->recv(&reply);
-                std::string replystring((char *)reply.data (), (size_t)reply.size());
+                socket->recv(reply);
                 //if ((size_t)reply.size() == 1 && ((char *)reply.data())[0]==255) {
-                if (replystring == "255") {
+                if (reply.to_string() == "255") {
                     lastheartbeat = GetMilliTime();
                 }
             }
@@ -1809,37 +1808,36 @@ void BinPickingTaskResource::_HeartbeatMonitorThread(const double reinitializeti
 std::string utils::GetHeartbeat(const std::string& endpoint) {
     zmq::context_t zmqcontext(1);
     zmq::socket_t socket(zmqcontext, ZMQ_SUB);
-    socket.connect(endpoint.c_str());
-    socket.setsockopt(ZMQ_SUBSCRIBE, "", 0);
+    socket.connect(endpoint);
+    socket.set(zmq::sockopt::subscribe, "");
 
     zmq::pollitem_t pollitem;
     memset(&pollitem, 0, sizeof(zmq::pollitem_t));
     pollitem.socket = socket;
     pollitem.events = ZMQ_POLLIN;
 
-    zmq::poll(&pollitem,1, 50); // wait 50 ms for message
+    zmq::poll(&pollitem, 1, std::chrono::milliseconds{50}); // wait 50 ms for message
     if (!(pollitem.revents & ZMQ_POLLIN)) {
         return "";
     }
 
     zmq::message_t reply;
-    socket.recv(&reply);
-    const std::string received((char *)reply.data (), (size_t)reply.size());
+    socket.recv(reply);
 #ifndef _WIN32
-    return received;
+    return reply.to_string();
 #else
     // sometimes buffer can container \n or \\, which windows does not like
     std::string newbuffer;
     std::vector< std::pair<std::string, std::string> > serachpairs(2);
     serachpairs[0].first = "\n"; serachpairs[0].second = "";
     serachpairs[1].first = "\\"; serachpairs[1].second = "";
-    SearchAndReplace(newbuffer, received, serachpairs);
+    SearchAndReplace(newbuffer, reply.to_string(), serachpairs);
     return newbuffer;
 #endif
 }
 
-
 namespace {
+
 std::string FindSmallestSlaveRequestId(const rapidjson::Value& pt) {
     // get all slave request ids
     std::vector<std::string> slavereqids;
@@ -1880,8 +1878,7 @@ std::string FindSmallestSlaveRequestId(const rapidjson::Value& pt) {
     return slavereqids[smallest_suffix_index];
 }
 
-std::string GetValueForSmallestSlaveRequestId(const std::string& heartbeat,
-                                              const std::string& key)
+std::string GetValueForSmallestSlaveRequestId(const std::string& heartbeat, const std::string& key)
 {
 
     rapidjson::Document pt(rapidjson::kObjectType);
@@ -1898,8 +1895,8 @@ std::string GetValueForSmallestSlaveRequestId(const std::string& heartbeat,
     }
 
 }
-}
 
+} // anonymous namespace
 
 std::string mujinclient::utils::GetScenePkFromHeatbeat(const std::string& heartbeat) {
     static const std::string prefix("mujin:/");
