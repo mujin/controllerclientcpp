@@ -271,9 +271,7 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
         socket->set(zmq::sockopt::tcp_keepalive_idle, 2); // the interval between the last data packet sent (simple ACKs are not considered data) and the first keepalive probe; after the connection is marked to need keepalive, this counter is not used any further
         socket->set(zmq::sockopt::tcp_keepalive_intvl, 2); // the interval between subsequential keepalive probes, regardless of what the connection has exchanged in the meantime
         socket->set(zmq::sockopt::tcp_keepalive_cnt, 2); // the number of unacknowledged probes to send before considering the connection dead and notifying the application layer
-        std::stringstream ss; ss << std::setprecision(std::numeric_limits<double>::digits10+1);
-        ss << _heartbeatPort;
-        socket->connect("tcp://"+ _mujinControllerIp+":"+ss.str());
+        socket->connect("tcp://" +  _mujinControllerIp + ":" + std::to_string(_heartbeatPort));
         socket->set(zmq::sockopt::subscribe, "");
 
         zmq::pollitem_t pollitem;
@@ -288,8 +286,7 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
                 socket->recv(reply);
                 rapidjson::Document pt(rapidjson::kObjectType);
                 try{
-                    std::stringstream replystring_ss(reply.to_string());
-                    ParseJson(pt, replystring_ss.str());
+                    ParseJson(pt, reply.to_string());
                     heartbeat.Parse(pt);
                     {
                         boost::mutex::scoped_lock lock(_mutexTaskState);
