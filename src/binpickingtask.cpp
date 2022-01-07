@@ -1821,9 +1821,7 @@ void BinPickingTaskResource::_HeartbeatMonitorThread(const double reinitializeti
         socket->set(zmq::sockopt::tcp_keepalive_idle, 2); // the interval between the last data packet sent (simple ACKs are not considered data) and the first keepalive probe; after the connection is marked to need keepalive, this counter is not used any further
         socket->set(zmq::sockopt::tcp_keepalive_intvl, 2); // the interval between subsequential keepalive probes, regardless of what the connection has exchanged in the meantime
         socket->set(zmq::sockopt::tcp_keepalive_cnt, 2); // the number of unacknowledged probes to send before considering the connection dead and notifying the application layer
-        std::stringstream ss; ss << std::setprecision(std::numeric_limits<double>::digits10+1);
-        ss << _heartbeatPort;
-        socket->connect("tcp://"+ _mujinControllerIp+":"+ss.str());
+        socket->connect("tcp://" +  _mujinControllerIp + ":" + std::to_string(_heartbeatPort));
         socket->set(zmq::sockopt::subscribe, "");
 
         zmq::pollitem_t pollitem;
@@ -1938,8 +1936,7 @@ std::string GetValueForSmallestSlaveRequestId(const std::string& heartbeat, cons
 {
 
     rapidjson::Document pt(rapidjson::kObjectType);
-    std::stringstream ss(heartbeat);
-    ParseJson(pt, ss.str());
+    ParseJson(pt, heartbeat);
     try {
         const std::string slavereqid = FindSmallestSlaveRequestId(pt);
         std::string result;
@@ -1961,8 +1958,7 @@ std::string mujinclient::utils::GetScenePkFromHeartbeat(const std::string& heart
 
 std::string utils::GetSlaveRequestIdFromHeartbeat(const std::string& heartbeat) {
     rapidjson::Document pt;
-    std::stringstream ss(heartbeat);
-    ParseJson(pt, ss.str());
+    ParseJson(pt, heartbeat);
     try {
         static const std::string prefix("slaverequestid-");
         return FindSmallestSlaveRequestId(pt).substr(prefix.length());
