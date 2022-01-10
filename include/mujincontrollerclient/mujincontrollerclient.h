@@ -962,6 +962,7 @@ public:
         std::string name;
         std::string pk;
         std::string object_pk;
+        std::string reference_object_pk;
         std::string reference_uri;
         Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
         Real translate[3];
