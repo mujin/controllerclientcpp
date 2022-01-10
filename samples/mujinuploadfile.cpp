@@ -59,9 +59,7 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         bpo::notify(opts);
     }
     catch(const exception& ex) {
-        stringstream errss;
-        errss << "Caught exception " << ex.what();
-        cerr << errss.str() << endl;
+        cerr << "Caught exception " << ex.what() << endl;
         badargs = true;
     }
 

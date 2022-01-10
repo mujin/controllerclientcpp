@@ -46,9 +46,7 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         bpo::store(bpo::parse_command_line(argc, argv, desc, bpo::command_line_style::unix_style ^ bpo::command_line_style::allow_short), opts);
     }
     catch (const exception& ex) {
-        stringstream errss;
-        errss << "Caught exception " << ex.what();
-        cerr << errss.str() << endl;
+        cerr << "Caught exception " << ex.what() << endl;
         return false;
     }
 
@@ -57,9 +55,7 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         bpo::notify(opts);
     }
     catch(const exception& ex) {
-        stringstream errss;
-        errss << "Caught exception " << ex.what();
-        cerr << errss.str() << endl;
+        cerr << "Caught exception " << ex.what() << endl;
         badargs = true;
     }
 

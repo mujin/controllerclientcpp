@@ -189,13 +189,9 @@ int main(int argc, char ** argv)
         }
     }
     catch(const std::exception& ex) {
-        std::stringstream errss;
-        errss << "Caught exception " << ex.what();
-        std::cerr << errss.str() << std::endl;
+        std::cerr << "Caught exception " << ex.what() << std::endl;
     }
     catch (...) {
-        std::stringstream errss;
-        errss << "Caught unknown exception!";
-        std::cerr << errss.str() << std::endl;
+        std::cerr << "Caught unknown exception!" << std::endl;
     }
 }
