@@ -536,6 +536,12 @@ public:
     /// \brief (Request to) reboot controller.
     virtual void Reboot(double timeout = 5.0) = 0;
 
+    /// \brief Delete all scenes.
+    virtual void DeleteAllScenes(double timeout = 5.0) = 0;
+
+    /// \brief Delete all itl programs.
+    virtual void DeleteAllITLPrograms(double timeout = 5.0) = 0;
+
     /** \brief Recursively uploads a directory to the controller network filesystem.
 
         Creates directories along the way if they don't exist.
