@@ -1359,6 +1359,11 @@ void ControllerClientImpl::DeleteAllScenes(double timeout)
     CallDelete("scene/", 204, timeout);
 }
 
+void ControllerClientImpl::DeleteAllITLPrograms(double timeout)
+{
+    CallDelete("itl/", 204, timeout);
+}
+
 void ControllerClientImpl::DeleteFileOnController_UTF8(const std::string& desturi)
 {
     boost::mutex::scoped_lock lock(_mutex);
