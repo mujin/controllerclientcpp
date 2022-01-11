@@ -770,24 +770,45 @@ void SceneResource::GetSensorMapping(std::map<std::string, std::string>& sensorm
 {
     GETCONTROLLERIMPL();
     sensormapping.clear();
-    rapidjson::Document pt(rapidjson::kObjectType);
-    controller->CallGet(str(boost::format("scene/%s/instobject/?format=json&limit=0")%GetPrimaryKey()), pt);
-    rapidjson::Value& objects = pt["objects"];
-    for (rapidjson::Document::ValueIterator it = objects.Begin(); it != objects.End(); ++it) {
-        if ( it->HasMember("attachedsensors") ) {
-            rapidjson::Value& jsonattachedsensors = (*it)["attachedsensors"];
-            if (jsonattachedsensors.IsArray() && jsonattachedsensors.Size() > 0) {
-                std::string object_pk = GetJsonValueByKey<std::string>(*it, "object_pk");
-                std::string cameracontainername = GetJsonValueByKey<std::string>(*it, "name");
-                rapidjson::Document pt_robot(rapidjson::kObjectType);
-                controller->CallGet(str(boost::format("robot/%s/attachedsensor/?format=json")%object_pk), pt_robot);
-                rapidjson::Value& pt_attachedsensors = pt_robot["attachedsensors"];
-                for (rapidjson::Document::ValueIterator itsensor = pt_attachedsensors.Begin();
-                     itsensor != pt_attachedsensors.End(); ++itsensor) {
-                    std::string sensorname = GetJsonValueByKey<std::string>(*itsensor, "name");
-                    std::string camerafullname = str(boost::format("%s/%s")%cameracontainername%sensorname);
-                    std::string cameraid = GetJsonValueByPath<std::string>(*itsensor, "/sensordata/hardware_id");
-                    sensormapping[camerafullname] = cameraid;
+    rapidjson::Document rInstObjects(rapidjson::kObjectType);
+    controller->CallGet(str(boost::format("scene/%s/instobject/?format=json&limit=0&fields=attachedsensors,connectedBodies,object_pk,name")%GetPrimaryKey()), rInstObjects);
+    for (rapidjson::Document::ConstValueIterator itInstObject = rInstObjects["objects"].Begin(); itInstObject != rInstObjects["objects"].End(); ++itInstObject) {
+        std::string cameracontainername = GetJsonValueByKey<std::string>(*itInstObject, "name");
+        std::string objectPk = GetJsonValueByKey<std::string>(*itInstObject, "object_pk");
+        if ( itInstObject->HasMember("attachedsensors") && (*itInstObject)["attachedsensors"].IsArray() && (*itInstObject)["attachedsensors"].Size() > 0) {
+            rapidjson::Document rRobotAttachedSensors(rapidjson::kObjectType);
+            controller->CallGet(str(boost::format("robot/%s/attachedsensor/?format=json")%objectPk), rRobotAttachedSensors);
+            const rapidjson::Value& rAttachedSensors = rRobotAttachedSensors["attachedsensors"];
+            for (rapidjson::Document::ConstValueIterator itAttachedSensor = rAttachedSensors.Begin(); itAttachedSensor != rAttachedSensors.End(); ++itAttachedSensor) {
+                std::string sensorname = GetJsonValueByKey<std::string>(*itAttachedSensor, "name");
+                std::string camerafullname = str(boost::format("%s/%s")%cameracontainername%sensorname);
+                std::string cameraid = GetJsonValueByPath<std::string>(*itAttachedSensor, "/sensordata/hardware_id");
+                sensormapping[camerafullname] = cameraid;
+            }
+        }
+        if ( itInstObject->HasMember("connectedBodies") && (*itInstObject)["connectedBodies"].IsArray() && (*itInstObject)["connectedBodies"].Size() > 0 ) {
+            rapidjson::Document rRobotConnectedBodies(rapidjson::kObjectType);
+            controller->CallGet(str(boost::format("robot/%s/connectedBody/?format=json")%objectPk), rRobotConnectedBodies);
+            rapidjson::Value& rConnectedBodies = rRobotConnectedBodies["connectedBodies"];
+            for (rapidjson::Document::ConstValueIterator itConnectedBody = rConnectedBodies.Begin(); itConnectedBody != rConnectedBodies.End(); ++itConnectedBody) {
+                std::string connectedBodyScenePk = controller->GetScenePrimaryKeyFromURI_UTF8(GetJsonValueByKey<std::string>(*itConnectedBody, "url"));
+                std::string connectedBodyName = GetJsonValueByKey<std::string>(*itConnectedBody, "name");
+                rapidjson::Document rConnectedBodyInstObjects(rapidjson::kObjectType);
+                controller->CallGet(str(boost::format("scene/%s/instobject/?format=json&limit=0&fields=attachedsensors,object_pk,name")%connectedBodyScenePk), rConnectedBodyInstObjects);
+                for (rapidjson::Document::ConstValueIterator itConnectedBodyInstObject = rConnectedBodyInstObjects["objects"].Begin(); itConnectedBodyInstObject != rConnectedBodyInstObjects["objects"].End(); ++itConnectedBodyInstObject) {
+                    if (!itConnectedBodyInstObject->HasMember("attachedsensors") || !(*itConnectedBodyInstObject)["attachedsensors"].IsArray() || (*itConnectedBodyInstObject)["attachedsensors"].Size() == 0) {
+                        continue;
+                    }
+                    std::string connectedBodyObjectPk = GetJsonValueByKey<std::string>(*itConnectedBodyInstObject, "object_pk");
+                    rapidjson::Document rConnectedBodyRobotAttachedSensors(rapidjson::kObjectType);
+                    controller->CallGet(str(boost::format("robot/%s/attachedsensor/?format=json")%connectedBodyObjectPk), rConnectedBodyRobotAttachedSensors);
+                    rapidjson::Value& rConnectedBodyAttachedSensors = rConnectedBodyRobotAttachedSensors["attachedsensors"];
+                    for (rapidjson::Document::ConstValueIterator itConnectedBodyAttachedSensor = rConnectedBodyAttachedSensors.Begin(); itConnectedBodyAttachedSensor != rConnectedBodyAttachedSensors.End(); ++itConnectedBodyAttachedSensor) {
+                        std::string sensorname = GetJsonValueByKey<std::string>(*itConnectedBodyAttachedSensor, "name");
+                        std::string camerafullname = str(boost::format("%s/%s_%s")%cameracontainername%connectedBodyName%sensorname);
+                        std::string cameraid = GetJsonValueByPath<std::string>(*itConnectedBodyAttachedSensor, "/sensordata/hardware_id");
+                        sensormapping[camerafullname] = cameraid;
+                    }
                 }
             }
         }
@@ -808,6 +829,7 @@ void SceneResource::GetInstObjects(std::vector<SceneResource::InstObjectPtr>& in
 
         LoadJsonValueByKey(*it, "name", instobject->name);
         LoadJsonValueByKey(*it, "object_pk", instobject->object_pk);
+        LoadJsonValueByKey(*it, "reference_object_pk", instobject->reference_object_pk, std::string());
         LoadJsonValueByKey(*it, "reference_uri", instobject->reference_uri);
         LoadJsonValueByKey(*it, "dofvalues", instobject->dofvalues);
         LoadJsonValueByKey(*it, "quaternion", instobject->quaternion);
@@ -887,7 +909,7 @@ bool SceneResource::FindInstObject(const std::string& name, SceneResource::InstO
 SceneResource::InstObjectPtr SceneResource::CreateInstObject(const std::string& name, const std::string& referenceUri, const Real quaternion[4], const Real translate[3], double timeout)
 {
     GETCONTROLLERIMPL();
-    const std::string uri(str(boost::format("scene/%s/instobject/?format=json&fields=pk,object_pk,reference_uri,dofvalues,quaternion,translate")%GetPrimaryKey()));
+    const std::string uri(str(boost::format("scene/%s/instobject/?format=json&fields=pk,object_pk,reference_object_pk,reference_uri,dofvalues,quaternion,translate")%GetPrimaryKey()));
     std::string data(str(boost::format("{\"name\":\"%s\", \"quaternion\":[%.15f,%.15f,%.15f,%.15f], \"translate\":[%.15f,%.15f,%.15f]")%name%quaternion[0]%quaternion[1]%quaternion[2]%quaternion[3]%translate[0]%translate[1]%translate[2]));
     if (!referenceUri.empty()) {
         data += ", \"reference_uri\": \"" + referenceUri + "\"";
@@ -899,6 +921,7 @@ SceneResource::InstObjectPtr SceneResource::CreateInstObject(const std::string& 
     std::string inst_pk = GetJsonValueByKey<std::string>(pt, "pk");
     SceneResource::InstObjectPtr instobject(new SceneResource::InstObject(GetController(), GetPrimaryKey(),  inst_pk));
     LoadJsonValueByKey(pt, "object_pk", instobject->object_pk);
+    LoadJsonValueByKey(pt, "reference_object_pk", instobject->reference_object_pk, std::string());
     LoadJsonValueByKey(pt, "reference_uri", instobject->reference_uri);
     LoadJsonValueByKey(pt, "dofvalues", instobject->dofvalues);
     LoadJsonValueByKey(pt, "quaternion", instobject->quaternion);

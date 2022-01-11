@@ -1,20 +1,25 @@
 // -*- coding: utf-8 -*-
-/** \example mujindownloaddebug.cpp
+/** \example mujindeleteallscenes
 
-    Shows how to download debug
-    example1: mujindownloaddebug --controller_hostname=yourhost # will list categories to stdout
-    example2: mujindownloaddebug --controller_hostname=yourhost --category=system-logs --filename=log.gpg
+    Delete all scenes
+    example1: mujindeleteallscenes --controller_hostname=yourhost
  */
 
 #include <mujincontrollerclient/mujincontrollerclient.h>
 
 #include <boost/program_options.hpp>
-#include <boost/bind.hpp>
 #include <signal.h>
 #include <iostream>
 
 #if defined(_WIN32) || defined(_WIN64)
 #undef GetUserName // clashes with ControllerClient::GetUserName
+#define NOMINMAX
+#include <windows.h>
+const char s_filesep = '\\';
+const wchar_t s_wfilesep = L'\\';
+#else
+const char s_filesep = '/';
+const wchar_t s_wfilesep = L'/';
 #endif // defined(_WIN32) || defined(_WIN64)
 
 using namespace mujinclient;
@@ -36,8 +41,6 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("controller_hostname", bpo::value<string>()->required(), "hostname or ip of the mujin controller, e.g. controllerXX or 192.168.0.1")
         ("controller_port", bpo::value<unsigned int>()->default_value(80), "port of the mujin controller")
         ("controller_username_password", bpo::value<string>()->default_value("testuser:pass"), "username and password to the mujin controller, e.g. username:password")
-        ("filename", bpo::value<string>(), "backup file name")
-        ("category", bpo::value<string>(), "debug category to download")
         ;
 
     try {
@@ -89,21 +92,8 @@ int main(int argc, char ** argv)
     ControllerClientPtr controllerclient = CreateControllerClient(controllerUsernamePass, urlss.str());
     cerr << "connected to mujin controller at " << urlss.str() << endl;
 
-    vector<DebugResourcePtr> debuginfos;
-    controllerclient->GetDebugInfos(debuginfos);
-    if(!opts.count("category")){
-        for(int i=0;i<debuginfos.size();i++){
-            cout << debuginfos[i]->name << endl;
-        }
-    } else if(opts.count("filename")) {
-        const string category = opts["category"].as<string>();
-        const string filename = opts["filename"].as<string>();
-        std::vector<DebugResourcePtr>::iterator it = std::find_if(debuginfos.begin(),debuginfos.end(),boost::bind(&DebugResource::name,_1)==category);
-        if(it!=debuginfos.end()) {
-            ofstream fout(filename.c_str(), std::ios::out | std::ios::binary);
-            (*it)->Download(fout);
-        }
-    }
+    
+    controllerclient->DeleteAllScenes();
 
     return 0;
 }

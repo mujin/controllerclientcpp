@@ -87,7 +87,7 @@ public:
     MujinJSONErrorCode GetCode() const {
         return _error;
     }
-    
+
 private:
     std::string _s, _ssub;
     MujinJSONErrorCode _error;
@@ -95,26 +95,26 @@ private:
 
 template<class T> inline std::string GetJsonString(const T& t);
 
-/// \brief gets a string of the Value type for debugging purposes 
+/// \brief gets a string of the Value type for debugging purposes
 inline std::string GetJsonTypeName(const rapidjson::Value& v) {
     int type = v.GetType();
     switch (type) {
-        case 0:
-            return "Null";
-        case 1:
-            return "False";
-        case 2:
-            return "True";
-        case 3:
-            return "Object";
-        case 4:
-            return "Array";
-        case 5:
-            return "String";
-        case 6:
-            return "Number";
-        default:
-            return "Unknown";
+    case 0:
+        return "Null";
+    case 1:
+        return "False";
+    case 2:
+        return "True";
+    case 3:
+        return "Object";
+    case 4:
+        return "Array";
+    case 5:
+        return "String";
+    case 6:
+        return "Number";
+    default:
+        return "Unknown";
     }
 }
 
@@ -181,6 +181,18 @@ public:
     }
 };
 
+template<class T, class S> inline T LexicalCast(const S& v, const std::string& typeName) {
+    try {
+        T t = boost::lexical_cast<T>(v);
+        return t;
+    }
+    catch (const boost::bad_lexical_cast& ex) {
+        std::stringstream ss;
+        ss << v;
+        throw MujinJSONException("Cannot convert \"" + ss.str() + "\" to type " + typeName, MJE_Failed);
+    }
+}
+
 //store a json value to local data structures
 //for compatibility with ptree, type conversion is made. will remove them in the future
 inline void LoadJsonValue(const rapidjson::Value& v, JsonSerializable& t) {
@@ -202,20 +214,43 @@ inline void LoadJsonValue(const rapidjson::Value& v, std::string& t) {
 inline void LoadJsonValue(const rapidjson::Value& v, int& t) {
     if (v.IsInt()) {
         t = v.GetInt();
+    } else if (v.IsUint()) {
+        t = v.GetUint();
     } else if (v.IsString()) {
-        t = boost::lexical_cast<int>(v.GetString());
+        t = LexicalCast<int>(v.GetString(), "Int");
+    } else if (v.IsBool()) {
+        t = v.GetBool() ? 1 : 0;
     } else {
-        throw MujinJSONException("Cannot convert json value " + GetJsonString(v) + " to Int", MJE_Failed);
+        throw MujinJSONException("Cannot convert json type " + GetJsonString(v) + " to Int", MJE_Failed);
     }
 }
 
-inline void LoadJsonValue(const rapidjson::Value& v, int64_t& t) {
-    if (v.IsInt64()) {
-        t = v.GetInt64();
-    } else if (v.IsString()) {
-        t = boost::lexical_cast<int64_t>(v.GetString());
+inline void LoadJsonValue(const rapidjson::Value& v, int8_t& t) {
+    if (v.IsInt()) {
+        t = v.GetInt();
+    }
+    else if (v.IsUint()) {
+        t = v.GetUint();
+    }
+    else if (v.IsString()) {
+        t = LexicalCast<int>(v.GetString(), "Int8");
+    }
+    else if (v.IsBool()) {
+        t = v.GetBool() ? 1 : 0;
     } else {
-        throw MujinJSONException("Cannot convert json value " + GetJsonString(v) + " to Int64", MJE_Failed);
+        throw MujinJSONException("Cannot convert json type " + GetJsonString(v) + " to Int8", MJE_Failed);
+    }
+}
+
+inline void LoadJsonValue(const rapidjson::Value& v, uint8_t& t) {
+    if (v.IsUint()) {
+        t = v.GetUint();
+    } else if (v.IsString()) {
+        t = LexicalCast<unsigned int>(v.GetString(), "UInt8");
+    } else if (v.IsBool()) {
+        t = v.GetBool() ? 1 : 0;
+    } else {
+        throw MujinJSONException("Cannot convert json type " + GetJsonString(v) + " to UInt8", MJE_Failed);
     }
 }
 
@@ -223,9 +258,11 @@ inline void LoadJsonValue(const rapidjson::Value& v, unsigned int& t) {
     if (v.IsUint()) {
         t = v.GetUint();
     } else if (v.IsString()) {
-        t = boost::lexical_cast<unsigned int>(v.GetString());
+        t = LexicalCast<unsigned int>(v.GetString(), "UInt");
+    } else if (v.IsBool()) {
+        t = v.GetBool() ? 1 : 0;
     } else {
-        throw MujinJSONException("Cannot convert json value " + GetJsonString(v) + " to Int", MJE_Failed);
+        throw MujinJSONException("Cannot convert json type " + GetJsonString(v) + " to UInt", MJE_Failed);
     }
 }
 
@@ -233,31 +270,45 @@ inline void LoadJsonValue(const rapidjson::Value& v, unsigned long long& t) {
     if (v.IsUint64()) {
         t = v.GetUint64();
     } else if (v.IsString()) {
-        t = boost::lexical_cast<unsigned long long>(v.GetString());
+        t = LexicalCast<unsigned long long>(v.GetString(), "ULongLong");
+    } else if (v.IsBool()) {
+        t = v.GetBool() ? 1 : 0;
     } else {
-        throw MujinJSONException("Cannot convert json value " + GetJsonString(v) + " to UInt64", MJE_Failed);
+        throw MujinJSONException("Cannot convert json type " + GetJsonString(v) + " to ULongLong", MJE_Failed);
     }
 }
 
-#ifndef _MSC_VER
 inline void LoadJsonValue(const rapidjson::Value& v, uint64_t& t) {
     if (v.IsUint64()) {
         t = v.GetUint64();
     } else if (v.IsString()) {
-        t = boost::lexical_cast<uint64_t>(v.GetString());
+        t = LexicalCast<uint64_t>(v.GetString(), "UInt64");
+    } else if (v.IsBool()) {
+        t = v.GetBool() ? 1 : 0;
     } else {
-        throw MujinJSONException("Cannot convert json value " + GetJsonString(v) + " to Int64", MJE_Failed);
+        throw MujinJSONException("Cannot convert json type " + GetJsonString(v) + " to UInt64", MJE_Failed);
     }
 }
-#endif
+
+inline void LoadJsonValue(const rapidjson::Value& v, int64_t& t) {
+    if (v.IsInt64()) {
+        t = v.GetInt64();
+    } else if (v.IsString()) {
+        t = LexicalCast<int64_t>(v.GetString(), "Int64");
+    } else if (v.IsBool()) {
+        t = v.GetBool() ? 1 : 0;
+    } else {
+        throw MujinJSONException("Cannot convert json type " + GetJsonString(v) + " to Int64", MJE_Failed);
+    }
+}
 
 inline void LoadJsonValue(const rapidjson::Value& v, double& t) {
     if (v.IsNumber()) {
         t = v.GetDouble();
     } else if (v.IsString()) {
-        t = boost::lexical_cast<double>(v.GetString());
+        t = LexicalCast<double>(v.GetString(), "Double");
     } else {
-        throw MujinJSONException("Cannot convert json value " + GetJsonString(v) + " to Double", MJE_Failed);
+        throw MujinJSONException("Cannot convert json type " + GetJsonString(v) + " to Double", MJE_Failed);
     }
 }
 
@@ -265,9 +316,9 @@ inline void LoadJsonValue(const rapidjson::Value& v, float& t) {
     if (v.IsNumber()) {
         t = v.GetDouble();
     } else if (v.IsString()) {
-        t = boost::lexical_cast<double>(v.GetString());
+        t = LexicalCast<double>(v.GetString(), "Float");
     } else {
-        throw MujinJSONException("Cannot convert json value " + GetJsonString(v) + " to Double", MJE_Failed);
+        throw MujinJSONException("Cannot convert json type " + GetJsonString(v) + " to Float", MJE_Failed);
     }
 }
 
@@ -275,9 +326,9 @@ inline void LoadJsonValue(const rapidjson::Value& v, bool& t) {
     if (v.IsInt()) t = v.GetInt();
     else if (v.IsBool()) t = v.GetBool();
     else if (v.IsString())  {
-        t = boost::lexical_cast<bool>(v.GetString());
+        t = LexicalCast<bool>(v.GetString(), "Bool");
     } else {
-        throw MujinJSONException("Cannot convert json value " + GetJsonString(v) + " to Bool", MJE_Failed);
+        throw MujinJSONException("Cannot convert json type " + GetJsonString(v) + " to Bool", MJE_Failed);
     }
 }
 
@@ -337,9 +388,9 @@ template<class T, size_t N> inline void LoadJsonValue(const rapidjson::Value& v,
     if (v.IsArray()) {
         if (v.GetArray().Size() != N) {
             throw MujinJSONException(
-                (boost::format("Cannot convert json type " + GetJsonTypeName(v) + " to Array. "
-                               "Array length does not match (%d != %d)") % N % v.GetArray().Size()).str(),
-                MJE_Failed);
+                      (boost::format("Cannot convert json type " + GetJsonTypeName(v) + " to Array. "
+                                                                                        "Array length does not match (%d != %d)") % N % v.GetArray().Size()).str(),
+                      MJE_Failed);
         }
         size_t i = 0;
         for (rapidjson::Value::ConstValueIterator it = v.Begin(); it != v.End(); ++it) {
@@ -364,7 +415,7 @@ template<class U> inline void LoadJsonValue(const rapidjson::Value& v, std::map<
         t.clear();
         U value;
         for (rapidjson::Value::ConstMemberIterator it = v.MemberBegin();
-                it != v.MemberEnd(); ++it) {
+             it != v.MemberEnd(); ++it) {
             LoadJsonValue(it->value, value);
             t[it->name.GetString()] = value;
         }

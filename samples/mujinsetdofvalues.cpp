@@ -2,7 +2,7 @@
 /** \example mujinsetdofvalues.cpp
 
     Shows how to setdofvalues object
-    example: mujinsetdofvalues --controller_hostname localhost --task_scenepk machine.mujin.dae --destination -300 -1000 -2000 10 --taskparameters '{"robotname":"machine","robots":{"machine":{}}}'
+    example: mujinsetdofvalues --controller_hostname localhost --task_scenepk machine.mujin.dae --destination -300 -1000 -2000 10 --taskparameters '{"robotname":"robot","objectName":"machine"}'
  */
 
 #include <mujincontrollerclient/binpickingtask.h>
@@ -39,7 +39,7 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("controller_command_timeout", bpo::value<double>()->default_value(10), "command timeout in seconds, e.g. 10")
         ("locale", bpo::value<string>()->default_value("en_US"), "locale to use for the mujin controller client")
         ("task_scenepk", bpo::value<string>()->default_value(""), "scene pk of the binpicking task on the mujin controller, e.g. officeboltpicking.mujin.dae.")
-        ("taskparameters", bpo::value<string>()->default_value("{}"), "binpicking task parameters, e.g. {'robotname': 'robot', 'robots':{'robot': {'externalCollisionIO':{}, 'gripperControlInfo':{}, 'robotControllerUri': '', robotDeviceIOUri': '', 'toolname': 'tool'}}}")
+        ("taskparameters", bpo::value<string>()->default_value("{}"), "binpicking task parameters, e.g. {\"robotname\": \"robot\", \"toolname\": \"tool\"}")
         ("zmq_port", bpo::value<unsigned int>()->default_value(11000), "port of the binpicking task on the mujin controller")
         ("heartbeat_port", bpo::value<unsigned int>()->default_value(11001), "port of the binpicking task's heartbeat signal on the mujin controller")
         ("unit", bpo::value<string>()->default_value("mm"), "length unit of pose")
@@ -97,8 +97,8 @@ void InitializeTask(const bpo::variables_map& opts,
     string slaverequestid = opts["slave_request_id"].as<string>();
     string taskScenePk = opts["task_scenepk"].as<string>();
     
-    const bool needtoobtainfromheatbeat = taskScenePk.empty() || slaverequestid.empty();
-    if (needtoobtainfromheatbeat) {
+    const bool needtoobtainfromheartbeat = taskScenePk.empty() || slaverequestid.empty();
+    if (needtoobtainfromheartbeat) {
         stringstream endpoint;
         endpoint << "tcp://" << hostname << ":" << heartbeatPort;
         cout << "connecting to heartbeat at " << endpoint.str() << endl;
@@ -117,12 +117,12 @@ void InitializeTask(const bpo::variables_map& opts,
         }
         
         if (taskScenePk.empty()) {
-            taskScenePk = utils::GetScenePkFromHeatbeat(heartbeat);
-            cout << "task_scenepk: " << taskScenePk << " is obtained from heatbeat\n";
+            taskScenePk = utils::GetScenePkFromHeartbeat(heartbeat);
+            cout << "task_scenepk: " << taskScenePk << " is obtained from heartbeat\n";
         }
         if (slaverequestid.empty()) {
-            slaverequestid = utils::GetSlaveRequestIdFromHeatbeat(heartbeat);
-            cout << "slave_request_id: " << slaverequestid << " is obtained from heatbeat\n";
+            slaverequestid = utils::GetSlaveRequestIdFromHeartbeat(heartbeat);
+            cout << "slave_request_id: " << slaverequestid << " is obtained from heartbeat\n";
         }
     }
 
@@ -148,7 +148,7 @@ void InitializeTask(const bpo::variables_map& opts,
 void ReinitializeTask(boost::shared_ptr<zmq::context_t>& zmqcontext,
                       BinPickingTaskResourcePtr& pBinpickingTask)
 {
-    const string taskparameters("{\"robotname\": \"robot\", \"robots\":{\"robot\": {\"robotControllerUri\": \"\"}}}");
+    const string taskparameters("{\"robotname\": \"robot\"}");
     const unsigned int taskZmqPort(11000);
     const double controllerCommandTimeout(10);
     const string userinfo("");
