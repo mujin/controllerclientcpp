@@ -601,10 +601,20 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
             activeLocationTrackingInfos[iitem].containerName = GetJsonValueByKey<std::string,std::string>(rInfo, "containerName", std::string());
             activeLocationTrackingInfos[iitem].containerUsage = GetJsonValueByKey<std::string,std::string>(rInfo, "containerUsage", std::string());
             activeLocationTrackingInfos[iitem].cycleIndex = GetJsonValueByKey<std::string,std::string>(rInfo, "cycleIndex", std::string());
+        }
+    }
 
-            activeLocationTrackingInfos[iitem].forceRequestStampMS = GetJsonValueByKey<uint64_t, uint64_t>(rInfo, "forceRequestStampMS", 0);
-            activeLocationTrackingInfos[iitem].lastInsideContainerStampMS = GetJsonValueByKey<uint64_t, uint64_t>(rInfo, "lastInsideContainerStampMS", 0);
-            activeLocationTrackingInfos[iitem].needContainerState = GetJsonValueByKey<std::string,std::string>(rInfo, "needContainerState", std::string());
+    locationExecutionInfos.clear();
+    if( v.HasMember("locationExecutionInfos") && v["locationExecutionInfos"].IsArray()) {
+        const rapidjson::Value& rLocationTrackingInfo = v["locationExecutionInfos"];
+        locationExecutionInfos.resize(rLocationTrackingInfo.Size());
+        for(int iitem = 0; iitem < (int)rLocationTrackingInfo.Size(); ++iitem) {
+            const rapidjson::Value& rInfo = rLocationTrackingInfo[iitem];
+            locationExecutionInfos[iitem].locationName = GetJsonValueByKey<std::string,std::string>(rInfo, "locationName", std::string());
+            locationExecutionInfos[iitem].containerId = GetJsonValueByKey<std::string,std::string>(rInfo, "containerId", std::string());
+            locationExecutionInfos[iitem].forceRequestStampMS = GetJsonValueByKey<uint64_t, uint64_t>(rInfo, "forceRequestStampMS", 0);
+            locationExecutionInfos[iitem].lastInsideContainerStampMS = GetJsonValueByKey<uint64_t, uint64_t>(rInfo, "lastInsideContainerStampMS", 0);
+            locationExecutionInfos[iitem].needContainerState = GetJsonValueByKey<std::string,std::string>(rInfo, "needContainerState", std::string());
         }
     }
 
