@@ -570,7 +570,9 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     registerMinViableRegionInfo.sensortimestamp = GetJsonValueByPath<uint64_t>(v, "/registerMinViableRegionInfo/sensortimestamp", 0);
     registerMinViableRegionInfo.robotDepartStopTimestamp = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/robotDepartStopTimestamp", 0);
     registerMinViableRegionInfo.transferSpeedMult = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/transferSpeedMult", 1.0);
-    registerMinViableRegionInfo.isTopFaceWeak = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/isTopFaceWeak", -1);
+    if( v.HasMember("graspModelInfo") && v["graspModelInfo"].IsObject() ) {
+        registerMinViableRegionInfo.graspModelInfo.CopyFrom(v["graspModelInfo"], registerMinViableRegionInfo.graspModelInfo.GetAllocator());
+    }
     registerMinViableRegionInfo.minCornerVisibleDist = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/minCornerVisibleDist", 30);
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/minViableRegion/size2D", registerMinViableRegionInfo.minViableRegion.size2D);
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/minViableRegion/maxPossibleSize", registerMinViableRegionInfo.minViableRegion.maxPossibleSize);
@@ -653,7 +655,6 @@ BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionInfo::R
     sensortimestamp(0),
     robotDepartStopTimestamp(0),
     transferSpeedMult(1.0),
-    isTopFaceWeak(-1),
     minCornerVisibleDist(30),
     occlusionFreeCornerMask(0),
     waitForTriggerOnCapturing(false)

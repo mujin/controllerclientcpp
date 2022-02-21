@@ -212,6 +212,16 @@ public:
         {
             RegisterMinViableRegionInfo();
 
+            class CopyableRapidJsonDocument : public rapidjson::Document
+            {
+            public:
+                // Since ResultGetBinpickingState needs to be copyable while rapidjson::Document is not, there needs to be a small wrapper
+                CopyableRapidJsonDocument& operator=(const CopyableRapidJsonDocument& other) {
+                    CopyFrom(other, GetAllocator());  // Note: This function deallocates old values before copying
+                    return *this;
+                }
+            };
+
             struct MinViableRegionInfo
             {
                 MinViableRegionInfo();
@@ -230,7 +240,7 @@ public:
             std::array<double, 3> maxCandidateSize; ///< the max candidate size expecting
             std::array<double, 3> minCandidateSize; ///< the min candidate size expecting
             double transferSpeedMult; // transfer speed multiplication factor
-            int isTopFaceWeak; // If true, grabbing only from top face should be avoided
+            CopyableRapidJsonDocument graspModelInfo; ///< Parameters used for grasping model generation for the object
             double minCornerVisibleDist;
             uint64_t occlusionFreeCornerMask;
             bool waitForTriggerOnCapturing; // if true, sensor will wait trigger on capturing
