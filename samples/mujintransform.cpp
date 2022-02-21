@@ -99,8 +99,8 @@ void InitializeTask(const bpo::variables_map& opts,
     string slaverequestid = opts["slave_request_id"].as<string>();
     string taskScenePk = opts["task_scenepk"].as<string>();
     
-    const bool needtoobtainfromheatbeat = taskScenePk.empty() || slaverequestid.empty();
-    if (needtoobtainfromheatbeat) {
+    const bool needtoobtainfromheartbeat = taskScenePk.empty() || slaverequestid.empty();
+    if (needtoobtainfromheartbeat) {
         stringstream endpoint;
         endpoint << "tcp://" << hostname << ":" << heartbeatPort;
         cout << "connecting to heartbeat at " << endpoint.str() << endl;
@@ -119,12 +119,12 @@ void InitializeTask(const bpo::variables_map& opts,
         }
         
         if (taskScenePk.empty()) {
-            taskScenePk = utils::GetScenePkFromHeatbeat(heartbeat);
-            cout << "task_scenepk: " << taskScenePk << " is obtained from heatbeat\n";
+            taskScenePk = utils::GetScenePkFromHeartbeat(heartbeat);
+            cout << "task_scenepk: " << taskScenePk << " is obtained from heartbeat\n";
         }
         if (slaverequestid.empty()) {
-            slaverequestid = utils::GetSlaveRequestIdFromHeatbeat(heartbeat);
-            cout << "slave_request_id: " << slaverequestid << " is obtained from heatbeat\n";
+            slaverequestid = utils::GetSlaveRequestIdFromHeartbeat(heartbeat);
+            cout << "slave_request_id: " << slaverequestid << " is obtained from heartbeat\n";
         }
     }
 

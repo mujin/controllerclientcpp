@@ -151,16 +151,22 @@ public:
     };
 
     /// \brief Holds the state of each region coming from the planning side.
-    struct LocationStateInfo
+    struct LocationTrackingInfo
     {
-        std::string locationName;
+        std::string locationName; ///< name of the location tracking
+        std::string containerId; ///< containerId currently in the location
+        std::string containerName; ///< name of the container tracking
+        std::string containerUsage; ///< how the container is used
+        std::string cycleIndex; ///< unique cycleIndex that is tracking this location
+    };
+
+    struct LocationExecutionInfo
+    {
+        std::string locationName; ///< name of the location tracking
+        std::string containerId; ///< containerId currently in the location
         uint64_t forceRequestStampMS=0; ///< ms, (linux epoch) of when the requestion for results (detection or point cloud) came in. If there is no request, then this will be 0
         uint64_t lastInsideContainerStampMS = 0; ///< ms, (linux epoch) of when the robot (or something else) was inside the container and could have potentially disturbed the contents.
-
-        int needContainer = -1; ///< 1 if source container is needed, 0 if not needed, -1 if unknown or planning does not publish
-        int isContainerEmpty = -1; ///< value is an integer in {-1, 0, 1}. 1 means container in the region is empty. 0 means container is not empty. -1 means unknown.
-        int isContainerPresent = -1; ///< value is an integer in {-1, 0, 1}. 1 means container is present. 0 means container is not present. -1 means unknown.
-        uint64_t containerUpdateTimeStampMS = 0; ///< ms, (linux epoch) of when "isContainerEmpty"/"isContainerPresent" was last updated.
+        std::string needContainerState; ///< one of: Unknown, NewContainerNeeded, ContainerNeeded, ContainerNotNeeded. If empty, then not initialized yet, so can assume Unknown.
     };
 
     struct MUJINCLIENT_API ResultGetBinpickingState : public ResultBase
@@ -186,7 +192,8 @@ public:
         unsigned long long lastGrabbedTargetTimeStamp;   ///< ms
         //bool isRobotOccludingSourceContainer; ///?
         std::vector<OcclusionResult> vOcclusionResults;
-        std::vector<LocationStateInfo> locationStateInfos;
+        std::vector<LocationTrackingInfo> activeLocationTrackingInfos;
+        std::vector<LocationExecutionInfo> locationExecutionInfos;
 
         bool isGrabbingTarget;
         bool isGrabbingLastTarget;
@@ -227,6 +234,8 @@ public:
             double minCornerVisibleDist;
             uint64_t occlusionFreeCornerMask;
             bool waitForTriggerOnCapturing; // if true, sensor will wait trigger on capturing
+            std::vector<double> fullDofValues; ///< robot configuration state on capturing
+            std::vector<int8_t> connectedBodyActiveStates; ///< robot configuration state on capturing
             bool IsEmpty() const {
                 return sensortimestamp == 0;
             }
@@ -647,13 +656,13 @@ MUJINCLIENT_API void DeleteObject(SceneResource& scene, const std::string& name)
 
 
 #ifdef MUJIN_USEZMQ
-/// \brief get heatbeat
+/// \brief get heartbeat
 /// \param endopoint endpoint to get heartbeat from. looks like protocol://hostname:port (ex. tcp://localhost:11001)
 /// \return heartbeat as string
 MUJINCLIENT_API std::string GetHeartbeat(const std::string& endpoint);
 
-MUJINCLIENT_API std::string GetScenePkFromHeatbeat(const std::string& heartbeat);
-MUJINCLIENT_API std::string GetSlaveRequestIdFromHeatbeat(const std::string& heartbeat);
+MUJINCLIENT_API std::string GetScenePkFromHeartbeat(const std::string& heartbeat);
+MUJINCLIENT_API std::string GetSlaveRequestIdFromHeartbeat(const std::string& heartbeat);
 #endif
 } // namespace utils
 
