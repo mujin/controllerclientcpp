@@ -221,18 +221,19 @@ public:
             } minViableRegion;
 
             std::string locationName; ///< The name of the location where the minViableRegion was triggered for
-            std::array<double, 3> translation_; // Translation of the 2D MVR plane (height = 0)
-            std::array<double, 4> quat_; // Rotation of the 2D MVR plane (height = 0)
-            double objectWeight; // If non-zero, use this weight fo registration. unit is kg. zero means unknown.
-            uint64_t sensortimestamp; // Same as DetectedObject's timestamp sent to planning
-            double robotDepartStopTimestamp; // Force capture after robot stops
-            std::array<double, 3> liftedWorldOffset; // [dx, dy, dz], mm in world frame
+            std::array<double, 3> translation_; ///< Translation of the 2D MVR plane (height = 0)
+            std::array<double, 4> quat_; ///< Rotation of the 2D MVR plane (height = 0)
+            double objectWeight; ///< If non-zero, use this weight fo registration. unit is kg. zero means unknown.
+            uint64_t sensortimestamp; ///< Same as DetectedObject's timestamp sent to planning
+            double robotDepartStopTimestamp; ///< Force capture after robot stops
+            std::array<double, 3> liftedWorldOffset; ///< [dx, dy, dz], mm in world frame
             std::array<double, 3> maxCandidateSize; ///< the max candidate size expecting
             std::array<double, 3> minCandidateSize; ///< the min candidate size expecting
-            double transferSpeedMult; // transfer speed multiplication factor
-            double minCornerVisibleDist;
-            uint64_t occlusionFreeCornerMask;
-            bool waitForTriggerOnCapturing; // if true, sensor will wait trigger on capturing
+            double transferSpeedMult; ///< transfer speed multiplication factor
+            double minCornerVisibleDist; ///< how much distance along with uncertain edge from uncertain corner robot exposes to camera
+            double minCornerVisibleInsideDist; ///< how much distance inside MVR robot exposes to camera
+            uint64_t occlusionFreeCornerMask; ///< mask of corners that robot exposes to camera
+            bool waitForTriggerOnCapturing; ///<  if true, sensor will wait trigger on capturing
             std::vector<double> fullDofValues; ///< robot configuration state on capturing
             std::vector<int8_t> connectedBodyActiveStates; ///< robot configuration state on capturing
             bool IsEmpty() const {
