@@ -164,7 +164,7 @@ inline void ParseJson(rapidjson::Document& d, const std::string& str) {
 inline void ParseJson(rapidjson::Document& d, std::istream& is) {
     rapidjson::IStreamWrapper isw(is);
     // see note in: void ParseJson(rapidjson::Document& d, const std::string& str)
-    rapidjson::Document tempDoc;
+    rapidjson::Document(tempDoc);
     tempDoc.ParseStream<rapidjson::kParseFullPrecisionFlag>(isw); // parse float in full precision mode
     if (tempDoc.HasParseError()) {
         throw MujinJSONException(boost::str(boost::format("Json stream is invalid (offset %u) %s")%((unsigned)d.GetErrorOffset())%GetParseError_En(d.GetParseError())), MJE_Failed);
