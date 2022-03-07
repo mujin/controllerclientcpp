@@ -151,14 +151,16 @@ void ZmqSubscriber::_InitializeSocket(boost::shared_ptr<zmq::context_t> context)
         _sharedcontext = false;
     }
     _socket.reset(new zmq::socket_t ((*_context.get()), ZMQ_SUB));
-    _socket->set(zmq::sockopt::tcp_keepalive, 1); // turn on tcp keepalive, do these configuration before connect
-    _socket->set(zmq::sockopt::tcp_keepalive_idle, 2); // the interval between the last data packet sent (simple ACKs are not considered data) and the first keepalive probe; after the connection is marked to need keepalive, this counter is not used any further
-    _socket->set(zmq::sockopt::tcp_keepalive_intvl, 2); // the interval between subsequential keepalive probes, regardless of what the connection has exchanged in the meantime
-    _socket->set(zmq::sockopt::tcp_keepalive_cnt, 2); // the number of unacknowledged probes to send before considering the connection dead and notifying the application layer
-    _socket->set(zmq::sockopt::sndhwm, 2);
-    _socket->set(zmq::sockopt::linger, 100); // ms
-    _socket->connect("tcp://" + _host + ':' + std::to_string(_port));
-    _socket->set(zmq::sockopt::subscribe, "");
+    _socket->setsockopt(ZMQ_TCP_KEEPALIVE, 1); // turn on tcp keepalive, do these configuration before connect
+    _socket->setsockopt(ZMQ_TCP_KEEPALIVE_IDLE, 2); // the interval between the last data packet sent (simple ACKs are not considered data) and the first keepalive probe; after the connection is marked to need keepalive, this counter is not used any further
+    _socket->setsockopt(ZMQ_TCP_KEEPALIVE_INTVL, 2); // the interval between subsequential keepalive probes, regardless of what the connection has exchanged in the meantime
+    _socket->setsockopt(ZMQ_TCP_KEEPALIVE_CNT, 2); // the number of unacknowledged probes to send before considering the connection dead and notifying the application layer
+    _socket->setsockopt(ZMQ_SNDHWM, 2); 
+    _socket->setsockopt(ZMQ_LINGER, 100); // ms
+    std::ostringstream port_stream;
+    port_stream << _port;
+    _socket->connect (("tcp://" + _host + ":" + port_stream.str()).c_str());
+    _socket->setsockopt(ZMQ_SUBSCRIBE, "", 0);
 }
 
 void ZmqSubscriber::_DestroySocket()
@@ -187,7 +189,7 @@ bool ZmqPublisher::Publish(const std::string& messagestr)
 {
     zmq::message_t message(messagestr.size());
     memcpy(message.data(), messagestr.data(), messagestr.size());
-    return (bool)_socket->send(message, zmq::send_flags::none);
+    return _socket->send(message);
 }
 
 void ZmqPublisher::_InitializeSocket(boost::shared_ptr<zmq::context_t> context)
@@ -201,13 +203,15 @@ void ZmqPublisher::_InitializeSocket(boost::shared_ptr<zmq::context_t> context)
         _sharedcontext = false;
     }
     _socket.reset(new zmq::socket_t ((*(zmq::context_t*)_context.get()), ZMQ_PUB));
-    _socket->set(zmq::sockopt::tcp_keepalive, 1); // turn on tcp keepalive, do these configuration before connect
-    _socket->set(zmq::sockopt::tcp_keepalive_idle, 2); // the interval between the last data packet sent (simple ACKs are not considered data) and the first keepalive probe; after the connection is marked to need keepalive, this counter is not used any further
-    _socket->set(zmq::sockopt::tcp_keepalive_intvl, 2); // the interval between subsequential keepalive probes, regardless of what the connection has exchanged in the meantime
-    _socket->set(zmq::sockopt::tcp_keepalive_cnt, 2); // the number of unacknowledged probes to send before considering the connection dead and notifying the application layer
-    _socket->set(zmq::sockopt::sndhwm, 2);
-    _socket->set(zmq::sockopt::linger, 100); // ms
-    _socket->bind("tcp://*:" + std::to_string(_port));
+    _socket->setsockopt(ZMQ_TCP_KEEPALIVE, 1); // turn on tcp keepalive, do these configuration before connect
+    _socket->setsockopt(ZMQ_TCP_KEEPALIVE_IDLE, 2); // the interval between the last data packet sent (simple ACKs are not considered data) and the first keepalive probe; after the connection is marked to need keepalive, this counter is not used any further
+    _socket->setsockopt(ZMQ_TCP_KEEPALIVE_INTVL, 2); // the interval between subsequential keepalive probes, regardless of what the connection has exchanged in the meantime
+    _socket->setsockopt(ZMQ_TCP_KEEPALIVE_CNT, 2); // the number of unacknowledged probes to send before considering the connection dead and notifying the application layer
+    _socket->setsockopt(ZMQ_SNDHWM, 2);
+    _socket->setsockopt(ZMQ_LINGER, 100); // ms
+    std::ostringstream port_stream;
+    port_stream << _port;
+    _socket->bind (("tcp://*:" + port_stream.str()).c_str());
 }
 
 void ZmqPublisher::_DestroySocket()
@@ -247,7 +251,7 @@ std::string ZmqClient::Call(const std::string& msg, const double timeout, const 
     bool recreatedonce = false;
     while (GetMilliTime() - starttime < timeout*1000.0) {
         try {
-            _socket->send(request, zmq::send_flags::none);
+            _socket->send(request);
             break;
         } catch (const zmq::error_t& e) {
             if (e.num() == EAGAIN) {
@@ -273,9 +277,10 @@ std::string ZmqClient::Call(const std::string& msg, const double timeout, const 
                 _InitializeSocket(_context);
                 recreatedonce = true;
             } else{
-                std::string ss = "Failed to send request after re-creating socket.";
-                MUJIN_LOG_ERROR(ss);
-                throw MujinException(ss, MEC_Failed);
+                std::stringstream ss;
+                ss << "Failed to send request after re-creating socket.";
+                MUJIN_LOG_ERROR(ss.str());
+                throw MujinException(ss.str(), MEC_Failed);
             }
         }
         if( !!_preemptfn ) {
@@ -284,14 +289,15 @@ std::string ZmqClient::Call(const std::string& msg, const double timeout, const 
 
     }
     if (GetMilliTime() - starttime > timeout*1000.0) {
-        std::string ss = "Timed out trying to send request.";
-        MUJIN_LOG_ERROR(ss);
+        std::stringstream ss;
+        ss << "Timed out trying to send request.";
+        MUJIN_LOG_ERROR(ss.str());
         if (msg.length() > 1000) {
             MUJIN_LOG_INFO(msg.substr(0,1000) << "...");
         } else {
             MUJIN_LOG_INFO(msg);
         }
-        throw MujinException(ss, MEC_Timeout);
+        throw MujinException(ss.str(), MEC_Timeout);
     }
     //recv
     recreatedonce = false;
@@ -315,11 +321,12 @@ std::string ZmqClient::Call(const std::string& msg, const double timeout, const 
                 timeoutms = timeout * 1000.0;
             }
 
-            zmq::poll(&pollitem, 1, std::chrono::milliseconds{timeoutms});
+            zmq::poll(&pollitem, 1, timeoutms);
             receivedonce = true;
             if (pollitem.revents & ZMQ_POLLIN) {
-                _socket->recv(reply);
-                return reply.to_string();
+                _socket->recv(&reply);
+                std::string replystring((char *) reply.data (), (size_t) reply.size());
+                return replystring;
             } else{
                 std::stringstream ss;
                 if (msg.length() > 1000) {
@@ -371,14 +378,15 @@ std::string ZmqClient::Call(const std::string& msg, const double timeout, const 
         }
     }
     if (GetMilliTime() - starttime > timeout*1000.0) {
-        std::string ss = "timed out trying to receive request";
-        MUJIN_LOG_ERROR(ss);
+        std::stringstream ss;
+        ss << "timed out trying to receive request";
+        MUJIN_LOG_ERROR(ss.str());
         if (msg.length() > 1000) {
             MUJIN_LOG_INFO(msg.substr(0,1000) << "...");
         } else {
             MUJIN_LOG_INFO(msg);
         }
-        throw MujinException(ss, MEC_Failed);
+        throw MujinException(ss.str(), MEC_Failed);
     }
 
     return "";
@@ -394,13 +402,16 @@ void ZmqClient::_InitializeSocket(boost::shared_ptr<zmq::context_t> context)
         _sharedcontext = false;
     }
     _socket.reset(new zmq::socket_t ((*(zmq::context_t*)_context.get()), ZMQ_REQ));
-    _socket->set(zmq::sockopt::tcp_keepalive, 1); // turn on tcp keepalive, do these configuration before connect
-    _socket->set(zmq::sockopt::tcp_keepalive_idle, 2); // the interval between the last data packet sent (simple ACKs are not considered data) and the first keepalive probe; after the connection is marked to need keepalive, this counter is not used any further
-    _socket->set(zmq::sockopt::tcp_keepalive_intvl, 2); // the interval between subsequential keepalive probes, regardless of what the connection has exchanged in the meantime
-    _socket->set(zmq::sockopt::tcp_keepalive_cnt, 2); // the number of unacknowledged probes to send before considering the connection dead and notifying the application layer
-    std::string endpoint = "tcp://" + _host + ':' + std::to_string(_port);
-    MUJIN_LOG_INFO("connecting to socket at " + endpoint);
-    _socket->connect(endpoint);
+    _socket->setsockopt(ZMQ_TCP_KEEPALIVE, 1); // turn on tcp keepalive, do these configuration before connect
+    _socket->setsockopt(ZMQ_TCP_KEEPALIVE_IDLE, 2); // the interval between the last data packet sent (simple ACKs are not considered data) and the first keepalive probe; after the connection is marked to need keepalive, this counter is not used any further
+    _socket->setsockopt(ZMQ_TCP_KEEPALIVE_INTVL, 2); // the interval between subsequential keepalive probes, regardless of what the connection has exchanged in the meantime
+    _socket->setsockopt(ZMQ_TCP_KEEPALIVE_CNT, 2); // the number of unacknowledged probes to send before considering the connection dead and notifying the application layer
+    std::ostringstream port_stream;
+    port_stream << _port;
+    std::stringstream ss;
+    ss << "connecting to socket at " << _host << ":" << _port;
+    MUJIN_LOG_INFO(ss.str());
+    _socket->connect (("tcp://" + _host + ":" + port_stream.str()).c_str());
 }
 
 void ZmqClient::_DestroySocket()
@@ -426,7 +437,7 @@ unsigned int ZmqServer::Recv(std::string& data, long timeout)
 {
     // wait timeout in millisecond for message
     if (timeout > 0) {
-        zmq::poll(&_pollitem, 1, std::chrono::milliseconds{timeout});
+        zmq::poll(&_pollitem, 1, timeout); 
         if ((_pollitem.revents & ZMQ_POLLIN) == 0)
         {
             // did not receive anything
@@ -434,9 +445,10 @@ unsigned int ZmqServer::Recv(std::string& data, long timeout)
         }
     }
 
-    const bool ret = (bool)_socket->recv(_reply, zmq::recv_flags::dontwait);
+    const bool ret = _socket->recv(&_reply, ZMQ_NOBLOCK);
     if (ret && _reply.size() > 0) {
-        data = _reply.to_string();
+        data.resize(_reply.size());
+        std::copy((uint8_t*)_reply.data(), (uint8_t*)_reply.data() + _reply.size(), data.begin());
         return _reply.size();
     } else {
         return 0;
@@ -447,7 +459,7 @@ void ZmqServer::Send(const std::string& message)
 {
     zmq::message_t request(message.size());
     memcpy((void *)request.data(), message.c_str(), message.size());
-    _socket->send(request, zmq::send_flags::none);
+    _socket->send(request);
 }
 
 void ZmqServer::_InitializeSocket(boost::shared_ptr<zmq::context_t> context)
@@ -461,19 +473,22 @@ void ZmqServer::_InitializeSocket(boost::shared_ptr<zmq::context_t> context)
     }
 
     _socket.reset(new zmq::socket_t((*(zmq::context_t*)_context.get()), ZMQ_REP));
-    _socket->set(zmq::sockopt::tcp_keepalive, 1); // turn on tcp keepalive, do these configuration before connect
-    _socket->set(zmq::sockopt::tcp_keepalive_idle, 2); // the interval between the last data packet sent (simple ACKs are not considered data) and the first keepalive probe; after the connection is marked to need keepalive, this counter is not used any further
-    _socket->set(zmq::sockopt::tcp_keepalive_intvl, 2); // the interval between subsequential keepalive probes, regardless of what the connection has exchanged in the meantime
-    _socket->set(zmq::sockopt::tcp_keepalive_cnt, 2); // the number of unacknowledged probes to send before considering the connection dead and notifying the application layer
+    _socket->setsockopt(ZMQ_TCP_KEEPALIVE, 1); // turn on tcp keepalive, do these configuration before connect
+    _socket->setsockopt(ZMQ_TCP_KEEPALIVE_IDLE, 2); // the interval between the last data packet sent (simple ACKs are not considered data) and the first keepalive probe; after the connection is marked to need keepalive, this counter is not used any further
+    _socket->setsockopt(ZMQ_TCP_KEEPALIVE_INTVL, 2); // the interval between subsequential keepalive probes, regardless of what the connection has exchanged in the meantime
+    _socket->setsockopt(ZMQ_TCP_KEEPALIVE_CNT, 2); // the number of unacknowledged probes to send before considering the connection dead and notifying the application layer
 
     // setup the pollitem
     memset(&_pollitem, 0, sizeof(_pollitem));
     _pollitem.socket = _socket->operator void*();
     _pollitem.events = ZMQ_POLLIN;
 
-    std::string endpoint = "tcp://*:" + std::to_string(_port);
-    _socket->bind(endpoint);
-    MUJIN_LOG_INFO("binded to " + endpoint);
+    std::ostringstream endpoint;
+    endpoint << "tcp://*:" << _port;
+    _socket->bind(endpoint.str().c_str());
+    std::stringstream ss;
+    ss << "binded to " << endpoint.str();
+    MUJIN_LOG_INFO(ss.str());
 }
 
 void ZmqServer::_DestroySocket()
