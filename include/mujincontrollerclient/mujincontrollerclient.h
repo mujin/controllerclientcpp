@@ -696,8 +696,14 @@ public:
     template<class T>
     inline T Get(const std::string& field, double timeout = 5.0) {
         rapidjson::Document pt(rapidjson::kObjectType);
-        GetWrap(pt, field, timeout);
-        return mujinjson_external::GetJsonValueByKey<T>(pt, field.c_str());
+        std::string path = field;
+        if(path[0]!='/') {
+            path = std::string("/")+field;
+        }
+        std::string fieldToConstraint = path.substr(1);
+        fieldToConstraint = fieldToConstraint.substr(0, fieldToConstraint.find('/'));
+        GetWrap(pt, fieldToConstraint, timeout);
+        return mujinjson_external::GetJsonValueByPath<T>(pt, path.c_str());
     }
 
     /// \brief sets an attribute of this web resource
