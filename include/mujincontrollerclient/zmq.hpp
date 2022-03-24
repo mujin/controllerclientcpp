@@ -465,8 +465,8 @@ class message_t
       typename = typename std::enable_if<detail::is_char_type<Char>::value>::type>
     ZMQ_DEPRECATED("from 4.7.0, use constructors taking iterators, (pointer, size) "
                    "or strings instead")
-    explicit message_t(const Char (&data)[N]) :
-        message_t(detail::ranges::begin(data), detail::ranges::end(data))
+    explicit message_t(const Char (&data_)[N]) :
+        message_t(detail::ranges::begin(data_), detail::ranges::end(data_))
     {
     }
 
