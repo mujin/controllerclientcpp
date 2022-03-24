@@ -233,7 +233,7 @@ ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::GetGeometryFro
             }
         }
     }
-    throw MUJIN_EXCEPTION_FORMAT("link %s does not have geometry named %s", this->geomname%geometryName, MEC_InvalidArguments);
+    throw MUJIN_EXCEPTION_FORMAT("link %s does not have geometry named %s", this->name%geometryName, MEC_InvalidArguments);
 }
 
 void ObjectResource::LinkResource::GetGeometries(std::vector<ObjectResource::GeometryResourcePtr>& geometries)
@@ -442,7 +442,7 @@ void RobotResource::GetTools(std::vector<RobotResource::ToolResourcePtr>& tools)
     }
 }
 
-RobotResource::AttachedSensorResource::AttachedSensorResource(ControllerClientPtr controller, const std::string& robotobjectpk, const std::string& pk) : WebResource(controller, str(boost::format("robot/%s/attachedsensor")%robotobjectpk), pk), pk(pk)
+RobotResource::AttachedSensorResource::AttachedSensorResource(ControllerClientPtr controller, const std::string& robotobjectpk, const std::string& pk_) : WebResource(controller, str(boost::format("robot/%s/attachedsensor")%robotobjectpk), pk_), pk(pk_)
 {
 }
 
@@ -453,7 +453,7 @@ void RobotResource::GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& a
     controller->CallGet(str(boost::format("robot/%s/attachedsensor/?format=json&limit=0&fields=attachedsensors")%GetPrimaryKey()), pt);
     rapidjson::Value& objects = pt["attachedsensors"];
     attachedsensors.resize(objects.Size());
-    //size_t i = 0;
+    size_t sensorNum = 0;
     for (rapidjson::Document::ValueIterator it = objects.Begin(); it != objects.End(); ++it) {
         AttachedSensorResourcePtr attachedsensor(new AttachedSensorResource(controller, GetPrimaryKey(), GetJsonValueByKey<std::string>(*it, "pk")));
 
@@ -501,7 +501,7 @@ void RobotResource::GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& a
             //std::cout << "no asus param" << std::endl;
         }
 
-        attachedsensors[i++] = attachedsensor;
+        attachedsensors[sensorNum++] = attachedsensor;
     }
 }
 
@@ -1282,11 +1282,11 @@ void PlanningResultResource::GetPrograms(RobotControllerPrograms& programs, cons
     }
 }
 
-DebugResource::DebugResource(ControllerClientPtr controller, const std::string& pk) : WebResource(controller, "debug", pk), pk(pk)
+DebugResource::DebugResource(ControllerClientPtr controller, const std::string& pk_) : WebResource(controller, "debug", pk_), pk(pk_)
 {
 }
 
-DebugResource::DebugResource(ControllerClientPtr controller, const std::string& resource, const std::string& pk) : WebResource(controller, resource, pk), pk(pk)
+DebugResource::DebugResource(ControllerClientPtr controller, const std::string& resource, const std::string& pk_) : WebResource(controller, resource, pk_), pk(pk_)
 {
 }
 
