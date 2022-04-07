@@ -1738,11 +1738,13 @@ void utils::GetSensorTransform(SceneResource& scene, const std::string& bodyname
 {
     SceneResource::InstObjectPtr cameraobj;
     if (scene.FindInstObject(bodyname, cameraobj)) {
-        for (size_t i=0; i<cameraobj->attachedsensors.size(); ++i) {
-            if (cameraobj->attachedsensors.at(i).name == sensorname) {
+        std::vector<RobotResource::AttachedSensorResourcePtr> attachedsensors;
+        utils::GetAttachedSensors(scene, bodyname, attachedsensors);
+        for (size_t i=0; i<attachedsensors.size(); ++i) {
+            if (attachedsensors.at(i)->name == sensorname) {
                 Transform transform;
-                std::copy(cameraobj->attachedsensors.at(i).quaternion, cameraobj->attachedsensors.at(i).quaternion+4, transform.quaternion);
-                std::copy(cameraobj->attachedsensors.at(i).translate, cameraobj->attachedsensors.at(i).translate+3, transform.translate);
+                std::copy(attachedsensors.at(i)->quaternion, attachedsensors.at(i)->quaternion+4, transform.quaternion);
+                std::copy(attachedsensors.at(i)->translate, attachedsensors.at(i)->translate+3, transform.translate);
                 if (unit == "m") { //?!
                     transform.translate[0] *= 0.001;
                     transform.translate[1] *= 0.001;
