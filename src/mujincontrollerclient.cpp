@@ -463,18 +463,15 @@ void RobotResource::GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& a
             std::string connectedBodyName = GetJsonValueByKey<std::string>(*itConnectedBody, "name");
             rapidjson::Document rConnectedBodyInstObjects(rapidjson::kObjectType);
             controller->CallGet(str(boost::format("scene/%s/instobject/?format=json&limit=0&fields=attachedsensors,object_pk,name")%connectedBodyScenePk), rConnectedBodyInstObjects);
-            for (rapidjson::Document::ConstValueIterator itConnectedBodyInstObject = rConnectedBodyInstObjects["objects"].Begin(); itConnectedBodyInstObject != rConnectedBodyInstObjects["objects"].End(); ++itConnectedBodyInstObject) {
+            for (rapidjson::Document::ValueIterator itConnectedBodyInstObject = rConnectedBodyInstObjects["objects"].Begin(); itConnectedBodyInstObject != rConnectedBodyInstObjects["objects"].End(); ++itConnectedBodyInstObject) {
                 if (!itConnectedBodyInstObject->HasMember("attachedsensors") || !(*itConnectedBodyInstObject)["attachedsensors"].IsArray() || (*itConnectedBodyInstObject)["attachedsensors"].Size() == 0) {
                     continue;
                 }
-                std::string connectedBodyObjectPk = GetJsonValueByKey<std::string>(*itConnectedBodyInstObject, "object_pk");
-                rapidjson::Document rConnectedBodyRobotAttachedSensors(rapidjson::kObjectType);
-                controller->CallGet(str(boost::format("robot/%s/attachedsensor/?format=json")%connectedBodyObjectPk), rConnectedBodyRobotAttachedSensors);
-                rapidjson::Value& rConnectedBodyAttachedSensors = rConnectedBodyRobotAttachedSensors["attachedsensors"];
+                rapidjson::Value& rConnectedBodyAttachedSensors = (*itConnectedBodyInstObject)["attachedsensors"];
                 for (rapidjson::Document::ValueIterator itConnectedBodyAttachedSensor = rConnectedBodyAttachedSensors.Begin(); itConnectedBodyAttachedSensor != rConnectedBodyAttachedSensors.End(); ++itConnectedBodyAttachedSensor) {
                     std::string sensorname = GetJsonValueByKey<std::string>(*itConnectedBodyAttachedSensor, "name");
                     std::string resolvedSensorName = str(boost::format("%s_%s")%connectedBodyName%sensorname);
-                    SetJsonValueByKey(*itConnectedBodyAttachedSensor, "name", resolvedSensorName, rConnectedBodyRobotAttachedSensors.GetAllocator());
+                    SetJsonValueByKey(*itConnectedBodyAttachedSensor, "name", resolvedSensorName, rConnectedBodyInstObjects.GetAllocator());
                     objects.PushBack(*itConnectedBodyAttachedSensor, pt.GetAllocator());
                     attachedSensorsSize++;
                 }
