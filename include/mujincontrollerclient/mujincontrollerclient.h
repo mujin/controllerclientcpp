@@ -894,16 +894,13 @@ public:
     }
 
     virtual void GetTools(std::vector<ToolResourcePtr>& tools);
-    virtual void GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& attachedsensors);
+    virtual void GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& attachedsensors, bool useConnectedBodies = true);
 
     // attachments
     // ikparams
     // images
     int numdof;
     std::string simulation_file;
-
-private:
-    virtual void PushAttachedSensor(std::vector<AttachedSensorResourcePtr>& attachedsensors, rapidjson::Value& attachedSensor);
 };
 
 class MUJINCLIENT_API SceneResource : public WebResource
