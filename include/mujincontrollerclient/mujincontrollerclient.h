@@ -901,6 +901,9 @@ public:
     // images
     int numdof;
     std::string simulation_file;
+
+private:
+    virtual void PushAttachedSensor(std::vector<AttachedSensorResourcePtr>& attachedsensors, rapidjson::Value& attachedSensor);
 };
 
 class MUJINCLIENT_API SceneResource : public WebResource

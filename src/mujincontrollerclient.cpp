@@ -451,8 +451,12 @@ void RobotResource::GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& a
     GETCONTROLLERIMPL();
     rapidjson::Document pt(rapidjson::kObjectType);
     controller->CallGet(str(boost::format("robot/%s/attachedsensor/?format=json")%GetPrimaryKey()), pt);
-    rapidjson::Value& objects = pt["attachedsensors"];
-    size_t attachedSensorsSize = objects.Size();
+
+    attachedsensors.clear();
+
+    for (rapidjson::Document::ValueIterator itAttachedSensor = pt["attachedsensors"].Begin(); itAttachedSensor != pt["attachedsensors"].End(); ++itAttachedSensor) {
+        PushAttachedSensor(attachedsensors, *itAttachedSensor);
+    }
 
     rapidjson::Document rRobotConnectedBodies(rapidjson::kObjectType);
     controller->CallGet(str(boost::format("robot/%s/connectedBody/?format=json")%GetPrimaryKey()), rRobotConnectedBodies);
@@ -463,73 +467,75 @@ void RobotResource::GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& a
             std::string connectedBodyName = GetJsonValueByKey<std::string>(*itConnectedBody, "name");
             rapidjson::Document rConnectedBodyInstObjects(rapidjson::kObjectType);
             controller->CallGet(str(boost::format("scene/%s/instobject/?format=json&limit=0&fields=attachedsensors,object_pk,name")%connectedBodyScenePk), rConnectedBodyInstObjects);
-            for (rapidjson::Document::ValueIterator itConnectedBodyInstObject = rConnectedBodyInstObjects["objects"].Begin(); itConnectedBodyInstObject != rConnectedBodyInstObjects["objects"].End(); ++itConnectedBodyInstObject) {
+            for (rapidjson::Document::ConstValueIterator itConnectedBodyInstObject = rConnectedBodyInstObjects["objects"].Begin(); itConnectedBodyInstObject != rConnectedBodyInstObjects["objects"].End(); ++itConnectedBodyInstObject) {
                 if (!itConnectedBodyInstObject->HasMember("attachedsensors") || !(*itConnectedBodyInstObject)["attachedsensors"].IsArray() || (*itConnectedBodyInstObject)["attachedsensors"].Size() == 0) {
                     continue;
                 }
-                rapidjson::Value& rConnectedBodyAttachedSensors = (*itConnectedBodyInstObject)["attachedsensors"];
+                std::string connectedBodyObjectPk = GetJsonValueByKey<std::string>(*itConnectedBodyInstObject, "object_pk");
+                rapidjson::Document rConnectedBodyRobotAttachedSensors(rapidjson::kObjectType);
+                controller->CallGet(str(boost::format("robot/%s/attachedsensor/?format=json")%connectedBodyObjectPk), rConnectedBodyRobotAttachedSensors);
+
+                rapidjson::Value& rConnectedBodyAttachedSensors = rConnectedBodyRobotAttachedSensors["attachedsensors"];
                 for (rapidjson::Document::ValueIterator itConnectedBodyAttachedSensor = rConnectedBodyAttachedSensors.Begin(); itConnectedBodyAttachedSensor != rConnectedBodyAttachedSensors.End(); ++itConnectedBodyAttachedSensor) {
                     std::string sensorname = GetJsonValueByKey<std::string>(*itConnectedBodyAttachedSensor, "name");
                     std::string resolvedSensorName = str(boost::format("%s_%s")%connectedBodyName%sensorname);
-                    SetJsonValueByKey(*itConnectedBodyAttachedSensor, "name", resolvedSensorName, rConnectedBodyInstObjects.GetAllocator());
-                    objects.PushBack(*itConnectedBodyAttachedSensor, pt.GetAllocator());
-                    attachedSensorsSize++;
+                    SetJsonValueByKey(*itConnectedBodyAttachedSensor, "name", resolvedSensorName, rConnectedBodyRobotAttachedSensors.GetAllocator());
+                    PushAttachedSensor(attachedsensors, *itConnectedBodyAttachedSensor);
                 }
             }
         }
     }
+}
 
-    attachedsensors.resize(attachedSensorsSize);
-    size_t i = 0;
-    for (rapidjson::Document::ValueIterator it = objects.Begin(); it != objects.End(); ++it) {
-        AttachedSensorResourcePtr attachedsensor(new AttachedSensorResource(controller, GetPrimaryKey(), GetJsonValueByKey<std::string>(*it, "pk")));
+void RobotResource::PushAttachedSensor(std::vector<AttachedSensorResourcePtr>& attachedsensors, rapidjson::Value& attachedSensor) {
+    GETCONTROLLERIMPL();
+    AttachedSensorResourcePtr attachedsensor(new AttachedSensorResource(controller, GetPrimaryKey(), GetJsonValueByKey<std::string>(attachedSensor, "pk")));
 
-        LoadJsonValueByKey(*it, "name", attachedsensor->name);
-        LoadJsonValueByKey(*it, "frame_origin", attachedsensor->frame_origin);
-        LoadJsonValueByKey(*it, "sensortype", attachedsensor->sensortype);
-        LoadJsonValueByKey(*it, "quaternion", attachedsensor->quaternion);
-        LoadJsonValueByKey(*it, "translate", attachedsensor->translate);
-        std::vector<double> distortionCoeffs = GetJsonValueByPath<std::vector<double> > (*it, "/sensordata/distortion_coeffs");
-        BOOST_ASSERT(distortionCoeffs.size() <= 5);
-        for (size_t i = 0; i < distortionCoeffs.size(); i++) {
-            attachedsensor->sensordata.distortion_coeffs[i] = distortionCoeffs[i];
-        }
-        attachedsensor->sensordata.distortion_model = GetJsonValueByPath<std::string>(*it, "/sensordata/distortion_model");
-        attachedsensor->sensordata.focal_length = GetJsonValueByPath<Real>(*it, "/sensordata/focal_length");
-        attachedsensor->sensordata.measurement_time= GetJsonValueByPath<Real>(*it, "/sensordata/measurement_time");
-        std::vector<double> intrinsics = GetJsonValueByPath<std::vector<double> >(*it, "/sensordata/intrinsic");
-        BOOST_ASSERT(intrinsics.size() <= 6);
-        for (size_t i = 0; i < intrinsics.size(); i++) {
-            attachedsensor->sensordata.intrinsic[i] = intrinsics[i];
-        }
-        std::vector<int> imgdim = GetJsonValueByPath<std::vector<int> >(*it, "/sensordata/image_dimensions");
-        BOOST_ASSERT(imgdim.size() <= 3);
-        for (size_t i = 0; i < imgdim.size(); i++) {
-            attachedsensor->sensordata.image_dimensions[i] = imgdim[i];
-        }
-
-        if (rapidjson::Pointer("/sensordata/extra_parameters").Get(*it)) {
-            std::string parameters_string = GetJsonValueByPath<std::string>(*it, "/sensordata/extra_parameters");
-            //std::cout << "extra param " << parameters_string << std::endl;
-            std::list<std::string> results;
-            boost::split(results, parameters_string, boost::is_any_of(" "));
-            results.remove("");
-            attachedsensor->sensordata.extra_parameters.resize(results.size());
-            size_t iparam = 0;
-            BOOST_FOREACH(std::string p, results) {
-                //std::cout << "'"<< p << "'"<< std::endl;
-                try {
-                    attachedsensor->sensordata.extra_parameters[iparam++] = boost::lexical_cast<Real>(p);
-                } catch (...) {
-                    //lexical_cast fails...
-                }
-            }
-        } else {
-            //std::cout << "no asus param" << std::endl;
-        }
-
-        attachedsensors[i++] = attachedsensor;
+    LoadJsonValueByKey(attachedSensor, "name", attachedsensor->name);
+    LoadJsonValueByKey(attachedSensor, "frame_origin", attachedsensor->frame_origin);
+    LoadJsonValueByKey(attachedSensor, "sensortype", attachedsensor->sensortype);
+    LoadJsonValueByKey(attachedSensor, "quaternion", attachedsensor->quaternion);
+    LoadJsonValueByKey(attachedSensor, "translate", attachedsensor->translate);
+    std::vector<double> distortionCoeffs = GetJsonValueByPath<std::vector<double> > (attachedSensor, "/sensordata/distortion_coeffs");
+    BOOST_ASSERT(distortionCoeffs.size() <= 5);
+    for (size_t i = 0; i < distortionCoeffs.size(); i++) {
+        attachedsensor->sensordata.distortion_coeffs[i] = distortionCoeffs[i];
     }
+    attachedsensor->sensordata.distortion_model = GetJsonValueByPath<std::string>(attachedSensor, "/sensordata/distortion_model");
+    attachedsensor->sensordata.focal_length = GetJsonValueByPath<Real>(attachedSensor, "/sensordata/focal_length");
+    attachedsensor->sensordata.measurement_time= GetJsonValueByPath<Real>(attachedSensor, "/sensordata/measurement_time");
+    std::vector<double> intrinsics = GetJsonValueByPath<std::vector<double> >(attachedSensor, "/sensordata/intrinsic");
+    BOOST_ASSERT(intrinsics.size() <= 6);
+    for (size_t i = 0; i < intrinsics.size(); i++) {
+        attachedsensor->sensordata.intrinsic[i] = intrinsics[i];
+    }
+    std::vector<int> imgdim = GetJsonValueByPath<std::vector<int> >(attachedSensor, "/sensordata/image_dimensions");
+    BOOST_ASSERT(imgdim.size() <= 3);
+    for (size_t i = 0; i < imgdim.size(); i++) {
+        attachedsensor->sensordata.image_dimensions[i] = imgdim[i];
+    }
+
+    if (rapidjson::Pointer("/sensordata/extra_parameters").Get(attachedSensor)) {
+        std::string parameters_string = GetJsonValueByPath<std::string>(attachedSensor, "/sensordata/extra_parameters");
+        //std::cout << "extra param " << parameters_string << std::endl;
+        std::list<std::string> results;
+        boost::split(results, parameters_string, boost::is_any_of(" "));
+        results.remove("");
+        attachedsensor->sensordata.extra_parameters.resize(results.size());
+        size_t iparam = 0;
+        BOOST_FOREACH(std::string p, results) {
+            //std::cout << "'"<< p << "'"<< std::endl;
+            try {
+                attachedsensor->sensordata.extra_parameters[iparam++] = boost::lexical_cast<Real>(p);
+            } catch (...) {
+                //lexical_cast fails...
+            }
+        }
+    } else {
+        //std::cout << "no asus param" << std::endl;
+    }
+
+    attachedsensors.push_back(attachedsensor);
 }
 
 SceneResource::InstObject::InstObject(ControllerClientPtr controller, const std::string& scenepk, const std::string& pk) : WebResource(controller, str(boost::format("scene/%s/instobject")%scenepk), pk), pk(pk)
