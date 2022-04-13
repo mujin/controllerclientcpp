@@ -669,6 +669,12 @@ public:
 
     /// \brief get debug infos
     virtual void GetDebugInfos(std::vector<DebugResourcePtr>& debuginfos, double timeout = 5) = 0;
+
+    /// \brief create log entries
+    virtual void CreateLogEntries(rapidjson::Value& logEntries) = 0;
+
+    /// \brief create log entry resource attachments such as images, additional files, etc.
+    virtual void CreateLogEntryResources(std::istream& inputStream, const std::string& filename) = 0;
 };
 
 class MUJINCLIENT_API WebResource

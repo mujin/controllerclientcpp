@@ -1935,4 +1935,23 @@ void ControllerClientImpl::ListFilesInController(std::vector<FileEntry>& fileent
     }
 }
 
+void ControllerClientImpl::CreateLogEntries(rapidjson::Value& logEntries)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+
+    rapidjson::Document data(rapidjson::kObjectType);
+    data.AddMember(rapidjson::Document::StringRefType("logEntries"), logEntries, data.GetAllocator());
+
+    rapidjson::Document pt(rapidjson::kObjectType);
+    _uri = _baseapiuri + "logEntry/";
+    _CallPost(_uri, DumpJson(data), pt, 201, 5.0);
+}
+
+void ControllerClientImpl::CreateLogEntryResources(std::istream& inputStream, const std::string& filename)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    _uri = _baseapiuri + "logEntryResource/";
+    _UploadFileToControllerViaForm(inputStream, filename, _uri, 5.0);
+}
+
 } // end namespace mujinclient
