@@ -575,7 +575,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
         registerMinViableRegionInfo.graspModelInfo.GetAllocator().Clear();
         const rapidjson::Value* graspModelInfoJson = rapidjson::Pointer("/registerMinViableRegionInfo/graspModelInfo").Get(v);
         if( !!graspModelInfoJson && graspModelInfoJson->IsObject() ) {
-             registerMinViableRegionInfo.graspModelInfo.CopyFrom(*graspModelInfoJson, registerMinViableRegionInfo.graspModelInfo.GetAllocator());
+            registerMinViableRegionInfo.graspModelInfo.CopyFrom(*graspModelInfoJson, registerMinViableRegionInfo.graspModelInfo.GetAllocator());
         }
     }
     registerMinViableRegionInfo.minCornerVisibleDist = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/minCornerVisibleDist", 30);
