@@ -570,7 +570,16 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     registerMinViableRegionInfo.sensortimestamp = GetJsonValueByPath<uint64_t>(v, "/registerMinViableRegionInfo/sensortimestamp", 0);
     registerMinViableRegionInfo.robotDepartStopTimestamp = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/robotDepartStopTimestamp", 0);
     registerMinViableRegionInfo.transferSpeedMult = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/transferSpeedMult", 1.0);
+    {
+        registerMinViableRegionInfo.graspModelInfo.SetNull();
+        registerMinViableRegionInfo.graspModelInfo.GetAllocator().Clear();
+        const rapidjson::Value* graspModelInfoJson = rapidjson::Pointer("/registerMinViableRegionInfo/graspModelInfo").Get(v);
+        if( !!graspModelInfoJson && graspModelInfoJson->IsObject() ) {
+            registerMinViableRegionInfo.graspModelInfo.CopyFrom(*graspModelInfoJson, registerMinViableRegionInfo.graspModelInfo.GetAllocator());
+        }
+    }
     registerMinViableRegionInfo.minCornerVisibleDist = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/minCornerVisibleDist", 30);
+    registerMinViableRegionInfo.minCornerVisibleInsideDist = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/minCornerVisibleInsideDist", 0);
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/minViableRegion/size2D", registerMinViableRegionInfo.minViableRegion.size2D);
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/minViableRegion/maxPossibleSize", registerMinViableRegionInfo.minViableRegion.maxPossibleSize);
     registerMinViableRegionInfo.minViableRegion.cornerMask = GetJsonValueByPath<uint64_t>(v, "/registerMinViableRegionInfo/minViableRegion/cornerMask", 0);
@@ -579,6 +588,8 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/liftedWorldOffset", registerMinViableRegionInfo.liftedWorldOffset);
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/minCandidateSize", registerMinViableRegionInfo.minCandidateSize);
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/maxCandidateSize", registerMinViableRegionInfo.maxCandidateSize);
+    LoadJsonValueByPath(v, "/registerMinViableRegionInfo/fullDofValues", registerMinViableRegionInfo.fullDofValues);
+    LoadJsonValueByPath(v, "/registerMinViableRegionInfo/connectedBodyActiveStates", registerMinViableRegionInfo.connectedBodyActiveStates);
 
     LoadJsonValueByPath(v, "/runtimeRegistrationInfo/objectInfo/translation", runtimeRegistrationInfo.objectInfo.translation);
     LoadJsonValueByPath(v, "/runtimeRegistrationInfo/objectInfo/quaternion", runtimeRegistrationInfo.objectInfo.quaternion);
@@ -604,19 +615,31 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     triggerDetectionCaptureInfo.locationName = GetJsonValueByPath<std::string>(v, "/triggerDetectionCaptureInfo/locationName", "");
     triggerDetectionCaptureInfo.targetupdatename = GetJsonValueByPath<std::string>(v, "/triggerDetectionCaptureInfo/targetupdatename", "");
 
-    locationStateInfos.clear();
-    if( v.HasMember("locationStateInfos") && v["locationStateInfos"].IsArray()) {
-        const rapidjson::Value& rLocationStateInfos = v["locationStateInfos"];
-        locationStateInfos.resize(rLocationStateInfos.Size());
-        for(int iitem = 0; iitem < (int)rLocationStateInfos.Size(); ++iitem) {
-            const rapidjson::Value& rInfo = rLocationStateInfos[iitem];
-            locationStateInfos[iitem].locationName = GetJsonValueByKey<std::string,std::string>(rInfo, "locationName", std::string());
-            locationStateInfos[iitem].forceRequestStampMS = GetJsonValueByKey<uint64_t, uint64_t>(rInfo, "forceRequestStampMS", 0);
-            locationStateInfos[iitem].lastInsideContainerStampMS = GetJsonValueByKey<uint64_t, uint64_t>(rInfo, "lastInsideContainerStampMS", 0);
-            locationStateInfos[iitem].needContainer = GetJsonValueByKey<int, int>(rInfo, "needContainer", -1);
-            locationStateInfos[iitem].isContainerEmpty = GetJsonValueByKey<int, int>(rInfo, "isContainerEmpty", -1);
-            locationStateInfos[iitem].isContainerPresent = GetJsonValueByKey<int, int>(rInfo, "isContainerPresent", -1);
-            locationStateInfos[iitem].containerUpdateTimeStampMS = GetJsonValueByKey<uint64_t, uint64_t>(rInfo, "containerUpdateTimeStampMS", 0);
+    activeLocationTrackingInfos.clear();
+    if( v.HasMember("activeLocationTrackingInfos") && v["activeLocationTrackingInfos"].IsArray()) {
+        const rapidjson::Value& rLocationTrackingInfo = v["activeLocationTrackingInfos"];
+        activeLocationTrackingInfos.resize(rLocationTrackingInfo.Size());
+        for(int iitem = 0; iitem < (int)rLocationTrackingInfo.Size(); ++iitem) {
+            const rapidjson::Value& rInfo = rLocationTrackingInfo[iitem];
+            activeLocationTrackingInfos[iitem].locationName = GetJsonValueByKey<std::string,std::string>(rInfo, "locationName", std::string());
+            activeLocationTrackingInfos[iitem].containerId = GetJsonValueByKey<std::string,std::string>(rInfo, "containerId", std::string());
+            activeLocationTrackingInfos[iitem].containerName = GetJsonValueByKey<std::string,std::string>(rInfo, "containerName", std::string());
+            activeLocationTrackingInfos[iitem].containerUsage = GetJsonValueByKey<std::string,std::string>(rInfo, "containerUsage", std::string());
+            activeLocationTrackingInfos[iitem].cycleIndex = GetJsonValueByKey<std::string,std::string>(rInfo, "cycleIndex", std::string());
+        }
+    }
+
+    locationExecutionInfos.clear();
+    if( v.HasMember("locationExecutionInfos") && v["locationExecutionInfos"].IsArray()) {
+        const rapidjson::Value& rLocationTrackingInfo = v["locationExecutionInfos"];
+        locationExecutionInfos.resize(rLocationTrackingInfo.Size());
+        for(int iitem = 0; iitem < (int)rLocationTrackingInfo.Size(); ++iitem) {
+            const rapidjson::Value& rInfo = rLocationTrackingInfo[iitem];
+            locationExecutionInfos[iitem].locationName = GetJsonValueByKey<std::string,std::string>(rInfo, "locationName", std::string());
+            locationExecutionInfos[iitem].containerId = GetJsonValueByKey<std::string,std::string>(rInfo, "containerId", std::string());
+            locationExecutionInfos[iitem].forceRequestStampMS = GetJsonValueByKey<uint64_t, uint64_t>(rInfo, "forceRequestStampMS", 0);
+            locationExecutionInfos[iitem].lastInsideContainerStampMS = GetJsonValueByKey<uint64_t, uint64_t>(rInfo, "lastInsideContainerStampMS", 0);
+            locationExecutionInfos[iitem].needContainerState = GetJsonValueByKey<std::string,std::string>(rInfo, "needContainerState", std::string());
         }
     }
 
@@ -655,6 +678,7 @@ BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionInfo::R
     robotDepartStopTimestamp(0),
     transferSpeedMult(1.0),
     minCornerVisibleDist(30),
+    minCornerVisibleInsideDist(0),
     occlusionFreeCornerMask(0),
     waitForTriggerOnCapturing(false)
 {
@@ -1734,9 +1758,9 @@ void BinPickingTaskResource::ExecuteCommand(const std::string& taskparameters, r
         secondspassed+=0.1;
         if( timeout != 0 && secondspassed > timeout ) {
             controller->CancelAllJobs();
-            std::stringstream ss; ss << std::setprecision(std::numeric_limits<double>::digits10+1);
-            ss << secondspassed;
-            throw MujinException("operation timed out after " +ss.str() + " seconds, cancelling all jobs and quitting", MEC_Timeout);
+            std::stringstream sss; sss << std::setprecision(std::numeric_limits<double>::digits10+1);
+            sss << secondspassed;
+            throw MujinException("operation timed out after " +sss.str() + " seconds, cancelling all jobs and quitting", MEC_Timeout);
         }
     }
 }
@@ -1853,9 +1877,9 @@ void BinPickingTaskResource::_HeartbeatMonitorThread(const double reinitializeti
             }
         }
         if (!_bShutdownHeartbeatMonitor) {
-            std::stringstream ss; ss << std::setprecision(std::numeric_limits<double>::digits10+1);
-            ss << (double)((GetMilliTime() - lastheartbeat)/1000.0f) << " seconds passed since last heartbeat signal, re-intializing ZMQ server.";
-            MUJIN_LOG_INFO(ss.str());
+            std::stringstream sss; sss << std::setprecision(std::numeric_limits<double>::digits10+1);
+            sss << (double)((GetMilliTime() - lastheartbeat)/1000.0f) << " seconds passed since last heartbeat signal, re-intializing ZMQ server.";
+            MUJIN_LOG_INFO(sss.str());
         }
     }
 #else
@@ -1959,12 +1983,12 @@ std::string GetValueForSmallestSlaveRequestId(const std::string& heartbeat,
 }
 
 
-std::string mujinclient::utils::GetScenePkFromHeatbeat(const std::string& heartbeat) {
+std::string mujinclient::utils::GetScenePkFromHeartbeat(const std::string& heartbeat) {
     static const std::string prefix("mujin:/");
     return GetValueForSmallestSlaveRequestId(heartbeat, "currentsceneuri").substr(prefix.length());
 }
 
-std::string utils::GetSlaveRequestIdFromHeatbeat(const std::string& heartbeat) {
+std::string utils::GetSlaveRequestIdFromHeartbeat(const std::string& heartbeat) {
     rapidjson::Document pt;
     std::stringstream ss(heartbeat);
     ParseJson(pt, ss.str());

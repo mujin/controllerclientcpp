@@ -311,9 +311,9 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
             }
         }
         if (!_bShutdownHeartbeatMonitor) {
-            std::stringstream ss; ss << std::setprecision(std::numeric_limits<double>::digits10+1);
-            ss << (double)((GetMilliTime() - lastheartbeat)/1000.0f) << " seconds passed since last heartbeat signal, re-intializing ZMQ server.";
-            MUJIN_LOG_INFO(ss.str());
+            std::stringstream sss; sss << std::setprecision(std::numeric_limits<double>::digits10+1);
+            sss << (double)((GetMilliTime() - lastheartbeat)/1000.0f) << " seconds passed since last heartbeat signal, re-intializing ZMQ server.";
+            MUJIN_LOG_INFO(sss.str());
         }
     }
     MUJIN_LOG_DEBUG(str(boost::format("Stopped controller %s monitoring thread on port %d for slaverequestid=%s.")%_mujinControllerIp%_heartbeatPort%_slaverequestid));

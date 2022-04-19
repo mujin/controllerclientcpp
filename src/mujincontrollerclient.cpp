@@ -132,23 +132,23 @@ void WebResource::Copy(const std::string& newname, int options, double timeout)
     throw MujinException("not implemented yet");
 }
 
-ObjectResource::ObjectResource(ControllerClientPtr controller, const std::string& pk) : WebResource(controller, "object", pk), pk(pk)
+ObjectResource::ObjectResource(ControllerClientPtr controller, const std::string& pk_) : WebResource(controller, "object", pk_), pk(pk_)
 {
 }
 
-ObjectResource::ObjectResource(ControllerClientPtr controller, const std::string& resource, const std::string& pk) : WebResource(controller, resource, pk), pk(pk)
+ObjectResource::ObjectResource(ControllerClientPtr controller, const std::string& resource, const std::string& pk_) : WebResource(controller, resource, pk_), pk(pk_)
 {
 }
 
-ObjectResource::LinkResource::LinkResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk) : WebResource(controller, str(boost::format("object/%s/link")%objectpk), pk), pk(pk), objectpk(objectpk)
+ObjectResource::LinkResource::LinkResource(ControllerClientPtr controller, const std::string& objectpk_, const std::string& pk_) : WebResource(controller, str(boost::format("object/%s/link")%objectpk_), pk_), pk(pk_), objectpk(objectpk_)
 {
 }
 
-ObjectResource::GeometryResource::GeometryResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk) : WebResource(controller, str(boost::format("object/%s/geometry")%objectpk), pk), pk(pk), objectpk(objectpk)
+ObjectResource::GeometryResource::GeometryResource(ControllerClientPtr controller, const std::string& objectpk_, const std::string& pk_) : WebResource(controller, str(boost::format("object/%s/geometry")%objectpk), pk_), pk(pk_), objectpk(objectpk_)
 {
 }
 
-ObjectResource::IkParamResource::IkParamResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk) : WebResource(controller, str(boost::format("object/%s/ikparam")%objectpk), pk), pk(pk)
+ObjectResource::IkParamResource::IkParamResource(ControllerClientPtr controller, const std::string& objectpk_, const std::string& pk_) : WebResource(controller, str(boost::format("object/%s/ikparam")%objectpk_), pk_), pk(pk_)
 {
 }
 
@@ -173,28 +173,28 @@ void ObjectResource::GeometryResource::SetGeometryFromRawSTL(const std::vector<u
     controller->SetObjectGeometryMesh(this->objectpk, this->pk, rawstldata, unit, timeout);
 }
 
-ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::AddGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& name, const std::string& unit, double timeout)
+ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::AddGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& geomname, const std::string& unit, double timeout)
 {
     GETCONTROLLERIMPL();
     const std::string& linkpk = GetPrimaryKey();
-    const std::string geometryPk = controller->CreateObjectGeometry(this->objectpk, name, linkpk, "mesh", timeout);
+    const std::string geometryPk = controller->CreateObjectGeometry(this->objectpk, geomname, linkpk, "mesh", timeout);
 
     ObjectResource::GeometryResourcePtr geometry(new GeometryResource(controller, this->objectpk, geometryPk));
-    geometry->name = name;
+    geometry->name = geomname;
     geometry->geomtype = "mesh";
     geometry->linkpk = linkpk;
     geometry->SetGeometryFromRawSTL(rawstldata, unit, timeout);
     return geometry;
 }
 
-ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::AddPrimitiveGeometry(const std::string& name, const std::string& geomtype, double timeout)
+ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::AddPrimitiveGeometry(const std::string& geomname, const std::string& geomtype, double timeout)
 {
     GETCONTROLLERIMPL();
     const std::string& linkpk = GetPrimaryKey();
-    const std::string geometryPk = controller->CreateObjectGeometry(this->objectpk, name, linkpk, geomtype, timeout);
+    const std::string geometryPk = controller->CreateObjectGeometry(this->objectpk, geomname, linkpk, geomtype, timeout);
 
     ObjectResource::GeometryResourcePtr geometry(new GeometryResource(controller, this->objectpk, geometryPk));
-    geometry->name = name;
+    geometry->name = geomname;
     geometry->geomtype = geomtype;
     geometry->linkpk = linkpk;
     return geometry;
@@ -209,10 +209,10 @@ ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::GetGeometryFro
     if (pt.IsObject() && pt.HasMember("geometries") && pt["geometries"].IsArray()) {
         rapidjson::Value& objects = pt["geometries"];
         for (rapidjson::Document::ConstValueIterator it = objects.Begin(); it != objects.End(); ++it) {
-            const std::string name = it->HasMember("name") ? GetJsonValueByKey<std::string>(*it, "name") : GetJsonValueByKey<std::string>(*it, "pk");
-            if (name == geometryName && (*it)["linkpk"].GetString() == this->pk) {
+            const std::string geomname = it->HasMember("name") ? GetJsonValueByKey<std::string>(*it, "name") : GetJsonValueByKey<std::string>(*it, "pk");
+            if (geomname == geometryName && (*it)["linkpk"].GetString() == this->pk) {
                 ObjectResource::GeometryResourcePtr geometry(new GeometryResource(controller, this->objectpk, GetJsonValueByKey<std::string>(*it, "pk")));
-                geometry->name = name;
+                geometry->name = geomname;
                 LoadJsonValueByKey(*it,"linkpk",geometry->linkpk);
                 LoadJsonValueByKey(*it,"visible",geometry->visible);
                 LoadJsonValueByKey(*it,"geomtype",geometry->geomtype);
@@ -267,10 +267,10 @@ void ObjectResource::LinkResource::GetGeometries(std::vector<ObjectResource::Geo
     }
 }
 
-void ObjectResource::LinkResource::SetCollision(bool collision)
+void ObjectResource::LinkResource::SetCollision(bool hasCollision)
 {
-    this->SetJSON(mujinjson::GetJsonStringByKey("collision",collision));
-    this->collision = collision;
+    this->SetJSON(mujinjson::GetJsonStringByKey("collision", hasCollision));
+    this->collision = hasCollision;
 }
 void ObjectResource::SetCollision(bool collision)
 {
@@ -295,10 +295,10 @@ int ObjectResource::GetCollision()
     return ret-1;
 }
 
-void ObjectResource::GeometryResource::SetVisible(bool visible)
+void ObjectResource::GeometryResource::SetVisible(bool isVisible)
 {
-    this->SetJSON(mujinjson::GetJsonStringByKey("visible",visible));
-    this->visible = visible;
+    this->SetJSON(mujinjson::GetJsonStringByKey("visible",isVisible));
+    this->visible = isVisible;
 }
 void ObjectResource::LinkResource::SetVisible(bool visible)
 {
@@ -361,32 +361,32 @@ void ObjectResource::GetLinks(std::vector<ObjectResource::LinkResourcePtr>& link
     }
 }
 
-ObjectResource::LinkResourcePtr ObjectResource::AddLink(const std::string& name, const Real quaternion[4], const Real translate[3])
+ObjectResource::LinkResourcePtr ObjectResource::AddLink(const std::string& objname, const Real quaternion_[4], const Real translate_[3])
 {
     GETCONTROLLERIMPL();
-    const std::string linkPk = controller->CreateLink(this->pk, "", name,quaternion, translate);
+    const std::string linkPk = controller->CreateLink(this->pk, "", objname, quaternion_, translate_);
 
     ObjectResource::LinkResourcePtr link(new LinkResource(controller, this->pk, linkPk));
-    link->name = name;
+    link->name = objname;
     link->parentlinkpk = "";
     return link;
 }
 
-ObjectResource::LinkResourcePtr ObjectResource::LinkResource::AddChildLink(const std::string& name, const Real quaternion[4], const Real translate[3])
+ObjectResource::LinkResourcePtr ObjectResource::LinkResource::AddChildLink(const std::string& objname, const Real quaternion_[4], const Real translate_[3])
 {
     GETCONTROLLERIMPL();
-    const std::string linkPk = controller->CreateLink(this->objectpk, this->pk, name,quaternion, translate);
+    const std::string linkPk = controller->CreateLink(this->objectpk, this->pk, objname, quaternion_, translate_);
 
     ObjectResource::LinkResourcePtr link(new LinkResource(controller, this->objectpk, linkPk));
-    link->name = name;
+    link->name = objname;
     link->parentlinkpk = this->pk;
     return link;
 }
 
-ObjectResource::IkParamResourcePtr ObjectResource::AddIkParam(const std::string& name, const std::string& iktype)
+ObjectResource::IkParamResourcePtr ObjectResource::AddIkParam(const std::string& objname, const std::string& iktype)
 {
     GETCONTROLLERIMPL();
-    const std::string ikparamPk = controller->CreateIkParam(this->pk, name, iktype);
+    const std::string ikparamPk = controller->CreateIkParam(this->pk, objname, iktype);
 
     return ObjectResource::IkParamResourcePtr(new IkParamResource(controller, this->pk, ikparamPk));
 }
@@ -411,11 +411,11 @@ void ObjectResource::GetIkParams(std::vector<ObjectResource::IkParamResourcePtr>
     }
 }
 
-RobotResource::RobotResource(ControllerClientPtr controller, const std::string& pk) : ObjectResource(controller, "robot", pk)
+RobotResource::RobotResource(ControllerClientPtr controller, const std::string& pk_) : ObjectResource(controller, "robot", pk_)
 {
 }
 
-RobotResource::ToolResource::ToolResource(ControllerClientPtr controller, const std::string& robotobjectpk, const std::string& pk) : WebResource(controller, str(boost::format("robot/%s/tool")%robotobjectpk), pk), pk(pk)
+RobotResource::ToolResource::ToolResource(ControllerClientPtr controller, const std::string& robotobjectpk, const std::string& pk_) : WebResource(controller, str(boost::format("robot/%s/tool")%robotobjectpk), pk_), pk(pk_)
 {
 }
 
@@ -442,7 +442,7 @@ void RobotResource::GetTools(std::vector<RobotResource::ToolResourcePtr>& tools)
     }
 }
 
-RobotResource::AttachedSensorResource::AttachedSensorResource(ControllerClientPtr controller, const std::string& robotobjectpk, const std::string& pk) : WebResource(controller, str(boost::format("robot/%s/attachedsensor")%robotobjectpk), pk), pk(pk)
+RobotResource::AttachedSensorResource::AttachedSensorResource(ControllerClientPtr controller, const std::string& robotobjectpk, const std::string& pk_) : WebResource(controller, str(boost::format("robot/%s/attachedsensor")%robotobjectpk), pk_), pk(pk_)
 {
 }
 
@@ -453,7 +453,7 @@ void RobotResource::GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& a
     controller->CallGet(str(boost::format("robot/%s/attachedsensor/?format=json&limit=0&fields=attachedsensors")%GetPrimaryKey()), pt);
     rapidjson::Value& objects = pt["attachedsensors"];
     attachedsensors.resize(objects.Size());
-    size_t i = 0;
+    size_t sensorNum = 0;
     for (rapidjson::Document::ValueIterator it = objects.Begin(); it != objects.End(); ++it) {
         AttachedSensorResourcePtr attachedsensor(new AttachedSensorResource(controller, GetPrimaryKey(), GetJsonValueByKey<std::string>(*it, "pk")));
 
@@ -501,11 +501,11 @@ void RobotResource::GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& a
             //std::cout << "no asus param" << std::endl;
         }
 
-        attachedsensors[i++] = attachedsensor;
+        attachedsensors[sensorNum++] = attachedsensor;
     }
 }
 
-SceneResource::InstObject::InstObject(ControllerClientPtr controller, const std::string& scenepk, const std::string& pk) : WebResource(controller, str(boost::format("scene/%s/instobject")%scenepk), pk), pk(pk)
+SceneResource::InstObject::InstObject(ControllerClientPtr controller, const std::string& scenepk, const std::string& pk_) : WebResource(controller, str(boost::format("scene/%s/instobject")%scenepk), pk_), pk(pk_)
 {
 }
 
@@ -829,6 +829,7 @@ void SceneResource::GetInstObjects(std::vector<SceneResource::InstObjectPtr>& in
 
         LoadJsonValueByKey(*it, "name", instobject->name);
         LoadJsonValueByKey(*it, "object_pk", instobject->object_pk);
+        LoadJsonValueByKey(*it, "reference_object_pk", instobject->reference_object_pk, std::string());
         LoadJsonValueByKey(*it, "reference_uri", instobject->reference_uri);
         LoadJsonValueByKey(*it, "dofvalues", instobject->dofvalues);
         LoadJsonValueByKey(*it, "quaternion", instobject->quaternion);
@@ -908,7 +909,7 @@ bool SceneResource::FindInstObject(const std::string& name, SceneResource::InstO
 SceneResource::InstObjectPtr SceneResource::CreateInstObject(const std::string& name, const std::string& referenceUri, const Real quaternion[4], const Real translate[3], double timeout)
 {
     GETCONTROLLERIMPL();
-    const std::string uri(str(boost::format("scene/%s/instobject/?format=json&fields=pk,object_pk,reference_uri,dofvalues,quaternion,translate")%GetPrimaryKey()));
+    const std::string uri(str(boost::format("scene/%s/instobject/?format=json&fields=pk,object_pk,reference_object_pk,reference_uri,dofvalues,quaternion,translate")%GetPrimaryKey()));
     std::string data(str(boost::format("{\"name\":\"%s\", \"quaternion\":[%.15f,%.15f,%.15f,%.15f], \"translate\":[%.15f,%.15f,%.15f]")%name%quaternion[0]%quaternion[1]%quaternion[2]%quaternion[3]%translate[0]%translate[1]%translate[2]));
     if (!referenceUri.empty()) {
         data += ", \"reference_uri\": \"" + referenceUri + "\"";
@@ -920,6 +921,7 @@ SceneResource::InstObjectPtr SceneResource::CreateInstObject(const std::string& 
     std::string inst_pk = GetJsonValueByKey<std::string>(pt, "pk");
     SceneResource::InstObjectPtr instobject(new SceneResource::InstObject(GetController(), GetPrimaryKey(),  inst_pk));
     LoadJsonValueByKey(pt, "object_pk", instobject->object_pk);
+    LoadJsonValueByKey(pt, "reference_object_pk", instobject->reference_object_pk, std::string());
     LoadJsonValueByKey(pt, "reference_uri", instobject->reference_uri);
     LoadJsonValueByKey(pt, "dofvalues", instobject->dofvalues);
     LoadJsonValueByKey(pt, "quaternion", instobject->quaternion);
@@ -1280,11 +1282,11 @@ void PlanningResultResource::GetPrograms(RobotControllerPrograms& programs, cons
     }
 }
 
-DebugResource::DebugResource(ControllerClientPtr controller, const std::string& pk) : WebResource(controller, "debug", pk), pk(pk)
+DebugResource::DebugResource(ControllerClientPtr controller, const std::string& pk_) : WebResource(controller, "debug", pk_), pk(pk_)
 {
 }
 
-DebugResource::DebugResource(ControllerClientPtr controller, const std::string& resource, const std::string& pk) : WebResource(controller, resource, pk), pk(pk)
+DebugResource::DebugResource(ControllerClientPtr controller, const std::string& resource, const std::string& pk_) : WebResource(controller, resource, pk_), pk(pk_)
 {
 }
 
