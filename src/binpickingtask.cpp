@@ -571,6 +571,8 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     registerMinViableRegionInfo.robotDepartStopTimestamp = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/robotDepartStopTimestamp", 0);
     registerMinViableRegionInfo.transferSpeedMult = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/transferSpeedMult", 1.0);
     {
+        registerMinViableRegionInfo.graspModelInfo.SetNull();
+        registerMinViableRegionInfo.graspModelInfo.GetAllocator().Clear();
         const rapidjson::Value* graspModelInfoJson = rapidjson::Pointer("/registerMinViableRegionInfo/graspModelInfo").Get(v);
         if( !!graspModelInfoJson && graspModelInfoJson->IsObject() ) {
             registerMinViableRegionInfo.graspModelInfo.CopyFrom(*graspModelInfoJson, registerMinViableRegionInfo.graspModelInfo.GetAllocator());

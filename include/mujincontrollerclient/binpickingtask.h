@@ -217,7 +217,9 @@ public:
             public:
                 // Since ResultGetBinpickingState needs to be copyable while rapidjson::Document is not, there needs to be a small wrapper
                 CopyableRapidJsonDocument& operator=(const CopyableRapidJsonDocument& other) {
-                    CopyFrom(other, GetAllocator());  // Note: This function deallocates old values before copying
+                    SetNull();
+                    GetAllocator().Clear();
+                    CopyFrom(other, GetAllocator());
                     return *this;
                 }
             };
