@@ -1696,9 +1696,9 @@ void BinPickingTaskResource::ExecuteCommand(const std::string& taskparameters, r
         secondspassed+=0.1;
         if( timeout != 0 && secondspassed > timeout ) {
             controller->CancelAllJobs();
-            std::stringstream ss; ss << std::setprecision(std::numeric_limits<double>::digits10+1);
-            ss << secondspassed;
-            throw MujinException("operation timed out after " +ss.str() + " seconds, cancelling all jobs and quitting", MEC_Timeout);
+            std::stringstream sss; sss << std::setprecision(std::numeric_limits<double>::digits10+1);
+            sss << secondspassed;
+            throw MujinException("operation timed out after " +sss.str() + " seconds, cancelling all jobs and quitting", MEC_Timeout);
         }
     }
 }
@@ -1815,9 +1815,9 @@ void BinPickingTaskResource::_HeartbeatMonitorThread(const double reinitializeti
             }
         }
         if (!_bShutdownHeartbeatMonitor) {
-            std::stringstream ss; ss << std::setprecision(std::numeric_limits<double>::digits10+1);
-            ss << (double)((GetMilliTime() - lastheartbeat)/1000.0f) << " seconds passed since last heartbeat signal, re-intializing ZMQ server.";
-            MUJIN_LOG_INFO(ss.str());
+            std::stringstream sss; sss << std::setprecision(std::numeric_limits<double>::digits10+1);
+            sss << (double)((GetMilliTime() - lastheartbeat)/1000.0f) << " seconds passed since last heartbeat signal, re-intializing ZMQ server.";
+            MUJIN_LOG_INFO(sss.str());
         }
     }
 #else

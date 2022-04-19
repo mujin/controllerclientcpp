@@ -129,8 +129,8 @@ int main(int argc, char ** argv)
         std::vector<ObjectResource::LinkResourcePtr> objectlinks;
         object->GetLinks(objectlinks);
         for(std::vector<ObjectResource::LinkResourcePtr>::iterator f=objectlinks.begin();f!=objectlinks.end();++f){
-            bool s=(*f)->Get<bool>("collision");
-            puts((std::string("    ")+(*f)->name+"("+(*f)->pk+")"+std::string(" -> ")+(s?"true":"false")).c_str());
+            bool isCollision=(*f)->Get<bool>("collision");
+            puts((std::string("    ")+(*f)->name+"("+(*f)->pk+")"+std::string(" -> ")+(isCollision?"true":"false")).c_str());
             std::vector<ObjectResource::GeometryResourcePtr> geometries;
             (*f)->GetGeometries(geometries);
             for(std::vector<ObjectResource::GeometryResourcePtr>::iterator g=geometries.begin();g!=geometries.end();++g){
@@ -143,8 +143,8 @@ int main(int argc, char ** argv)
                     printf("%f\n",vertices[0][0]);
                 }
                 */
-                bool s=(*g)->Get<bool>("visible");
-                puts((std::string("        ")+(*g)->name+std::string(" -> ")+(s?"true":"false")+" "+(*g)->geomtype).c_str());
+                bool isVisible=(*g)->Get<bool>("visible");
+                puts((std::string("        ")+(*g)->name+std::string(" -> ")+(isVisible?"true":"false")+" "+(*g)->geomtype).c_str());
             }
         }
     }
