@@ -19,6 +19,7 @@
 
 #include <array>
 #include <boost/shared_ptr.hpp>
+#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/format.hpp>
 #include <stdint.h>
@@ -337,9 +338,9 @@ template<class T> inline void LoadJsonValue(const rapidjson::Value& v, std::vect
 template<class T, size_t N> inline void LoadJsonValue(const rapidjson::Value& v, std::array<T, N>& t);
 
 template<class T> inline void LoadJsonValue(const rapidjson::Value& v, boost::shared_ptr<T>& ptr) {
-    T t;
-    LoadJsonValue(v, t);
-    ptr = boost::shared_ptr<T>(new T(t));
+    static_assert(std::is_default_constructible<T>::value, "Shared pointer of type must be default-constructible.");
+    ptr = boost::make_shared<T>();
+    LoadJsonValue(v, *ptr);
 }
 
 template<typename T, typename U> inline void LoadJsonValue(const rapidjson::Value& v, std::pair<T, U>& t) {
