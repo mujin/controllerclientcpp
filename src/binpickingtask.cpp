@@ -432,11 +432,11 @@ void BinPickingTaskResource::ResultInstObjectInfo::Parse(const rapidjson::Value&
     instobjectinnerobb.Parse(rOutput["innerobb"]);
 
     if( rOutput.HasMember("geometryInfos") ) {
-        rGeometryInfos.CopyFrom(rOutput["geometryInfos"], rGeometryInfos.GetAllocator());
+        mujinjson::SaveJsonValue(rGeometryInfos, rOutput["geometryInfos"]);
     }
 
     if( rOutput.HasMember("ikparams") ) {
-        rIkParams.CopyFrom(rOutput["ikparams"], rIkParams.GetAllocator());
+        mujinjson::SaveJsonValue(rIkParams, rOutput["ikparams"]);
     }
 }
 
@@ -467,7 +467,7 @@ void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const rapid
 
         if( it->value.HasMember("geometryInfos") ) {
             boost::shared_ptr<rapidjson::Document> pr(new rapidjson::Document());;
-            pr->CopyFrom(it->value["geometryInfos"], pr->GetAllocator());
+            mujinjson::SaveJsonValue(*pr, it->value["geometryInfos"]);
             mrGeometryInfos[objname] = pr;
         }
     }
@@ -870,7 +870,7 @@ void BinPickingTaskResource::ResultHeartBeat::Parse(const rapidjson::Value& pt)
         std::string key = "slaverequestid-" + _slaverequestid;
         //try {
         if (pt["slavestates"].HasMember(key.c_str()) && pt["slavestates"][key.c_str()].HasMember("taskstate")) {
-            taskstatejson.CopyFrom(pt["slavestates"][key.c_str()]["taskstate"], taskstatejson.GetAllocator());
+            mujinjson::SaveJsonValue(taskstatejson, pt["slavestates"][key.c_str()]["taskstate"]);
             SetJsonValueByKey(d, "output", taskstatejson);
             taskstate.Parse(d);
         }
@@ -1800,27 +1800,24 @@ void utils::GetSensorData(SceneResource& scene, const std::string& bodyname, con
 
 void utils::GetSensorTransform(SceneResource& scene, const std::string& bodyname, const std::string& sensorname, Transform& result, const std::string& unit)
 {
-    SceneResource::InstObjectPtr cameraobj;
-    if (scene.FindInstObject(bodyname, cameraobj)) {
-        for (size_t i=0; i<cameraobj->attachedsensors.size(); ++i) {
-            if (cameraobj->attachedsensors.at(i).name == sensorname) {
-                Transform transform;
-                std::copy(cameraobj->attachedsensors.at(i).quaternion, cameraobj->attachedsensors.at(i).quaternion+4, transform.quaternion);
-                std::copy(cameraobj->attachedsensors.at(i).translate, cameraobj->attachedsensors.at(i).translate+3, transform.translate);
-                if (unit == "m") { //?!
-                    transform.translate[0] *= 0.001;
-                    transform.translate[1] *= 0.001;
-                    transform.translate[2] *= 0.001;
-                }
-
-                result = transform;
-                return;
+    std::vector<RobotResource::AttachedSensorResourcePtr> attachedsensors;
+    utils::GetAttachedSensors(scene, bodyname, attachedsensors);
+    for (size_t i=0; i<attachedsensors.size(); ++i) {
+        if (attachedsensors.at(i)->name == sensorname) {
+            Transform transform;
+            std::copy(attachedsensors.at(i)->quaternion, attachedsensors.at(i)->quaternion+4, transform.quaternion);
+            std::copy(attachedsensors.at(i)->translate, attachedsensors.at(i)->translate+3, transform.translate);
+            if (unit == "m") { //?!
+                transform.translate[0] *= 0.001;
+                transform.translate[1] *= 0.001;
+                transform.translate[2] *= 0.001;
             }
+
+            result = transform;
+            return;
         }
-        throw MujinException("Could not find attached sensor " + sensorname + " on " + bodyname + ".", MEC_Failed);
-    } else {
-        throw MujinException("Could not find camera body " + bodyname +".", MEC_Failed);
     }
+    throw MujinException("Could not find attached sensor " + sensorname + " on " + bodyname + ".", MEC_Failed);
 }
 
 void utils::DeleteObject(SceneResource& scene, const std::string& name)
