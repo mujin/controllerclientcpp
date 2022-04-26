@@ -571,6 +571,8 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     registerMinViableRegionInfo.robotDepartStopTimestamp = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/robotDepartStopTimestamp", 0);
     registerMinViableRegionInfo.transferSpeedMult = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/transferSpeedMult", 1.0);
     {
+        registerMinViableRegionInfo.graspModelInfo.SetNull();
+        registerMinViableRegionInfo.graspModelInfo.GetAllocator().Clear();
         const rapidjson::Value* graspModelInfoJson = rapidjson::Pointer("/registerMinViableRegionInfo/graspModelInfo").Get(v);
         if( !!graspModelInfoJson && graspModelInfoJson->IsObject() ) {
             registerMinViableRegionInfo.graspModelInfo.CopyFrom(*graspModelInfoJson, registerMinViableRegionInfo.graspModelInfo.GetAllocator());
@@ -1694,9 +1696,9 @@ void BinPickingTaskResource::ExecuteCommand(const std::string& taskparameters, r
         secondspassed+=0.1;
         if( timeout != 0 && secondspassed > timeout ) {
             controller->CancelAllJobs();
-            std::stringstream ss; ss << std::setprecision(std::numeric_limits<double>::digits10+1);
-            ss << secondspassed;
-            throw MujinException("operation timed out after " +ss.str() + " seconds, cancelling all jobs and quitting", MEC_Timeout);
+            std::stringstream sss; sss << std::setprecision(std::numeric_limits<double>::digits10+1);
+            sss << secondspassed;
+            throw MujinException("operation timed out after " +sss.str() + " seconds, cancelling all jobs and quitting", MEC_Timeout);
         }
     }
 }
@@ -1810,9 +1812,9 @@ void BinPickingTaskResource::_HeartbeatMonitorThread(const double reinitializeti
             }
         }
         if (!_bShutdownHeartbeatMonitor) {
-            std::stringstream ss; ss << std::setprecision(std::numeric_limits<double>::digits10+1);
-            ss << (double)((GetMilliTime() - lastheartbeat)/1000.0f) << " seconds passed since last heartbeat signal, re-intializing ZMQ server.";
-            MUJIN_LOG_INFO(ss.str());
+            std::stringstream sss; sss << std::setprecision(std::numeric_limits<double>::digits10+1);
+            sss << (double)((GetMilliTime() - lastheartbeat)/1000.0f) << " seconds passed since last heartbeat signal, re-intializing ZMQ server.";
+            MUJIN_LOG_INFO(sss.str());
         }
     }
 #else

@@ -317,7 +317,7 @@ class RobotProgramData
 public:
     RobotProgramData() {
     }
-    RobotProgramData(const std::string& programdata, const std::string& type) : programdata(programdata), type(type) {
+    RobotProgramData(const std::string& programdata_, const std::string& type_) : programdata(programdata_), type(type_) {
     }
     std::string programdata; ///< the program data
     std::string type; ///< the type of program
