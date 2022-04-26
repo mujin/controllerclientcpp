@@ -446,43 +446,45 @@ RobotResource::AttachedSensorResource::AttachedSensorResource(ControllerClientPt
 {
 }
 
-void RobotResource::GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& attachedsensors)
+void RobotResource::GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& attachedsensors, bool useConnectedBodies)
 {
     GETCONTROLLERIMPL();
     rapidjson::Document pt(rapidjson::kObjectType);
     controller->CallGet(str(boost::format("robot/%s/attachedsensor/?format=json&limit=0&fields=attachedsensors")%GetPrimaryKey()), pt);
-    rapidjson::Value& objects = pt["attachedsensors"];
-    attachedsensors.resize(objects.Size());
-    size_t sensorNum = 0;
-    for (rapidjson::Document::ValueIterator it = objects.Begin(); it != objects.End(); ++it) {
-        AttachedSensorResourcePtr attachedsensor(new AttachedSensorResource(controller, GetPrimaryKey(), GetJsonValueByKey<std::string>(*it, "pk")));
 
-        LoadJsonValueByKey(*it, "name", attachedsensor->name);
-        LoadJsonValueByKey(*it, "frame_origin", attachedsensor->frame_origin);
-        LoadJsonValueByKey(*it, "sensortype", attachedsensor->sensortype);
-        LoadJsonValueByKey(*it, "quaternion", attachedsensor->quaternion);
-        LoadJsonValueByKey(*it, "translate", attachedsensor->translate);
-        std::vector<double> distortionCoeffs = GetJsonValueByPath<std::vector<double> > (*it, "/sensordata/distortion_coeffs");
+    rapidjson::Value& rAttachedSensors = pt["attachedsensors"];
+    attachedsensors.resize(rAttachedSensors.Size());
+    size_t attachedSensorIdx = 0;
+    for (rapidjson::Document::ValueIterator itAttachedSensor = rAttachedSensors.Begin(); itAttachedSensor != rAttachedSensors.End(); ++itAttachedSensor) {
+        AttachedSensorResourcePtr attachedsensor(new AttachedSensorResource(controller, GetPrimaryKey(), GetJsonValueByKey<std::string>(*itAttachedSensor, "pk")));
+
+        LoadJsonValueByKey(*itAttachedSensor, "name", attachedsensor->name);
+        LoadJsonValueByKey(*itAttachedSensor, "frame_origin", attachedsensor->frame_origin);
+        LoadJsonValueByKey(*itAttachedSensor, "sensortype", attachedsensor->sensortype);
+        LoadJsonValueByKey(*itAttachedSensor, "quaternion", attachedsensor->quaternion);
+        LoadJsonValueByKey(*itAttachedSensor, "translate", attachedsensor->translate);
+        std::vector<double> distortionCoeffs = GetJsonValueByPath<std::vector<double> > (*itAttachedSensor, "/sensordata/distortion_coeffs");
+
         BOOST_ASSERT(distortionCoeffs.size() <= 5);
         for (size_t i = 0; i < distortionCoeffs.size(); i++) {
             attachedsensor->sensordata.distortion_coeffs[i] = distortionCoeffs[i];
         }
-        attachedsensor->sensordata.distortion_model = GetJsonValueByPath<std::string>(*it, "/sensordata/distortion_model");
-        attachedsensor->sensordata.focal_length = GetJsonValueByPath<Real>(*it, "/sensordata/focal_length");
-        attachedsensor->sensordata.measurement_time= GetJsonValueByPath<Real>(*it, "/sensordata/measurement_time");
-        std::vector<double> intrinsics = GetJsonValueByPath<std::vector<double> >(*it, "/sensordata/intrinsic");
+        attachedsensor->sensordata.distortion_model = GetJsonValueByPath<std::string>(*itAttachedSensor, "/sensordata/distortion_model");
+        attachedsensor->sensordata.focal_length = GetJsonValueByPath<Real>(*itAttachedSensor, "/sensordata/focal_length");
+        attachedsensor->sensordata.measurement_time= GetJsonValueByPath<Real>(*itAttachedSensor, "/sensordata/measurement_time");
+        std::vector<double> intrinsics = GetJsonValueByPath<std::vector<double> >(*itAttachedSensor, "/sensordata/intrinsic");
         BOOST_ASSERT(intrinsics.size() <= 6);
         for (size_t i = 0; i < intrinsics.size(); i++) {
             attachedsensor->sensordata.intrinsic[i] = intrinsics[i];
         }
-        std::vector<int> imgdim = GetJsonValueByPath<std::vector<int> >(*it, "/sensordata/image_dimensions");
+        std::vector<int> imgdim = GetJsonValueByPath<std::vector<int> >(*itAttachedSensor, "/sensordata/image_dimensions");
         BOOST_ASSERT(imgdim.size() <= 3);
         for (size_t i = 0; i < imgdim.size(); i++) {
             attachedsensor->sensordata.image_dimensions[i] = imgdim[i];
         }
 
-        if (rapidjson::Pointer("/sensordata/extra_parameters").Get(*it)) {
-            std::string parameters_string = GetJsonValueByPath<std::string>(*it, "/sensordata/extra_parameters");
+        if (rapidjson::Pointer("/sensordata/extra_parameters").Get(*itAttachedSensor)) {
+            std::string parameters_string = GetJsonValueByPath<std::string>(*itAttachedSensor, "/sensordata/extra_parameters");
             //std::cout << "extra param " << parameters_string << std::endl;
             std::list<std::string> results;
             boost::split(results, parameters_string, boost::is_any_of(" "));
@@ -501,7 +503,37 @@ void RobotResource::GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& a
             //std::cout << "no asus param" << std::endl;
         }
 
-        attachedsensors[sensorNum++] = attachedsensor;
+        attachedsensors[attachedSensorIdx++] = attachedsensor;
+    }
+
+    rapidjson::Document rRobotConnectedBodies(rapidjson::kObjectType);
+    controller->CallGet(str(boost::format("robot/%s/connectedBody/?format=json")%GetPrimaryKey()), rRobotConnectedBodies);
+    rapidjson::Value& rConnectedBodies = rRobotConnectedBodies["connectedBodies"];
+    if (useConnectedBodies && rConnectedBodies.IsArray() && rConnectedBodies.Size() > 0) {
+        for (rapidjson::Document::ConstValueIterator itConnectedBody = rConnectedBodies.Begin(); itConnectedBody != rConnectedBodies.End(); ++itConnectedBody) {
+            std::string connectedBodyScenePk = controller->GetScenePrimaryKeyFromURI_UTF8(GetJsonValueByKey<std::string>(*itConnectedBody, "url"));
+            std::string connectedBodyName = GetJsonValueByKey<std::string>(*itConnectedBody, "name");
+            rapidjson::Document rConnectedBodyInstObjects(rapidjson::kObjectType);
+            controller->CallGet(str(boost::format("scene/%s/instobject/?format=json&limit=0&fields=attachedsensors,object_pk,name")%connectedBodyScenePk), rConnectedBodyInstObjects);
+            for (rapidjson::Document::ConstValueIterator itConnectedBodyInstObject = rConnectedBodyInstObjects["objects"].Begin(); itConnectedBodyInstObject != rConnectedBodyInstObjects["objects"].End(); ++itConnectedBodyInstObject) {
+                if (!itConnectedBodyInstObject->HasMember("attachedsensors") || !(*itConnectedBodyInstObject)["attachedsensors"].IsArray() || (*itConnectedBodyInstObject)["attachedsensors"].Size() == 0) {
+                    continue;
+                }
+                std::string connectedBodyObjectPk = GetJsonValueByKey<std::string>(*itConnectedBodyInstObject, "object_pk");
+                RobotResourcePtr connectedbodyrobot(new RobotResource(controller,connectedBodyObjectPk));
+                std::vector<AttachedSensorResourcePtr> connectedbodyattachedsensors;
+
+                connectedbodyrobot->GetAttachedSensors(connectedbodyattachedsensors, false);
+
+                for (size_t i = 0; i < connectedbodyattachedsensors.size(); i++) {
+                    std::string resolvedSensorName = str(boost::format("%s_%s")%connectedBodyName%connectedbodyattachedsensors[i]->name);
+                    connectedbodyattachedsensors[i]->name = resolvedSensorName;
+                }
+
+                attachedsensors.reserve(attachedsensors.size() + connectedbodyattachedsensors.size());
+                attachedsensors.insert(attachedsensors.end(), connectedbodyattachedsensors.begin(), connectedbodyattachedsensors.end());
+            }
+        }
     }
 }
 
