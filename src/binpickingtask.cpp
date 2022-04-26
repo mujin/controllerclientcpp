@@ -115,6 +115,7 @@ BinPickingTaskResource::~BinPickingTaskResource()
 void BinPickingTaskResource::Initialize(const std::string& defaultTaskParameters, const double timeout, const std::string& userinfo, const std::string& slaverequestid)
 {
     if( defaultTaskParameters.size() > 0 ) {
+        _mapTaskParameters.clear();
         rapidjson::Document d;
         d.Parse(defaultTaskParameters.c_str());
         for (rapidjson::Value::ConstMemberIterator it = d.MemberBegin(); it != d.MemberEnd(); ++it) {
@@ -146,6 +147,7 @@ void BinPickingTaskResource::Initialize(const std::string& defaultTaskParameters
 {
 
     if( defaultTaskParameters.size() > 0 ) {
+        _mapTaskParameters.clear();
         rapidjson::Document d;
         d.Parse(defaultTaskParameters.c_str());
         for (rapidjson::Value::ConstMemberIterator it = d.MemberBegin(); it != d.MemberEnd(); ++it) {
