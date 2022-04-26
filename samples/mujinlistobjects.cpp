@@ -87,8 +87,8 @@ int main(int argc, char ** argv)
     const unsigned int heartbeatPort = opts["heartbeat_port"].as<unsigned int>();
     string taskScenePk = opts["task_scenepk"].as<string>();
     
-    const bool needtoobtainfromheatbeat = taskScenePk.empty();
-    if (needtoobtainfromheatbeat) {
+    const bool needtoobtainfromheartbeat = taskScenePk.empty();
+    if (needtoobtainfromheartbeat) {
         stringstream endpoint;
         endpoint << "tcp://" << hostname << ":" << heartbeatPort;
         cout << "connecting to heartbeat at " << endpoint.str() << endl;
@@ -107,8 +107,8 @@ int main(int argc, char ** argv)
         }
         
         if (taskScenePk.empty()) {
-            taskScenePk = utils::GetScenePkFromHeatbeat(heartbeat);
-            cout << "task_scenepk: " << taskScenePk << " is obtained from heatbeat\n";
+            taskScenePk = utils::GetScenePkFromHeartbeat(heartbeat);
+            cout << "task_scenepk: " << taskScenePk << " is obtained from heartbeat\n";
         }
     }
 
@@ -119,7 +119,7 @@ int main(int argc, char ** argv)
     std::vector<SceneResource::InstObjectPtr> instobjects;
     scene->GetInstObjects(instobjects);
     for(std::vector<SceneResource::InstObjectPtr>::iterator e=instobjects.begin();e!=instobjects.end();++e){
-        puts(((*e)->name+"("+(*e)->pk+")").c_str());
+        puts(((*e)->name+"("+(*e)->pk+" / "+(*e)->object_pk+" / "+(*e)->reference_object_pk+")").c_str());
         ObjectResourcePtr object(new ObjectResource(controllerclient, (*e)->object_pk));
         std::vector<ObjectResource::IkParamResourcePtr> ikparams;
         object->GetIkParams(ikparams);
@@ -129,8 +129,8 @@ int main(int argc, char ** argv)
         std::vector<ObjectResource::LinkResourcePtr> objectlinks;
         object->GetLinks(objectlinks);
         for(std::vector<ObjectResource::LinkResourcePtr>::iterator f=objectlinks.begin();f!=objectlinks.end();++f){
-            bool s=(*f)->Get<bool>("collision");
-            puts((std::string("    ")+(*f)->name+"("+(*f)->pk+")"+std::string(" -> ")+(s?"true":"false")).c_str());
+            bool isCollision=(*f)->Get<bool>("collision");
+            puts((std::string("    ")+(*f)->name+"("+(*f)->pk+")"+std::string(" -> ")+(isCollision?"true":"false")).c_str());
             std::vector<ObjectResource::GeometryResourcePtr> geometries;
             (*f)->GetGeometries(geometries);
             for(std::vector<ObjectResource::GeometryResourcePtr>::iterator g=geometries.begin();g!=geometries.end();++g){
@@ -143,8 +143,8 @@ int main(int argc, char ** argv)
                     printf("%f\n",vertices[0][0]);
                 }
                 */
-                bool s=(*g)->Get<bool>("visible");
-                puts((std::string("        ")+(*g)->name+std::string(" -> ")+(s?"true":"false")+" "+(*g)->geomtype).c_str());
+                bool isVisible=(*g)->Get<bool>("visible");
+                puts((std::string("        ")+(*g)->name+std::string(" -> ")+(isVisible?"true":"false")+" "+(*g)->geomtype).c_str());
             }
         }
     }
