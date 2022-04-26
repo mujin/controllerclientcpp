@@ -317,7 +317,7 @@ class RobotProgramData
 public:
     RobotProgramData() {
     }
-    RobotProgramData(const std::string& programdata, const std::string& type) : programdata(programdata), type(type) {
+    RobotProgramData(const std::string& programdata_, const std::string& type_) : programdata(programdata_), type(type_) {
     }
     std::string programdata; ///< the program data
     std::string type; ///< the type of program
@@ -535,6 +535,12 @@ public:
 
     /// \brief (Request to) reboot controller.
     virtual void Reboot(double timeout = 5.0) = 0;
+
+    /// \brief Delete all scenes.
+    virtual void DeleteAllScenes(double timeout = 5.0) = 0;
+
+    /// \brief Delete all itl programs.
+    virtual void DeleteAllITLPrograms(double timeout = 5.0) = 0;
 
     /** \brief Recursively uploads a directory to the controller network filesystem.
 
@@ -888,7 +894,7 @@ public:
     }
 
     virtual void GetTools(std::vector<ToolResourcePtr>& tools);
-    virtual void GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& attachedsensors);
+    virtual void GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& attachedsensors, bool useConnectedBodies = true);
 
     // attachments
     // ikparams
@@ -962,6 +968,7 @@ public:
         std::string name;
         std::string pk;
         std::string object_pk;
+        std::string reference_object_pk;
         std::string reference_uri;
         Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
         Real translate[3];

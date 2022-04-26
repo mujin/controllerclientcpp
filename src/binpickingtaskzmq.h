@@ -35,9 +35,11 @@ public:
 
     ~BinPickingTaskZmqResource();
 
-    void ExecuteCommand(const std::string& command, rapidjson::Document&d, const double timeout /* [sec] */=0.0, const bool getresult=true);
+    void ExecuteCommand(const std::string& command, rapidjson::Document&d, const double timeout /* [sec] */=0.0, const bool getresult=true) override;
 
-    void Initialize(const std::string& defaultTaskParameters, const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq=false, const double reinitializetimeout=10, const double timeout=0, const std::string& userinfo="{}", const std::string& slaverequestid="");
+    virtual void ExecuteCommand(rapidjson::Value& rTaskParameters, rapidjson::Document& rOutput, const double timeout /* second */=5.0) override;
+
+    void Initialize(const std::string& defaultTaskParameters, const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq=false, const double reinitializetimeout=10, const double timeout=0, const std::string& userinfo="{}", const std::string& slaverequestid="") override;
 
     void InitializeZMQ(const double reinitializetimeout = 5, const double timeout /* second */=0);
     void _HeartbeatMonitorThread(const double reinitializetimeout, const double commandtimeout);
