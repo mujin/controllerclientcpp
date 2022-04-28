@@ -1935,23 +1935,64 @@ void ControllerClientImpl::ListFilesInController(std::vector<FileEntry>& fileent
     }
 }
 
-void ControllerClientImpl::CreateLogEntries(rapidjson::Value& logEntries)
+void ControllerClientImpl::CreateLogEntries(const std::vector<LogEntry>& logEntries)
 {
+    if (logEntries.empty()) {
+        return;
+    } 
+
+    // uri to upload
+    _uri = _baseapiuri + std::string("logEntry/");
+
+    // prepare form
+    struct curl_httppost *formpost = NULL;
+    struct curl_httppost *lastptr = NULL;
+    CURL_FORM_RELEASER(formpost);
+
+    for (LogEntry logEntry : logEntries) {
+        if (!(logEntry.entry)) {
+            continue;
+        } 
+        // add log entry
+        std::string dumpedLogEntry = DumpJson(*(logEntry.entry));
+        curl_formadd(&formpost, &lastptr,
+                    CURLFORM_COPYNAME, "logEntry",
+                    CURLFORM_COPYCONTENTS, dumpedLogEntry.c_str(),
+                    CURLFORM_CONTENTTYPE, "application/json",
+                    CURLFORM_END);
+        // add resources
+        if (!(logEntry.resources.empty())) {            
+            for (LogEntryResource& resource : logEntry.resources) {
+                curl_formadd(&formpost, &lastptr,
+                    CURLFORM_COPYNAME, "resource",
+                    CURLFORM_BUFFER, resource.filename.c_str(),
+                    CURLFORM_BUFFERPTR, resource.data->data(),
+                    CURLFORM_BUFFERLENGTH, (long)(resource.data->size()),
+                    CURLFORM_END);
+            }
+        }
+    }
+
     boost::mutex::scoped_lock lock(_mutex);
+    _buffer.clear();
+    _buffer.str("");
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEDATA, NULL, &_buffer);
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEFUNCTION, NULL, _WriteStringStreamCallback);
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, _uri.c_str());
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_TIMEOUT_MS, 0L, (long)(5.0 * 1000L));
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPPOST, NULL, formpost);
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPHEADER, NULL, _httpheadersmultipartformdata);
 
-    rapidjson::Document data(rapidjson::kObjectType);
-    data.AddMember(rapidjson::Document::StringRefType("logEntries"), logEntries, data.GetAllocator());
+    // perform the call
+    CURL_PERFORM(_curl);
 
-    rapidjson::Document pt(rapidjson::kObjectType);
-    _uri = _baseapiuri + "logEntry/";
-    _CallPost(_uri, DumpJson(data), pt, 201, 5.0);
-}
+    // get http status
+    long http_code = 0;
+    CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
 
-void ControllerClientImpl::CreateLogEntryResources(std::istream& inputStream, const std::string& filename)
-{
-    boost::mutex::scoped_lock lock(_mutex);
-    _uri = _baseapiuri + "logEntryResource/";
-    _UploadFileToControllerViaForm(inputStream, filename, _uri, 5.0);
+    if (http_code != 201) {
+        throw MUJIN_EXCEPTION_FORMAT("upload failed with HTTP status %s", http_code, MEC_HTTPServer);
+    }
 }
 
 } // end namespace mujinclient

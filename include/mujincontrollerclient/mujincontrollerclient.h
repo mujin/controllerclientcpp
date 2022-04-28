@@ -86,6 +86,20 @@ struct FileEntry
     size_t size; // file size in bytes
 };
 
+/// \brief a resource attached to a log entry
+struct LogEntryResource
+{
+    std::string filename; // filename
+    std::vector<unsigned char>* data; // data for the resource
+};
+
+/// \brief a log entry in mujin controller
+struct LogEntry
+{
+    rapidjson::Value* entry; // log entry data in JSON format
+    std::vector<LogEntryResource> resources; // a list of related resources
+};
+
 typedef boost::shared_ptr<ControllerClient> ControllerClientPtr;
 typedef boost::weak_ptr<ControllerClient> ControllerClientWeakPtr;
 typedef boost::shared_ptr<ObjectResource> ObjectResourcePtr;
@@ -670,11 +684,9 @@ public:
     /// \brief get debug infos
     virtual void GetDebugInfos(std::vector<DebugResourcePtr>& debuginfos, double timeout = 5) = 0;
 
-    /// \brief create log entries
-    virtual void CreateLogEntries(rapidjson::Value& logEntries) = 0;
+    /// \brief create log entries and resource attachments such as images, additional files, etc.
+    virtual void CreateLogEntries(const std::vector<LogEntry>& logEntries) = 0;
 
-    /// \brief create log entry resource attachments such as images, additional files, etc.
-    virtual void CreateLogEntryResources(std::istream& inputStream, const std::string& filename) = 0;
 };
 
 class MUJINCLIENT_API WebResource

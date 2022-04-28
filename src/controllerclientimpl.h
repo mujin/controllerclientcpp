@@ -156,11 +156,8 @@ public:
 
     void GetDebugInfos(std::vector<DebugResourcePtr>& debuginfos, double timeout = 5);
 
-    /// \brief create log entries
-    virtual void CreateLogEntries(rapidjson::Value& logEntries);
-
-    /// \brief create log entry resource attachments such as images, additional files, etc.
-    virtual void CreateLogEntryResources(std::istream& inputStream, const std::string& filename);
+    /// \brief create log entries and resource attachments such as images, additional files, etc.
+    virtual void CreateLogEntries(const std::vector<LogEntry>& logEntries);
 
     inline std::string GetBaseUri() const
     {
