@@ -18,7 +18,7 @@ set( CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS TRUE )
 # Define here the needed parameters
 # make sure to change the version in docs/Makefile
 set (MUJINCLIENT_VERSION_MAJOR 0)
-set (MUJINCLIENT_VERSION_MINOR 32)
+set (MUJINCLIENT_VERSION_MINOR 48)
 set (MUJINCLIENT_VERSION_PATCH 0)
 set (MUJINCLIENT_VERSION ${MUJINCLIENT_VERSION_MAJOR}.${MUJINCLIENT_VERSION_MINOR}.${MUJINCLIENT_VERSION_PATCH})
 set (MUJINCLIENT_SOVERSION ${MUJINCLIENT_VERSION_MAJOR}.${MUJINCLIENT_VERSION_MINOR})
@@ -176,7 +176,7 @@ find_package(RapidJSON QUIET)
 if (NOT RapidJSON_FOUND)
   message(FATAL_ERROR "could not find RapidJSON")
 else()
-  include_directories(${RapidJSON_INCLUDE_DIRS})
+  include_directories(SYSTEM ${RapidJSON_INCLUDE_DIRS})
   add_definitions("-DRAPIDJSON_ASSERT=BOOST_ASSERT")
 endif()
 
@@ -253,7 +253,7 @@ endif()
 
 
 if( CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX )
-  add_definitions("-fno-strict-aliasing -Wall")
+  add_definitions("-fno-strict-aliasing -Wall -Werror=shadow")
 endif( CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX )
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/mujincontrollerclient/config.h IMMEDIATE @ONLY)
