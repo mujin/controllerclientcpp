@@ -1675,7 +1675,7 @@ void ControllerClientImpl::_UploadFileToController_UTF8(const std::string& filen
     }
 
     MUJIN_LOG_DEBUG(str(boost::format("upload %s")%uri))
-    _UploadFileToControllerViaForm(fin, filenameoncontroller, _baseuri + "fileupload");
+    _UploadFileToControllerViaForm(fin, filenameoncontroller, _baseuri + "fileupload?filename=" + filenameoncontroller);
 }
 
 void ControllerClientImpl::_UploadFileToController_UTF16(const std::wstring& filename, const std::string& uri)
@@ -1694,7 +1694,7 @@ void ControllerClientImpl::_UploadFileToController_UTF16(const std::wstring& fil
     }
 
     MUJIN_LOG_DEBUG(str(boost::format("upload %s")%uri))
-    _UploadFileToControllerViaForm(fin, filenameoncontroller, _baseuri + "fileupload");
+    _UploadFileToControllerViaForm(fin, filenameoncontroller, _baseuri + "fileupload?filename=" + filenameoncontroller);
 }
 
 void ControllerClientImpl::_UploadFileToController(FILE* fd, const std::string& uri)
