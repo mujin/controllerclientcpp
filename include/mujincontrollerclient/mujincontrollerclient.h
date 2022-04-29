@@ -86,20 +86,6 @@ struct FileEntry
     size_t size; // file size in bytes
 };
 
-/// \brief a resource attached to a log entry
-struct LogEntryResource
-{
-    std::string filename; // filename
-    std::vector<unsigned char>* data; // data for the resource
-};
-
-/// \brief a log entry in mujin controller
-struct LogEntry
-{
-    rapidjson::Value* entry; // log entry data in JSON format
-    std::vector<LogEntryResource> resources; // a list of related resources
-};
-
 typedef boost::shared_ptr<ControllerClient> ControllerClientPtr;
 typedef boost::weak_ptr<ControllerClient> ControllerClientWeakPtr;
 typedef boost::shared_ptr<ObjectResource> ObjectResourcePtr;
@@ -121,6 +107,26 @@ typedef boost::weak_ptr<BinPickingResultResource> BinPickingResultResourceWeakPt
 typedef boost::shared_ptr<DebugResource> DebugResourcePtr;
 typedef boost::weak_ptr<DebugResource> DebugResourceWeakPtr;
 typedef double Real;
+
+/// \brief a resource attached to a log entry
+struct LogEntryResource
+{
+    std::string filename; // filename
+    std::vector<unsigned char> data; // data for the resource
+};
+
+typedef boost::shared_ptr<LogEntryResource> LogEntryResourcePtr;
+typedef boost::weak_ptr<LogEntryResource> LogEntryResourceWeakPtr;
+
+/// \brief a log entry in mujin controller
+struct LogEntry
+{
+    rapidjson::Document entry; // log entry data in JSON format
+    std::vector<LogEntryResourcePtr> resources; // a list of related resources
+};
+
+typedef boost::shared_ptr<LogEntry> LogEntryPtr;
+typedef boost::weak_ptr<LogEntry> LogEntryWeakPtr;
 
 inline bool FuzzyEquals(Real p, Real q, double epsilon=1e-3) {
     return fabs(double(p - q)) < epsilon;
@@ -685,7 +691,7 @@ public:
     virtual void GetDebugInfos(std::vector<DebugResourcePtr>& debuginfos, double timeout = 5) = 0;
 
     /// \brief create log entries and resource attachments such as images, additional files, etc.
-    virtual void CreateLogEntries(const std::vector<LogEntry>& logEntries) = 0;
+    virtual void CreateLogEntries(const std::vector<LogEntryPtr>& logEntries) = 0;
 
 };
 

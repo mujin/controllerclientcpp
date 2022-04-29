@@ -1935,7 +1935,7 @@ void ControllerClientImpl::ListFilesInController(std::vector<FileEntry>& fileent
     }
 }
 
-void ControllerClientImpl::CreateLogEntries(const std::vector<LogEntry>& logEntries)
+void ControllerClientImpl::CreateLogEntries(const std::vector<LogEntryPtr>& logEntries)
 {
     if (logEntries.empty()) {
         return;
@@ -1949,27 +1949,24 @@ void ControllerClientImpl::CreateLogEntries(const std::vector<LogEntry>& logEntr
     struct curl_httppost *lastptr = NULL;
     CURL_FORM_RELEASER(formpost);
 
-    for (LogEntry logEntry : logEntries) {
-        if (!(logEntry.entry)) {
+    for (LogEntryPtr logEntry : logEntries) {
+        if (!logEntry) {
             continue;
         } 
         // add log entry
-        std::string dumpedLogEntry = DumpJson(*(logEntry.entry));
         curl_formadd(&formpost, &lastptr,
                     CURLFORM_COPYNAME, "logEntry",
-                    CURLFORM_COPYCONTENTS, dumpedLogEntry.c_str(),
+                    CURLFORM_COPYCONTENTS, DumpJson(logEntry->entry).c_str(),
                     CURLFORM_CONTENTTYPE, "application/json",
                     CURLFORM_END);
         // add resources
-        if (!(logEntry.resources.empty())) {            
-            for (LogEntryResource& resource : logEntry.resources) {
-                curl_formadd(&formpost, &lastptr,
-                    CURLFORM_COPYNAME, "resource",
-                    CURLFORM_BUFFER, resource.filename.c_str(),
-                    CURLFORM_BUFFERPTR, resource.data->data(),
-                    CURLFORM_BUFFERLENGTH, (long)(resource.data->size()),
-                    CURLFORM_END);
-            }
+        for (LogEntryResourcePtr resource : logEntry->resources) {
+            curl_formadd(&formpost, &lastptr,
+                CURLFORM_COPYNAME, "resource",
+                CURLFORM_BUFFER, resource->filename.c_str(),
+                CURLFORM_BUFFERPTR, resource->data.data(),
+                CURLFORM_BUFFERLENGTH, (long)(resource->data.size()),
+                CURLFORM_END);
         }
     }
 
