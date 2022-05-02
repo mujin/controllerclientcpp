@@ -144,7 +144,7 @@ ObjectResource::LinkResource::LinkResource(ControllerClientPtr controller, const
 {
 }
 
-ObjectResource::GeometryResource::GeometryResource(ControllerClientPtr controller, const std::string& objectpk_, const std::string& pk_) : WebResource(controller, str(boost::format("object/%s/geometry")%objectpk), pk_), pk(pk_), objectpk(objectpk_)
+ObjectResource::GeometryResource::GeometryResource(ControllerClientPtr controller, const std::string& objectpk_, const std::string& pk_) : WebResource(controller, str(boost::format("object/%s/geometry")%objectpk_), pk_), pk(pk_), objectpk(objectpk_)
 {
 }
 
