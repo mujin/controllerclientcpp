@@ -43,7 +43,7 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("locale", bpo::value<string>()->default_value("en_US"), "locale to use for the mujin controller client")
         ("task_scenepk", bpo::value<string>()->default_value(""), "scene pk of the binpicking task on the mujin controller, e.g. officeboltpicking.mujin.dae.")
         ("robotname", bpo::value<string>()->default_value(""), "robot name.")
-        ("taskparameters", bpo::value<string>()->default_value("{}"), "binpicking task parameters, e.g. {'robotname': 'robot', 'robots':{'robot': {'externalCollisionIO':{}, 'gripperControlInfo':{}, 'robotControllerUri': '', robotDeviceIOUri': '', 'toolname': 'tool'}}}")
+        ("taskparameters", bpo::value<string>()->default_value("{}"), "binpicking task parameters, e.g. {\"robotname\": \"robot\", \"toolname\": \"tool\"}")
         ("zmq_port", bpo::value<unsigned int>()->default_value(11000), "port of the binpicking task on the mujin controller")
         ("heartbeat_port", bpo::value<unsigned int>()->default_value(11001), "port of the binpicking task's heartbeat signal on the mujin controller")
 
@@ -107,8 +107,8 @@ void InitializeTask(const bpo::variables_map& opts,
     string slaverequestid = opts["slave_request_id"].as<string>();
     string taskScenePk = opts["task_scenepk"].as<string>();
     
-    const bool needtoobtainfromheatbeat = taskScenePk.empty() || slaverequestid.empty();
-    if (needtoobtainfromheatbeat) {
+    const bool needtoobtainfromheartbeat = taskScenePk.empty() || slaverequestid.empty();
+    if (needtoobtainfromheartbeat) {
         stringstream endpoint;
         endpoint << "tcp://" << hostname << ":" << heartbeatPort;
         cout << "connecting to heartbeat at " << endpoint.str() << endl;
@@ -127,12 +127,12 @@ void InitializeTask(const bpo::variables_map& opts,
         }
         
         if (taskScenePk.empty()) {
-            taskScenePk = utils::GetScenePkFromHeatbeat(heartbeat);
-            cout << "task_scenepk: " << taskScenePk << " is obtained from heatbeat\n";
+            taskScenePk = utils::GetScenePkFromHeartbeat(heartbeat);
+            cout << "task_scenepk: " << taskScenePk << " is obtained from heartbeat\n";
         }
         if (slaverequestid.empty()) {
-            slaverequestid = utils::GetSlaveRequestIdFromHeatbeat(heartbeat);
-            cout << "slave_request_id: " << slaverequestid << " is obtained from heatbeat\n";
+            slaverequestid = utils::GetSlaveRequestIdFromHeartbeat(heartbeat);
+            cout << "slave_request_id: " << slaverequestid << " is obtained from heartbeat\n";
         }
     }
 

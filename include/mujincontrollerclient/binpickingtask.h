@@ -1,5 +1,5 @@
 // -*- coding: utf-8 -*-
-// Copyright (C) 2012-2016 MUJIN Inc. <rosen.diankov@mujin.co.jp>
+// Copyright (C) 2012-2020 MUJIN Inc. <rosen.diankov@mujin.co.jp>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -143,11 +143,30 @@ public:
     struct MUJINCLIENT_API PickPlaceHistoryItem
     {
         std::string pickPlaceType; ///< the type of action that ocurred can be: "picked", "placed", "touched"
-        std::string regionname; ///< the name of the region where picking occurred for "picked", where placing occurred when "placed", and where touching occurred for "touched"
+        std::string locationName; ///< the name of the region where picking occurred for "picked", where placing occurred when "placed", and where touching occurred for "touched"
         unsigned long long eventTimeStampUS; ///< time that the event ocurred in us (from Linux epoch). For "picked" this is the chuck time, for "placed this is the unchuck time, for "touched" this is the time when the robot supposedly stopped touching/disturbing the object.
         std::string object_uri; ///< the object uri
         Transform objectpose; ///< 7-values in world, unit is usually mm
         unsigned long long sensorTimeStampUS; ///< sensor timestamp in us (from Linux epoch) of when the object was detected in the scene
+    };
+
+    /// \brief Holds the state of each region coming from the planning side.
+    struct LocationTrackingInfo
+    {
+        std::string locationName; ///< name of the location tracking
+        std::string containerId; ///< containerId currently in the location
+        std::string containerName; ///< name of the container tracking
+        std::string containerUsage; ///< how the container is used
+        std::string cycleIndex; ///< unique cycleIndex that is tracking this location
+    };
+
+    struct LocationExecutionInfo
+    {
+        std::string locationName; ///< name of the location tracking
+        std::string containerId; ///< containerId currently in the location
+        uint64_t forceRequestStampMS=0; ///< ms, (linux epoch) of when the requestion for results (detection or point cloud) came in. If there is no request, then this will be 0
+        uint64_t lastInsideContainerStampMS = 0; ///< ms, (linux epoch) of when the robot (or something else) was inside the container and could have potentially disturbed the contents.
+        std::string needContainerState; ///< one of: Unknown, NewContainerNeeded, ContainerNeeded, ContainerNotNeeded. If empty, then not initialized yet, so can assume Unknown.
     };
 
     struct MUJINCLIENT_API ResultGetBinpickingState : public ResultBase
@@ -167,52 +186,69 @@ public:
         std::string statusDescPickPlace;
         std::string statusPhysics;
         bool isDynamicEnvironmentStateEmpty;
-        bool isSourceContainerEmpty;
+
         int pickAttemptFromSourceId;
         unsigned long long timestamp;  ///< ms
         unsigned long long lastGrabbedTargetTimeStamp;   ///< ms
-        unsigned long long lastInsideSourceTimeStamp; ///< ms
-        unsigned long long lastInsideDestTimeStamp; ///< ms
-        bool isRobotOccludingSourceContainer;
+        //bool isRobotOccludingSourceContainer; ///?
         std::vector<OcclusionResult> vOcclusionResults;
+        std::vector<LocationTrackingInfo> activeLocationTrackingInfos;
+        std::vector<LocationExecutionInfo> locationExecutionInfos;
 
-        uint64_t forceRequestDetectionResultsStamp; ///< time stamp when force request for source was first set on planning side
-        uint64_t forceRequestDestPointCloudStamp; ///< time stamp when force request for dest was first set on planning side
         bool isGrabbingTarget;
         bool isGrabbingLastTarget;
-        int needSourceContainer; ///< 1 if source container is needed, 0 if not needed, -1 if unknown or planning does not publish
-        bool hasRobotExecutionStarted;
+
+        bool hasRobotExecutionStarted=false;
         int orderNumber; ///< -1 if not initiaized
         int numLeftInOrder; ///< -1 if not initiaized
         int numLeftInSupply; ///< -1 if not initiaized
         int placedInDest; ///< -1 if not initiaized
-        std::vector<double> currentJointValues;
-        std::vector<double> currentToolValues;
-        std::vector<std::string> jointNames;
-        bool isControllerInError;
-        std::string robotbridgestatus;
-        std::string cycleIndex; ///< index of the published cycle
+        std::string cycleIndex; ///< index of the published cycle that pickworker is currently executing
+
         /**
          * Information needed to register a new object using a min viable region
          */
-        struct RegisterMinViableRegionInfo {
-            struct MinViableRegionInfo {
+        struct RegisterMinViableRegionInfo
+        {
+            RegisterMinViableRegionInfo();
+
+            class CopyableRapidJsonDocument : public rapidjson::Document
+            {
+            public:
+                // Since ResultGetBinpickingState needs to be copyable while rapidjson::Document is not, there needs to be a small wrapper
+                CopyableRapidJsonDocument& operator=(const CopyableRapidJsonDocument& other) {
+                    SetNull();
+                    GetAllocator().Clear();
+                    CopyFrom(other, GetAllocator());
+                    return *this;
+                }
+            };
+
+            struct MinViableRegionInfo
+            {
                 MinViableRegionInfo();
                 std::array<double, 2> size2D; ///< width and height on the MVR
+                std::array<double, 3> maxPossibleSize; ///< the max possible size of actual item
                 uint64_t cornerMask; ///< Represents the corner(s) used for corner based detection. 4 bit. -x-y = 1, +x-y = 2, -x+y=4, +x+y = 8
             } minViableRegion;
-            RegisterMinViableRegionInfo();
-            std::array<double, 3> translation_; // Translation of the 2D MVR plane (height = 0)
-            std::array<double, 4> quat_; // Rotation of the 2D MVR plane (height = 0)
-            uint64_t sensortimestamp; // Same as DetectedObject's timestamp sent to planning
-            double robotDepartStopTimestamp; // Force capture after robot stops
-            std::array<double, 3> liftedWorldOffset; // [dx, dy, dz], mm in world frame
+
+            std::string locationName; ///< The name of the location where the minViableRegion was triggered for
+            std::array<double, 3> translation_; ///< Translation of the 2D MVR plane (height = 0)
+            std::array<double, 4> quat_; ///< Rotation of the 2D MVR plane (height = 0)
+            double objectWeight; ///< If non-zero, use this weight fo registration. unit is kg. zero means unknown.
+            uint64_t sensortimestamp; ///< Same as DetectedObject's timestamp sent to planning
+            double robotDepartStopTimestamp; ///< Force capture after robot stops
+            std::array<double, 3> liftedWorldOffset; ///< [dx, dy, dz], mm in world frame
             std::array<double, 3> maxCandidateSize; ///< the max candidate size expecting
             std::array<double, 3> minCandidateSize; ///< the min candidate size expecting
-            double transferSpeedMult; // transfer speed multiplication factor
-            double minCornerVisibleDist;
-            uint64_t occlusionFreeCornerMask;
-            bool waitForTriggerOnCapturing; // if true, sensor will wait trigger on capturing
+            double transferSpeedMult; ///< transfer speed multiplication factor
+            CopyableRapidJsonDocument graspModelInfo; ///< Parameters used for grasping model generation for the object
+            double minCornerVisibleDist; ///< how much distance along with uncertain edge from uncertain corner robot exposes to camera
+            double minCornerVisibleInsideDist; ///< how much distance inside MVR robot exposes to camera
+            uint64_t occlusionFreeCornerMask; ///< mask of corners that robot exposes to camera
+            bool waitForTriggerOnCapturing; ///<  if true, sensor will wait trigger on capturing
+            std::vector<double> fullDofValues; ///< robot configuration state on capturing
+            std::vector<int8_t> connectedBodyActiveStates; ///< robot configuration state on capturing
             bool IsEmpty() const {
                 return sensortimestamp == 0;
             }
@@ -231,9 +267,10 @@ public:
             TriggerDetectionCaptureInfo();
             double timestamp; ///< timestamp this request was sent. If non-zero, then valid.
             std::string triggerType; ///< The type of trigger this is. For now can be: "phase1Detection", "phase2Detection"
-            std::string regionname; ///< The name of the region for this detection trigger.
+            std::string locationName; ///< The name of the location for this detection trigger.
+            std::string targetupdatename; ///< if not empty, use this new targetupdatename for the triggering, otherwise do not change the original targetupdatename
         } triggerDetectionCaptureInfo;
-        
+
         std::vector<PickPlaceHistoryItem> pickPlaceHistoryItems; ///< history of pick/place actions that occurred in planning. Events should be sorted in the order they happen, ie event [0] happens before event [1], meaning event[0].eventTimeStampUS is before event[1].eventTimeStampUS
     };
 
@@ -284,6 +321,7 @@ public:
         ResultOBB instobjectobb;
         ResultOBB instobjectinnerobb;
         rapidjson::Document rGeometryInfos; ///< for every object, list of all the geometry infos
+        rapidjson::Document rIkParams; ///< for every object, dict of serialized ikparams
     };
 
     struct MUJINCLIENT_API ResultGetInstObjectAndSensorInfo : public ResultBase
@@ -330,11 +368,18 @@ public:
     virtual void Initialize(const std::string& defaultTaskParameters, const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq=false, const double reinitializetimeout=10, const double commandtimeout=0, const std::string& userinfo="{}", const std::string& slaverequestid="");
 #endif
 
+    virtual void SetCallerId(const std::string& callerid);
+
     virtual void ExecuteCommand(const std::string& command, rapidjson::Document&d, const double timeout /* second */=5.0, const bool getresult=true);
 
-    virtual void GetJointValues(ResultGetJointValues& result, const std::string& unit="mm", const double timeout /* second */=5.0);
-    virtual void SetInstantaneousJointValues(const std::vector<Real>& jointvalues, const std::string& unit="mm", const double timeout /* second */=5.0);
-    virtual void ComputeIkParamPosition(ResultComputeIkParamPosition& result, const std::string& name, const std::string& unit="mm", const double timeout /* second */=5.0);
+    /// \brief executes command directly from rapidjson::Value struct.
+    ///
+    /// \param rTaskParameters will be destroyed after the call due to r-value moves
+    virtual void ExecuteCommand(rapidjson::Value& rTaskParameters, rapidjson::Document& rOutput, const double timeout /* second */=5.0);
+
+    virtual void GetJointValues(ResultGetJointValues& result, const std::string& unit, const double timeout /* second */=5.0);
+    virtual void SetInstantaneousJointValues(const std::vector<Real>& jointvalues, const std::string& unit, const double timeout /* second */=5.0);
+    virtual void ComputeIkParamPosition(ResultComputeIkParamPosition& result, const std::string& name, const std::string& unit, const double timeout /* second */=5.0);
     virtual void ComputeIKFromParameters(ResultComputeIKFromParameters& result, const std::string& targetname, const std::vector<std::string>& ikparamnames, const int filteroptions, const int limit=0, const double timeout /* second */=5.0);
 
     /// \brief Moves joints to specified value
@@ -346,15 +391,15 @@ public:
     /// \param timeout timeout of communication
     /// \param pTraj if not NULL, planned trajectory is set but not executed. Otherwise, trajectory is planed and executed but not set.
     virtual void MoveJoints(const std::vector<Real>& jointvalues, const std::vector<int>& jointindices, const Real envclearance, const Real speed /* 0.1-1 */, ResultMoveJoints& result, const double timeout /* second */=5.0, std::string* pTraj = NULL);
-    virtual void GetTransform(const std::string& targetname, Transform& result, const std::string& unit="mm", const double timeout /* second */=5.0);
-    virtual void SetTransform(const std::string& targetname, const Transform& transform, const std::string& unit="mm", const double timeout /* second */=5.0);
+    virtual void GetTransform(const std::string& targetname, Transform& result, const std::string& unit, const double timeout /* second */=5.0);
+    virtual void SetTransform(const std::string& targetname, const Transform& transform, const std::string& unit, const double timeout /* second */=5.0);
 
-    virtual void GetManipTransformToRobot(Transform& result, const std::string& unit="mm", const double timeout /* second */=5.0);
-    virtual void GetManipTransform(Transform& result, const std::string& unit="mm", const double timeout /* second */=5.0);
+    virtual void GetManipTransformToRobot(Transform& result, const std::string& unit, const double timeout /* second */=5.0);
+    virtual void GetManipTransform(Transform& result, const std::string& unit, const double timeout /* second */=5.0);
 
-    virtual void GetAABB(const std::string& targetname, ResultAABB& result, const std::string& unit="mm", const double timeout=0);
-    virtual void GetOBB(ResultOBB& result, const std::string& targetname, const std::string& linkname="", const std::string& unit="mm", const double timeout=0);
-    virtual void GetInnerEmptyRegionOBB(ResultOBB& result, const std::string& targetname, const std::string& linkname="", const std::string& unit="mm", const double timeout=0);
+    virtual void GetAABB(const std::string& targetname, ResultAABB& result, const std::string& unit, const double timeout=0);
+    virtual void GetOBB(ResultOBB& result, const std::string& targetname, const std::string& linkname, const std::string& unit, const double timeout=0);
+    virtual void GetInnerEmptyRegionOBB(ResultOBB& result, const std::string& targetname, const std::string& linkname, const std::string& unit, const double timeout=0);
 
     /** \brief Update objects in the scene
         \param basename base name of the object. e.g. objects will have name basename_0, basename_1, etc
@@ -364,7 +409,7 @@ public:
         \param unit unit of detectedobject info
         \param timeout seconds until this command times out
      */
-    virtual void UpdateObjects(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::string& resultstate, const std::string& unit="mm", const double timeout /* second */=5.0);
+    virtual void UpdateObjects(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::string& resultstate, const std::string& unit, const double timeout /* second */=5.0);
 
     /** \brief Establish ZMQ connection to the task
         \param reinitializetimeout seconds to wait before re-initializing the ZMQ server after the heartbeat signal is lost
@@ -379,16 +424,15 @@ public:
         \param pointsize size of each point in meter
         \param name name of the obstacle
         \param isoccluded occlusion status of robot with the container: -1 if unknown, 0 if not occluding, 1 if robot is occluding region in camera
-        \param regionname the name of the region for which the point cloud is supposed to be captured of. isoccluded maps to this region
+        \param locationName the name of the region for which the point cloud is supposed to be captured of. isoccluded maps to this region
         \param timeout seconds until this command times out
-        \param clampToContainer if true, then planning will clamp the points to the container walls specified by regionname. Otherwise, will use all the points
+        \param clampToContainer if true, then planning will clamp the points to the container walls specified by locationName. Otherwise, will use all the points
         \param rExtraParameters extra parameters to be inserted
      */
-    virtual void AddPointCloudObstacle(const std::vector<float>& vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp=0, const unsigned long long endtimestamp=0, const bool executionverification=false, const std::string& unit="mm", int isoccluded=-1, const std::string& regionname=std::string(), const double timeout /* second */=5.0, bool clampToContainer=true, CropContainerMarginsXYZXYZPtr pCropContainerMargins=CropContainerMarginsXYZXYZPtr(), AddPointOffsetInfoPtr pAddPointOffsetInfo=AddPointOffsetInfoPtr());
+    virtual void AddPointCloudObstacle(const std::vector<float>& vpoints, const Real pointsize, const std::string& name,  const unsigned long long starttimestamp, const unsigned long long endtimestamp, const bool executionverification, const std::string& unit, int isoccluded=-1, const std::string& locationName=std::string(), const double timeout /* second */=5.0, bool clampToContainer=true, CropContainerMarginsXYZXYZPtr pCropContainerMargins=CropContainerMarginsXYZXYZPtr(), AddPointOffsetInfoPtr pAddPointOffsetInfo=AddPointOffsetInfoPtr());
 
-    /// \param locationIOName the location IO name (1, 2, 3, 4, etc) used to tell mujin controller to notify  the IO signal with detected object info
     /// \param cameranames the names of the sensors mapped to the current region used for detetion. The sensor information is used to create shadow obstacles per each part, if empty, will not be able to create the correct shadow obstacles.
-    virtual void UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<float>& vpoints, const std::string& resultstate, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit="mm", const double timeout=0, const std::string& regionname=std::string(), const std::string& locationIOName="1", const std::vector<std::string>& cameranames=std::vector<std::string>(), CropContainerMarginsXYZXYZPtr pCropContainerMargins=CropContainerMarginsXYZXYZPtr());
+    virtual void UpdateEnvironmentState(const std::string& objectname, const std::vector<DetectedObject>& detectedobjects, const std::vector<float>& vpoints, const std::string& resultstate, const Real pointsize, const std::string& pointcloudobstaclename, const std::string& unit, const double timeout=0, const std::string& locationName=std::string(), const std::vector<std::string>& cameranames=std::vector<std::string>(), CropContainerMarginsXYZXYZPtr pCropContainerMargins=CropContainerMarginsXYZXYZPtr());
 
     /// \brief removes objects by thier prefix
     /// \param prefix prefix of the objects to remove
@@ -401,7 +445,7 @@ public:
         \param unit of points
         \param timeout seconds until this command times out
      */
-    virtual void VisualizePointCloud(const std::vector<std::vector<float> >& pointslist, const Real pointsize, const std::vector<std::string>& names, const std::string& unit="m", const double timeout /* second */=5.0);
+    virtual void VisualizePointCloud(const std::vector<std::vector<float> >& pointslist, const Real pointsize, const std::vector<std::string>& names, const std::string& unit, const double timeout /* second */=5.0);
 
     /** \brief Clear visualization made by VisualizePointCloud.
      */
@@ -416,7 +460,7 @@ public:
     /** \brief Get the picked positions with corresponding timestamps
         \param timeout seconds until this command times out
      */
-    virtual void GetPickedPositions(ResultGetPickedPositions& result, const std::string& unit="m", const double timeout /* second */=5.0);
+    virtual void GetPickedPositions(ResultGetPickedPositions& result, const std::string& unit, const double timeout /* second */=5.0);
 
     virtual PlanningResultResourcePtr GetResult();
 
@@ -424,27 +468,27 @@ public:
         \param unit input unit
         \param result unit is always in meter
      */
-    virtual void GetInstObjectAndSensorInfo(const std::vector<std::string>& instobjectnames, const std::vector<std::string>& sensornames, ResultGetInstObjectAndSensorInfo& result, const std::string& unit="m", const double timeout /* second */=5.0);
+    virtual void GetInstObjectAndSensorInfo(const std::vector<std::string>& instobjectnames, const std::vector<std::string>& sensornames, ResultGetInstObjectAndSensorInfo& result, const std::string& unit, const double timeout /* second */=5.0);
 
     /** \brief Gets inst object info for a particular URI
         \param unit input unit
         \param result unit is always in meter
      */
-    virtual void GetInstObjectInfoFromURI(const std::string& objecturi, const Transform& instobjecttransform, ResultInstObjectInfo& result, const std::string& unit="m", const double timeout /* second */=5.0);
+    virtual void GetInstObjectInfoFromURI(const std::string& objecturi, const Transform& instobjecttransform, ResultInstObjectInfo& result, const std::string& unit, const double timeout /* second */=5.0);
 
     /// \brief Get state of bin picking
     /// \param result state of bin picking
     /// \param robotname name of robot
     /// \param unit unit to receive values in, either "m" (indicates radian for angle) or "mm" (indicates degree for angle)
     /// \param timeout timeout of communication
-    virtual void GetBinpickingState(ResultGetBinpickingState& result, const std::string& robotname, const std::string& unit="m", const double timeout /* second */=5.0);
+    virtual void GetBinpickingState(ResultGetBinpickingState& result, const std::string& robotname, const std::string& unit, const double timeout /* second */=5.0);
 
     /// \brief Get state of ITL which includes picking status
     /// \param result state of bin picking
     /// \param robotname name of robot
     /// \param unit unit to receive values in, either "m" (indicates radian for angle) or "mm" (indicates degree for angle)
     /// \param timeout timeout of communication
-    virtual void GetITLState(ResultGetBinpickingState& result, const std::string& robotname, const std::string& unit="m", const double timeout /* second */=5.0);
+    virtual void GetITLState(ResultGetBinpickingState& result, const std::string& robotname, const std::string& unit, const double timeout /* second */=5.0);
 
     /// \brief Get published state of bin picking
     /// except for initial call, this returns cached value.
@@ -452,7 +496,7 @@ public:
     /// \param robotname name of robot
     /// \param unit unit to receive values in, either "m" (indicates radian for angle) or "mm" (indicates degree for angle)
     /// \param timeout timeout of communication
-    virtual void GetPublishedTaskState(ResultGetBinpickingState& result, const std::string& robotname, const std::string& unit="m", const double timeout /* second */=5.0);
+    virtual void GetPublishedTaskState(ResultGetBinpickingState& result, const std::string& robotname, const std::string& unit, const double timeout /* second */=5.0);
 
     /// \brief Jogs robot in joint or tool space
     /// \param jogtype type of jogging, either "joints" or "tool"
@@ -555,6 +599,8 @@ public:
     virtual void SendTriggerDetectionCaptureResult(const std::string& triggerType, const std::string& returnCode, double timeout /* second */=5.0);
 
 protected:
+    const std::string& _GetCallerId() const;
+
     std::stringstream _ss;
 
     std::map<std::string, std::string> _mapTaskParameters; ///< set of key value pairs that should be included
@@ -566,16 +612,19 @@ protected:
 #endif
     int _zmqPort;
     int _heartbeatPort;
-    std::string _userinfo_json;  ///< userinfo json
-    std::string _sceneparams_json; ///\ parameters of the scene to run tasks on the backend zmq slave
+
+    rapidjson::Document _rUserInfo;  ///< userinfo json
+    rapidjson::Document _rSceneParams; ///\ parameters of the scene to run tasks on the backend zmq slave
+    std::string _sceneparams_json, _userinfo_json;
+    
     std::string _slaverequestid; ///< to ensure the same slave is used for binpicking task
     std::string _scenepk; ///< scene pk
+    std::string _callerid; ///< string identifying the caller
     const std::string _tasktype; ///< the specific task type to create internally. As long as the task supports the binpicking interface, it can be used.
     boost::shared_ptr<boost::thread> _pHeartbeatMonitorThread;
 
     bool _bIsInitialized;
     bool _bShutdownHeartbeatMonitor;
-
 };
 
 
@@ -615,19 +664,18 @@ MUJINCLIENT_API void GetAttachedSensors(SceneResource& scene, const std::string&
 MUJINCLIENT_API void GetSensorData(SceneResource& scene, const std::string& bodyname, const std::string& sensorname, RobotResource::AttachedSensorResource::SensorData& result);
 /** \brief Gets transform of attached sensor in sensor body frame
  */
-MUJINCLIENT_API void GetSensorTransform(SceneResource& scene, const std::string& bodyname, const std::string& sensorname, Transform& result, const std::string& unit="m");
+MUJINCLIENT_API void GetSensorTransform(SceneResource& scene, const std::string& bodyname, const std::string& sensorname, Transform& result, const std::string& unit);
 MUJINCLIENT_API void DeleteObject(SceneResource& scene, const std::string& name);
-MUJINCLIENT_API void UpdateObjects(SceneResource& scene, const std::string& basename, const std::vector<BinPickingTaskResource::DetectedObject>& detectedobjects, const std::string& unit="m");
 
 
 #ifdef MUJIN_USEZMQ
-/// \brief get heatbeat
+/// \brief get heartbeat
 /// \param endopoint endpoint to get heartbeat from. looks like protocol://hostname:port (ex. tcp://localhost:11001)
 /// \return heartbeat as string
 MUJINCLIENT_API std::string GetHeartbeat(const std::string& endpoint);
 
-MUJINCLIENT_API std::string GetScenePkFromHeatbeat(const std::string& heartbeat);
-MUJINCLIENT_API std::string GetSlaveRequestIdFromHeatbeat(const std::string& heartbeat);
+MUJINCLIENT_API std::string GetScenePkFromHeartbeat(const std::string& heartbeat);
+MUJINCLIENT_API std::string GetSlaveRequestIdFromHeartbeat(const std::string& heartbeat);
 #endif
 } // namespace utils
 

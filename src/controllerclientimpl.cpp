@@ -15,7 +15,7 @@
 #include "controllerclientimpl.h"
 
 #include <boost/algorithm/string.hpp>
-
+#include <boost/scope_exit.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
 #define SKIP_PEER_VERIFICATION // temporary
@@ -192,6 +192,29 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
     // csrftoken can be any non-empty string
     _csrfmiddlewaretoken = "csrftoken";
     std::string cookie = "Set-Cookie: csrftoken=" + _csrfmiddlewaretoken;
+#if CURL_AT_LEAST_VERSION(7,60,0)
+    // with https://github.com/curl/curl/commit/b8d5036ec9b702d6392c97a6fc2e141d6c7cce1f, setting domain param to cookie is required.
+    if(_baseuri.find('/') == _baseuri.size()-1) {
+        // _baseuri should be hostname with trailing slash
+        cookie += "; domain=";
+        cookie += _baseuri.substr(0,_baseuri.size()-1);
+    } else {
+        CURLU *url = curl_url();
+        BOOST_SCOPE_EXIT_ALL(&url) {
+            curl_url_cleanup(url);
+        };
+        CHECKCURLUCODE(curl_url_set(url, CURLUPART_URL, _baseuri.c_str(), 0), "cannot parse url");
+        char *host = NULL;
+        BOOST_SCOPE_EXIT_ALL(&host) {
+            if(host) {
+                curl_free(host);
+            }
+        };
+        CHECKCURLUCODE(curl_url_get(url, CURLUPART_HOST, &host, 0), "cannot determine hostname from url");
+        cookie += "; domain=";
+        cookie += host;
+    }
+#endif
     CURL_OPTION_SETTER(_curl, CURLOPT_COOKIELIST, cookie.c_str());
 
     _charset = "utf-8";
@@ -1108,7 +1131,6 @@ std::string ControllerClientImpl::_PrepareDestinationURI_UTF8(const std::string&
 
 std::string ControllerClientImpl::_PrepareDestinationURI_UTF16(const std::wstring& rawuri_utf16, bool bEnsurePath, bool bEnsureSlash, bool bIsDirectory)
 {
-    boost::mutex::scoped_lock lock(_mutex);
     std::string baseuploaduri;
     std::string desturi_utf8;
     utf8::utf16to8(rawuri_utf16.begin(), rawuri_utf16.end(), std::back_inserter(desturi_utf8));
@@ -1264,10 +1286,10 @@ void ControllerClientImpl::_DownloadFileFromController(const std::string& destur
     }
 }
 
-void ControllerClientImpl::SaveBackup(std::ostream& outputStream, bool config, bool media, double timeout)
+void ControllerClientImpl::SaveBackup(std::ostream& outputStream, bool config, bool media, const std::string& backupscenepks, double timeout)
 {
     boost::mutex::scoped_lock lock(_mutex);
-    std::string query=std::string("?config=")+(config ? "true" : "false")+"&media="+(media ? "true" : "false");
+    std::string query=std::string("?config=")+(config ? "true" : "false")+"&media="+(media ? "true" : "false")+"&backupscenepks="+backupscenepks;
     _CallGet(_baseuri+"backup/"+query, outputStream, 200, timeout);
 }
 
@@ -1320,8 +1342,6 @@ bool ControllerClientImpl::GetUpgradeStatus(std::string& status, double &progres
 
 void ControllerClientImpl::CancelUpgrade(double timeout)
 {
-    boost::mutex::scoped_lock lock(_mutex);
-    rapidjson::Document pt(rapidjson::kObjectType);
     CallDelete(_baseuri+"upgrade/", 200, timeout);
 }
 
@@ -1330,6 +1350,18 @@ void ControllerClientImpl::Reboot(double timeout)
     boost::mutex::scoped_lock lock(_mutex);
     rapidjson::Document pt(rapidjson::kObjectType);
     _CallPost(_baseuri+"reboot/", "", pt, 200, timeout);
+}
+
+void ControllerClientImpl::DeleteAllScenes(double timeout)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    rapidjson::Document pt(rapidjson::kObjectType);
+    CallDelete("scene/", 204, timeout);
+}
+
+void ControllerClientImpl::DeleteAllITLPrograms(double timeout)
+{
+    CallDelete("itl/", 204, timeout);
 }
 
 void ControllerClientImpl::DeleteFileOnController_UTF8(const std::string& desturi)
@@ -1827,7 +1859,7 @@ void ControllerClientImpl::_DeleteFileOnController(const std::string& desturi)
     std::string filename = desturi.substr(_basewebdavuri.size());
 
     rapidjson::Document pt(rapidjson::kObjectType);
-    _CallPost(_baseuri+"file/delete/", std::string("filename=")+filename, pt, 200, 5.0);
+    _CallPost(_baseuri+"file/delete/?filename="+filename, "", pt, 200, 5.0);
 }
 
 void ControllerClientImpl::_DeleteDirectoryOnController(const std::string& desturi)
