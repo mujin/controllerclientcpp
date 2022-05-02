@@ -17,6 +17,8 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/scope_exit.hpp>
 #include <boost/property_tree/xml_parser.hpp>
+#include <boost/iostreams/device/array.hpp>
+#include <boost/iostreams/stream.hpp>
 
 #define SKIP_PEER_VERIFICATION // temporary
 //#define SKIP_HOSTNAME_VERIFICATION
@@ -1181,13 +1183,37 @@ void ControllerClientImpl::UploadFileToController_UTF16(const std::wstring& file
 void ControllerClientImpl::UploadDataToController_UTF8(const std::vector<unsigned char>& vdata, const std::string& desturi)
 {
     boost::mutex::scoped_lock lock(_mutex);
-    _UploadDataToController(vdata, _PrepareDestinationURI_UTF8(desturi));
+    // _UploadDataToController(vdata, _PrepareDestinationURI_UTF8(desturi));
+    std::string uri = _PrepareDestinationURI_UTF8(desturi, false);
+
+    // the dest filename of the upload is determined by stripping the leading _basewebdavuri
+    if( uri.size() < _basewebdavuri.size() || uri.substr(0,_basewebdavuri.size()) != _basewebdavuri ) {
+        throw MUJIN_EXCEPTION_FORMAT("trying to upload a file outside of the webdav endpoint is not allowed: %s", uri, MEC_HTTPServer);
+    }
+    std::string filenameoncontroller = uri.substr(_basewebdavuri.size());
+
+    boost::iostreams::stream<boost::iostreams::basic_array_source<char>> stream((char*)vdata.data(), vdata.size());
+
+    MUJIN_LOG_DEBUG(str(boost::format("upload %s")%uri))
+    _UploadFileToControllerViaForm(stream, filenameoncontroller, _baseuri + "fileupload?filename=" + filenameoncontroller);
 }
 
 void ControllerClientImpl::UploadDataToController_UTF16(const std::vector<unsigned char>& vdata, const std::wstring& desturi)
 {
     boost::mutex::scoped_lock lock(_mutex);
-    _UploadDataToController(vdata, _PrepareDestinationURI_UTF16(desturi));
+    //_UploadDataToController(vdata, _PrepareDestinationURI_UTF16(desturi));
+    std::string uri = _PrepareDestinationURI_UTF16(desturi, false);
+
+    // the dest filename of the upload is determined by stripping the leading _basewebdavuri
+    if( uri.size() < _basewebdavuri.size() || uri.substr(0,_basewebdavuri.size()) != _basewebdavuri ) {
+        throw MUJIN_EXCEPTION_FORMAT("trying to upload a file outside of the webdav endpoint is not allowed: %s", uri, MEC_HTTPServer);
+    }
+    std::string filenameoncontroller = uri.substr(_basewebdavuri.size());
+
+    boost::iostreams::stream<boost::iostreams::basic_array_source<char>> stream((char*)vdata.data(), vdata.size());
+
+    MUJIN_LOG_DEBUG(str(boost::format("upload %s")%uri))
+    _UploadFileToControllerViaForm(stream, filenameoncontroller, _baseuri + "fileupload?filename=" + filenameoncontroller);
 }
 
 void ControllerClientImpl::UploadDirectoryToController_UTF8(const std::string& copydir, const std::string& desturi)
