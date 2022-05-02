@@ -1840,10 +1840,10 @@ void ControllerClientImpl::_UploadDataToController(const std::vector<unsigned ch
     // 204 is when it overwrites the file?
     if( http_code != 201 && http_code != 204 ) {
         if( http_code == 400 ) {
-            throw MUJIN_EXCEPTION_FORMAT("upload of to failed with HTTP status %s, perhaps file exists already?", desturi%http_code, MEC_HTTPServer);
+            throw MUJIN_EXCEPTION_FORMAT("upload of %s to failed with HTTP status %s, perhaps file exists already?", desturi%http_code, MEC_HTTPServer);
         }
         else {
-            throw MUJIN_EXCEPTION_FORMAT("upload of to failed with HTTP status %s", desturi%http_code, MEC_HTTPServer);
+            throw MUJIN_EXCEPTION_FORMAT("upload of %s to failed with HTTP status %s", desturi%http_code, MEC_HTTPServer);
         }
     }
 }
