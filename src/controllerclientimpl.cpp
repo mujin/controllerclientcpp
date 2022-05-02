@@ -187,7 +187,12 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
     CURL_OPTION_SETTER(_curl, CURLOPT_POSTFIELDSIZE, 0L);
     CURL_OPTION_SETTER(_curl, CURLOPT_POSTFIELDS, NULL);
 
-    CURL_OPTION_SETTER(_curl, CURLOPT_ACCEPT_ENCODING, "gzip, deflate");
+    {
+        curl_version_info_data *ver = curl_version_info(CURLVERSION_NOW);
+        if(ver->features & CURL_VERSION_LIBZ) {
+            CURL_OPTION_SETTER(_curl, CURLOPT_ACCEPT_ENCODING, "gzip, deflate");
+        }
+    }
 
     // csrftoken can be any non-empty string
     _csrfmiddlewaretoken = "csrftoken";
