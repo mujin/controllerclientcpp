@@ -337,7 +337,7 @@ class RobotProgramData
 public:
     RobotProgramData() {
     }
-    RobotProgramData(const std::string& programdata, const std::string& type) : programdata(programdata), type(type) {
+    RobotProgramData(const std::string& programdata_, const std::string& type_) : programdata(programdata_), type(type_) {
     }
     std::string programdata; ///< the program data
     std::string type; ///< the type of program
@@ -524,8 +524,9 @@ public:
     ///
     /// \param outputStream filled with the contents of the backup. the backup is tar.gz format.
     /// \param config whether to backup config. By default true.
-    /// \param media whether to backup media. By default true.
-    virtual void SaveBackup(std::ostream& outputStream, bool config = true, bool media = true, double timeout = 60.0) = 0;
+    /// \param media whether to include media files in the backup. By default true
+    /// \param backupscenepks comma separated list of scenes to backup. By default empty.
+    virtual void SaveBackup(std::ostream& outputStream, bool config = true, bool media = true, const std::string& backupscenepks = "", double timeout = 60.0) = 0;
 
     /// \brief Restore backup archive into controller. Restaring might be required after restoration.
     ///
@@ -918,7 +919,7 @@ public:
     }
 
     virtual void GetTools(std::vector<ToolResourcePtr>& tools);
-    virtual void GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& attachedsensors);
+    virtual void GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& attachedsensors, bool useConnectedBodies = true);
 
     // attachments
     // ikparams

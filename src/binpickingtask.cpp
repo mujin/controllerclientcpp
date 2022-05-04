@@ -115,6 +115,7 @@ BinPickingTaskResource::~BinPickingTaskResource()
 void BinPickingTaskResource::Initialize(const std::string& defaultTaskParameters, const double timeout, const std::string& userinfo, const std::string& slaverequestid)
 {
     if( defaultTaskParameters.size() > 0 ) {
+        _mapTaskParameters.clear();
         rapidjson::Document d;
         d.Parse(defaultTaskParameters.c_str());
         for (rapidjson::Value::ConstMemberIterator it = d.MemberBegin(); it != d.MemberEnd(); ++it) {
@@ -146,6 +147,7 @@ void BinPickingTaskResource::Initialize(const std::string& defaultTaskParameters
 {
 
     if( defaultTaskParameters.size() > 0 ) {
+        _mapTaskParameters.clear();
         rapidjson::Document d;
         d.Parse(defaultTaskParameters.c_str());
         for (rapidjson::Value::ConstMemberIterator it = d.MemberBegin(); it != d.MemberEnd(); ++it) {
@@ -432,11 +434,11 @@ void BinPickingTaskResource::ResultInstObjectInfo::Parse(const rapidjson::Value&
     instobjectinnerobb.Parse(rOutput["innerobb"]);
 
     if( rOutput.HasMember("geometryInfos") ) {
-        rGeometryInfos.CopyFrom(rOutput["geometryInfos"], rGeometryInfos.GetAllocator());
+        mujinjson::SaveJsonValue(rGeometryInfos, rOutput["geometryInfos"]);
     }
 
     if( rOutput.HasMember("ikparams") ) {
-        rIkParams.CopyFrom(rOutput["ikparams"], rIkParams.GetAllocator());
+        mujinjson::SaveJsonValue(rIkParams, rOutput["ikparams"]);
     }
 }
 
@@ -467,7 +469,7 @@ void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const rapid
 
         if( it->value.HasMember("geometryInfos") ) {
             boost::shared_ptr<rapidjson::Document> pr(new rapidjson::Document());;
-            pr->CopyFrom(it->value["geometryInfos"], pr->GetAllocator());
+            mujinjson::SaveJsonValue(*pr, it->value["geometryInfos"]);
             mrGeometryInfos[objname] = pr;
         }
     }
@@ -571,6 +573,8 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     registerMinViableRegionInfo.robotDepartStopTimestamp = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/robotDepartStopTimestamp", 0);
     registerMinViableRegionInfo.transferSpeedMult = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/transferSpeedMult", 1.0);
     {
+        registerMinViableRegionInfo.graspModelInfo.SetNull();
+        registerMinViableRegionInfo.graspModelInfo.GetAllocator().Clear();
         const rapidjson::Value* graspModelInfoJson = rapidjson::Pointer("/registerMinViableRegionInfo/graspModelInfo").Get(v);
         if( !!graspModelInfoJson && graspModelInfoJson->IsObject() ) {
             registerMinViableRegionInfo.graspModelInfo.CopyFrom(*graspModelInfoJson, registerMinViableRegionInfo.graspModelInfo.GetAllocator());
@@ -825,7 +829,7 @@ void BinPickingTaskResource::ResultHeartBeat::Parse(const rapidjson::Value& pt)
         std::string key = "slaverequestid-" + _slaverequestid;
         //try {
         if (pt["slavestates"].HasMember(key.c_str()) && pt["slavestates"][key.c_str()].HasMember("taskstate")) {
-            taskstatejson.CopyFrom(pt["slavestates"][key.c_str()]["taskstate"], taskstatejson.GetAllocator());
+            mujinjson::SaveJsonValue(taskstatejson, pt["slavestates"][key.c_str()]["taskstate"]);
             SetJsonValueByKey(d, "output", taskstatejson);
             taskstate.Parse(d);
         }
@@ -1694,9 +1698,9 @@ void BinPickingTaskResource::ExecuteCommand(const std::string& taskparameters, r
         secondspassed+=0.1;
         if( timeout != 0 && secondspassed > timeout ) {
             controller->CancelAllJobs();
-            std::stringstream ss; ss << std::setprecision(std::numeric_limits<double>::digits10+1);
-            ss << secondspassed;
-            throw MujinException("operation timed out after " +ss.str() + " seconds, cancelling all jobs and quitting", MEC_Timeout);
+            std::stringstream sss; sss << std::setprecision(std::numeric_limits<double>::digits10+1);
+            sss << secondspassed;
+            throw MujinException("operation timed out after " +sss.str() + " seconds, cancelling all jobs and quitting", MEC_Timeout);
         }
     }
 }
@@ -1736,27 +1740,24 @@ void utils::GetSensorData(SceneResource& scene, const std::string& bodyname, con
 
 void utils::GetSensorTransform(SceneResource& scene, const std::string& bodyname, const std::string& sensorname, Transform& result, const std::string& unit)
 {
-    SceneResource::InstObjectPtr cameraobj;
-    if (scene.FindInstObject(bodyname, cameraobj)) {
-        for (size_t i=0; i<cameraobj->attachedsensors.size(); ++i) {
-            if (cameraobj->attachedsensors.at(i).name == sensorname) {
-                Transform transform;
-                std::copy(cameraobj->attachedsensors.at(i).quaternion, cameraobj->attachedsensors.at(i).quaternion+4, transform.quaternion);
-                std::copy(cameraobj->attachedsensors.at(i).translate, cameraobj->attachedsensors.at(i).translate+3, transform.translate);
-                if (unit == "m") { //?!
-                    transform.translate[0] *= 0.001;
-                    transform.translate[1] *= 0.001;
-                    transform.translate[2] *= 0.001;
-                }
-
-                result = transform;
-                return;
+    std::vector<RobotResource::AttachedSensorResourcePtr> attachedsensors;
+    utils::GetAttachedSensors(scene, bodyname, attachedsensors);
+    for (size_t i=0; i<attachedsensors.size(); ++i) {
+        if (attachedsensors.at(i)->name == sensorname) {
+            Transform transform;
+            std::copy(attachedsensors.at(i)->quaternion, attachedsensors.at(i)->quaternion+4, transform.quaternion);
+            std::copy(attachedsensors.at(i)->translate, attachedsensors.at(i)->translate+3, transform.translate);
+            if (unit == "m") { //?!
+                transform.translate[0] *= 0.001;
+                transform.translate[1] *= 0.001;
+                transform.translate[2] *= 0.001;
             }
+
+            result = transform;
+            return;
         }
-        throw MujinException("Could not find attached sensor " + sensorname + " on " + bodyname + ".", MEC_Failed);
-    } else {
-        throw MujinException("Could not find camera body " + bodyname +".", MEC_Failed);
     }
+    throw MujinException("Could not find attached sensor " + sensorname + " on " + bodyname + ".", MEC_Failed);
 }
 
 void utils::DeleteObject(SceneResource& scene, const std::string& name)
@@ -1813,9 +1814,9 @@ void BinPickingTaskResource::_HeartbeatMonitorThread(const double reinitializeti
             }
         }
         if (!_bShutdownHeartbeatMonitor) {
-            std::stringstream ss; ss << std::setprecision(std::numeric_limits<double>::digits10+1);
-            ss << (double)((GetMilliTime() - lastheartbeat)/1000.0f) << " seconds passed since last heartbeat signal, re-intializing ZMQ server.";
-            MUJIN_LOG_INFO(ss.str());
+            std::stringstream sss; sss << std::setprecision(std::numeric_limits<double>::digits10+1);
+            sss << (double)((GetMilliTime() - lastheartbeat)/1000.0f) << " seconds passed since last heartbeat signal, re-intializing ZMQ server.";
+            MUJIN_LOG_INFO(sss.str());
         }
     }
 #else
@@ -1864,14 +1865,18 @@ std::string FindSmallestSlaveRequestId(const rapidjson::Value& pt) {
     if (pt.IsObject() && pt.HasMember("slavestates")) {
         const rapidjson::Value& slavestates = pt["slavestates"];
         for (rapidjson::Document::ConstMemberIterator it = slavestates.MemberBegin(); it != slavestates.MemberEnd(); ++it) {
-            slavereqids.push_back(it->name.GetString());
+            static const std::string prefix("slaverequestid-");
+            if (std::string(it->name.GetString()).substr(0,prefix.length()) == prefix) {
+                // GetValueForSmallestSlaveRequestId uses slavereqid directly, so cannot substr here
+                slavereqids.push_back(it->name.GetString());
+            }
         }
     }
 
     // find numerically smallest suffix (find one with smallest ### in slave request id of form hostname_slave###)
     int smallest_suffix_index = -1;
     int smallest_suffix = INT_MAX;
-    static const std::string searchstr("_slave");
+    static const char searchstr('_');
     for (std::vector<std::string>::const_iterator it = slavereqids.begin();
          it != slavereqids.end(); ++it) {
         const size_t foundindex = it->rfind(searchstr);
@@ -1879,11 +1884,13 @@ std::string FindSmallestSlaveRequestId(const rapidjson::Value& pt) {
             continue;
         }
 
-        std::stringstream suffix_ss(it->substr(foundindex + searchstr.length()));
-        int suffix;
-        suffix_ss >> suffix;
-        if (suffix_ss.fail()) {
+        if ((*it)[it->length()-1] < '0' || '9' < (*it)[it->length()-1]) {
             continue;
+        }
+        int suffix = 0;
+        int po = 1;
+        for (int i = it->length()-1; i >= 0 && '0' <= (*it)[i] && (*it)[i] <= '9'; i--, po *= 10) {
+            suffix = suffix + ((*it)[i] - '0')*po;
         }
 
         if (smallest_suffix > suffix) {
