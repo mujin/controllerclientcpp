@@ -1095,13 +1095,13 @@ void ControllerClientImpl::_EnsureWebDAVDirectories(const std::string& relativeu
     }
 }
 
-std::string ControllerClientImpl::_PrepareDestinationURI_UTF8(const std::string& rawuri, bool bEnsurePath, bool bEnsureSlash, bool bIsDirectory)
+std::string ControllerClientImpl::_PrepareDestinationURI_UTF8(const std::string& rawuri, bool bEncodeURI, bool bEnsurePath, bool bEnsureSlash, bool bIsDirectory)
 {
     std::string baseuploaduri;
     if( rawuri.size() >= 7 && rawuri.substr(0,7) == "mujin:/" ) {
         baseuploaduri = _basewebdavuri;
         std::string s = rawuri.substr(7);
-        baseuploaduri += _EncodeWithoutSeparator(s);
+        baseuploaduri += bEncodeURI ? _EncodeWithoutSeparator(s) : s;
         if( bEnsurePath ) {
             if( !bIsDirectory ) {
                 size_t nBaseFilenameStartIndex = s.find_last_of(s_filesep);
@@ -1129,101 +1129,73 @@ std::string ControllerClientImpl::_PrepareDestinationURI_UTF8(const std::string&
     return baseuploaduri;
 }
 
-std::string ControllerClientImpl::_PrepareDestinationURI_UTF16(const std::wstring& rawuri_utf16, bool bEnsurePath, bool bEnsureSlash, bool bIsDirectory)
+std::string ControllerClientImpl::_PrepareDestinationURI_UTF16(const std::wstring& rawuri_utf16, bool bEncodeURI, bool bEnsurePath, bool bEnsureSlash, bool bIsDirectory)
 {
     std::string baseuploaduri;
     std::string desturi_utf8;
     utf8::utf16to8(rawuri_utf16.begin(), rawuri_utf16.end(), std::back_inserter(desturi_utf8));
 
-    if( desturi_utf8.size() >= 7 && desturi_utf8.substr(0,7) == "mujin:/" ) {
-        baseuploaduri = _basewebdavuri;
-        std::string s = desturi_utf8.substr(7);
-        baseuploaduri += _EncodeWithoutSeparator(s);
-        if( bEnsurePath ) {
-            if( !bIsDirectory ) {
-                size_t nBaseFilenameStartIndex = s.find_last_of(s_filesep);
-                if( nBaseFilenameStartIndex != std::string::npos ) {
-                    s = s.substr(0, nBaseFilenameStartIndex);
-                } else {
-                    s = "";
-                }
-            }
-            _EnsureWebDAVDirectories(s);
-        }
-    }
-    else {
-        if( !bEnsureSlash ) {
-            return desturi_utf8;
-        }
-        baseuploaduri = desturi_utf8;
-    }
-    if( bEnsureSlash ) {
-        // ensure trailing slash
-        if( baseuploaduri[baseuploaduri.size()-1] != '/' ) {
-            baseuploaduri.push_back('/');
-        }
-    }
-    return baseuploaduri;
+    return _PrepareDestinationURI_UTF8(desturi_utf8, bEncodeURI, bEnsurePath, bEnsureSlash, bIsDirectory);
 }
 
 void ControllerClientImpl::UploadFileToController_UTF8(const std::string& filename, const std::string& desturi)
 {
     boost::mutex::scoped_lock lock(_mutex);
-    _UploadFileToController_UTF8(filename, _PrepareDestinationURI_UTF8(desturi, false));
+    _UploadFileToController_UTF8(filename, _PrepareDestinationURI_UTF8(desturi, false, false));
 }
 
 void ControllerClientImpl::UploadFileToController_UTF16(const std::wstring& filename_utf16, const std::wstring& desturi_utf16)
 {
     boost::mutex::scoped_lock lock(_mutex);
-    _UploadFileToController_UTF16(filename_utf16, _PrepareDestinationURI_UTF16(desturi_utf16, false));
+    _UploadFileToController_UTF16(filename_utf16, _PrepareDestinationURI_UTF16(desturi_utf16, false, false));
 }
 
 void ControllerClientImpl::UploadDataToController_UTF8(const std::vector<unsigned char>& vdata, const std::string& desturi)
 {
     boost::mutex::scoped_lock lock(_mutex);
-    _UploadDataToController(vdata, _PrepareDestinationURI_UTF8(desturi));
+    _UploadDataToController(vdata, _PrepareDestinationURI_UTF8(desturi, true));
 }
 
 void ControllerClientImpl::UploadDataToController_UTF16(const std::vector<unsigned char>& vdata, const std::wstring& desturi)
 {
     boost::mutex::scoped_lock lock(_mutex);
-    _UploadDataToController(vdata, _PrepareDestinationURI_UTF16(desturi));
+    _UploadDataToController(vdata, _PrepareDestinationURI_UTF16(desturi, true));
 }
 
 void ControllerClientImpl::UploadDirectoryToController_UTF8(const std::string& copydir, const std::string& desturi)
 {
     boost::mutex::scoped_lock lock(_mutex);
-    _UploadDirectoryToController_UTF8(copydir, _PrepareDestinationURI_UTF8(desturi, true, false, true));
+    _UploadDirectoryToController_UTF8(copydir, _PrepareDestinationURI_UTF8(desturi, true, true, false, true));
 }
 
 void ControllerClientImpl::UploadDirectoryToController_UTF16(const std::wstring& copydir, const std::wstring& desturi)
 {
     boost::mutex::scoped_lock lock(_mutex);
-    _UploadDirectoryToController_UTF16(copydir, _PrepareDestinationURI_UTF16(desturi, true, false, true));
+    _UploadDirectoryToController_UTF16(copydir, _PrepareDestinationURI_UTF16(desturi, true, true, false, true));
 }
 
 void ControllerClientImpl::DownloadFileFromController_UTF8(const std::string& desturi, std::vector<unsigned char>& vdata)
 {
     boost::mutex::scoped_lock lock(_mutex);
-    _CallGet(_PrepareDestinationURI_UTF8(desturi, false), vdata);
+    _CallGet(_PrepareDestinationURI_UTF8(desturi, true, false), vdata);
 }
 
 void ControllerClientImpl::DownloadFileFromController_UTF16(const std::wstring& desturi, std::vector<unsigned char>& vdata)
 {
     boost::mutex::scoped_lock lock(_mutex);
-    _CallGet(_PrepareDestinationURI_UTF16(desturi, false), vdata);
+    _CallGet(_PrepareDestinationURI_UTF16(desturi, true, false), vdata);
 }
 
 void ControllerClientImpl::DownloadFileFromControllerIfModifiedSince_UTF8(const std::string& desturi, long localtimeval, long& remotetimeval, std::vector<unsigned char>& vdata, double timeout)
 {
     boost::mutex::scoped_lock lock(_mutex);
-    _DownloadFileFromController(_PrepareDestinationURI_UTF8(desturi, false), localtimeval, remotetimeval, vdata, timeout);
+    _DownloadFileFromController(_PrepareDestinationURI_UTF8(desturi, true, false), localtimeval, remotetimeval, vdata, timeout);
 }
 
 void ControllerClientImpl::DownloadFileFromControllerIfModifiedSince_UTF16(const std::wstring& desturi, long localtimeval, long& remotetimeval, std::vector<unsigned char>& vdata, double timeout)
 {
     boost::mutex::scoped_lock lock(_mutex);
-    _DownloadFileFromController(_PrepareDestinationURI_UTF16(desturi, false), localtimeval, remotetimeval, vdata, timeout);
+    _DownloadFileFromController(_PrepareDestinationURI_UTF16(desturi, true, false), localtimeval, remotetimeval, vdata, timeout);
 }
 
 long ControllerClientImpl::GetModifiedTime(const std::string& uri, double timeout)
@@ -1367,25 +1339,25 @@ void ControllerClientImpl::DeleteAllITLPrograms(double timeout)
 void ControllerClientImpl::DeleteFileOnController_UTF8(const std::string& desturi)
 {
     boost::mutex::scoped_lock lock(_mutex);
-    _DeleteFileOnController(_PrepareDestinationURI_UTF8(desturi, false));
+    _DeleteFileOnController(_PrepareDestinationURI_UTF8(desturi, true, false));
 }
 
 void ControllerClientImpl::DeleteFileOnController_UTF16(const std::wstring& desturi)
 {
     boost::mutex::scoped_lock lock(_mutex);
-    _DeleteFileOnController(_PrepareDestinationURI_UTF16(desturi, false));
+    _DeleteFileOnController(_PrepareDestinationURI_UTF16(desturi, true, false));
 }
 
 void ControllerClientImpl::DeleteDirectoryOnController_UTF8(const std::string& desturi)
 {
     boost::mutex::scoped_lock lock(_mutex);
-    _DeleteDirectoryOnController(_PrepareDestinationURI_UTF8(desturi, false, false, true));
+    _DeleteDirectoryOnController(_PrepareDestinationURI_UTF8(desturi, true, false, false, true));
 }
 
 void ControllerClientImpl::DeleteDirectoryOnController_UTF16(const std::wstring& desturi)
 {
     boost::mutex::scoped_lock lock(_mutex);
-    _DeleteDirectoryOnController(_PrepareDestinationURI_UTF16(desturi, false, false, true));
+    _DeleteDirectoryOnController(_PrepareDestinationURI_UTF16(desturi, true, false, false, true));
 }
 
 void ControllerClientImpl::ModifySceneAddReferenceObjectPK(const std::string &scenepk, const std::string &referenceobjectpk, double timeout)
