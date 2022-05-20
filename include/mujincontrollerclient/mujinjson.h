@@ -148,29 +148,30 @@ inline void ParseJson(rapidjson::Document& d, const std::string& str) {
     // repeatedly calling Parse on the same rapidjson::Document will not release previsouly allocated memory, memory will accumulate until the object is destroyed
     // we use a new temporary Document to parse, and swap content with the original one, so that memory in original Document will be released when this function ends
     // see: https://github.com/Tencent/rapidjson/issues/1333
-    rapidjson::Document tempDoc;
-    tempDoc.Parse<rapidjson::kParseFullPrecisionFlag>(str.c_str()); // parse float in full precision mode
-    if (tempDoc.HasParseError()) {
+    // a newer solution that allows reuse of allocated memory is to clear the previous document first
+    d.SetNull();
+    d.GetAllocator().Clear();
+    d.Parse<rapidjson::kParseFullPrecisionFlag>(str.c_str()); // parse float in full precision mode
+    if (d.HasParseError()) {
         std::string substr;
         if (str.length()> 200) {
             substr = str.substr(0, 200);
         } else {
             substr = str;
         }
-        throw MujinJSONException(boost::str(boost::format("Json string is invalid (offset %u) %s str=%s")%((unsigned)tempDoc.GetErrorOffset())%GetParseError_En(tempDoc.GetParseError())%substr), MJE_Failed);
+        throw MujinJSONException(boost::str(boost::format("Json string is invalid (offset %u) %s str=%s")%((unsigned)d.GetErrorOffset())%GetParseError_En(d.GetParseError())%substr), MJE_Failed);
     }
-    d.Swap(tempDoc);
 }
 
 inline void ParseJson(rapidjson::Document& d, std::istream& is) {
     rapidjson::IStreamWrapper isw(is);
     // see note in: void ParseJson(rapidjson::Document& d, const std::string& str)
-    rapidjson::Document(tempDoc);
-    tempDoc.ParseStream<rapidjson::kParseFullPrecisionFlag>(isw); // parse float in full precision mode
-    if (tempDoc.HasParseError()) {
-        throw MujinJSONException(boost::str(boost::format("Json stream is invalid (offset %u) %s")%((unsigned)tempDoc.GetErrorOffset())%GetParseError_En(tempDoc.GetParseError())), MJE_Failed);
+    d.SetNull();
+    d.GetAllocator().Clear();
+    d.ParseStream<rapidjson::kParseFullPrecisionFlag>(isw); // parse float in full precision mode
+    if (d.HasParseError()) {
+        throw MujinJSONException(boost::str(boost::format("Json stream is invalid (offset %u) %s")%((unsigned)d.GetErrorOffset())%GetParseError_En(d.GetParseError())), MJE_Failed);
     }
-    d.Swap(tempDoc);
 }
 
 class JsonSerializable {
@@ -558,9 +559,9 @@ template<class U> inline void SaveJsonValue(rapidjson::Value& v, const std::map<
 
 template<class T> inline void SaveJsonValue(rapidjson::Document& v, const T& t) {
     // see note in: void ParseJson(rapidjson::Document& d, const std::string& str)
-    rapidjson::Document tempDoc;
-    SaveJsonValue(tempDoc, t, tempDoc.GetAllocator());
-    v.Swap(tempDoc);
+    v.SetNull();
+    v.GetAllocator().Clear();
+    SaveJsonValue(v, t, v.GetAllocator());
 }
 
 template<class T, class U> inline void SetJsonValueByKey(rapidjson::Value& v, const U& key, const T& t, rapidjson::Document::AllocatorType& alloc);
