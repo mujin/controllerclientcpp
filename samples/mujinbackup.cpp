@@ -2,8 +2,8 @@
 /** \example mujinbackup.cpp
 
     Shows how to save/restore backup
-    example1: mujinbackup --controller_hostname=yourhost --filename=backup.tar.gz --useconfig=1 --usemedia=1
-    example2: mujinbackup --controller_hostname=yourhost --filename=backup.tar.gz --useconfig=1 --usemedia=0 --restore # restore only config even though backup.tar.gz has media backup
+    example1 for saving backup: mujinbackup --controller_hostname=yourhost --filename=backup.tar.gz --save_config=1 --save_media=1 --backupscenepks=scenename.mujin.msgpack
+    example2 for restoring backup: mujinbackup --controller_hostname=yourhost --filename=backup.tar.gz --restore --restore_config=1 --restore_media=0 # restore only config even though backup.tar.gz has media backup
  */
 
 #include <mujincontrollerclient/mujincontrollerclient.h>
@@ -24,7 +24,7 @@ using namespace std;
 /// \param argc number of arguments
 /// \param argv arguments
 /// \param opts map where parsed options are stored
-/// \return true if non-help options are parsed succesfully.
+/// \return true if non-help options are parsed successfully.
 bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
 {
     // parse command line arguments
@@ -37,8 +37,11 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("controller_username_password", bpo::value<string>()->default_value("testuser:pass"), "username and password to the mujin controller, e.g. username:password")
         ("filename", bpo::value<string>()->required(), "backup file name")
         ("restore", bpo::value<unsigned int>()->default_value(0), "if 1, will restore")
-        ("useconfig", bpo::value<unsigned int>()->default_value(1))
-        ("usemedia", bpo::value<unsigned int>()->default_value(1))
+        ("save_config", bpo::value<unsigned int>()->default_value(1))
+        ("save_media", bpo::value<unsigned int>()->default_value(1))
+        ("backupscenepks", bpo::value<string>()->default_value(""), "comma separated list of scenes for backup")
+        ("restore_config", bpo::value<unsigned int>()->default_value(1))
+        ("restore_media", bpo::value<unsigned int>()->default_value(1))
         ;
 
     try {
@@ -83,8 +86,11 @@ int main(int argc, char ** argv)
     const string controllerUsernamePass = opts["controller_username_password"].as<string>();
     const string hostname = opts["controller_hostname"].as<string>();
     const unsigned int controllerPort = opts["controller_port"].as<unsigned int>();
-    const unsigned int useconfig = opts["useconfig"].as<unsigned int>();
-    const unsigned int usemedia = opts["usemedia"].as<unsigned int>();
+    const unsigned int save_config = opts["save_config"].as<unsigned int>();
+    const unsigned int save_media = opts["save_media"].as<unsigned int>();
+    const string backupscenepks = opts["backupscenepks"].as<string>();
+    const unsigned int restore_config = opts["restore_config"].as<unsigned int>();
+    const unsigned int restore_media = opts["restore_media"].as<unsigned int>();
     const unsigned int restore = opts["restore"].as<unsigned int>();
     const string filename = opts["filename"].as<string>();
     stringstream urlss;
@@ -97,10 +103,10 @@ int main(int argc, char ** argv)
     vector<unsigned char>buf;
     if(restore){
         ifstream fin(filename.c_str(), std::ios::in | std::ios::binary);
-        controllerclient->RestoreBackup(fin,useconfig,usemedia);
+        controllerclient->RestoreBackup(fin,restore_config,restore_media);
     }else{
         ofstream fout(filename.c_str(), std::ios::out | std::ios::binary);
-        controllerclient->SaveBackup(fout,useconfig,usemedia);
+        controllerclient->SaveBackup(fout,save_config,save_media,backupscenepks);
     }
 
     return 0;

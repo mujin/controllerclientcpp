@@ -1286,10 +1286,10 @@ void ControllerClientImpl::_DownloadFileFromController(const std::string& destur
     }
 }
 
-void ControllerClientImpl::SaveBackup(std::ostream& outputStream, bool config, bool media, double timeout)
+void ControllerClientImpl::SaveBackup(std::ostream& outputStream, bool config, bool media, const std::string& backupscenepks, double timeout)
 {
     boost::mutex::scoped_lock lock(_mutex);
-    std::string query=std::string("?config=")+(config ? "true" : "false")+"&media="+(media ? "true" : "false");
+    std::string query=std::string("?config=")+(config ? "true" : "false")+"&media="+(media ? "true" : "false")+"&backupscenepks="+backupscenepks;
     _CallGet(_baseuri+"backup/"+query, outputStream, 200, timeout);
 }
 
