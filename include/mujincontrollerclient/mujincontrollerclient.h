@@ -895,7 +895,7 @@ public:
     }
 
     virtual void GetTools(std::vector<ToolResourcePtr>& tools);
-    virtual void GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& attachedsensors, bool useConnectedBodies = true);
+    virtual void GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& attachedsensors);
 
     // attachments
     // ikparams
