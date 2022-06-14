@@ -581,7 +581,7 @@ template<class T> bool inline LoadJsonValueByKey(const rapidjson::Value& v, cons
     if (!v.IsObject()) {
         throw MujinJSONException("Cannot load value of non-object.", MJE_Failed);
     }
-    if (v.HasMember(key) && !v.FindMember(key)->value.IsNull()) {
+    if (v.HasMember(key)) {
         LoadJsonValue(v[key], t);
         return true;
     }
