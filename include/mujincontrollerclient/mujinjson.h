@@ -576,6 +576,7 @@ template<class T> inline void SaveJsonValue(rapidjson::Document& v, const T& t) 
 template<class T, class U> inline void SetJsonValueByKey(rapidjson::Value& v, const U& key, const T& t, rapidjson::Document::AllocatorType& alloc);
 
 //get one json value by key, and store it in local data structures
+//returns false if the key does not exist or is null, else returns true
 template<class T> bool inline LoadJsonValueByKey(const rapidjson::Value& v, const char* key, T& t) {
     if (!v.IsObject()) {
         throw MujinJSONException("Cannot load value of non-object.", MJE_Failed);
