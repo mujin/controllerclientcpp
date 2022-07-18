@@ -662,7 +662,7 @@ BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionInfo::R
     objectWeight(0.0),
     sensortimestamp(0),
     robotDepartStopTimestamp(0),
-    transferSpeedMult(1.0),
+    transferSpeedPostMult(1.0),
     minCornerVisibleDist(30),
     minCornerVisibleInsideDist(0),
     occlusionFreeCornerMask(0),
