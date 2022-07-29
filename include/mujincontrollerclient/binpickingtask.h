@@ -241,7 +241,7 @@ public:
             std::array<double, 3> liftedWorldOffset; ///< [dx, dy, dz], mm in world frame
             std::array<double, 3> maxCandidateSize; ///< the max candidate size expecting
             std::array<double, 3> minCandidateSize; ///< the min candidate size expecting
-            double transferSpeedMult; ///< transfer speed multiplication factor
+            double transferSpeedPostMult; ///< transfer speed multiplication factor
             CopyableRapidJsonDocument graspModelInfo; ///< Parameters used for grasping model generation for the object
             double minCornerVisibleDist; ///< how much distance along with uncertain edge from uncertain corner robot exposes to camera
             double minCornerVisibleInsideDist; ///< how much distance inside MVR robot exposes to camera
