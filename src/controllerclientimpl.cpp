@@ -291,6 +291,41 @@ void ControllerClientImpl::SetLanguage(const std::string& language)
     // _SetupHTTPHeadersMultipartFormData();
 }
 
+void ControllerClientImpl::ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout)
+{
+    // use the callers allocator to construct the request body
+    rResult.SetNull();
+    rAlloc.Clear();
+
+    rapidjson::StringBuffer rRequestStringBuffer; // TODO: use cached string buffer in member
+    rRequestStringBuffer.Clear();
+
+    {
+        rapidjson::Value rRequest, rValue;
+        rRequest.SetObject();
+        rValue.SetString(operationName, rAlloc);
+        rRequest.AddMember(rapidjson::Document::StringRefType("operationName"), rValue, rAlloc);
+        rValue.SetString(query, rAlloc);
+        rRequest.AddMember(rapidjson::Document::StringRefType("query"), rValue, rAlloc);
+        rValue.CopyFrom(rVariables, rAlloc);
+        rRequest.AddMember(rapidjson::Document::StringRefType("variables"), rValue, rAlloc);
+
+        rapidjson::Writer<rapidjson::StringBuffer> writer(rRequestStringBuffer);
+        rRequest.Accept(writer);
+    }
+
+    // since we used the callers allocator, clear it before using it for response data
+    rAlloc.Clear();
+    rapidjson::Document docResult(&rAlloc);
+
+    {
+        boost::mutex::scoped_lock lock(_mutex);
+        _uri = _baseuri + "api/v2/graphql";
+        _CallPost(_uri, rRequestStringBuffer.GetString(), docResult, 200, timeout);
+    }
+    rResult = docResult[operationName];
+}
+
 void ControllerClientImpl::RestartServer(double timeout)
 {
     boost::mutex::scoped_lock lock(_mutex);
