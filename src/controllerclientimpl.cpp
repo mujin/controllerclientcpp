@@ -323,7 +323,34 @@ void ControllerClientImpl::ExecuteGraphQuery(const char* operationName, const ch
         _uri = _baseuri + "api/v2/graphql";
         _CallPost(_uri, rRequestStringBuffer.GetString(), docResult, 200, timeout);
     }
-    rResult = docResult[operationName];
+
+    // parse response
+    if (!docResult.IsObject()) {
+        MUJIN_LOG_DEBUG(str(boost::format("Failed to execute graph query \"%s\", invalid response: %s")%operationName%mujinjson::DumpJson(docResult)));
+        throw MUJIN_EXCEPTION_FORMAT("Failed to execute graph query \"%s\", invalid response: %s", operationName%mujinjson::DumpJson(docResult), MEC_HTTPServer);
+    }
+
+    // look for errors in response
+    const rapidjson::Value::ConstMemberIterator itErrors = docResult.FindMember("errors");
+    if (itErrors != docResult.MemberEnd() && itErrors->value.IsArray() && itErrors->value.Size() > 0) {
+        MUJIN_LOG_DEBUG(str(boost::format("Failed to execute graph query \"%s\": %s")%operationName%mujinjson::DumpJson(docResult)));
+        for (rapidjson::Value::ConstValueIterator itError = itErrors->value.Begin(); itError != itErrors->value.End(); ++itError) {
+            const rapidjson::Value& rError = *itError;
+            if (rError.IsObject() && rError.HasMember("message") && rError["message"].IsString()) {
+                throw MUJIN_EXCEPTION_FORMAT("Failed to execute graph query \"%s\": %s", operationName%rError["message"].GetString(), MEC_HTTPServer);
+            }
+        }
+        throw MUJIN_EXCEPTION_FORMAT("Failed to execute graph query \"%s\": %s", operationName%mujinjson::DumpJson(docResult), MEC_HTTPServer);
+    }
+
+    // should have data member
+    if (!docResult.HasMember("data")) {
+        MUJIN_LOG_DEBUG(str(boost::format("Failed to execute graph query \"%s\", invalid response: %s")%operationName%mujinjson::DumpJson(docResult)));
+        throw MUJIN_EXCEPTION_FORMAT("Failed to execute graph query \"%s\", invalid response: %s", operationName%mujinjson::DumpJson(docResult), MEC_HTTPServer);
+    }
+
+    // set output
+    rResult = docResult["data"];
 }
 
 void ControllerClientImpl::RestartServer(double timeout)
