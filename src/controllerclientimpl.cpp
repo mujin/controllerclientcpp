@@ -293,14 +293,13 @@ void ControllerClientImpl::SetLanguage(const std::string& language)
 
 void ControllerClientImpl::ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout)
 {
-    // use the callers allocator to construct the request body
-    rResult.SetNull();
-    rAlloc.Clear();
+    rResult.SetNull(); // zero output
 
     rapidjson::StringBuffer rRequestStringBuffer; // TODO: use cached string buffer in member
     rRequestStringBuffer.Clear();
 
     {
+        // use the callers allocator to construct the request body
         rapidjson::Value rRequest, rValue;
         rRequest.SetObject();
         rValue.SetString(operationName, rAlloc);
@@ -314,8 +313,6 @@ void ControllerClientImpl::ExecuteGraphQuery(const char* operationName, const ch
         rRequest.Accept(writer);
     }
 
-    // since we used the callers allocator, clear it before using it for response data
-    rAlloc.Clear();
     rapidjson::Document docResult(&rAlloc);
 
     {
