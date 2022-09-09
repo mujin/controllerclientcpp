@@ -383,7 +383,7 @@ public:
     virtual void RestartServer(double timeout = 5.0) = 0;
 
     /// \brief Execute GraphQL query or mutation against Mujin Controller.
-    virtual void ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout = 60.0);
+    virtual void ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout = 60.0) = 0;
 
     /// \brief returns the mujin controller version
     virtual std::string GetVersion() = 0;
