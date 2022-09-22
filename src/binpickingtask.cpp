@@ -603,6 +603,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     runtimeRegistrationInfo.objectInfo.objectWeight = GetJsonValueByPath<double>(v, "/runtimeRegistrationInfo/objectInfo/objectWeight", 0.0);
     runtimeRegistrationInfo.objectInfo.sensorTimeStampMS = GetJsonValueByPath<uint64_t>(v, "/runtimeRegistrationInfo/objectInfo/sensorTimeStampMS", 0);
     runtimeRegistrationInfo.objectInfo.updateTimeStampMS = GetJsonValueByPath<uint64_t>(v, "/runtimeRegistrationInfo/objectInfo/updateTimeStampMS", 0);
+    runtimeRegistrationInfo.objectInfo.registrationLocationArrivalTimeStampMS = GetJsonValueByPath<uint64_t>(v, "/runtimeRegistrationInfo/objectInfo/registrationLocationArrivalTimeStampMS", 0);
     runtimeRegistrationInfo.endEffectorPoseInfo.poseId = GetJsonValueByPath<int>(v, "/runtimeRegistrationInfo/endEffectorPoseInfo/poseId", -1);
     LoadJsonValueByPath(v, "/runtimeRegistrationInfo/endEffectorPoseInfo/translation", runtimeRegistrationInfo.endEffectorPoseInfo.translation);
     LoadJsonValueByPath(v, "/runtimeRegistrationInfo/endEffectorPoseInfo/quaternion", runtimeRegistrationInfo.endEffectorPoseInfo.quaternion);
@@ -712,7 +713,8 @@ BinPickingTaskResource::ResultGetBinpickingState::RuntimeRegistrationInfo::Objec
     registrationLocationName(""),
     objectWeight(0.0),
     sensorTimeStampMS(0),
-    updateTimeStampMS(0)
+    updateTimeStampMS(0),
+    registrationLocationArrivalTimeStampMS(0)
 {
 }
 
