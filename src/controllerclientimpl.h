@@ -278,6 +278,8 @@ protected:
     std::string _errormessage; ///< set when an error occurs in libcurl
 
     std::string _defaultscenetype, _defaulttasktype;
+
+    rapidjson::StringBuffer _rRequestStringBufferCache; ///< cache for request string, protected by _mutex
 };
 
 typedef boost::shared_ptr<ControllerClientImpl> ControllerClientImplPtr;

@@ -295,42 +295,43 @@ void ControllerClientImpl::ExecuteGraphQuery(const char* operationName, const ch
 {
     rResult.SetNull(); // zero output
 
-    rapidjson::StringBuffer rRequestStringBuffer; // TODO: use cached string buffer in member
-    rRequestStringBuffer.Clear();
-
-    {
-        // use the callers allocator to construct the request body
-        rapidjson::Value rRequest, rValue;
-        rRequest.SetObject();
-        rValue.SetString(operationName, rAlloc);
-        rRequest.AddMember(rapidjson::Document::StringRefType("operationName"), rValue, rAlloc);
-        rValue.SetString(query, rAlloc);
-        rRequest.AddMember(rapidjson::Document::StringRefType("query"), rValue, rAlloc);
-        rValue.CopyFrom(rVariables, rAlloc);
-        rRequest.AddMember(rapidjson::Document::StringRefType("variables"), rValue, rAlloc);
-
-        rapidjson::Writer<rapidjson::StringBuffer> writer(rRequestStringBuffer);
-        rRequest.Accept(writer);
-    }
-
     rapidjson::Document docResult(&rAlloc);
 
     {
         boost::mutex::scoped_lock lock(_mutex);
+
+        rapidjson::StringBuffer& rRequestStringBuffer = _rRequestStringBufferCache;
+        rRequestStringBuffer.Clear();
+
+        {
+            // use the callers allocator to construct the request body
+            rapidjson::Value rRequest, rValue;
+            rRequest.SetObject();
+            rValue.SetString(operationName, rAlloc);
+            rRequest.AddMember(rapidjson::Document::StringRefType("operationName"), rValue, rAlloc);
+            rValue.SetString(query, rAlloc);
+            rRequest.AddMember(rapidjson::Document::StringRefType("query"), rValue, rAlloc);
+            rValue.CopyFrom(rVariables, rAlloc);
+            rRequest.AddMember(rapidjson::Document::StringRefType("variables"), rValue, rAlloc);
+
+            rapidjson::Writer<rapidjson::StringBuffer> writer(rRequestStringBuffer);
+            rRequest.Accept(writer);
+        }
+
         _uri = _baseuri + "api/v2/graphql";
         _CallPost(_uri, rRequestStringBuffer.GetString(), docResult, 200, timeout);
     }
 
     // parse response
     if (!docResult.IsObject()) {
-        MUJIN_LOG_DEBUG(str(boost::format("Failed to execute graph query \"%s\", invalid response: %s")%operationName%mujinjson::DumpJson(docResult)));
+        MUJIN_LOG_ERROR(str(boost::format("Failed to execute graph query \"%s\", invalid response: %s")%operationName%mujinjson::DumpJson(docResult)));
         throw MUJIN_EXCEPTION_FORMAT("Failed to execute graph query \"%s\", invalid response: %s", operationName%mujinjson::DumpJson(docResult), MEC_HTTPServer);
     }
 
     // look for errors in response
     const rapidjson::Value::ConstMemberIterator itErrors = docResult.FindMember("errors");
     if (itErrors != docResult.MemberEnd() && itErrors->value.IsArray() && itErrors->value.Size() > 0) {
-        MUJIN_LOG_DEBUG(str(boost::format("Failed to execute graph query \"%s\": %s")%operationName%mujinjson::DumpJson(docResult)));
+        MUJIN_LOG_ERROR(str(boost::format("Failed to execute graph query \"%s\": %s")%operationName%mujinjson::DumpJson(docResult)));
         for (rapidjson::Value::ConstValueIterator itError = itErrors->value.Begin(); itError != itErrors->value.End(); ++itError) {
             const rapidjson::Value& rError = *itError;
             if (rError.IsObject() && rError.HasMember("message") && rError["message"].IsString()) {
@@ -342,7 +343,7 @@ void ControllerClientImpl::ExecuteGraphQuery(const char* operationName, const ch
 
     // should have data member
     if (!docResult.HasMember("data")) {
-        MUJIN_LOG_DEBUG(str(boost::format("Failed to execute graph query \"%s\", invalid response: %s")%operationName%mujinjson::DumpJson(docResult)));
+        MUJIN_LOG_ERROR(str(boost::format("Failed to execute graph query \"%s\", invalid response: %s")%operationName%mujinjson::DumpJson(docResult)));
         throw MUJIN_EXCEPTION_FORMAT("Failed to execute graph query \"%s\", invalid response: %s", operationName%mujinjson::DumpJson(docResult), MEC_HTTPServer);
     }
 
