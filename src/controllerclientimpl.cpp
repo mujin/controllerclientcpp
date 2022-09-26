@@ -1675,7 +1675,7 @@ void ControllerClientImpl::_UploadFileToController_UTF8(const std::string& filen
     }
 
     MUJIN_LOG_DEBUG(str(boost::format("upload %s")%uri))
-    _UploadFileToControllerViaForm(fin, filenameoncontroller, _baseuri + "fileupload");
+    _UploadFileToControllerViaForm(fin, filenameoncontroller, _baseuri + "fileupload?filename=" + filenameoncontroller);
 }
 
 void ControllerClientImpl::_UploadFileToController_UTF16(const std::wstring& filename, const std::string& uri)
@@ -1694,7 +1694,7 @@ void ControllerClientImpl::_UploadFileToController_UTF16(const std::wstring& fil
     }
 
     MUJIN_LOG_DEBUG(str(boost::format("upload %s")%uri))
-    _UploadFileToControllerViaForm(fin, filenameoncontroller, _baseuri + "fileupload");
+    _UploadFileToControllerViaForm(fin, filenameoncontroller, _baseuri + "fileupload?filename=" + filenameoncontroller);
 }
 
 void ControllerClientImpl::_UploadFileToController(FILE* fd, const std::string& uri)
@@ -1840,10 +1840,10 @@ void ControllerClientImpl::_UploadDataToController(const std::vector<unsigned ch
     // 204 is when it overwrites the file?
     if( http_code != 201 && http_code != 204 ) {
         if( http_code == 400 ) {
-            throw MUJIN_EXCEPTION_FORMAT("upload of to failed with HTTP status %s, perhaps file exists already?", desturi%http_code, MEC_HTTPServer);
+            throw MUJIN_EXCEPTION_FORMAT("upload of %s to failed with HTTP status %s, perhaps file exists already?", desturi%http_code, MEC_HTTPServer);
         }
         else {
-            throw MUJIN_EXCEPTION_FORMAT("upload of to failed with HTTP status %s", desturi%http_code, MEC_HTTPServer);
+            throw MUJIN_EXCEPTION_FORMAT("upload of %s to failed with HTTP status %s", desturi%http_code, MEC_HTTPServer);
         }
     }
 }
