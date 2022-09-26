@@ -276,7 +276,6 @@ public:
                 double objectWeight; ///< If non-zero, use this weight fo registration. unit is kg. zero means unknown.
                 uint64_t sensorTimeStampMS; ///< sensor timestamp of the item. If non-zero, then valid.
                 uint64_t updateTimeStampMS; ///< timestamp this request was sent. If non-zero, then valid.
-                uint64_t registrationLocationArrivalTimeStampMS; ///< timestamp this item will be arrived at registration location. If non-zero, then valid.
             } objectInfo;
 
             struct EndEffectorPoseInfo
@@ -289,6 +288,7 @@ public:
                 std::array<double, 4> quaternion; ///< quaternion of end effector w.r.t. world
                 std::string unit; ///< the unit of translation
                 uint64_t updateTimeStampMS; ///< timestamp this request was sent. If non-zero, then valid.
+                uint64_t registrationLocationArrivalTimeStampMS; ///< timestamp the robot will arrive at registration location. If non-zero, then valid.
             } endEffectorPoseInfo;
         } runtimeRegistrationInfo;
 

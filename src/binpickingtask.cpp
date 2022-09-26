@@ -603,12 +603,12 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     runtimeRegistrationInfo.objectInfo.objectWeight = GetJsonValueByPath<double>(v, "/runtimeRegistrationInfo/objectInfo/objectWeight", 0.0);
     runtimeRegistrationInfo.objectInfo.sensorTimeStampMS = GetJsonValueByPath<uint64_t>(v, "/runtimeRegistrationInfo/objectInfo/sensorTimeStampMS", 0);
     runtimeRegistrationInfo.objectInfo.updateTimeStampMS = GetJsonValueByPath<uint64_t>(v, "/runtimeRegistrationInfo/objectInfo/updateTimeStampMS", 0);
-    runtimeRegistrationInfo.objectInfo.registrationLocationArrivalTimeStampMS = GetJsonValueByPath<uint64_t>(v, "/runtimeRegistrationInfo/objectInfo/registrationLocationArrivalTimeStampMS", 0);
     runtimeRegistrationInfo.endEffectorPoseInfo.poseId = GetJsonValueByPath<int>(v, "/runtimeRegistrationInfo/endEffectorPoseInfo/poseId", -1);
     LoadJsonValueByPath(v, "/runtimeRegistrationInfo/endEffectorPoseInfo/translation", runtimeRegistrationInfo.endEffectorPoseInfo.translation);
     LoadJsonValueByPath(v, "/runtimeRegistrationInfo/endEffectorPoseInfo/quaternion", runtimeRegistrationInfo.endEffectorPoseInfo.quaternion);
     runtimeRegistrationInfo.endEffectorPoseInfo.unit = GetJsonValueByPath<std::string>(v, "/runtimeRegistrationInfo/endEffectorPoseInfo/unit", "mm");
     runtimeRegistrationInfo.endEffectorPoseInfo.updateTimeStampMS = GetJsonValueByPath<uint64_t>(v, "/runtimeRegistrationInfo/endEffectorPoseInfo/updateTimeStampMS", 0);
+    runtimeRegistrationInfo.endEffectorPoseInfo.registrationLocationArrivalTimeStampMS = GetJsonValueByPath<uint64_t>(v, "/runtimeRegistrationInfo/endEffectorPoseInfo/registrationLocationArrivalTimeStampMS", 0);
 
     removeObjectFromObjectListInfo.timestamp = GetJsonValueByPath<double>(v, "/removeObjectFromObjectList/timestamp", 0);
     removeObjectFromObjectListInfo.objectPk = GetJsonValueByPath<std::string>(v, "/removeObjectFromObjectList/objectPk", "");
@@ -713,8 +713,7 @@ BinPickingTaskResource::ResultGetBinpickingState::RuntimeRegistrationInfo::Objec
     registrationLocationName(""),
     objectWeight(0.0),
     sensorTimeStampMS(0),
-    updateTimeStampMS(0),
-    registrationLocationArrivalTimeStampMS(0)
+    updateTimeStampMS(0)
 {
 }
 
@@ -723,7 +722,8 @@ BinPickingTaskResource::ResultGetBinpickingState::RuntimeRegistrationInfo::EndEf
     translation({0, 0, 0}),
     quaternion({1, 0, 0, 0}),
     unit("mm"),
-    updateTimeStampMS(0)
+    updateTimeStampMS(0),
+    registrationLocationArrivalTimeStampMS(0)
 {
 }
 
