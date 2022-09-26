@@ -470,6 +470,11 @@ public:
     /// \param timeout timeout of communication
     virtual void SetJogModeVelocities(const std::string& jogtype, const std::vector<int>& movejointsigns, const std::string& robotname = "", const std::string& toolname = "", const double robotspeed = -1, const double robotaccelmult = -1.0, const double timeout=1);
 
+    /// \brief End jog mode
+    /// \param robotname name of the robot to process
+    /// \param timeout timeout of communication
+    virtual void EndJogMode(const std::string& robotname = "", const double timeout=1);
+
     /// \brief Moves tool to specified posistion linearly
     /// \param goaltype whether to specify goal in full six degrees of freedom (transform6d) or three dimentional position and two dimentional angle (translationdirection5d)
     /// \param goals where to move tool to [X, Y, Z, RX, RY, RZ] in mm and deg

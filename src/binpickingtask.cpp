@@ -1421,6 +1421,18 @@ void BinPickingTaskResource::SetJogModeVelocities(const std::string& jogtype, co
     ExecuteCommand(_ss.str(), d, timeout);
 }
 
+void BinPickingTaskResource::EndJogMode(const std::string& robotname, const double timeout)
+{
+    SetMapTaskParameters(_ss, _mapTaskParameters);
+    _ss << GetJsonString("command", "EndJogMode");
+    if (!robotname.empty()) {
+        _ss << ", " << GetJsonString("robotname", robotname);
+    }
+    _ss << "}";
+    rapidjson::Document d;
+    ExecuteCommand(_ss.str(), d, timeout);
+}
+
 void BinPickingTaskResource::MoveToolLinear(const std::string& goaltype, const std::vector<double>& goals, const std::string& robotname, const std::string& toolname, const double workspeedlin, const double workspeedrot, bool checkEndeffectorCollision, const double timeout, std::string* pTraj)
 {
     _mapTaskParameters["execute"] = !!pTraj ? "0" : "1";
