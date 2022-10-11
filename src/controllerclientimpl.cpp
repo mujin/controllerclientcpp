@@ -335,7 +335,12 @@ void ControllerClientImpl::ExecuteGraphQuery(const char* operationName, const ch
         for (rapidjson::Value::ConstValueIterator itError = itErrors->value.Begin(); itError != itErrors->value.End(); ++itError) {
             const rapidjson::Value& rError = *itError;
             if (rError.IsObject() && rError.HasMember("message") && rError["message"].IsString()) {
-                throw MUJIN_EXCEPTION_FORMAT("Failed to execute graph query \"%s\": %s", operationName%rError["message"].GetString(), MEC_HTTPServer);
+                const char* errorCode = "unknown";
+                const rapidjson::Value::ConstMemberIterator itExtensions = rError.FindMember("extensions");
+                if (itExtensions != rError.MemberEnd() && itExtensions->value.IsObject() && itExtensions->value.HasMember("errorCode") && itExtensions->value["errorCode"].IsString()) {
+                    errorCode = itExtensions->value["errorCode"].GetString();
+                }
+                throw mujinclient::MujinGraphQueryError(boost::str(boost::format("[%s:%d] Failed to execute graph query \"%s\": %s")%(__PRETTY_FUNCTION__)%(__LINE__)%operationName%rError["message"].GetString()), errorCode);
             }
         }
         throw MUJIN_EXCEPTION_FORMAT("Failed to execute graph query \"%s\": %s", operationName%mujinjson::DumpJson(docResult), MEC_HTTPServer);
