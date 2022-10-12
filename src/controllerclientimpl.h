@@ -37,6 +37,7 @@ public:
     virtual void SetProxy(const std::string& serverport, const std::string& userpw);
     virtual void SetLanguage(const std::string& language);
     virtual void RestartServer(double timeout);
+    virtual void ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout);
     virtual void CancelAllJobs();
     virtual void GetRunTimeStatuses(std::vector<JobStatus>& statuses, int options);
     virtual void GetScenePrimaryKeys(std::vector<std::string>& scenekeys);
@@ -277,6 +278,8 @@ protected:
     std::string _errormessage; ///< set when an error occurs in libcurl
 
     std::string _defaultscenetype, _defaulttasktype;
+
+    rapidjson::StringBuffer _rRequestStringBufferCache; ///< cache for request string, protected by _mutex
 };
 
 typedef boost::shared_ptr<ControllerClientImpl> ControllerClientImplPtr;
