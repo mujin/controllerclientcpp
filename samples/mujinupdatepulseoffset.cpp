@@ -41,10 +41,12 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("controller_username_password", bpo::value<string>()->default_value("testuser:pass"), "username and password to the mujin controller, e.g. username:password")
         ("controller_command_timeout", bpo::value<double>()->default_value(10), "command timeout in seconds, e.g. 10")
         ("locale", bpo::value<string>()->default_value("en_US"), "locale to use for the mujin controller client")
-        ("scenepk", bpo::value<string>()->default_value(""), "scene pk on the mujin controller, e.g. officeboltpicking.mujin.dae.")
-        ("object_name", bpo::value<string>()->default_value(""), "object name to create ikparam for")
+        ("task_scenepk", bpo::value<string>()->default_value(""), "scene pk of the binpicking task on the mujin controller, e.g. officeboltpicking.mujin.dae.")
+        ("taskparameters", bpo::value<string>()->default_value("{}"), "binpicking task parameters, e.g. {\"robotname\": \"robot\", \"toolname\": \"tool\"}")
+        ("zmq_port", bpo::value<unsigned int>()->default_value(11000), "port of the binpicking task on the mujin controller")
+        ("heartbeat_port", bpo::value<unsigned int>()->default_value(11001), "port of the binpicking task's heartbeat signal on the mujin controller")
+        ("robot_name", bpo::value<string>()->default_value(""), "object name to create ikparam for")
         ("update_external_reference", bpo::value<unsigned int>()->default_value(0), "if 1, update external reference")
-        ("iktype", bpo::value<string>()->default_value("Transform6D"), "iktype")
         ;
 
     try {
@@ -77,6 +79,87 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
     return true;
 }
 
+/// \brief initialize BinPickingTask and establish communication with controller
+/// \param opts options parsed from command line
+/// \param pBinPickingTask bin picking task to be initialized
+void InitializeTask(const bpo::variables_map& opts,
+                    boost::shared_ptr<zmq::context_t>& zmqcontext,
+                    BinPickingTaskResourcePtr& pBinpickingTask)
+{
+    const string controllerUsernamePass = opts["controller_username_password"].as<string>();
+    const double controllerCommandTimeout = opts["controller_command_timeout"].as<double>();
+    const string taskparameters = opts["taskparameters"].as<string>();
+    const string locale = opts["locale"].as<string>();
+    const unsigned int taskZmqPort = opts["zmq_port"].as<unsigned int>();
+    const string hostname = opts["controller_hostname"].as<string>();
+    const unsigned int controllerPort = opts["controller_port"].as<unsigned int>();
+    stringstream urlss;
+    urlss << "http://" << hostname << ":" << controllerPort;
+
+    const unsigned int heartbeatPort = opts["heartbeat_port"].as<unsigned int>();
+    string slaverequestid = opts["slave_request_id"].as<string>();
+    string taskScenePk = opts["task_scenepk"].as<string>();
+    
+    const bool needtoobtainfromheartbeat = taskScenePk.empty() || slaverequestid.empty();
+    if (needtoobtainfromheartbeat) {
+        stringstream endpoint;
+        endpoint << "tcp://" << hostname << ":" << heartbeatPort;
+        cout << "connecting to heartbeat at " << endpoint.str() << endl;
+        string heartbeat;
+        const size_t num_try_heartbeat(10);
+        for (size_t it_try_heartbeat = 0; it_try_heartbeat < num_try_heartbeat; ++it_try_heartbeat) {
+            heartbeat = utils::GetHeartbeat(endpoint.str());
+            if (!heartbeat.empty()) {
+                break;
+            }
+            cout << "Failed to get heart beat " << it_try_heartbeat << "/" << num_try_heartbeat << "\n";
+            boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+        }
+        if (heartbeat.empty()) {
+            throw MujinException(boost::str(boost::format("Failed to obtain heartbeat from %s. Is controller running?")%endpoint.str()));
+        }
+        
+        if (taskScenePk.empty()) {
+            taskScenePk = utils::GetScenePkFromHeartbeat(heartbeat);
+            cout << "task_scenepk: " << taskScenePk << " is obtained from heartbeat\n";
+        }
+        if (slaverequestid.empty()) {
+            slaverequestid = utils::GetSlaveRequestIdFromHeartbeat(heartbeat);
+            cout << "slave_request_id: " << slaverequestid << " is obtained from heartbeat\n";
+        }
+    }
+
+    //    cout << taskparameters << endl;
+    const string tasktype = "realtimeitlplanning3";
+
+    // connect to mujin controller
+    ControllerClientPtr controllerclient = CreateControllerClient(controllerUsernamePass, urlss.str());
+
+    cout << "connected to mujin controller at " << urlss.str() << endl;
+
+    SceneResourcePtr scene(new SceneResource(controllerclient, taskScenePk));
+
+    // initialize binpicking task
+    pBinpickingTask = scene->GetOrCreateBinPickingTaskFromName_UTF8(tasktype+string("task1"), tasktype, TRO_EnableZMQ);
+    const string userinfo = "{\"username\": \"" + controllerclient->GetUserName() + "\", ""\"locale\": \"" + locale + "\"}";
+    cout << "initialzing binpickingtask with userinfo=" + userinfo << " taskparameters=" << taskparameters << endl;
+
+    pBinpickingTask->Initialize(taskparameters, taskZmqPort, heartbeatPort, zmqcontext, false, controllerCommandTimeout, controllerCommandTimeout, userinfo, slaverequestid);
+
+}
+
+void ReinitializeTask(boost::shared_ptr<zmq::context_t>& zmqcontext,
+                      BinPickingTaskResourcePtr& pBinpickingTask)
+{
+    const string taskparameters("{\"robotname\": \"robot\"}");
+    const unsigned int taskZmqPort(11000);
+    const double controllerCommandTimeout(10);
+    const string userinfo("");
+    const string slaverequestid("controller71_slave0");
+    const unsigned int heartbeatPort(11001);
+    pBinpickingTask->Initialize(taskparameters, taskZmqPort, heartbeatPort, zmqcontext, false, controllerCommandTimeout, controllerCommandTimeout, userinfo, slaverequestid);
+}
+
 int main(int argc, char ** argv)
 {
     // parsing options
@@ -86,10 +169,19 @@ int main(int argc, char ** argv)
         return 1;
     }
 
+    // initializing
+    BinPickingTaskResourcePtr pBinpickingTask;
+    boost::shared_ptr<zmq::context_t> zmqcontext(new zmq::context_t(1));
+    InitializeTask(opts, zmqcontext, pBinpickingTask);
+
     const double timeout = opts["controller_command_timeout"].as<double>();
 
+    BinPickingTaskResource::ResultGetJointValues resultGetJointValues;
+    pBinpickingTask->GetJointValues(resultGetJointValues);
+    //resultGetJointValues.currentjointvalues;
+
     // get manip position
-    const string object_name = opts["object_name"].as<string>();
+    const string object_name = opts["robot_name"].as<string>();
 
     stringstream urlss;
     {
@@ -98,7 +190,7 @@ int main(int argc, char ** argv)
         urlss << "http://" << hostname << ":" << controllerPort;
     }
     ControllerClientPtr controllerclient = CreateControllerClient(opts["controller_username_password"].as<string>(), urlss.str());
-    SceneResourcePtr scene(new SceneResource(controllerclient, opts["scenepk"].as<string>()));
+    SceneResourcePtr scene(new SceneResource(controllerclient, opts["task_scenepk"].as<string>()));
     std::vector<SceneResource::InstObjectPtr> instobjects;
     scene->GetInstObjects(instobjects);
     std::vector<SceneResource::InstObjectPtr>::iterator it1 = std::find_if(instobjects.begin(),instobjects.end(),boost::bind(&SceneResource::InstObject::name,_1)==object_name);
@@ -110,10 +202,38 @@ int main(int argc, char ** argv)
     cout << "obtaining object done" << endl;
 
     map<string, vector<int>> params = object->Get<map<string, vector<int>>>("robot_motion_parameters/int_parameters");
-    cout << "old pulseOffset =";
-    for(auto &e: params["pulseOffset"]){cout<<" "<<e;}
+    if(params["pulseOffset"].size() > resultGetJointValues.currentjointvalues.size()){
+        cerr << "pulseOffset.size " << params["pulseOffset"].size() << " > resultGetJointValues.currentjointvalues.size " << resultGetJointValues.currentjointvalues.size() << endl;
+        return 1;
+    }
+    if(params["pulseOffset"].size() != params["pulsePerDegree"].size()){
+        cerr << "pulseOffset.size " << params["pulseOffset"].size() << " != pulsePerDegree.size " << params["pulsePerDegree"].size() << endl;
+        return 1;
+    }
+    cout << "current joint values =";
+    for(int i=0; i<params["pulseOffset"].size();i++){cout<<" "<<resultGetJointValues.currentjointvalues[i];}
+    cout << endl;
+    cout << "current pulse offset =";
+    for(int i=0; i<params["pulseOffset"].size();i++){cout<<" "<<params["pulseOffset"][i];}
     cout << endl;
 
+    map<string, map<string, vector<int>>> setparams;
+    vector<int> &newPulseOffset = setparams["int_parameters"]["pulseOffset"];
+    cout << "new joint values = ";
+    for(int i=0; i<params["pulseOffset"].size();i++){
+        double actual_joint_value_deg = resultGetJointValues.currentjointvalues[i];
+        double pulsePerDegree = params["pulsePerDegree"][i];
+        double pulseOffset = params["pulseOffset"][i];
+        double actual_encoder_value_pulse = actual_joint_value_deg * pulsePerDegree + pulseOffset;
+        double reference_joint_value_deg;
+        cin >> reference_joint_value_deg;
+        newPulseOffset.push_back(actual_encoder_value_pulse - reference_joint_value_deg * pulsePerDegree);
+    }
+    cout << "new pulse offset =";
+    for(int i=0; i<params["pulseOffset"].size();i++){cout<<" "<<newPulseOffset[i];}
+    cout << endl;
+    //object->SetJSON(mujinjson::GetJsonStringByKey("robot_motion_parameters",setparams));
+/*
     params["pulseOffset"][0]++;
     map<string, map<string, vector<int>>> setparams;
     setparams["int_parameters"] = params;
@@ -123,6 +243,6 @@ int main(int argc, char ** argv)
     cout << "new pulseOffset =";
     for(auto &e: params["pulseOffset"]){cout<<" "<<e;}
     cout << endl;
-
+*/
     return 0;
 }
