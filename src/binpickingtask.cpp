@@ -668,7 +668,7 @@ BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionInfo::R
     minCornerVisibleInsideDist(0),
     occlusionFreeCornerMask(0),
     waitForTriggerOnCapturing(false),
-    maxPossibleSizePadding(0)
+    maxPossibleSizePadding(30)
 {
     translation_.fill(0);
     quat_.fill(0);
