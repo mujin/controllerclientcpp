@@ -586,6 +586,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/minViableRegion/maxPossibleSize", registerMinViableRegionInfo.minViableRegion.maxPossibleSize);
     registerMinViableRegionInfo.minViableRegion.cornerMask = GetJsonValueByPath<uint64_t>(v, "/registerMinViableRegionInfo/minViableRegion/cornerMask", 0);
     registerMinViableRegionInfo.occlusionFreeCornerMask = GetJsonValueByPath<uint64_t>(v, "/registerMinViableRegionInfo/occlusionFreeCornerMask", 0);
+    registerMinViableRegionInfo.maxPossibleSizePadding = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/maxPossibleSizePadding", 30);
     registerMinViableRegionInfo.waitForTriggerOnCapturing = GetJsonValueByPath<bool>(v, "/registerMinViableRegionInfo/waitForTriggerOnCapturing", false);
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/liftedWorldOffset", registerMinViableRegionInfo.liftedWorldOffset);
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/minCandidateSize", registerMinViableRegionInfo.minCandidateSize);
@@ -666,7 +667,8 @@ BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionInfo::R
     minCornerVisibleDist(30),
     minCornerVisibleInsideDist(0),
     occlusionFreeCornerMask(0),
-    waitForTriggerOnCapturing(false)
+    waitForTriggerOnCapturing(false),
+    maxPossibleSizePadding(30)
 {
     translation_.fill(0);
     quat_.fill(0);
