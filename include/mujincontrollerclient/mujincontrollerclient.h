@@ -364,6 +364,11 @@ public:
     /// Check out http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
     virtual void SetLanguage(const std::string& language) = 0;
 
+    /// \brief sets additional http headers to be included on all requests
+    ///
+    /// \param additionalHeaders expect each value to be in the format of "Header-Name: header-value"
+    virtual void SetAdditionalHeaders(const std::vector<std::string>& additionalHeaders) = 0;
+
     /// \brief returns the username logged into this controller
     virtual const std::string& GetUserName() const = 0;
 
@@ -499,18 +504,6 @@ public:
     /// \brief Uploads binary data to a single file on the controller network filesystem.
     ///
     /// Overwrites the destination uri if it already exists
-    /// \param data binary data to upload to the uri
-    /// \param desturi UTF-8 encoded destination file in the network filesystem. By default prefix with "mujin:/". Use the / separator for different paths.
-    virtual void UploadDataToController_UTF8(const std::vector<unsigned char>& vdata, const std::string& desturi) = 0;
-
-    /// \brief \see UploadDataToController_UTF8
-    ///
-    /// \param data binary data to upload to the uri
-    /// \param desturi UTF-16 encoded
-    virtual void UploadDataToController_UTF16(const std::vector<unsigned char>& vdata, const std::wstring& desturi) = 0;
-
-    /// \brief \see UploadDataToController_UTF8
-    ///
     /// \param data binary data to upload to the uri
     /// \param size binary data size in bytes
     /// \param desturi UTF-8 encoded destination file in the network filesystem. By default prefix with "mujin:/". Use the / separator for different paths.

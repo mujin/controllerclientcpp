@@ -36,6 +36,7 @@ public:
     virtual void SetCharacterEncoding(const std::string& newencoding);
     virtual void SetProxy(const std::string& serverport, const std::string& userpw);
     virtual void SetLanguage(const std::string& language);
+    virtual void SetAdditionalHeaders(const std::vector<std::string>& additionalHeaders);
     virtual void RestartServer(double timeout);
     virtual void ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout);
     virtual void CancelAllJobs();
@@ -51,8 +52,6 @@ public:
 
     virtual void UploadFileToController_UTF8(const std::string& filename, const std::string& desturi);
     virtual void UploadFileToController_UTF16(const std::wstring& filename, const std::wstring& desturi);
-    virtual void UploadDataToController_UTF8(const std::vector<unsigned char>& vdata, const std::string& desturi);
-    virtual void UploadDataToController_UTF16(const std::vector<unsigned char>& vdata, const std::wstring& desturi);
     virtual void UploadDataToController_UTF8(const void* data, size_t size, const std::string& desturi);
     virtual void UploadDataToController_UTF16(const void* data, size_t size, const std::wstring& desturi);
     virtual void UploadDirectoryToController_UTF8(const std::string& copydir, const std::string& desturi);
@@ -233,8 +232,12 @@ protected:
     /// \param inputStream the stream represententing the backup. It needs to be seekable to get the size (ifstream subclass is applicable to files).
     virtual void _UploadFileToControllerViaForm(std::istream& inputStream, const std::string& filename, const std::string& endpoint, double timeout = 0);
 
-    /// \brief desturi is URL-encoded. Also assume _mutex is locked.
-    virtual void _UploadDataToController(const void* data, size_t size, const std::string& desturi);
+    /// \brief uploads a single file, to dest location specified by filename
+    ///
+    /// overwrites the file if it already exists.
+    /// \param data the buffer represententing the file
+    /// \param size the length of the buffer represententing the file
+    virtual void _UploadDataToControllerViaForm(const void* data, size_t size, const std::string& filename, const std::string& endpoint, double timeout = 0);
 
     /// \brief desturi is URL-encoded. Also assume _mutex is locked.
     virtual void _UploadDirectoryToController_UTF8(const std::string& copydir, const std::string& desturi);
@@ -269,6 +272,7 @@ protected:
     curl_slist *_httpheadersmultipartformdata;
     std::string _charset, _language;
     std::string _csrfmiddlewaretoken;
+    std::vector<std::string> _additionalHeaders; ///< list of "Header-Name: header-value" additional http headers
 
     rapidjson::Document _profile; ///< user profile and versioning
     std::string _errormessage; ///< set when an error occurs in libcurl

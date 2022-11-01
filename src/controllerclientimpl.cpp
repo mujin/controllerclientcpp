@@ -292,6 +292,15 @@ void ControllerClientImpl::SetLanguage(const std::string& language)
     // _SetupHTTPHeadersMultipartFormData();
 }
 
+void ControllerClientImpl::SetAdditionalHeaders(const std::vector<std::string>& additionalHeaders)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    _additionalHeaders = additionalHeaders;
+    _SetupHTTPHeadersJSON();
+    _SetupHTTPHeadersSTL();
+    _SetupHTTPHeadersMultipartFormData();
+}
+
 void ControllerClientImpl::ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout)
 {
     rResult.SetNull(); // zero output
@@ -1042,6 +1051,9 @@ void ControllerClientImpl::_SetupHTTPHeadersJSON()
     _httpheadersjson = curl_slist_append(_httpheadersjson, "Keep-Alive: 20"); // keep alive for 20s?
     // test on windows first
     //_httpheadersjson = curl_slist_append(_httpheadersjson, "Accept-Encoding: gzip, deflate");
+    for (const std::string& additionalHeader : _additionalHeaders) {
+        _httpheadersjson = curl_slist_append(_httpheadersjson, additionalHeader.c_str());
+    }
 }
 
 void ControllerClientImpl::_SetupHTTPHeadersSTL()
@@ -1059,6 +1071,9 @@ void ControllerClientImpl::_SetupHTTPHeadersSTL()
     _httpheadersstl = curl_slist_append(_httpheadersstl, "Keep-Alive: 20"); // keep alive for 20s?
     // test on windows first
     //_httpheadersstl = curl_slist_append(_httpheadersstl, "Accept-Encoding: gzip, deflate");
+    for (const std::string& additionalHeader : _additionalHeaders) {
+        _httpheadersstl = curl_slist_append(_httpheadersstl, additionalHeader.c_str());
+    }
 }
 
 void ControllerClientImpl::_SetupHTTPHeadersMultipartFormData()
@@ -1076,6 +1091,9 @@ void ControllerClientImpl::_SetupHTTPHeadersMultipartFormData()
     _httpheadersmultipartformdata = curl_slist_append(_httpheadersmultipartformdata, "Keep-Alive: 20"); // keep alive for 20s?
     // test on windows first
     //_httpheadersmultipartformdata = curl_slist_append(_httpheadersmultipartformdata, "Accept-Encoding: gzip, deflate");
+    for (const std::string& additionalHeader : _additionalHeaders) {
+        _httpheadersmultipartformdata = curl_slist_append(_httpheadersmultipartformdata, additionalHeader.c_str());
+    }
 }
 
 std::string ControllerClientImpl::_EncodeWithoutSeparator(const std::string& raw)
@@ -1244,28 +1262,18 @@ void ControllerClientImpl::UploadFileToController_UTF16(const std::wstring& file
     _UploadFileToController_UTF16(filename_utf16, _PrepareDestinationURI_UTF16(desturi_utf16, false));
 }
 
-void ControllerClientImpl::UploadDataToController_UTF8(const std::vector<unsigned char>& vdata, const std::string& desturi)
-{
-    boost::mutex::scoped_lock lock(_mutex);
-    _UploadDataToController(vdata.data(), vdata.size(), _PrepareDestinationURI_UTF8(desturi, false));
-}
-
-void ControllerClientImpl::UploadDataToController_UTF16(const std::vector<unsigned char>& vdata, const std::wstring& desturi)
-{
-    boost::mutex::scoped_lock lock(_mutex);
-    _UploadDataToController(vdata.data(), vdata.size(), _PrepareDestinationURI_UTF16(desturi, false));
-}
-
 void ControllerClientImpl::UploadDataToController_UTF8(const void* data, size_t size, const std::string& desturi)
 {
     boost::mutex::scoped_lock lock(_mutex);
-    _UploadDataToController(data, size, _PrepareDestinationURI_UTF8(desturi, false));
+    const std::string filename = _PrepareDestinationURI_UTF8(desturi, false).substr(_basewebdavuri.size());
+    _UploadDataToControllerViaForm(data, size, filename, _baseuri + "fileupload");
 }
 
 void ControllerClientImpl::UploadDataToController_UTF16(const void* data, size_t size, const std::wstring& desturi)
 {
     boost::mutex::scoped_lock lock(_mutex);
-    _UploadDataToController(data, size, _PrepareDestinationURI_UTF16(desturi, false));
+    const std::string filename = _PrepareDestinationURI_UTF16(desturi, false).substr(_basewebdavuri.size());
+    _UploadDataToControllerViaForm(data, size, filename, _baseuri + "fileupload");
 }
 
 void ControllerClientImpl::UploadDirectoryToController_UTF8(const std::string& copydir, const std::string& desturi)
@@ -1838,11 +1846,42 @@ void ControllerClientImpl::_UploadFileToControllerViaForm(std::istream& inputStr
     }
 }
 
-void ControllerClientImpl::_UploadDataToController(const void* data, size_t size, const std::string& desturi)
+void ControllerClientImpl::_UploadDataToControllerViaForm(const void* data, size_t size, const std::string& filename, const std::string& endpoint, double timeout)
 {
-    const std::string filenameoncontroller = desturi.substr(_basewebdavuri.size());
-    std::istrstream stream(reinterpret_cast<const char*>(data), size);
-    _UploadFileToControllerViaForm(stream, filenameoncontroller, _baseuri + "fileupload");
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, endpoint.c_str());
+    _buffer.clear();
+    _buffer.str("");
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEFUNCTION, NULL, _WriteStringStreamCallback);
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEDATA, NULL, &_buffer);
+    //timeout is default to 0 (never)
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_TIMEOUT_MS, 0L, (long)(timeout * 1000L));
+
+    // prepare form
+    struct curl_httppost *formpost = NULL;
+    struct curl_httppost *lastptr = NULL;
+    CURL_FORM_RELEASER(formpost);
+    curl_formadd(&formpost, &lastptr,
+                 CURLFORM_PTRNAME, "files[]",
+                 CURLFORM_BUFFER, filename.empty() ? "unused" : filename.c_str(),
+                 CURLFORM_BUFFERPTR, data,
+                 CURLFORM_END);
+    if(!filename.empty()) {
+        curl_formadd(&formpost, &lastptr,
+                     CURLFORM_PTRNAME, "filename",
+                     CURLFORM_PTRCONTENTS, filename.c_str(),
+                     CURLFORM_END);
+    }
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPPOST, NULL, formpost);
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPHEADER, NULL, _httpheadersmultipartformdata);
+    CURL_PERFORM(_curl);
+    // get http status
+    long http_code = 0;
+    CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
+
+    // 204 is when it overwrites the file?
+    if( http_code != 200 ) {
+        throw MUJIN_EXCEPTION_FORMAT("upload of %s to %s failed with HTTP status %s", filename%endpoint%http_code, MEC_HTTPServer);
+    }
 }
 
 void ControllerClientImpl::_DeleteFileOnController(const std::string& desturi)
