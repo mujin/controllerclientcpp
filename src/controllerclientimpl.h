@@ -53,6 +53,8 @@ public:
     virtual void UploadFileToController_UTF16(const std::wstring& filename, const std::wstring& desturi);
     virtual void UploadDataToController_UTF8(const std::vector<unsigned char>& vdata, const std::string& desturi);
     virtual void UploadDataToController_UTF16(const std::vector<unsigned char>& vdata, const std::wstring& desturi);
+    virtual void UploadDataToController_UTF8(const void* data, size_t size, const std::string& desturi);
+    virtual void UploadDataToController_UTF16(const void* data, size_t size, const std::wstring& desturi);
     virtual void UploadDirectoryToController_UTF8(const std::string& copydir, const std::string& desturi);
     virtual void UploadDirectoryToController_UTF16(const std::wstring& copydir, const std::wstring& desturi);
     virtual void DownloadFileFromController_UTF8(const std::string& desturi, std::vector<unsigned char>& vdata);
@@ -225,12 +227,6 @@ protected:
     /// \brief desturi is URL-encoded. Also assume _mutex is locked.
     virtual void _UploadFileToController_UTF16(const std::wstring& filename, const std::string& desturi);
 
-    /// \brief uploads a single file, assumes the directory already exists
-    ///
-    /// overwrites the file if it already exists.
-    /// \param fd FILE pointer of binary reading file. does not close the handle
-    virtual void _UploadFileToController(FILE* fd, const std::string& uri);
-
     /// \brief uploads a single file, to dest location specified by filename
     ///
     /// overwrites the file if it already exists.
@@ -238,7 +234,7 @@ protected:
     virtual void _UploadFileToControllerViaForm(std::istream& inputStream, const std::string& filename, const std::string& endpoint, double timeout = 0);
 
     /// \brief desturi is URL-encoded. Also assume _mutex is locked.
-    virtual void _UploadDataToController(const std::vector<unsigned char>& vdata, const std::string& desturi);
+    virtual void _UploadDataToController(const void* data, size_t size, const std::string& desturi);
 
     /// \brief desturi is URL-encoded. Also assume _mutex is locked.
     virtual void _UploadDirectoryToController_UTF8(const std::string& copydir, const std::string& desturi);

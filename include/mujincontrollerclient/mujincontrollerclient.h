@@ -503,6 +503,26 @@ public:
     /// \param desturi UTF-8 encoded destination file in the network filesystem. By default prefix with "mujin:/". Use the / separator for different paths.
     virtual void UploadDataToController_UTF8(const std::vector<unsigned char>& vdata, const std::string& desturi) = 0;
 
+    /// \brief \see UploadDataToController_UTF8
+    ///
+    /// \param data binary data to upload to the uri
+    /// \param desturi UTF-16 encoded
+    virtual void UploadDataToController_UTF16(const std::vector<unsigned char>& vdata, const std::wstring& desturi) = 0;
+
+    /// \brief \see UploadDataToController_UTF8
+    ///
+    /// \param data binary data to upload to the uri
+    /// \param size binary data size in bytes
+    /// \param desturi UTF-8 encoded destination file in the network filesystem. By default prefix with "mujin:/". Use the / separator for different paths.
+    virtual void UploadDataToController_UTF8(const void* data, size_t size, const std::string& desturi) = 0;
+
+    /// \brief \see UploadDataToController_UTF8
+    ///
+    /// \param data binary data to upload to the uri
+    /// \param size binary data size in bytes
+    /// \param desturi UTF-16 encoded
+    virtual void UploadDataToController_UTF16(const void* data, size_t size, const std::wstring& desturi) = 0;
+
     /// \brief Build a backup of config/media and download it.
     ///
     /// \param outputStream filled with the contents of the backup. the backup is tar.gz format.
