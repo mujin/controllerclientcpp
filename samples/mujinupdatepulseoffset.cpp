@@ -201,7 +201,7 @@ int main(int argc, char ** argv)
     ObjectResourcePtr object(new ObjectResource(controllerclient, object_pk));
     cout << "obtaining object done" << endl;
 
-    map<string, vector<int>> params = object->Get<map<string, vector<int>>>("robot_motion_parameters/int_parameters");
+    map<string, vector<int>> params = object->GetPath<map<string, vector<int>>>("/robot_motion_parameters/int_parameters");
     if(params["pulseOffset"].size() > resultGetJointValues.currentjointvalues.size()){
         cerr << "pulseOffset.size " << params["pulseOffset"].size() << " > resultGetJointValues.currentjointvalues.size " << resultGetJointValues.currentjointvalues.size() << endl;
         return 1;
