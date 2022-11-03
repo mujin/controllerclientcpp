@@ -37,6 +37,15 @@
 #include <rapidjson/error/en.h>
 #include <rapidjson/prettywriter.h>
 
+#ifndef MUJINCLIENTJSON_LOAD_REQUIRED_JSON_VALUE_BY_KEY
+#define MUJINCLIENTJSON_LOAD_REQUIRED_JSON_VALUE_BY_KEY(rValue, key, param) \
+    { \
+        if (!(mujinclient::mujinjson_external::LoadJsonValueByKey(rValue, key, param))) \
+        { \
+            throw mujinclient::mujinjson_external::MujinJSONException(boost::str(boost::format(("[%s, %u] assert(mujinclient::mujinjson_external::LoadJsonValueByKey(%s, %s, %s))"))%__FILE__%__LINE__%#rValue%key%#param), mujinclient::mujinjson_external::MJE_Failed); \
+        } \
+    }
+#endif // MUJINCLIENTJSON_LOAD_REQUIRED_JSON_VALUE_BY_KEY
 namespace mujinclient {
 namespace mujinjson_external {
 
@@ -567,13 +576,25 @@ template<class T> inline void SaveJsonValue(rapidjson::Document& v, const T& t) 
 template<class T, class U> inline void SetJsonValueByKey(rapidjson::Value& v, const U& key, const T& t, rapidjson::Document::AllocatorType& alloc);
 
 //get one json value by key, and store it in local data structures
-template<class T> void inline LoadJsonValueByKey(const rapidjson::Value& v, const char* key, T& t) {
+//returns false if the key does not exist or is null, else returns true
+template<class T> bool inline LoadJsonValueByKey(const rapidjson::Value& v, const char* key, T& t) {
     if (!v.IsObject()) {
         throw MujinJSONException("Cannot load value of non-object.", MJE_Failed);
     }
-    if (v.HasMember(key)) {
-        LoadJsonValue(v[key], t);
+    rapidjson::Value::ConstMemberIterator itMember = v.FindMember(key);
+    if( itMember != v.MemberEnd() ) {
+        const rapidjson::Value& rMember = itMember->value;
+        if( !rMember.IsNull() ) {
+            try {
+                LoadJsonValue(rMember, t);
+                return true;
+            }
+            catch (const MujinJSONException& ex) {
+                throw MujinJSONException("Got \"" + ex.GetSubMessage() + "\" while parsing the value of \"" + key + "\"", MJE_Failed);
+            }
+        }
     }
+    return false;
 }
 template<class T, class U> inline void LoadJsonValueByKey(const rapidjson::Value& v, const char* key, T& t, const U& d) {
     if (!v.IsObject()) {
