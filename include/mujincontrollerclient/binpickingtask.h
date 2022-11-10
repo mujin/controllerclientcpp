@@ -247,6 +247,7 @@ public:
             double minCornerVisibleInsideDist; ///< how much distance inside MVR robot exposes to camera
             uint64_t occlusionFreeCornerMask; ///< mask of corners that robot exposes to camera
             bool waitForTriggerOnCapturing; ///<  if true, sensor will wait trigger on capturing
+            double maxPossibleSizePadding; ///< how much to additionally expose max possible size region to vision
             std::vector<double> fullDofValues; ///< robot configuration state on capturing
             std::vector<int8_t> connectedBodyActiveStates; ///< robot configuration state on capturing
             bool IsEmpty() const {
