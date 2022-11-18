@@ -44,6 +44,26 @@ public:
     void GetResultJson(rapidjson::Document& pt) const;
 };
 
+struct MUJINCLIENT_API SensorSelectionInfo
+{
+    std::string sensorName;
+    std::string sensorLinkName;
+    SensorSelectionInfo() = default;
+    SensorSelectionInfo(const std::string& sensorNameIn, const std::string& sensorLinkNameIn) : sensorName(sensorNameIn), sensorLinkName(sensorLinkNameIn) {
+    }
+    bool operator<(const SensorSelectionInfo& rhs) const {
+        if( sensorName == rhs.sensorName ) {
+            return sensorLinkName < rhs.sensorLinkName;
+        }
+        return sensorName < rhs.sensorName;
+    }
+    bool operator==(const SensorSelectionInfo& rhs) const {
+        return sensorName == rhs.sensorName && sensorLinkName == rhs.sensorLinkName;
+    }
+};
+MUJINCLIENT_API void LoadJsonValue(const rapidjson::Value& v, SensorSelectionInfo& sensorSelectionInfos);
+MUJINCLIENT_API void SaveJsonValue(rapidjson::Value& v, const SensorSelectionInfo& sensorSelectionInfo, rapidjson::Document::AllocatorType& alloc);
+
 class MUJINCLIENT_API BinPickingTaskResource : public TaskResource
 {
 public:
@@ -333,8 +353,8 @@ public:
         std::map<std::string, Transform> minstobjecttransform;
         std::map<std::string, ResultOBB> minstobjectobb;
         std::map<std::string, ResultOBB> minstobjectinnerobb;
-        std::map<std::string, Transform> msensortransform;
-        std::map<std::string, RobotResource::AttachedSensorResource::SensorData> msensordata;
+        std::map<SensorSelectionInfo, Transform> msensortransform;
+        std::map<SensorSelectionInfo, RobotResource::AttachedSensorResource::SensorData> msensordata;
         std::map<std::string, boost::shared_ptr<rapidjson::Document> > mrGeometryInfos; ///< for every object, list of all the geometry infos
     };
 
@@ -470,7 +490,7 @@ public:
         \param unit input unit
         \param result unit is always in meter
      */
-    virtual void GetInstObjectAndSensorInfo(const std::vector<std::string>& instobjectnames, const std::vector<std::string>& sensornames, ResultGetInstObjectAndSensorInfo& result, const std::string& unit, const double timeout /* second */=5.0);
+    virtual void GetInstObjectAndSensorInfo(const std::vector<std::string>& instobjectnames, const std::vector<SensorSelectionInfo>& sensornames, ResultGetInstObjectAndSensorInfo& result, const std::string& unit, const double timeout /* second */=5.0);
 
     /** \brief Gets inst object info for a particular URI
         \param unit input unit

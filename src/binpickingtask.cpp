@@ -44,6 +44,22 @@ using namespace utils;
 namespace mujinjson = mujinjson_external;
 using namespace mujinjson;
 
+void LoadJsonValue(const rapidjson::Value& v, SensorSelectionInfo& sensorSelectionInfo)
+{
+    if( !v.IsObject() || !v.HasMember("sensorName") || !v.HasMember("sensorLinkName") ) {
+        MUJIN_LOG_INFO(str(boost::format("Invalid SensorSelectionInfo in %s")%mujinjson::DumpJson(v)));
+        return;
+    }
+    sensorSelectionInfo.sensorName = mujinjson::GetStringJsonValueByKey(v, "sensorName");
+    sensorSelectionInfo.sensorLinkName = mujinjson::GetStringJsonValueByKey(v, "sensorLinkName");
+}
+
+void SaveJsonValue(rapidjson::Value& v, const SensorSelectionInfo& sensorSelectionInfo, rapidjson::Document::AllocatorType& alloc) {
+    v.SetObject();
+    v.AddMember(rapidjson::Document::StringRefType("sensorName"), rapidjson::Document::StringRefType(sensorSelectionInfo.sensorName.c_str()), alloc);
+    v.AddMember(rapidjson::Document::StringRefType("sensorLinkName"), rapidjson::Document::StringRefType(sensorSelectionInfo.sensorLinkName.c_str()), alloc);
+}
+
 BinPickingResultResource::BinPickingResultResource(ControllerClientPtr controller, const std::string& pk) : PlanningResultResource(controller,"binpickingresult", pk)
 {
 }
@@ -476,7 +492,8 @@ void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const rapid
 
     const rapidjson::Value& sensors = output["sensors"];
     for (rapidjson::Document::ConstMemberIterator it = sensors.MemberBegin(); it != sensors.MemberEnd(); it++) {
-        std::string sensorname = it->name.GetString();
+        SensorSelectionInfo sensorSelectionInfo;
+        LoadJsonValue(it->name, sensorSelectionInfo);
         Transform transform;
         RobotResource::AttachedSensorResource::SensorData sensordata;
         LoadJsonValueByKey(it->value, "translation", transform.translate);
@@ -503,8 +520,8 @@ void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const rapid
         LoadJsonValueByKey(sensor, "focal_length", sensordata.focal_length);
         LoadJsonValueByKey(sensor, "measurement_time", sensordata.measurement_time);
 
-        msensortransform[sensorname] = transform;
-        msensordata[sensorname] = sensordata;
+        msensortransform[sensorSelectionInfo] = transform;
+        msensordata[sensorSelectionInfo] = sensordata;
     }
 }
 
@@ -1388,14 +1405,14 @@ PlanningResultResourcePtr BinPickingTaskResource::GetResult()
     return result;
 }
 
-void BinPickingTaskResource::GetInstObjectAndSensorInfo(const std::vector<std::string>& instobjectnames, const std::vector<std::string>& sensornames, ResultGetInstObjectAndSensorInfo& result, const std::string& unit, const double timeout)
+void BinPickingTaskResource::GetInstObjectAndSensorInfo(const std::vector<std::string>& instobjectnames, const std::vector<SensorSelectionInfo>& sensorSelectionInfos, ResultGetInstObjectAndSensorInfo& result, const std::string& unit, const double timeout)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "GetInstObjectAndSensorInfo";
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("tasktype", _tasktype) << ", ";
     _ss << GetJsonString("instobjectnames") << ": " << GetJsonString(instobjectnames) << ", ";
-    _ss << GetJsonString("sensornames") << ": " << GetJsonString(sensornames) << ", ";
+    _ss << GetJsonString("sensorSelectionInfos") << ": " << GetJsonString(sensorSelectionInfos) << ", ";
     _ss << GetJsonString("unit", unit);
     _ss << "}";
     rapidjson::Document pt(rapidjson::kObjectType);
