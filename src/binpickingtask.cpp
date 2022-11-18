@@ -551,7 +551,8 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     if( v.HasMember("occlusionResults") && v["occlusionResults"].IsArray() ) {
         vOcclusionResults.resize(v["occlusionResults"].Size());
         for(int iocc = 0; iocc < (int)vOcclusionResults.size(); ++iocc) {
-            vOcclusionResults[iocc].cameraname = GetJsonValueByKey<std::string,std::string>(v["occlusionResults"][iocc], "cameraname", std::string());
+            vOcclusionResults[iocc].sensorName = GetJsonValueByKey<std::string,std::string>(v["occlusionResults"][iocc], "sensorName", std::string());
+            vOcclusionResults[iocc].sensorLinkName = GetJsonValueByKey<std::string,std::string>(v["occlusionResults"][iocc], "sensorLinkName", std::string());
             vOcclusionResults[iocc].bodyname = GetJsonValueByKey<std::string,std::string>(v["occlusionResults"][iocc], "bodyname", std::string());
             vOcclusionResults[iocc].isocclusion = GetJsonValueByKey<int,int>(v["occlusionResults"][iocc], "isocclusion", -1);
         }

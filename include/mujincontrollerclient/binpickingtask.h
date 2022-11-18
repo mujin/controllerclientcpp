@@ -174,7 +174,8 @@ public:
         /// \brief holds published occlusion results of camera and container pairs
         struct OcclusionResult
         {
-            std::string cameraname; ///< full camera name like: sourcecamera1/ensenso_r_rectified
+            std::string sensorName; ///< body name that has sensor
+            std::string sensorLinkName; ///< link name that has sensor
             std::string bodyname;
             int isocclusion;
         };
