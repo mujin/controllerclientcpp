@@ -44,22 +44,6 @@ using namespace utils;
 namespace mujinjson = mujinjson_external;
 using namespace mujinjson;
 
-void LoadJsonValue(const rapidjson::Value& v, SensorSelectionInfo& sensorSelectionInfo)
-{
-    if( !v.IsObject() || !v.HasMember("sensorName") || !v.HasMember("sensorLinkName") ) {
-        MUJIN_LOG_INFO(str(boost::format("Invalid SensorSelectionInfo in %s")%mujinjson::DumpJson(v)));
-        return;
-    }
-    sensorSelectionInfo.sensorName = mujinjson::GetStringJsonValueByKey(v, "sensorName");
-    sensorSelectionInfo.sensorLinkName = mujinjson::GetStringJsonValueByKey(v, "sensorLinkName");
-}
-
-void SaveJsonValue(rapidjson::Value& v, const SensorSelectionInfo& sensorSelectionInfo, rapidjson::Document::AllocatorType& alloc) {
-    v.SetObject();
-    v.AddMember(rapidjson::Document::StringRefType("sensorName"), rapidjson::Document::StringRefType(sensorSelectionInfo.sensorName.c_str()), alloc);
-    v.AddMember(rapidjson::Document::StringRefType("sensorLinkName"), rapidjson::Document::StringRefType(sensorSelectionInfo.sensorLinkName.c_str()), alloc);
-}
-
 BinPickingResultResource::BinPickingResultResource(ControllerClientPtr controller, const std::string& pk) : PlanningResultResource(controller,"binpickingresult", pk)
 {
 }

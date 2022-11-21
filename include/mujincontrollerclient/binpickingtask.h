@@ -44,26 +44,6 @@ public:
     void GetResultJson(rapidjson::Document& pt) const;
 };
 
-struct MUJINCLIENT_API SensorSelectionInfo
-{
-    std::string sensorName;
-    std::string sensorLinkName;
-    SensorSelectionInfo() = default;
-    SensorSelectionInfo(const std::string& sensorNameIn, const std::string& sensorLinkNameIn) : sensorName(sensorNameIn), sensorLinkName(sensorLinkNameIn) {
-    }
-    bool operator<(const SensorSelectionInfo& rhs) const {
-        if( sensorName == rhs.sensorName ) {
-            return sensorLinkName < rhs.sensorLinkName;
-        }
-        return sensorName < rhs.sensorName;
-    }
-    bool operator==(const SensorSelectionInfo& rhs) const {
-        return sensorName == rhs.sensorName && sensorLinkName == rhs.sensorLinkName;
-    }
-};
-MUJINCLIENT_API void LoadJsonValue(const rapidjson::Value& v, SensorSelectionInfo& sensorSelectionInfos);
-MUJINCLIENT_API void SaveJsonValue(rapidjson::Value& v, const SensorSelectionInfo& sensorSelectionInfo, rapidjson::Document::AllocatorType& alloc);
-
 class MUJINCLIENT_API BinPickingTaskResource : public TaskResource
 {
 public:

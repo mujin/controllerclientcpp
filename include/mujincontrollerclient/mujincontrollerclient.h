@@ -330,6 +330,26 @@ public:
     std::map<std::string, RobotProgramData> programs; ///< the keys are the robot instance primary keys of the scene
 };
 
+struct MUJINCLIENT_API SensorSelectionInfo
+{
+    std::string sensorName;
+    std::string sensorLinkName;
+    SensorSelectionInfo() = default;
+    SensorSelectionInfo(const std::string& sensorNameIn, const std::string& sensorLinkNameIn) : sensorName(sensorNameIn), sensorLinkName(sensorLinkNameIn) {
+    }
+    bool operator<(const SensorSelectionInfo& rhs) const {
+        if( sensorName == rhs.sensorName ) {
+            return sensorLinkName < rhs.sensorLinkName;
+        }
+        return sensorName < rhs.sensorName;
+    }
+    bool operator==(const SensorSelectionInfo& rhs) const {
+        return sensorName == rhs.sensorName && sensorLinkName == rhs.sensorLinkName;
+    }
+};
+MUJINCLIENT_API void LoadJsonValue(const rapidjson::Value& v, SensorSelectionInfo& sensorSelectionInfos);
+MUJINCLIENT_API void SaveJsonValue(rapidjson::Value& v, const SensorSelectionInfo& sensorSelectionInfo, rapidjson::Document::AllocatorType& alloc);
+
 /// \brief Creates on MUJIN Controller instance.
 ///
 /// Only one call can be made at a time. In order to make multiple calls simultaneously, create another instance.
@@ -1045,7 +1065,7 @@ public:
     virtual void GetTaskNames(std::vector<std::string>& names);
 
     /// \brief gets a list of all the instance objects of the scene
-    virtual void GetSensorMapping(std::map<std::string, std::string>& sensormapping);
+    virtual void GetAllSensorSelectionInfos(std::vector<SensorSelectionInfo>& allSensorSelectionInfos);
     virtual void GetInstObjects(std::vector<InstObjectPtr>& instobjects);
     virtual bool FindInstObject(const std::string& name, InstObjectPtr& instobject);
 
