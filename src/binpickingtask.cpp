@@ -477,35 +477,38 @@ void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const rapid
     const rapidjson::Value& sensors = output["sensors"];
     for (rapidjson::Document::ConstMemberIterator it = sensors.MemberBegin(); it != sensors.MemberEnd(); it++) {
         SensorSelectionInfo sensorSelectionInfo;
-        LoadJsonValue(it->name, sensorSelectionInfo);
-        Transform transform;
-        RobotResource::AttachedSensorResource::SensorData sensordata;
-        LoadJsonValueByKey(it->value, "translation", transform.translate);
-        LoadJsonValueByKey(it->value, "quaternion", transform.quaternion);
+        LoadJsonValue(it->name, sensorSelectionInfo.sensorName);
+        for (rapidjson::Document::ConstMemberIterator itlink = it->value.MemberBegin(); itlink != it->value.MemberEnd(); itlink++) {
+            LoadJsonValue(itlink->name, sensorSelectionInfo.sensorLinkName);
+            Transform transform;
+            RobotResource::AttachedSensorResource::SensorData sensordata;
+            LoadJsonValueByKey(itlink->value, "translation", transform.translate);
+            LoadJsonValueByKey(itlink->value, "quaternion", transform.quaternion);
 
-        const rapidjson::Value &sensor = it->value["sensordata"];
-        LoadJsonValueByKey(sensor, "distortion_coeffs", sensordata.distortion_coeffs);
-        LoadJsonValueByKey(sensor, "intrinsic", sensordata.intrinsic);
+            const rapidjson::Value &sensor = itlink->value["sensordata"];
+            LoadJsonValueByKey(sensor, "distortion_coeffs", sensordata.distortion_coeffs);
+            LoadJsonValueByKey(sensor, "intrinsic", sensordata.intrinsic);
 
-        std::vector<int> imagedimensions;
-        LoadJsonValueByKey(sensor, "image_dimensions", imagedimensions);
-        if (imagedimensions.size() == 2) {
-            imagedimensions.push_back(1);
+            std::vector<int> imagedimensions;
+            LoadJsonValueByKey(sensor, "image_dimensions", imagedimensions);
+            if (imagedimensions.size() == 2) {
+                imagedimensions.push_back(1);
+            }
+            if (imagedimensions.size() != 3) {
+                throw MujinException("the length of image_dimensions is invalid", MEC_Failed);
+            }
+            for (int i = 0; i < 3; i++) {
+                sensordata.image_dimensions[i] = imagedimensions[i];
+            }
+
+            LoadJsonValueByKey(sensor, "extra_parameters", sensordata.extra_parameters);
+            LoadJsonValueByKey(sensor, "distortion_model", sensordata.distortion_model);
+            LoadJsonValueByKey(sensor, "focal_length", sensordata.focal_length);
+            LoadJsonValueByKey(sensor, "measurement_time", sensordata.measurement_time);
+
+            msensortransform[sensorSelectionInfo] = transform;
+            msensordata[sensorSelectionInfo] = sensordata;
         }
-        if (imagedimensions.size() != 3) {
-            throw MujinException("the length of image_dimensions is invalid", MEC_Failed);
-        }
-        for (int i = 0; i < 3; i++) {
-            sensordata.image_dimensions[i] = imagedimensions[i];
-        }
-
-        LoadJsonValueByKey(sensor, "extra_parameters", sensordata.extra_parameters);
-        LoadJsonValueByKey(sensor, "distortion_model", sensordata.distortion_model);
-        LoadJsonValueByKey(sensor, "focal_length", sensordata.focal_length);
-        LoadJsonValueByKey(sensor, "measurement_time", sensordata.measurement_time);
-
-        msensortransform[sensorSelectionInfo] = transform;
-        msensordata[sensorSelectionInfo] = sensordata;
     }
 }
 
@@ -1405,7 +1408,7 @@ void BinPickingTaskResource::GetInstObjectAndSensorInfo(const std::vector<std::s
         result.Parse(pt);
     }
     catch(const std::exception& ex) {
-        MUJIN_LOG_ERROR(str(boost::format("got error when parsing result: %s")%DumpJson(pt)));
+        MUJIN_LOG_ERROR(str(boost::format("got error when parsing result. exception: %s result: %s")%ex.what()%DumpJson(pt)));
         throw;
     }
 }
@@ -1428,7 +1431,7 @@ void BinPickingTaskResource::GetInstObjectInfoFromURI(const std::string& objectu
         result.Parse(pt);
     }
     catch(const std::exception& ex) {
-        MUJIN_LOG_ERROR(str(boost::format("got error when parsing result: %s")%DumpJson(pt)));
+        MUJIN_LOG_ERROR(str(boost::format("got error when parsing result: %s result: %s")%ex.what()%DumpJson(pt)));
         throw;
     }
 }
