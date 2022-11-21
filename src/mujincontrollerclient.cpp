@@ -821,13 +821,13 @@ void SceneResource::GetAllSensorSelectionInfos(std::vector<SensorSelectionInfo>&
     rapidjson::Document rInstObjects(rapidjson::kObjectType);
     controller->CallGet(str(boost::format("scene/%s/instobject/?format=json&limit=0&fields=attachedsensors,connectedBodies,object_pk,name")%GetPrimaryKey()), rInstObjects);
     for (rapidjson::Document::ConstValueIterator itInstObject = rInstObjects["objects"].Begin(); itInstObject != rInstObjects["objects"].End(); ++itInstObject) {
+        const std::string sensorName = GetJsonValueByKey<std::string>(*itInstObject, "name");
         const std::string objectPk = GetJsonValueByKey<std::string>(*itInstObject, "object_pk");
         if ( itInstObject->HasMember("attachedsensors") && (*itInstObject)["attachedsensors"].IsArray() && (*itInstObject)["attachedsensors"].Size() > 0) {
             rapidjson::Document rRobotAttachedSensors(rapidjson::kObjectType);
             controller->CallGet(str(boost::format("robot/%s/attachedsensor/?format=json")%objectPk), rRobotAttachedSensors);
             const rapidjson::Value& rAttachedSensors = rRobotAttachedSensors["attachedsensors"];
             for (rapidjson::Document::ConstValueIterator itAttachedSensor = rAttachedSensors.Begin(); itAttachedSensor != rAttachedSensors.End(); ++itAttachedSensor) {
-                const std::string sensorName = GetJsonValueByKey<std::string>(*itAttachedSensor, "name");
                 const std::string sensorLinkName = GetJsonValueByKey<std::string>(*itAttachedSensor, "linkName");
                 allSensorSelectionInfos.emplace_back(sensorName, sensorLinkName);
             }
@@ -849,7 +849,6 @@ void SceneResource::GetAllSensorSelectionInfos(std::vector<SensorSelectionInfo>&
                     controller->CallGet(str(boost::format("robot/%s/attachedsensor/?format=json")%connectedBodyObjectPk), rConnectedBodyRobotAttachedSensors);
                     rapidjson::Value& rConnectedBodyAttachedSensors = rConnectedBodyRobotAttachedSensors["attachedsensors"];
                     for (rapidjson::Document::ConstValueIterator itConnectedBodyAttachedSensor = rConnectedBodyAttachedSensors.Begin(); itConnectedBodyAttachedSensor != rConnectedBodyAttachedSensors.End(); ++itConnectedBodyAttachedSensor) {
-                        const std::string sensorName = GetJsonValueByKey<std::string>(*itConnectedBodyAttachedSensor, "name");
                         const std::string sensorLinkName = GetJsonValueByKey<std::string>(*itConnectedBodyAttachedSensor, "linkName");
                         allSensorSelectionInfos.emplace_back(sensorName, sensorLinkName);
                     }
