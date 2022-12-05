@@ -292,6 +292,11 @@ void ControllerClientImpl::SetLanguage(const std::string& language)
     // _SetupHTTPHeadersMultipartFormData();
 }
 
+void ControllerClientImpl::SetUserAgent(const std::string& userAgent)
+{
+    CURL_OPTION_SETTER(_curl, CURLOPT_USERAGENT, userAgent.c_str());
+}
+
 void ControllerClientImpl::SetAdditionalHeaders(const std::vector<std::string>& additionalHeaders)
 {
     boost::mutex::scoped_lock lock(_mutex);
