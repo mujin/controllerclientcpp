@@ -813,11 +813,35 @@ public:
     };
     typedef boost::shared_ptr<LinkResource> LinkResourcePtr;
 
+public:
+    class MUJINCLIENT_API AttachmentResource : public WebResource {
+public:
+        AttachmentResource(ControllerClientPtr controller, const std::string& objectpk, const std::string& pk);
+        virtual ~AttachmentResource() {
+        }
+
+        std::string joint_name;
+        std::string joint_type;
+        // std::string joint_sidref;
+        std::string linkpk;
+        std::string pk;
+
+        bool active;
+        Real velocity_limit;
+        Real acceleration_limit;
+        Real upper_limit;
+        Real lower_limit;
+        Real axis[3];
+        Real quaternion[4];
+        Real translate[3];
+    };
+    typedef boost::shared_ptr<AttachmentResource> AttachmentResourcePtr;
 
     ObjectResource(ControllerClientPtr controller, const std::string& pk);
     virtual ~ObjectResource() {
     }
     virtual void GetLinks(std::vector<LinkResourcePtr>& links);
+    virtual void GetAttachments(std::vector<AttachmentResourcePtr>& attachments);
 
     virtual void GetIkParams(std::vector<IkParamResourcePtr>& ikparams);
 

@@ -152,6 +152,10 @@ ObjectResource::IkParamResource::IkParamResource(ControllerClientPtr controller,
 {
 }
 
+ObjectResource::AttachmentResource::AttachmentResource(ControllerClientPtr controller, const std::string& objectpk_, const std::string& pk_) : WebResource(controller, str(boost::format("object/%s/attachment")%objectpk_), pk_), pk(pk_)
+{
+}
+
 void ObjectResource::GeometryResource::GetMesh(std::string& primitive, std::vector<std::vector<int> >& indices, std::vector<std::vector<Real> >& vertices)
 {
     GETCONTROLLERIMPL();
@@ -408,6 +412,31 @@ void ObjectResource::GetIkParams(std::vector<ObjectResource::IkParamResourcePtr>
         LoadJsonValueByKey(*it,"translation",ikparam->translation);
         LoadJsonValueByKey(*it,"angle",ikparam->angle);
         ikparams[i++] = ikparam;
+    }
+}
+
+void ObjectResource::GetAttachments(std::vector<ObjectResource::AttachmentResourcePtr>& attachments)
+{
+    GETCONTROLLERIMPL();
+    rapidjson::Document pt(rapidjson::kObjectType);
+    controller->CallGet(str(boost::format("object/%s/attachment/?format=json&limit=0&fields=attachments")%GetPrimaryKey()), pt);
+    rapidjson::Value& objects = pt["attachments"];
+    attachments.resize(objects.Size());
+    size_t i = 0;
+    for (rapidjson::Document::ValueIterator it = objects.Begin(); it != objects.End(); ++it) {
+        AttachmentResourcePtr attachment(new AttachmentResource(controller, GetPrimaryKey(), GetJsonValueByKey<std::string>(*it, "pk")));
+        LoadJsonValueByKey(*it,"joint_name",attachment->joint_name);
+        LoadJsonValueByKey(*it,"joint_type",attachment->joint_type);
+        LoadJsonValueByKey(*it,"linkpk",attachment->linkpk);
+        LoadJsonValueByKey(*it,"active",attachment->active);
+        LoadJsonValueByKey(*it,"velocity_limit",attachment->velocity_limit);
+        LoadJsonValueByKey(*it,"acceleration_limit",attachment->acceleration_limit);
+        LoadJsonValueByKey(*it,"upper_limit",attachment->upper_limit);
+        LoadJsonValueByKey(*it,"lower_limit",attachment->lower_limit);
+        LoadJsonValueByKey(*it,"axis",attachment->axis);
+        LoadJsonValueByKey(*it,"quaternion",attachment->quaternion);
+        LoadJsonValueByKey(*it,"translate",attachment->translate);
+        attachments[i++] = attachment;
     }
 }
 
