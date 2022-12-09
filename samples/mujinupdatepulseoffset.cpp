@@ -209,5 +209,6 @@ int main(int argc, char ** argv)
     const double newEncoderOffset = ComputeEncoderOffset(resultGetJointValues.currentjointvalues[jointIndexJ1], referenceJ1JointValue, currentEncoderOffset, encoderMultiplerJ1);
     robot->SetEncoderOffset(jointIndexJ1, newEncoderOffset);
 
+    pBinpickingTask->ShutdownRobotBridge();
     return 0;
 }
