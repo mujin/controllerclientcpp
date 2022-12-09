@@ -506,7 +506,24 @@ void RobotResource::GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& a
     }
 }
 
-SceneResource::InstObject::InstObject(ControllerClientPtr controller, const std::string& scenepk, const std::string& pk) : WebResource(controller, str(boost::format("scene/%s/instobject")%scenepk), pk), pk(pk)
+void RobotResource::GetEncoderOffset(int jointIndex, double& encoderOffset, double timeout){
+    rapidjson::Document pt(rapidjson::kObjectType);
+    GetWrap(pt, "robot_motion_parameters", timeout);
+    std::vector<int> pulseOffset = mujinjson_external::GetJsonValueByPath<std::vector<int>>(pt, "/robot_motion_parameters/int_parameters/pulseOffset");
+    encoderOffset = pulseOffset[jointIndex];
+}
+
+void RobotResource::SetEncoderOffset(int jointIndex, double encoderOffset, double timeout){
+        rapidjson::Document pt(rapidjson::kObjectType);
+        GetWrap(pt, "robot_motion_parameters", timeout);
+        std::vector<int> pulseOffset = mujinjson_external::GetJsonValueByPath<std::vector<int>>(pt, "/robot_motion_parameters/int_parameters/pulseOffset");
+        pulseOffset[jointIndex] = encoderOffset;
+        std::map<std::string, std::map<std::string, std::vector<int>>> setparams;
+        setparams["int_parameters"]["pulseOffset"] = pulseOffset;
+        SetJSON(mujinjson_external::GetJsonStringByKey("robot_motion_parameters", setparams), timeout);
+}
+
+SceneResource::InstObject::InstObject(ControllerClientPtr controller, const std::string& scenepk, const std::string& pk_) : WebResource(controller, str(boost::format("scene/%s/instobject")%scenepk), pk_), pk(pk_)
 {
 }
 
@@ -1295,6 +1312,11 @@ void ControllerClientDestroy()
 void DestroyControllerClient()
 {
 }
+
+double ComputeEncoderOffset(double currentJointValue, double referenceJointValue, double currentEncoderOffset, double encoderMultiplier){
+    double currentEncoderValuePulse = currentJointValue * encoderMultiplier + currentEncoderOffset;
+    return currentEncoderValuePulse - referenceJointValue * encoderMultiplier;
+};
 
 void ComputeMatrixFromTransform(Real matrix[12], const Transform &transform)
 {

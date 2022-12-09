@@ -719,9 +719,10 @@ public:
     /// \brief copy the resource and all its child resources to a new name
     virtual void Copy(const std::string& newname, int options, double timeout = 5.0);
 
-private:
+protected:
     virtual void GetWrap(rapidjson::Document& pt, const std::string& field, double timeout = 5.0);
 
+private:
     ControllerClientPtr __controller;
     std::string __resourcename, __pk;
 };
@@ -927,6 +928,15 @@ public:
 
     virtual void GetTools(std::vector<ToolResourcePtr>& tools);
     virtual void GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& attachedsensors);
+
+    /// \brief sets encoder offset
+    /// \param jointIndex index of the joint to set the offset to
+    /// \param encoderOffset offset value in pulse
+    virtual void GetEncoderOffset(int jointIndex, double& encoderOffset, double timeout = 5.0);
+    /// \brief gets encoder offset
+    /// \param jointIndex index of the joint to obtain the offset of
+    /// \param encoderOffset offset value in pulse
+    virtual void SetEncoderOffset(int jointIndex, double encoderOffset, double timeout = 5.0);
 
     // attachments
     // ikparams
@@ -1256,6 +1266,14 @@ MUJINCLIENT_API void DestroyControllerClient();
 
 /// \deprecated 14/03/14
 MUJINCLIENT_API void ControllerClientDestroy() MUJINCLIENT_DEPRECATED;
+
+/// \brief computes encoder offset given current and reference joint value
+/// \param currentJointValue current joint value
+/// \param referenceJointValue reference joint value
+/// \param currentEncoderOffset current encoder offset
+/// \param encoderMultiplier multiplier to convert unit encoder value to joint value in deg / mm
+/// \return encoder offset value
+MUJINCLIENT_API double ComputeEncoderOffset(double currentJointValue, double referenceJointValue, double currentEncoderOffset, double encoderMultiplier);
 
 /// \brief Compute a 3x4 matrix from a Transform
 MUJINCLIENT_API void ComputeMatrixFromTransform(Real matrix[12], const Transform &transform);
