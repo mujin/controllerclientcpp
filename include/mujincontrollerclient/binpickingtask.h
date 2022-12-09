@@ -542,6 +542,12 @@ public:
     /// \brief calls planning GetRobotBridgeIOVariableString and returns the contents of the signal in a string with correct endianness
     virtual void GetRobotBridgeIOVariableString(const std::vector<std::string>& ionames, std::vector<std::string>& iovalues, const double timeout=10);
 
+    /// \brief restarts robot communication process
+    virtual void ShutdownRobotBridge(const double timeout = 10);
+
+    /// \brief ends jog mode
+    virtual void EndJogMode(const double timeout = 10);
+
     /** \brief Monitors heartbeat signals from a running binpicking ZMQ server, and reinitializes the ZMQ server when heartbeat is lost.
         \param reinitializetimeout seconds to wait before re-initializing the ZMQ server after the heartbeat signal is lost
         \param execfn function to use to execute the InitializeZMQ command

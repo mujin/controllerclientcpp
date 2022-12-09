@@ -1582,6 +1582,22 @@ void BinPickingTaskResource::GetRobotBridgeIOVariableString(const std::vector<st
     }
 }
 
+void BinPickingTaskResource::ShutdownRobotBridge(const double timeout)
+{
+    SetMapTaskParameters(_ss, _mapTaskParameters);
+    _ss << GetJsonString("command", "ShutdownRobotBridge") << "}";
+    rapidjson::Document d;
+    ExecuteCommand(_ss.str(), d, timeout);
+}
+
+void BinPickingTaskResource::EndJogMode(const double timeout)
+{
+    SetMapTaskParameters(_ss, _mapTaskParameters);
+    _ss << GetJsonString("command", "EndJogMode") << "}";
+    rapidjson::Document d;
+    ExecuteCommand(_ss.str(), d, timeout);
+}
+
 const std::string& BinPickingTaskResource::GetSlaveRequestId() const
 {
     return _slaverequestid;
