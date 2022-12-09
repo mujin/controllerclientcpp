@@ -198,51 +198,16 @@ int main(int argc, char ** argv)
     if(opts["update_external_reference"].as<unsigned int>() && !(*it1)->reference_object_pk.empty()){
         object_pk = (*it1)->reference_object_pk;
     }
-    ObjectResourcePtr object(new ObjectResource(controllerclient, object_pk));
-    cout << "obtaining object done" << endl;
+    RobotResourcePtr robot(new RobotResource(controllerclient, object_pk));
+    cout << "obtaining robot done" << endl;
 
-    map<string, vector<int>> params = object->GetPath<map<string, vector<int>>>("/robot_motion_parameters/int_parameters");
-    if(params["pulseOffset"].size() > resultGetJointValues.currentjointvalues.size()){
-        cerr << "pulseOffset.size " << params["pulseOffset"].size() << " > resultGetJointValues.currentjointvalues.size " << resultGetJointValues.currentjointvalues.size() << endl;
-        return 1;
-    }
-    if(params["pulseOffset"].size() != params["pulsePerDegree"].size()){
-        cerr << "pulseOffset.size " << params["pulseOffset"].size() << " != pulsePerDegree.size " << params["pulsePerDegree"].size() << endl;
-        return 1;
-    }
-    cout << "current joint values =";
-    for(int i=0; i<params["pulseOffset"].size();i++){cout<<" "<<resultGetJointValues.currentjointvalues[i];}
-    cout << endl;
-    cout << "current pulse offset =";
-    for(int i=0; i<params["pulseOffset"].size();i++){cout<<" "<<params["pulseOffset"][i];}
-    cout << endl;
+    double currentEncoderOffset;
+    const int jointIndexJ1 = 0;
+    double referenceJ1JointValue = 15.0;
+    double encoderMultiplerJ1 = 2349.0;
+    robot->GetEncoderOffset(jointIndexJ1, currentEncoderOffset);
+    const double newEncoderOffset = ComputeEncoderOffset(resultGetJointValues.currentjointvalues[jointIndexJ1], referenceJ1JointValue, currentEncoderOffset, encoderMultiplerJ1);
+    robot->SetEncoderOffset(jointIndexJ1, newEncoderOffset);
 
-    map<string, map<string, vector<int>>> setparams;
-    vector<int> &newPulseOffset = setparams["int_parameters"]["pulseOffset"];
-    cout << "new joint values = ";
-    for(int i=0; i<params["pulseOffset"].size();i++){
-        double actual_joint_value_deg = resultGetJointValues.currentjointvalues[i];
-        double pulsePerDegree = params["pulsePerDegree"][i];
-        double pulseOffset = params["pulseOffset"][i];
-        double actual_encoder_value_pulse = actual_joint_value_deg * pulsePerDegree + pulseOffset;
-        double reference_joint_value_deg;
-        cin >> reference_joint_value_deg;
-        newPulseOffset.push_back(actual_encoder_value_pulse - reference_joint_value_deg * pulsePerDegree);
-    }
-    cout << "new pulse offset =";
-    for(int i=0; i<params["pulseOffset"].size();i++){cout<<" "<<newPulseOffset[i];}
-    cout << endl;
-    //object->SetJSON(mujinjson::GetJsonStringByKey("robot_motion_parameters",setparams));
-/*
-    params["pulseOffset"][0]++;
-    map<string, map<string, vector<int>>> setparams;
-    setparams["int_parameters"] = params;
-    object->SetJSON(mujinjson::GetJsonStringByKey("robot_motion_parameters",setparams));
-
-    params = object->Get<map<string, vector<int>>>("robot_motion_parameters/int_parameters");
-    cout << "new pulseOffset =";
-    for(auto &e: params["pulseOffset"]){cout<<" "<<e;}
-    cout << endl;
-*/
     return 0;
 }
