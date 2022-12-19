@@ -201,12 +201,13 @@ int main(int argc, char ** argv)
     RobotResourcePtr robot(new RobotResource(controllerclient, object_pk));
     cout << "obtaining robot done" << endl;
 
-    double currentEncoderOffset;
     const int jointIndexJ1 = 0;
-    double referenceJ1JointValue = 15.0;
-    double encoderMultiplerJ1 = 2349.0;
+    const double referenceJ1JointValue = 15.0;
+    double currentEncoderOffset;
+    double encoderMultipler;
     robot->GetEncoderOffset(jointIndexJ1, currentEncoderOffset);
-    const double newEncoderOffset = ComputeEncoderOffset(resultGetJointValues.currentjointvalues[jointIndexJ1], referenceJ1JointValue, currentEncoderOffset, encoderMultiplerJ1);
+    robot->GetEncoderMultiplier(jointIndexJ1, encoderMultipler);
+    const double newEncoderOffset = ComputeEncoderOffset(resultGetJointValues.currentjointvalues[jointIndexJ1], referenceJ1JointValue, currentEncoderOffset, encoderMultipler);
     robot->SetEncoderOffset(jointIndexJ1, newEncoderOffset);
 
     pBinpickingTask->ShutdownRobotBridge();
