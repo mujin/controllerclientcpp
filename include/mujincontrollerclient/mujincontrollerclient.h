@@ -929,6 +929,8 @@ public:
     /// \param encoderOffset offset value in pulse
     virtual void SetEncoderOffset(int jointIndex, double encoderOffset, double timeout = 5.0);
 
+    virtual void GetEncoderMultiplier(int jointIndex, double& encoderMultiplier, double timeout = 5.0);
+
     // attachments
     // ikparams
     // images
