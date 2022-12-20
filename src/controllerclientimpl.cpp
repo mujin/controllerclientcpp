@@ -1322,8 +1322,6 @@ long ControllerClientImpl::GetModifiedTime(const std::string& uri, double timeou
 
 void ControllerClientImpl::_DownloadFileFromController(const std::string& desturi, long localtimeval, long &remotetimeval, std::vector<unsigned char>& outputdata, double timeout)
 {
-    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_TIMEOUT_MS, 0L, (long)(timeout * 1000L));
-
     remotetimeval = 0;
 
     // ask for remote file time
