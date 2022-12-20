@@ -110,8 +110,8 @@ void LoadJsonValue(const rapidjson::Value& v, SensorSelectionInfo& sensorSelecti
 
 void SaveJsonValue(rapidjson::Value& v, const SensorSelectionInfo& sensorSelectionInfo, rapidjson::Document::AllocatorType& alloc) {
     v.SetObject();
-    v.AddMember(rapidjson::Document::StringRefType("sensorName"), rapidjson::Document::StringRefType(sensorSelectionInfo.sensorName.c_str()), alloc);
-    v.AddMember(rapidjson::Document::StringRefType("sensorLinkName"), rapidjson::Document::StringRefType(sensorSelectionInfo.sensorLinkName.c_str()), alloc);
+    mujinjson::SetJsonValueByKey(v, "sensorName", sensorSelectionInfo.sensorName, alloc);
+    mujinjson::SetJsonValueByKey(v, "sensorLinkName", sensorSelectionInfo.sensorLinkName, alloc);
 }
 
 WebResource::WebResource(ControllerClientPtr controller, const std::string& resourcename, const std::string& pk) : __controller(controller), __resourcename(resourcename), __pk(pk)
