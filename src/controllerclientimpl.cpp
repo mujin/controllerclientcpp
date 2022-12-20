@@ -1334,7 +1334,7 @@ void ControllerClientImpl::_DownloadFileFromController(const std::string& destur
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_TIMEVALUE, 0L, localtimeval > 0 ? localtimeval : 0L);
 
     // do the get call
-    long http_code = _CallGet(desturi, outputdata, 0);
+    long http_code = _CallGet(desturi, outputdata, 0, timeout);
     if ((http_code != 200 && http_code != 304)) {
         if (outputdata.size() > 0) {
             std::stringstream ss;
