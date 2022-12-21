@@ -920,8 +920,8 @@ public:
     virtual void GetTools(std::vector<ToolResourcePtr>& tools);
     virtual void GetAttachedSensors(std::vector<AttachedSensorResourcePtr>& attachedsensors);
 
-    /// \brief sets encoder offset
-    /// \param jointIndex index of the joint to set the offset to
+    /// \brief gets encoder offset
+    /// \param jointIndex index of the joint to obtain the offset of
     /// \param encoderOffset offset value in encoder unit
     /// \param timeout in sec
     virtual void GetEncoderOffset(int jointIndex, double& encoderOffset, double timeout = 5.0);
