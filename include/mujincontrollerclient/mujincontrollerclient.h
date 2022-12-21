@@ -922,14 +922,25 @@ public:
 
     /// \brief sets encoder offset
     /// \param jointIndex index of the joint to set the offset to
-    /// \param encoderOffset offset value in pulse
+    /// \param encoderOffset offset value in encoder unit
+    /// \param timeout in sec
     virtual void GetEncoderOffset(int jointIndex, double& encoderOffset, double timeout = 5.0);
-    /// \brief gets encoder offset
-    /// \param jointIndex index of the joint to obtain the offset of
-    /// \param encoderOffset offset value in pulse
+    /// \brief sets encoder offset
+    /// \param jointIndex index of the joint to set the offset to
+    /// \param encoderOffset offset value in encoder unit
+    /// \param timeout in sec
     virtual void SetEncoderOffset(int jointIndex, double encoderOffset, double timeout = 5.0);
 
+    /// \brief gets encoder multiplier
+    /// \param jointIndex index of the joint to obtain the multiplier of
+    /// \param encoderMultiplier multiplier value in encoder unit
+    /// \param timeout in sec
     virtual void GetEncoderMultiplier(int jointIndex, double& encoderMultiplier, double timeout = 5.0);
+    /// \brief sets encoder multiplier
+    /// \param jointIndex index of the joint to set the multiplier to
+    /// \param encoderMultiplier multiplier value in encoder unit
+    /// \param timeout in sec
+    virtual void SetEncoderMultiplier(int jointIndex, double encoderMultiplier, double timeout = 5.0);
 
     // attachments
     // ikparams

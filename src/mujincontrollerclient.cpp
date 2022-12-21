@@ -530,6 +530,16 @@ void RobotResource::GetEncoderMultiplier(int jointIndex, double& encoderMultipli
     encoderMultiplier = pulsePerDegree.at(jointIndex);
 }
 
+void RobotResource::SetEncoderMultiplier(int jointIndex, double encoderMultiplier, double timeout){
+    rapidjson::Document pt(rapidjson::kObjectType);
+    GetWrap(pt, "robot_motion_parameters", timeout);
+    std::vector<int> pulsePerDegree = mujinjson_external::GetJsonValueByPath<std::vector<int>>(pt, "/robot_motion_parameters/int_parameters/pulsePerDegree");
+    pulsePerDegree.at(jointIndex) = encoderMultiplier;
+    std::map<std::string, std::map<std::string, std::vector<int>>> setparams;
+    setparams["int_parameters"]["pulsePerDegree"] = pulsePerDegree;
+    SetJSON(mujinjson_external::GetJsonStringByKey("robot_motion_parameters", setparams), timeout);
+}
+
 SceneResource::InstObject::InstObject(ControllerClientPtr controller, const std::string& scenepk, const std::string& pk_) : WebResource(controller, str(boost::format("scene/%s/instobject")%scenepk), pk_), pk(pk_)
 {
 }
