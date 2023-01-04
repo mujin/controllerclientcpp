@@ -364,6 +364,9 @@ public:
     /// Check out http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
     virtual void SetLanguage(const std::string& language) = 0;
 
+    /// \brief sets the user agent to be sent with each http request
+    virtual void SetUserAgent(const std::string& userAgent) = 0;
+
     /// \brief sets additional http headers to be included on all requests
     ///
     /// \param additionalHeaders expect each value to be in the format of "Header-Name: header-value"

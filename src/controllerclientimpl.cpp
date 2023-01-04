@@ -292,6 +292,11 @@ void ControllerClientImpl::SetLanguage(const std::string& language)
     // _SetupHTTPHeadersMultipartFormData();
 }
 
+void ControllerClientImpl::SetUserAgent(const std::string& userAgent)
+{
+    CURL_OPTION_SETTER(_curl, CURLOPT_USERAGENT, userAgent.c_str());
+}
+
 void ControllerClientImpl::SetAdditionalHeaders(const std::vector<std::string>& additionalHeaders)
 {
     boost::mutex::scoped_lock lock(_mutex);
@@ -1343,8 +1348,6 @@ long ControllerClientImpl::GetModifiedTime(const std::string& uri, double timeou
 
 void ControllerClientImpl::_DownloadFileFromController(const std::string& desturi, long localtimeval, long &remotetimeval, std::vector<unsigned char>& outputdata, double timeout)
 {
-    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_TIMEOUT_MS, 0L, (long)(timeout * 1000L));
-
     remotetimeval = 0;
 
     // ask for remote file time
@@ -1355,7 +1358,7 @@ void ControllerClientImpl::_DownloadFileFromController(const std::string& destur
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_TIMEVALUE, 0L, localtimeval > 0 ? localtimeval : 0L);
 
     // do the get call
-    long http_code = _CallGet(desturi, outputdata, 0);
+    long http_code = _CallGet(desturi, outputdata, 0, timeout);
     if ((http_code != 200 && http_code != 304)) {
         if (outputdata.size() > 0) {
             std::stringstream ss;

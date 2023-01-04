@@ -36,6 +36,7 @@ public:
     virtual void SetCharacterEncoding(const std::string& newencoding);
     virtual void SetProxy(const std::string& serverport, const std::string& userpw);
     virtual void SetLanguage(const std::string& language);
+    virtual void SetUserAgent(const std::string& userAgent);
     virtual void SetAdditionalHeaders(const std::vector<std::string>& additionalHeaders);
     virtual void RestartServer(double timeout);
     virtual void ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout);
