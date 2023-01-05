@@ -15,7 +15,6 @@
 
 
 using namespace mujinclient;
-namespace mujinjson = mujinclient::mujinjson_external;
 
 #include <boost/program_options.hpp>
 #include <boost/bind.hpp>

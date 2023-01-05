@@ -29,7 +29,6 @@ MUJIN_LOGGER("mujin.controllerclientcpp");
 
 namespace mujinclient {
 
-namespace mujinjson = mujinjson_external;
 using namespace mujinjson;
 
 void ExtractEnvironmentStateFromPTree(const rapidjson::Value& envstatejson, EnvironmentState& envstate)
@@ -96,22 +95,6 @@ void SerializeEnvironmentStateToJSON(const EnvironmentState& envstate, std::ostr
         }
     }
     os << "]";
-}
-
-void LoadJsonValue(const rapidjson::Value& v, SensorSelectionInfo& sensorSelectionInfo)
-{
-    if( !v.IsObject() || !v.HasMember("sensorName") || !v.HasMember("sensorLinkName") ) {
-        MUJIN_LOG_INFO(str(boost::format("Invalid SensorSelectionInfo in %s")%mujinjson::DumpJson(v)));
-        return;
-    }
-    sensorSelectionInfo.sensorName = mujinjson::GetStringJsonValueByKey(v, "sensorName");
-    sensorSelectionInfo.sensorLinkName = mujinjson::GetStringJsonValueByKey(v, "sensorLinkName");
-}
-
-void SaveJsonValue(rapidjson::Value& v, const SensorSelectionInfo& sensorSelectionInfo, rapidjson::Document::AllocatorType& alloc) {
-    v.SetObject();
-    mujinjson::SetJsonValueByKey(v, "sensorName", sensorSelectionInfo.sensorName, alloc);
-    mujinjson::SetJsonValueByKey(v, "sensorLinkName", sensorSelectionInfo.sensorLinkName, alloc);
 }
 
 WebResource::WebResource(ControllerClientPtr controller, const std::string& resourcename, const std::string& pk) : __controller(controller), __resourcename(resourcename), __pk(pk)
@@ -814,7 +797,7 @@ void SceneResource::GetTaskNames(std::vector<std::string>& taskkeys)
     }
 }
 
-void SceneResource::GetAllSensorSelectionInfos(std::vector<SensorSelectionInfo>& allSensorSelectionInfos)
+void SceneResource::GetAllSensorSelectionInfos(std::vector<mujin::SensorSelectionInfo>& allSensorSelectionInfos)
 {
     GETCONTROLLERIMPL();
     allSensorSelectionInfos.clear();
