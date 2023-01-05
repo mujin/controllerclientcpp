@@ -44,7 +44,7 @@
     { \
         if (!(mujinjson::LoadJsonValueByKey(rValue, key, param))) \
         { \
-            throw MujinJSONException(boost::str(boost::format(("[%s, %u] assert(mujinjson::LoadJsonValueByKey(%s, %s, %s))"))%__FILE__%__LINE__%# rValue%key%# param)); \
+            throw mujinjson::MujinJSONException(boost::str(boost::format(("[%s, %u] assert(mujinjson::LoadJsonValueByKey(%s, %s, %s))"))%__FILE__%__LINE__%# rValue%key%# param)); \
         } \
     }
 #endif // MUJINJSON_LOAD_REQUIRED_JSON_VALUE_BY_KEY
