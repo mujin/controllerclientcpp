@@ -821,6 +821,7 @@ void SceneResource::GetAllSensorSelectionInfos(std::vector<mujin::SensorSelectio
             rapidjson::Value& rConnectedBodies = rRobotConnectedBodies["connectedBodies"];
             for (rapidjson::Document::ConstValueIterator itConnectedBody = rConnectedBodies.Begin(); itConnectedBody != rConnectedBodies.End(); ++itConnectedBody) {
                 const std::string connectedBodyScenePk = controller->GetScenePrimaryKeyFromURI_UTF8(GetJsonValueByKey<std::string>(*itConnectedBody, "url"));
+                const std::string connectedBodyName = GetJsonValueByKey<std::string>(*itConnectedBody, "name");
                 rapidjson::Document rConnectedBodyInstObjects(rapidjson::kObjectType);
                 controller->CallGet(str(boost::format("scene/%s/instobject/?format=json&limit=0&fields=attachedsensors,object_pk,name")%connectedBodyScenePk), rConnectedBodyInstObjects);
                 for (rapidjson::Document::ConstValueIterator itConnectedBodyInstObject = rConnectedBodyInstObjects["objects"].Begin(); itConnectedBodyInstObject != rConnectedBodyInstObjects["objects"].End(); ++itConnectedBodyInstObject) {
@@ -833,7 +834,7 @@ void SceneResource::GetAllSensorSelectionInfos(std::vector<mujin::SensorSelectio
                     rapidjson::Value& rConnectedBodyAttachedSensors = rConnectedBodyRobotAttachedSensors["attachedsensors"];
                     for (rapidjson::Document::ConstValueIterator itConnectedBodyAttachedSensor = rConnectedBodyAttachedSensors.Begin(); itConnectedBodyAttachedSensor != rConnectedBodyAttachedSensors.End(); ++itConnectedBodyAttachedSensor) {
                         const std::string sensorLinkName = GetJsonValueByKey<std::string>(*itConnectedBodyAttachedSensor, "linkName");
-                        allSensorSelectionInfos.emplace_back(sensorName, sensorLinkName);
+                        allSensorSelectionInfos.emplace_back(sensorName, connectedBodyName+"_"+sensorLinkName);
                     }
                 }
             }
