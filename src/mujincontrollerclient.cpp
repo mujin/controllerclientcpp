@@ -516,10 +516,9 @@ void RobotResource::GetEncoderOffset(int jointIndex, double& encoderOffset, doub
 void RobotResource::SetEncoderOffset(int jointIndex, double encoderOffset, double timeout){
     rapidjson::Document pt(rapidjson::kObjectType);
     GetWrap(pt, "robot_motion_parameters", timeout);
-    std::vector<int> pulseOffset = mujinjson_external::GetJsonValueByPath<std::vector<int>>(pt, "/robot_motion_parameters/int_parameters/pulseOffset");
-    pulseOffset.at(jointIndex) = encoderOffset;
     std::map<std::string, std::map<std::string, std::vector<int>>> setparams;
-    setparams["int_parameters"]["pulseOffset"] = pulseOffset;
+    setparams["int_parameters"] = mujinjson_external::GetJsonValueByPath<std::map<std::string, std::vector<int>>>(pt, "/robot_motion_parameters/int_parameters");
+    setparams["int_parameters"]["pulseOffset"].at(jointIndex) = encoderOffset;
     SetJSON(mujinjson_external::GetJsonStringByKey("robot_motion_parameters", setparams), timeout);
 }
 
@@ -533,10 +532,9 @@ void RobotResource::GetEncoderMultiplier(int jointIndex, double& encoderMultipli
 void RobotResource::SetEncoderMultiplier(int jointIndex, double encoderMultiplier, double timeout){
     rapidjson::Document pt(rapidjson::kObjectType);
     GetWrap(pt, "robot_motion_parameters", timeout);
-    std::vector<int> pulsePerDegree = mujinjson_external::GetJsonValueByPath<std::vector<int>>(pt, "/robot_motion_parameters/int_parameters/pulsePerDegree");
-    pulsePerDegree.at(jointIndex) = encoderMultiplier;
     std::map<std::string, std::map<std::string, std::vector<int>>> setparams;
-    setparams["int_parameters"]["pulsePerDegree"] = pulsePerDegree;
+    setparams["int_parameters"] = mujinjson_external::GetJsonValueByPath<std::map<std::string, std::vector<int>>>(pt, "/robot_motion_parameters/int_parameters");
+    setparams["int_parameters"]["pulsePerDegree"].at(jointIndex) = encoderMultiplier;
     SetJSON(mujinjson_external::GetJsonStringByKey("robot_motion_parameters", setparams), timeout);
 }
 
