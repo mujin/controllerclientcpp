@@ -830,7 +830,7 @@ int ControllerClientImpl::CallPost(const std::string& relativeuri, const std::st
 /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
 int ControllerClientImpl::_CallPost(const std::string& desturi, const std::string& data, rapidjson::Document& pt, int expectedhttpcode, double timeout)
 {
-    MUJIN_LOG_DEBUG(str(boost::format("POST %s")%desturi));
+    MUJIN_LOG_VERBOSE(str(boost::format("POST %s")%desturi));
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_TIMEOUT_MS, 0L, (long)(timeout * 1000L));
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPHEADER, NULL, _httpheadersjson);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, desturi.c_str());
