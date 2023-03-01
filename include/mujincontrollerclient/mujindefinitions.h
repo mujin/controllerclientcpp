@@ -69,6 +69,22 @@ struct Transform
     Real translate[3]; ///< translation x,y,z
 };
 
+struct AABB
+{
+    AABB() {
+        pos[0] = 1; pos[1] = 0; pos[2] = 0;
+        extents[0] = 0; extents[1] = 0; extents[2] = 0;
+    }
+    inline bool operator!=(const AABB& other) const {
+        return !FuzzyEquals(pos, other.pos) || !FuzzyEquals(pos, other.pos);
+    }
+    inline bool operator==(const AABB& other) const {
+        return !operator!=(other);
+    }
+    Real pos[3]; ///< center of AABB
+    Real extents[3]; ///< half extents of AABB
+};
+
 struct MUJINCLIENT_API SensorSelectionInfo : public mujinjson::JsonSerializable
 {
     SensorSelectionInfo() = default;
@@ -103,6 +119,7 @@ struct MUJINCLIENT_API PickPlaceHistoryItem
     unsigned long long eventTimeStampUS; ///< time that the event ocurred in us (from Linux epoch). For "picked" this is the chuck time, for "placed this is the unchuck time, for "touched" this is the time when the robot supposedly stopped touching/disturbing the object.
     std::string object_uri; ///< the object uri
     Transform objectpose; ///< 7-values in world, unit is usually mm
+    AABB localaabb; ///< AABB of object in object frame.
     unsigned long long sensorTimeStampUS; ///< sensor timestamp in us (from Linux epoch) of when the object was detected in the scene
 };
 
