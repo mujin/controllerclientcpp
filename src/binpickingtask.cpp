@@ -662,9 +662,9 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
             pickPlaceHistoryItems[iitem].object_uri = GetJsonValueByKey<std::string,std::string>(rItem, "object_uri", std::string());
 
             pickPlaceHistoryItems[iitem].objectpose = Transform();
-            const rapidjson::ConstMemberIterator itPose = rItem.FindMember("objectpose");
+            const rapidjson::Value::ConstMemberIterator itPose = rItem.FindMember("objectpose");
             if( itPose != rItem.MemberEnd() ) {
-                const rapidjson::Value& rObjectPose = rItem->value;;
+                const rapidjson::Value& rObjectPose = itPose->value;;
                 if( rObjectPose.IsArray() && rObjectPose.Size() == 7 ) {
                     LoadJsonValue(rObjectPose[0], pickPlaceHistoryItems[iitem].objectpose.quaternion[0]);
                     LoadJsonValue(rObjectPose[1], pickPlaceHistoryItems[iitem].objectpose.quaternion[1]);
@@ -677,9 +677,9 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
             }
 
             pickPlaceHistoryItems[iitem].localaabb = mujin::AABB();
-            const rapidjson::ConstMemberIterator itLocalAABB = rItem.FindMember("objectpose");
+            const rapidjson::Value::ConstMemberIterator itLocalAABB = rItem.FindMember("objectpose");
             if( itLocalAABB != rItem.MemberEnd() ) {
-                const rapidjson::Value& rLocalAABB = rLocalAABB->value;
+                const rapidjson::Value& rLocalAABB = itLocalAABB->value;
                 LoadAABBFromJsonValue(rLocalAABB, pickPlaceHistoryItems[iitem].localaabb);
             }
 
