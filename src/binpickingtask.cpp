@@ -50,14 +50,14 @@ static void LoadAABBFromJsonValue(const rapidjson::Value& rAABB, mujin::AABB& aa
     BOOST_ASSERT(rAABB.HasMember("extents"));
     const rapidjson::Value& rPos = rAABB["pos"];
     BOOST_ASSERT(rPos.IsArray());
-    mujinjson::LoadJsonValue(rPos, aabb.pos[0]);
-    mujinjson::LoadJsonValue(rPos, aabb.pos[1]);
-    mujinjson::LoadJsonValue(rPos, aabb.pos[2]);
+    mujinjson::LoadJsonValue(rPos[0], aabb.pos[0]);
+    mujinjson::LoadJsonValue(rPos[1], aabb.pos[1]);
+    mujinjson::LoadJsonValue(rPos[2], aabb.pos[2]);
     const rapidjson::Value& rExtents = rAABB["extents"];
     BOOST_ASSERT(rExtents.IsArray());
-    mujinjson::LoadJsonValue(rExtents, aabb.extents[0]);
-    mujinjson::LoadJsonValue(rExtents, aabb.extents[1]);
-    mujinjson::LoadJsonValue(rExtents, aabb.extents[2]);
+    mujinjson::LoadJsonValue(rExtents[0], aabb.extents[0]);
+    mujinjson::LoadJsonValue(rExtents[1], aabb.extents[1]);
+    mujinjson::LoadJsonValue(rExtents[2], aabb.extents[2]);
 }
 
 BinPickingResultResource::BinPickingResultResource(ControllerClientPtr controller, const std::string& pk) : PlanningResultResource(controller,"binpickingresult", pk)
@@ -677,7 +677,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
             }
 
             pickPlaceHistoryItems[iitem].localaabb = mujin::AABB();
-            const rapidjson::Value::ConstMemberIterator itLocalAABB = rItem.FindMember("objectpose");
+            const rapidjson::Value::ConstMemberIterator itLocalAABB = rItem.FindMember("localaabb");
             if( itLocalAABB != rItem.MemberEnd() ) {
                 const rapidjson::Value& rLocalAABB = itLocalAABB->value;
                 LoadAABBFromJsonValue(rLocalAABB, pickPlaceHistoryItems[iitem].localaabb);
