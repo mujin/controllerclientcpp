@@ -19,14 +19,9 @@
 
 #include "mujincontrollerclient/binpickingtask.h"
 #include "mujincontrollerclient/mujinzmq.h"
+#include "mujincontrollerclient/mujinzmqclient.h"
 
 namespace mujinclient {
-
-/** \brief client to mujin controller via zmq socket connection
- */
-class ZmqMujinControllerClient;
-typedef boost::shared_ptr<ZmqMujinControllerClient> ZmqMujinControllerClientPtr;
-typedef boost::weak_ptr<ZmqMujinControllerClient> ZmqMujinControllerClientWeakPtr;
 
 class MUJINCLIENT_API BinPickingTaskZmqResource : public BinPickingTaskResource
 {
