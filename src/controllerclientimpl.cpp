@@ -1942,7 +1942,7 @@ void ControllerClientImpl::CreateLogEntries(const std::vector<LogEntryPtr>& logE
     } 
 
     // uri to upload
-    _uri = _baseapiuri + std::string("logEntry/");
+    _uri = _baseuri + std::string("api/v2/logEntry");
 
     // prepare form
     struct curl_httppost *formpost = NULL;
@@ -1954,8 +1954,9 @@ void ControllerClientImpl::CreateLogEntries(const std::vector<LogEntryPtr>& logE
             continue;
         } 
         // add log entry
+        std::string form_name = "logEntry/" + logEntry->logType;
         curl_formadd(&formpost, &lastptr,
-                    CURLFORM_COPYNAME, "logEntry",
+                    CURLFORM_COPYNAME, form_name.c_str(),
                     CURLFORM_COPYCONTENTS, DumpJson(logEntry->entry).c_str(),
                     CURLFORM_CONTENTTYPE, "application/json",
                     CURLFORM_END);

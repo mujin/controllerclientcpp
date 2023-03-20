@@ -122,6 +122,7 @@ typedef boost::weak_ptr<LogEntryResource> LogEntryResourceWeakPtr;
 struct LogEntry
 {
     rapidjson::Document entry; // log entry data in JSON format
+    std::string logType; // log type
     std::vector<LogEntryResourcePtr> resources; // a list of related resources
 };
 
