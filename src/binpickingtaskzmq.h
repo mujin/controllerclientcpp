@@ -35,7 +35,7 @@ public:
 
     ~BinPickingTaskZmqResource();
 
-    void ExecuteCommand(const std::string& command, rapidjson::Document&d, const double timeout /* [sec] */=0.0, const bool getresult=true) override;
+    void ExecuteCommand(const std::string& taskparameters, rapidjson::Document &pt, const double timeout /* [sec] */=0.0, const bool getresult=true) override;
 
     virtual void ExecuteCommand(rapidjson::Value& rTaskParameters, rapidjson::Document& rOutput, const double timeout /* second */=5.0) override;
 
