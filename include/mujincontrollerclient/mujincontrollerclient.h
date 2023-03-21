@@ -55,12 +55,15 @@
 #include <boost/weak_ptr.hpp>
 #include <boost/format.hpp>
 #include <boost/array.hpp>
+#include <mujincontrollerclient/config.h>
 #include <mujincontrollerclient/mujinexceptions.h>
 #include <mujincontrollerclient/mujinjson.h>
+#include <mujincontrollerclient/mujindefinitions.h>
+
 
 namespace mujinclient {
 
-#include <mujincontrollerclient/config.h>
+typedef mujin::Transform Transform;
 
 enum TaskResourceOptions
 {
@@ -129,30 +132,6 @@ struct LogEntry
 typedef boost::shared_ptr<LogEntry> LogEntryPtr;
 typedef boost::weak_ptr<LogEntry> LogEntryWeakPtr;
 
-inline bool FuzzyEquals(Real p, Real q, double epsilon=1e-3) {
-    return fabs(double(p - q)) < epsilon;
-}
-
-template<class T> inline bool FuzzyEquals(const std::vector<T>& p, const std::vector<T>& q, double epsilon=1e-3) {
-    if (p.size() != q.size()) {
-        return false;
-    }
-    for (size_t i = 0; i < p.size(); ++i) {
-        if (!FuzzyEquals(p[i], q[i], epsilon)) {
-            return false;
-        }
-    }
-    return true;
-}
-
-template<class T, size_t N> inline bool FuzzyEquals(const T (&p)[N], const T (&q)[N], double epsilon=1e-3) {
-    for (size_t i = 0; i < N; ++i) {
-        if (!FuzzyEquals(p[i], q[i], epsilon)) {
-            return false;
-        }
-    }
-    return true;
-}
 /// \brief status code for a job
 ///
 /// Definitions are very similar to http://ros.org/doc/api/actionlib_msgs/html/msg/GoalStatus.html
@@ -186,23 +165,6 @@ struct JobStatus
     std::string message; ///< current message of the job
     double elapsedtime; ///< how long the job has been running for in seconds
     std::string pk; ///< the primary key to differentiate this job
-};
-
-/// \brief an affine transform
-struct Transform
-{
-    Transform() {
-        quaternion[0] = 1; quaternion[1] = 0; quaternion[2] = 0; quaternion[3] = 0;
-        translate[0] = 0; translate[1] = 0; translate[2] = 0;
-    }
-    bool operator!=(const Transform& other) const {
-        return !FuzzyEquals(quaternion, other.quaternion) || !FuzzyEquals(translate, other.translate);
-    }
-    bool operator==(const Transform& other) const {
-        return !operator!=(other);
-    }
-    Real quaternion[4]; ///< quaternion [cos(ang/2), axis*sin(ang/2)]
-    Real translate[3]; ///< translation x,y,z
 };
 
 struct InstanceObjectState
@@ -385,6 +347,14 @@ public:
     /// Check out http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
     virtual void SetLanguage(const std::string& language) = 0;
 
+    /// \brief sets the user agent to be sent with each http request
+    virtual void SetUserAgent(const std::string& userAgent) = 0;
+
+    /// \brief sets additional http headers to be included on all requests
+    ///
+    /// \param additionalHeaders expect each value to be in the format of "Header-Name: header-value"
+    virtual void SetAdditionalHeaders(const std::vector<std::string>& additionalHeaders) = 0;
+
     /// \brief returns the username logged into this controller
     virtual const std::string& GetUserName() const = 0;
 
@@ -402,6 +372,17 @@ public:
     /// If the server is not responding, call this method to clear the server state and initialize everything.
     /// The method is blocking, when it returns the MUJIN Controller would have been restarted.
     virtual void RestartServer(double timeout = 5.0) = 0;
+
+    /// \brief Execute GraphQL query or mutation against Mujin Controller.
+    ///
+    /// Throws an exception if there are any errors
+    /// \param rResultData The "data" field of the result if the query returns without problems
+    virtual void ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResultData, rapidjson::Document::AllocatorType& rAlloc, double timeout = 60.0) = 0;
+
+    /// \brief Execute the GraphQL query or mutation against Mujin Controller and return any output as-is without doing any error processing
+    ///
+    /// \param rResult The entire result field of the query. Should have keys "data" and "errors". Each error should have keys: "message", "locations", "path", "extensions". And "extensions" has keys "errorCode".
+    virtual void ExecuteGraphQueryRaw(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout = 60.0) = 0;
 
     /// \brief returns the mujin controller version
     virtual std::string GetVersion() = 0;
@@ -518,8 +499,16 @@ public:
     ///
     /// Overwrites the destination uri if it already exists
     /// \param data binary data to upload to the uri
+    /// \param size binary data size in bytes
     /// \param desturi UTF-8 encoded destination file in the network filesystem. By default prefix with "mujin:/". Use the / separator for different paths.
-    virtual void UploadDataToController_UTF8(const std::vector<unsigned char>& vdata, const std::string& desturi) = 0;
+    virtual void UploadDataToController_UTF8(const void* data, size_t size, const std::string& desturi) = 0;
+
+    /// \brief \see UploadDataToController_UTF8
+    ///
+    /// \param data binary data to upload to the uri
+    /// \param size binary data size in bytes
+    /// \param desturi UTF-16 encoded
+    virtual void UploadDataToController_UTF16(const void* data, size_t size, const std::wstring& desturi) = 0;
 
     /// \brief Build a backup of config/media and download it.
     ///
@@ -719,7 +708,7 @@ public:
     inline T Get(const std::string& field, double timeout = 5.0) {
         rapidjson::Document pt(rapidjson::kObjectType);
         GetWrap(pt, field, timeout);
-        return mujinjson_external::GetJsonValueByKey<T>(pt, field.c_str());
+        return mujinjson::GetJsonValueByKey<T>(pt, field.c_str());
     }
 
     /// \brief sets an attribute of this web resource
@@ -1054,7 +1043,7 @@ public:
     virtual void GetTaskNames(std::vector<std::string>& names);
 
     /// \brief gets a list of all the instance objects of the scene
-    virtual void GetSensorMapping(std::map<std::string, std::string>& sensormapping);
+    virtual void GetAllSensorSelectionInfos(std::vector<mujin::SensorSelectionInfo>& allSensorSelectionInfos);
     virtual void GetInstObjects(std::vector<InstObjectPtr>& instobjects);
     virtual bool FindInstObject(const std::string& name, InstObjectPtr& instobject);
 

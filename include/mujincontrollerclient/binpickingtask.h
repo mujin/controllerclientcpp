@@ -139,42 +139,13 @@ public:
         std::vector<std::string> extra;
     };
 
-    /// \brief the picking history being published from the slave. Anytime the robot goes inside of the source container, its pick history will be udpated.
-    struct MUJINCLIENT_API PickPlaceHistoryItem
-    {
-        std::string pickPlaceType; ///< the type of action that ocurred can be: "picked", "placed", "touched"
-        std::string locationName; ///< the name of the region where picking occurred for "picked", where placing occurred when "placed", and where touching occurred for "touched"
-        unsigned long long eventTimeStampUS; ///< time that the event ocurred in us (from Linux epoch). For "picked" this is the chuck time, for "placed this is the unchuck time, for "touched" this is the time when the robot supposedly stopped touching/disturbing the object.
-        std::string object_uri; ///< the object uri
-        Transform objectpose; ///< 7-values in world, unit is usually mm
-        unsigned long long sensorTimeStampUS; ///< sensor timestamp in us (from Linux epoch) of when the object was detected in the scene
-    };
-
-    /// \brief Holds the state of each region coming from the planning side.
-    struct LocationTrackingInfo
-    {
-        std::string locationName; ///< name of the location tracking
-        std::string containerId; ///< containerId currently in the location
-        std::string containerName; ///< name of the container tracking
-        std::string containerUsage; ///< how the container is used
-        std::string cycleIndex; ///< unique cycleIndex that is tracking this location
-    };
-
-    struct LocationExecutionInfo
-    {
-        std::string locationName; ///< name of the location tracking
-        std::string containerId; ///< containerId currently in the location
-        uint64_t forceRequestStampMS=0; ///< ms, (linux epoch) of when the requestion for results (detection or point cloud) came in. If there is no request, then this will be 0
-        uint64_t lastInsideContainerStampMS = 0; ///< ms, (linux epoch) of when the robot (or something else) was inside the container and could have potentially disturbed the contents.
-        std::string needContainerState; ///< one of: Unknown, NewContainerNeeded, ContainerNeeded, ContainerNotNeeded. If empty, then not initialized yet, so can assume Unknown.
-    };
-
     struct MUJINCLIENT_API ResultGetBinpickingState : public ResultBase
     {
         /// \brief holds published occlusion results of camera and container pairs
         struct OcclusionResult
         {
-            std::string cameraname; ///< full camera name like: sourcecamera1/ensenso_r_rectified
+            std::string sensorName; ///< body name that has sensor
+            std::string sensorLinkName; ///< link name that has sensor
             std::string bodyname;
             int isocclusion;
         };
@@ -192,8 +163,8 @@ public:
         unsigned long long lastGrabbedTargetTimeStamp;   ///< ms
         //bool isRobotOccludingSourceContainer; ///?
         std::vector<OcclusionResult> vOcclusionResults;
-        std::vector<LocationTrackingInfo> activeLocationTrackingInfos;
-        std::vector<LocationExecutionInfo> locationExecutionInfos;
+        std::vector<mujin::LocationTrackingInfo> activeLocationTrackingInfos;
+        std::vector<mujin::LocationExecutionInfo> locationExecutionInfos;
 
         bool isGrabbingTarget;
         bool isGrabbingLastTarget;
@@ -241,12 +212,13 @@ public:
             std::array<double, 3> liftedWorldOffset; ///< [dx, dy, dz], mm in world frame
             std::array<double, 3> maxCandidateSize; ///< the max candidate size expecting
             std::array<double, 3> minCandidateSize; ///< the min candidate size expecting
-            double transferSpeedMult; ///< transfer speed multiplication factor
+            double transferSpeedPostMult; ///< transfer speed multiplication factor
             CopyableRapidJsonDocument graspModelInfo; ///< Parameters used for grasping model generation for the object
             double minCornerVisibleDist; ///< how much distance along with uncertain edge from uncertain corner robot exposes to camera
             double minCornerVisibleInsideDist; ///< how much distance inside MVR robot exposes to camera
             uint64_t occlusionFreeCornerMask; ///< mask of corners that robot exposes to camera
             bool waitForTriggerOnCapturing; ///<  if true, sensor will wait trigger on capturing
+            double maxPossibleSizePadding; ///< how much to additionally expose max possible size region to vision
             std::vector<double> fullDofValues; ///< robot configuration state on capturing
             std::vector<int8_t> connectedBodyActiveStates; ///< robot configuration state on capturing
             bool IsEmpty() const {
@@ -271,7 +243,7 @@ public:
             std::string targetupdatename; ///< if not empty, use this new targetupdatename for the triggering, otherwise do not change the original targetupdatename
         } triggerDetectionCaptureInfo;
 
-        std::vector<PickPlaceHistoryItem> pickPlaceHistoryItems; ///< history of pick/place actions that occurred in planning. Events should be sorted in the order they happen, ie event [0] happens before event [1], meaning event[0].eventTimeStampUS is before event[1].eventTimeStampUS
+        std::vector<mujin::PickPlaceHistoryItem> pickPlaceHistoryItems; ///< history of pick/place actions that occurred in planning. Events should be sorted in the order they happen, ie event [0] happens before event [1], meaning event[0].eventTimeStampUS is before event[1].eventTimeStampUS
     };
 
     struct MUJINCLIENT_API ResultIsRobotOccludingBody : public ResultBase
@@ -299,10 +271,10 @@ public:
     {
         void Parse(const rapidjson::Value& pt);
         bool operator!=(const ResultOBB& other) const {
-            return !FuzzyEquals(translation, other.translation) ||
-                   !FuzzyEquals(extents, other.extents) ||
-                   !FuzzyEquals(rotationmat, other.rotationmat) ||
-                   !FuzzyEquals(quaternion, other.quaternion);
+            return !mujin::FuzzyEquals(translation, other.translation) ||
+                   !mujin::FuzzyEquals(extents, other.extents) ||
+                   !mujin::FuzzyEquals(rotationmat, other.rotationmat) ||
+                   !mujin::FuzzyEquals(quaternion, other.quaternion);
         }
         bool operator==(const ResultOBB& other) const {
             return !operator!=(other);
@@ -331,8 +303,8 @@ public:
         std::map<std::string, Transform> minstobjecttransform;
         std::map<std::string, ResultOBB> minstobjectobb;
         std::map<std::string, ResultOBB> minstobjectinnerobb;
-        std::map<std::string, Transform> msensortransform;
-        std::map<std::string, RobotResource::AttachedSensorResource::SensorData> msensordata;
+        std::map<mujin::SensorSelectionInfo, Transform> msensortransform;
+        std::map<mujin::SensorSelectionInfo, RobotResource::AttachedSensorResource::SensorData> msensordata;
         std::map<std::string, boost::shared_ptr<rapidjson::Document> > mrGeometryInfos; ///< for every object, list of all the geometry infos
     };
 
@@ -468,7 +440,7 @@ public:
         \param unit input unit
         \param result unit is always in meter
      */
-    virtual void GetInstObjectAndSensorInfo(const std::vector<std::string>& instobjectnames, const std::vector<std::string>& sensornames, ResultGetInstObjectAndSensorInfo& result, const std::string& unit, const double timeout /* second */=5.0);
+    virtual void GetInstObjectAndSensorInfo(const std::vector<std::string>& instobjectnames, const std::vector<mujin::SensorSelectionInfo>& sensornames, ResultGetInstObjectAndSensorInfo& result, const std::string& unit, const double timeout /* second */=5.0);
 
     /** \brief Gets inst object info for a particular URI
         \param unit input unit
