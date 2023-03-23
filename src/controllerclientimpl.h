@@ -29,6 +29,8 @@ public:
     ControllerClientImpl(const std::string& usernamepassword, const std::string& baseuri, const std::string& proxyserverport, const std::string& proxyuserpw, int options, double timeout);
     virtual ~ControllerClientImpl();
 
+    virtual void InitializeZMQ(const int zmqPort, boost::shared_ptr<zmq::context_t> zmqcontext);
+
     virtual const std::string& GetUserName() const;
     virtual const std::string& GetBaseURI() const;
 
@@ -39,9 +41,10 @@ public:
     virtual void SetUserAgent(const std::string& userAgent);
     virtual void SetAdditionalHeaders(const std::vector<std::string>& additionalHeaders);
     virtual void RestartServer(double timeout);
-    virtual void _ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout, bool checkForErrors, bool returnRawResponse);
+    virtual void _ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout, bool checkForErrors, bool returnRawResponse, bool useZmq);
     virtual void ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout);
     virtual void ExecuteGraphQueryRaw(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout);
+    virtual void ExecuteGraphQueryZmq(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout);
     virtual void CancelAllJobs();
     virtual void GetRunTimeStatuses(std::vector<JobStatus>& statuses, int options);
     virtual void GetScenePrimaryKeys(std::vector<std::string>& scenekeys);
@@ -283,6 +286,12 @@ protected:
     std::string _defaultscenetype, _defaulttasktype;
 
     rapidjson::StringBuffer _rRequestStringBufferCache; ///< cache for request string, protected by _mutex
+
+    boost::shared_ptr<zmq::context_t> _zmqcontext;
+    std::string _mujinControllerIp;
+    int _zmqPort;
+    ZmqMujinControllerClientPtr _zmqMujinGraphQLClient; ///< a zmq client to send GraphQL queries
+    bool _zmqIsInitialized;
 };
 
 typedef boost::shared_ptr<ControllerClientImpl> ControllerClientImplPtr;
