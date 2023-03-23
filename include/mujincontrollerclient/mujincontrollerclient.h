@@ -59,6 +59,7 @@
 #include <mujincontrollerclient/mujinexceptions.h>
 #include <mujincontrollerclient/mujinjson.h>
 #include <mujincontrollerclient/mujindefinitions.h>
+#include "mujincontrollerclient/mujinzmqclient.h"
 
 
 namespace mujinclient {
@@ -300,6 +301,8 @@ class MUJINCLIENT_API ControllerClient
 public:
     virtual ~ControllerClient() {
     }
+
+    virtual void InitializeZMQ(const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq=false, const double reinitializetimeout=10, const double timeout=0, const std::string& userinfo="{}") = 0;
 
 //    \brief Returns a list of filenames in the user system of a particular type
 //

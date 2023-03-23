@@ -123,6 +123,16 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
         _basewebdavuri = str(boost::format("%su/%s/")%_baseuri%_username);
     }
 
+    _mujinControllerIp = _baseuri.substr(_baseuri.find("//")+2, _baseuri.size());
+    _mujinControllerIp.erase(remove(_mujinControllerIp.begin(), _mujinControllerIp.end(), '/'), _mujinControllerIp.end());  // Remove / from string
+    // Remove port
+    int idx = _mujinControllerIp.find(':');
+    if (idx != std::string::npos) {
+        _mujinControllerIp = _mujinControllerIp.substr(0, idx);
+    }
+    boost::shared_ptr<zmq::context_t> zmqcontext(new zmq::context_t(1));
+    InitializeZMQ(7801, 0, zmqcontext);  // TODO(felixvd): Allow changing this port
+
     //CURLcode code = curl_global_init(CURL_GLOBAL_SSL|CURL_GLOBAL_WIN32);
     _curl = curl_easy_init();
     BOOST_ASSERT(!!_curl);
@@ -242,6 +252,36 @@ ControllerClientImpl::~ControllerClientImpl()
         curl_slist_free_all(_httpheadersmultipartformdata);
     }
     curl_easy_cleanup(_curl);
+}
+
+void ControllerClientImpl::InitializeZMQ(const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq, const double reinitializetimeout, const double timeout, const std::string& userinfo) {
+    _zmqPort = zmqPort;
+    // _heartbeatPort = heartbeatPort;
+    _zmqcontext = zmqcontext;
+    _bIsInitialized = true;
+    MUJIN_LOG_INFO("--debug B0");
+    MUJIN_LOG_INFO("_mujinControllerIp: ");
+    MUJIN_LOG_INFO(_mujinControllerIp);
+    MUJIN_LOG_INFO("_zmqPort: ");
+    MUJIN_LOG_INFO(_zmqPort);
+    MUJIN_LOG_INFO("--debug B1");
+
+    _zmqMujinGraphQLClient.reset(new ZmqMujinControllerClient(_zmqcontext, _mujinControllerIp, _zmqPort));
+    MUJIN_LOG_INFO("--debug B2");
+    if (!_zmqMujinGraphQLClient) {
+        // TODO(felixvd): Change this to an Exception when Webstack is ready
+        MUJIN_LOG_ERROR(boost::str(boost::format("Failed to establish ZMQ connection to mujin controller at %s:%d")%_mujinControllerIp%_zmqPort));
+        // throw MujinException(boost::str(boost::format("Failed to establish ZMQ connection to mujin controller at %s:%d")%_mujinControllerIp%_zmqPort), MEC_Failed);
+    }
+    MUJIN_LOG_INFO("--debug B3");
+
+    //// TODO(felixvd): Add heartbeat
+    // if (!_pHeartbeatMonitorThread) {
+    //     _bShutdownHeartbeatMonitor = false;
+    //     if (reinitializetimeout > 0 ) {
+    //         _pHeartbeatMonitorThread.reset(new boost::thread(boost::bind(&BinPickingTaskZmqResource::_HeartbeatMonitorThread, this, reinitializetimeout, timeout)));
+    //     }
+    // }
 }
 
 std::string ControllerClientImpl::GetVersion()

@@ -29,6 +29,8 @@ public:
     ControllerClientImpl(const std::string& usernamepassword, const std::string& baseuri, const std::string& proxyserverport, const std::string& proxyuserpw, int options, double timeout);
     virtual ~ControllerClientImpl();
 
+    virtual void InitializeZMQ(const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq=false, const double reinitializetimeout=10, const double timeout=0, const std::string& userinfo="{}");
+
     virtual const std::string& GetUserName() const;
     virtual const std::string& GetBaseURI() const;
 
@@ -282,6 +284,12 @@ protected:
     std::string _defaultscenetype, _defaulttasktype;
 
     rapidjson::StringBuffer _rRequestStringBufferCache; ///< cache for request string, protected by _mutex
+
+    boost::shared_ptr<zmq::context_t> _zmqcontext;
+    std::string _mujinControllerIp;
+    int _zmqPort;
+    ZmqMujinControllerClientPtr _zmqMujinGraphQLClient; ///< a zmq client to send GraphQL queries
+    bool _bIsInitialized;
 };
 
 typedef boost::shared_ptr<ControllerClientImpl> ControllerClientImplPtr;
