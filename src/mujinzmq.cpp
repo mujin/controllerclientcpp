@@ -406,6 +406,7 @@ void ZmqClient::_InitializeSocket(boost::shared_ptr<zmq::context_t> context)
     _socket->setsockopt(ZMQ_TCP_KEEPALIVE_IDLE, 2); // the interval between the last data packet sent (simple ACKs are not considered data) and the first keepalive probe; after the connection is marked to need keepalive, this counter is not used any further
     _socket->setsockopt(ZMQ_TCP_KEEPALIVE_INTVL, 2); // the interval between subsequential keepalive probes, regardless of what the connection has exchanged in the meantime
     _socket->setsockopt(ZMQ_TCP_KEEPALIVE_CNT, 2); // the number of unacknowledged probes to send before considering the connection dead and notifying the application layer
+    _socket->setsockopt(ZMQ_LINGER, 100); // ms // required when new client is combined with old webstack where zmq-graph is unavailable
     std::ostringstream port_stream;
     port_stream << _port;
     std::stringstream ss;
