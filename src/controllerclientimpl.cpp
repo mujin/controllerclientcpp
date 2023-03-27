@@ -255,16 +255,16 @@ ControllerClientImpl::~ControllerClientImpl()
 }
 
 void ControllerClientImpl::InitializeZMQ(const int zmqPort, boost::shared_ptr<zmq::context_t> zmqcontext) {
-    _zmqPort = zmqPort;
-    _zmqcontext = zmqcontext;
-    _zmqIsInitialized = true;
-
-    _zmqMujinGraphQLClient.reset(new ZmqMujinControllerClient(_zmqcontext, _mujinControllerIp, _zmqPort));
+    _zmqMujinGraphQLClient.reset(new ZmqMujinControllerClient(zmqcontext, _mujinControllerIp, zmqPort));
     if (!_zmqMujinGraphQLClient) {
         // Not throwing an Exception so old controllers do not cause problems
         MUJIN_LOG_ERROR(boost::str(boost::format("Failed to establish ZMQ connection to mujin controller at %s:%d")%_mujinControllerIp%_zmqPort));
         // throw MujinException(boost::str(boost::format("Failed to establish ZMQ connection to mujin controller at %s:%d")%_mujinControllerIp%_zmqPort), MEC_Failed);
         _zmqIsInitialized = false;
+    } else {
+        _zmqPort = zmqPort;
+        _zmqcontext = zmqcontext;
+        _zmqIsInitialized = true;
     }
 }
 
