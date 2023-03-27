@@ -72,7 +72,7 @@ struct Transform
 struct AABB
 {
     AABB() {
-        pos[0] = 1; pos[1] = 0; pos[2] = 0;
+        pos[0] = 0; pos[1] = 0; pos[2] = 0;
         extents[0] = 0; extents[1] = 0; extents[2] = 0;
     }
     inline bool operator!=(const AABB& other) const {
