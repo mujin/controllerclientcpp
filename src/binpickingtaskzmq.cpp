@@ -15,7 +15,7 @@
 #include "common.h"
 #include "controllerclientimpl.h"
 #include "binpickingtaskzmq.h"
-#include "mujincontrollerclient/mujinzmq.h"
+#include "mujincontrollerclient/mujinzmqclient.h"
 
 #include <algorithm> // find
 
@@ -29,26 +29,6 @@ using namespace mujinzmq;
 namespace mujinclient {
 using namespace utils;
 using namespace mujinjson;
-
-class ZmqMujinControllerClient : public mujinzmq::ZmqClient
-{
-
-public:
-    ZmqMujinControllerClient(boost::shared_ptr<zmq::context_t> context, const std::string& host, const int port);
-
-    virtual ~ZmqMujinControllerClient();
-
-};
-
-ZmqMujinControllerClient::ZmqMujinControllerClient(boost::shared_ptr<zmq::context_t> context, const std::string& host, const int port) : ZmqClient(host, port)
-{
-    _InitializeSocket(context);
-}
-
-ZmqMujinControllerClient::~ZmqMujinControllerClient()
-{
-    // _DestroySocket() is called in  ~ZmqClient()
-}
 
 BinPickingTaskZmqResource::BinPickingTaskZmqResource(ControllerClientPtr c, const std::string& pk, const std::string& scenepk, const std::string& tasktype) : BinPickingTaskResource(c, pk, scenepk, tasktype)
 {
