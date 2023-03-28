@@ -59,7 +59,7 @@ void BinPickingTaskZmqResource::Initialize(const std::string& defaultTaskParamet
     }
 }
 
-void logTaskParametersAndThrow(const std::string& taskparameters) {
+void _LogTaskParametersAndThrow(const std::string& taskparameters) {
     std::string errstr;
     if (taskparameters.size()>1000) {
         errstr = taskparameters.substr(0, 1000);
@@ -94,7 +94,7 @@ void BinPickingTaskZmqResource::ExecuteCommand(const std::string& taskparameters
     catch (const MujinException& e) {
         MUJIN_LOG_ERROR(e.what());
         if (e.GetCode() == MEC_Timeout) {
-            logTaskParametersAndThrow(taskparameters);
+            _LogTaskParametersAndThrow(taskparameters);
         }
         else {
             throw;
@@ -138,7 +138,7 @@ void BinPickingTaskZmqResource::ExecuteCommand(rapidjson::Value& rTaskParameters
     catch (const MujinException& e) {
         MUJIN_LOG_ERROR(e.what());
         if (e.GetCode() == MEC_Timeout) {
-            logTaskParametersAndThrow(mujinjson::DumpJson(rCommand["taskparams"]));
+            _LogTaskParametersAndThrow(mujinjson::DumpJson(rCommand["taskparams"]));
         }
         else {
             throw;
