@@ -123,6 +123,16 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
         _basewebdavuri = str(boost::format("%su/%s/")%_baseuri%_username);
     }
 
+    _mujinControllerIp = _baseuri.substr(_baseuri.find("//")+2, _baseuri.size());
+    _mujinControllerIp.erase(remove(_mujinControllerIp.begin(), _mujinControllerIp.end(), '/'), _mujinControllerIp.end());  // Remove / from string
+    // Remove port
+    int idx = _mujinControllerIp.find(':');
+    if (idx != std::string::npos) {
+        _mujinControllerIp = _mujinControllerIp.substr(0, idx);
+    }
+    boost::shared_ptr<zmq::context_t> zmqcontext(new zmq::context_t(1));
+    InitializeZMQ(7801, zmqcontext);
+
     //CURLcode code = curl_global_init(CURL_GLOBAL_SSL|CURL_GLOBAL_WIN32);
     _curl = curl_easy_init();
     BOOST_ASSERT(!!_curl);
@@ -244,6 +254,20 @@ ControllerClientImpl::~ControllerClientImpl()
     curl_easy_cleanup(_curl);
 }
 
+void ControllerClientImpl::InitializeZMQ(const int zmqPort, boost::shared_ptr<zmq::context_t> zmqcontext) {
+    _zmqPort = zmqPort;
+    _zmqcontext = zmqcontext;
+    _zmqIsInitialized = true;
+
+    _zmqMujinGraphQLClient.reset(new ZmqMujinControllerClient(_zmqcontext, _mujinControllerIp, _zmqPort));
+    if (!_zmqMujinGraphQLClient) {
+        // Not throwing an Exception so old controllers do not cause problems
+        MUJIN_LOG_ERROR(boost::str(boost::format("Failed to establish ZMQ connection to mujin controller at %s:%d")%_mujinControllerIp%_zmqPort));
+        // throw MujinException(boost::str(boost::format("Failed to establish ZMQ connection to mujin controller at %s:%d")%_mujinControllerIp%_zmqPort), MEC_Failed);
+        _zmqIsInitialized = false;
+    }
+}
+
 std::string ControllerClientImpl::GetVersion()
 {
     if (!_profile.IsObject()) {
@@ -305,77 +329,12 @@ void ControllerClientImpl::SetAdditionalHeaders(const std::vector<std::string>& 
     _SetupHTTPHeadersMultipartFormData();
 }
 
-void ControllerClientImpl::ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout)
-{
-    rResult.SetNull(); // zero output
-
-    rapidjson::Document docResult(&rAlloc);
-
-    {
-        boost::mutex::scoped_lock lock(_mutex);
-
-        rapidjson::StringBuffer& rRequestStringBuffer = _rRequestStringBufferCache;
-        rRequestStringBuffer.Clear();
-
-        {
-            // use the callers allocator to construct the request body
-            rapidjson::Value rRequest, rValue;
-            rRequest.SetObject();
-            rValue.SetString(operationName, rAlloc);
-            rRequest.AddMember(rapidjson::Document::StringRefType("operationName"), rValue, rAlloc);
-            rValue.SetString(query, rAlloc);
-            rRequest.AddMember(rapidjson::Document::StringRefType("query"), rValue, rAlloc);
-            rValue.CopyFrom(rVariables, rAlloc);
-            rRequest.AddMember(rapidjson::Document::StringRefType("variables"), rValue, rAlloc);
-
-            rapidjson::Writer<rapidjson::StringBuffer> writer(rRequestStringBuffer);
-            rRequest.Accept(writer);
-        }
-
-        _uri = _baseuri + "api/v2/graphql";
-        _CallPost(_uri, rRequestStringBuffer.GetString(), docResult, 200, timeout);
-    }
-
-    // parse response
-    if (!docResult.IsObject()) {
-        //MUJIN_LOG_ERROR(str(boost::format("Failed to execute graph query \"%s\", invalid response: %s")%operationName%mujinjson::DumpJson(docResult)));
-        throw MUJIN_EXCEPTION_FORMAT("Failed to execute graph query \"%s\", invalid response: %s", operationName%mujinjson::DumpJson(docResult), MEC_HTTPServer);
-    }
-
-    // look for errors in response
-    const rapidjson::Value::ConstMemberIterator itErrors = docResult.FindMember("errors");
-    if (itErrors != docResult.MemberEnd() && itErrors->value.IsArray() && itErrors->value.Size() > 0) {
-        MUJIN_LOG_VERBOSE(str(boost::format("graph query has errors \"%s\": %s")%operationName%mujinjson::DumpJson(docResult)));
-        for (rapidjson::Value::ConstValueIterator itError = itErrors->value.Begin(); itError != itErrors->value.End(); ++itError) {
-            const rapidjson::Value& rError = *itError;
-            if (rError.IsObject() && rError.HasMember("message") && rError["message"].IsString()) {
-                const char* errorCode = "unknown";
-                const rapidjson::Value::ConstMemberIterator itExtensions = rError.FindMember("extensions");
-                if (itExtensions != rError.MemberEnd() && itExtensions->value.IsObject() && itExtensions->value.HasMember("errorCode") && itExtensions->value["errorCode"].IsString()) {
-                    errorCode = itExtensions->value["errorCode"].GetString();
-                }
-                throw mujinclient::MujinGraphQueryError(boost::str(boost::format("[%s:%d] graph query has errors \"%s\": %s")%(__PRETTY_FUNCTION__)%(__LINE__)%operationName%rError["message"].GetString()), errorCode);
-            }
-        }
-        throw MUJIN_EXCEPTION_FORMAT("graph query has undefined errors \"%s\": %s", operationName%mujinjson::DumpJson(docResult), MEC_HTTPServer);
-    }
-
-    // should have data member
-    if (!docResult.HasMember("data")) {
-        //MUJIN_LOG_ERROR(str(boost::format("graph query does not have data \"%s\", invalid response: %s")%operationName%mujinjson::DumpJson(docResult)));
-        throw MUJIN_EXCEPTION_FORMAT("graph query does not have 'data' field in \"%s\", invalid response: %s", operationName%mujinjson::DumpJson(docResult), MEC_HTTPServer);
-    }
-
-    // set output
-    rResult = docResult["data"];
-}
-
-void ControllerClientImpl::ExecuteGraphQueryRaw(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout)
+void ControllerClientImpl::_ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout, bool checkForErrors, bool returnRawResponse, bool useZmq)
 {
     rResult.SetNull(); // zero output
 
     rapidjson::Document rResultDoc(&rAlloc);
-    
+
     {
         boost::mutex::scoped_lock lock(_mutex);
 
@@ -392,24 +351,96 @@ void ControllerClientImpl::ExecuteGraphQueryRaw(const char* operationName, const
             rRequest.AddMember(rapidjson::Document::StringRefType("query"), rValue, rAlloc);
             rValue.CopyFrom(rVariables, rAlloc);
             rRequest.AddMember(rapidjson::Document::StringRefType("variables"), rValue, rAlloc);
+            if (useZmq) {
+                rValue.SetString("/api/v2/graphql", rAlloc);
+                rRequest.AddMember(rapidjson::Document::StringRefType("path"), rValue, rAlloc);
+            }
 
             rapidjson::Writer<rapidjson::StringBuffer> writer(rRequestStringBuffer);
             rRequest.Accept(writer);
         }
 
         _uri = _baseuri + "api/v2/graphql";
-        _CallPost(_uri, rRequestStringBuffer.GetString(), rResultDoc, 200, timeout);
+        if (useZmq) {
+            std::string result_ss;
+            try {
+                result_ss = _zmqMujinGraphQLClient->Call(rRequestStringBuffer.GetString(), timeout);
+                ParseJson(rResultDoc, result_ss);
+            }
+            catch (const MujinException& e) {
+                MUJIN_LOG_ERROR(e.what());
+                if (e.GetCode() == MEC_ZMQNoResponse) {
+                    MUJIN_LOG_INFO("reinitializing zmq connection with webstack");
+                    _zmqMujinGraphQLClient.reset(new ZmqMujinControllerClient(_zmqcontext, _mujinControllerIp, _zmqPort));
+                    if (!_zmqMujinGraphQLClient) {
+                        throw MujinException(boost::str(boost::format("Failed to establish ZMQ connection to mujin controller at %s:%d")%_mujinControllerIp%_zmqPort), MEC_Failed);
+                    }
+                } else if (e.GetCode() == MEC_Timeout) {
+                    throw MujinException("Failed to call GraphQL over ZMQ (timeout)");
+                }
+                else {
+                    throw;
+                }
+            }
+        } else {
+            _CallPost(_uri, rRequestStringBuffer.GetString(), rResultDoc, 200, timeout);
+        }
     }
 
     // parse response
     if (!rResultDoc.IsObject()) {
         throw MUJIN_EXCEPTION_FORMAT("Execute graph query does not return valid response \"%s\", invalid response: %s", operationName%mujinjson::DumpJson(rResultDoc), MEC_HTTPServer);
     }
-    if (rResultDoc.FindMember("data") == rResultDoc.MemberEnd() ) {
-        throw MUJIN_EXCEPTION_FORMAT("Execute graph query does not have 'data' field \"%s\", invalid response: %s", operationName%mujinjson::DumpJson(rResultDoc), MEC_HTTPServer);
+
+    if (checkForErrors) {
+        // look for errors in response
+        const rapidjson::Value::ConstMemberIterator itErrors = rResultDoc.FindMember("errors");
+        if (itErrors != rResultDoc.MemberEnd() && itErrors->value.IsArray() && itErrors->value.Size() > 0) {
+            MUJIN_LOG_VERBOSE(str(boost::format("graph query has errors \"%s\": %s")%operationName%mujinjson::DumpJson(rResultDoc)));
+            for (rapidjson::Value::ConstValueIterator itError = itErrors->value.Begin(); itError != itErrors->value.End(); ++itError) {
+                const rapidjson::Value& rError = *itError;
+                if (rError.IsObject() && rError.HasMember("message") && rError["message"].IsString()) {
+                    const char* errorCode = "unknown";
+                    const rapidjson::Value::ConstMemberIterator itExtensions = rError.FindMember("extensions");
+                    if (itExtensions != rError.MemberEnd() && itExtensions->value.IsObject() && itExtensions->value.HasMember("errorCode") && itExtensions->value["errorCode"].IsString()) {
+                        errorCode = itExtensions->value["errorCode"].GetString();
+                    }
+                    throw mujinclient::MujinGraphQueryError(boost::str(boost::format("[%s:%d] graph query has errors \"%s\": %s")%(__PRETTY_FUNCTION__)%(__LINE__)%operationName%rError["message"].GetString()), errorCode);
+                }
+            }
+            throw MUJIN_EXCEPTION_FORMAT("graph query has undefined errors \"%s\": %s", operationName%mujinjson::DumpJson(rResultDoc), MEC_HTTPServer);
+        }
     }
 
-    rResult.Swap(rResultDoc);
+    // should have data member
+    if (!rResultDoc.HasMember("data")) {
+        throw MUJIN_EXCEPTION_FORMAT("Execute graph query does not have 'data' field in \"%s\", invalid response: %s", operationName%mujinjson::DumpJson(rResultDoc), MEC_HTTPServer);
+    }
+
+    // set output
+    if (returnRawResponse) {
+        rResult.Swap(rResultDoc);
+    } else {
+        rResult = rResultDoc["data"];
+    }
+}
+
+void ControllerClientImpl::ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout)
+{
+    _ExecuteGraphQuery(operationName, query, rVariables, rResult, rAlloc, timeout, true, false, false);
+}
+
+void ControllerClientImpl::ExecuteGraphQueryRaw(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout)
+{
+    _ExecuteGraphQuery(operationName, query, rVariables, rResult, rAlloc, timeout, false, true, false);
+}
+
+void ControllerClientImpl::ExecuteGraphQueryZmq(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout)
+{
+    if (!_zmqIsInitialized) {
+        throw MUJIN_EXCEPTION_FORMAT0("ExecuteGraphQuery via ZMQ called, but no ZMQ connection is available", MEC_NotInitialized);
+    }
+    _ExecuteGraphQuery(operationName, query, rVariables, rResult, rAlloc, timeout, false, true, true);
 }
 
 void ControllerClientImpl::RestartServer(double timeout)
