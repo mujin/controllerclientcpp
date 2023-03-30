@@ -329,7 +329,7 @@ void ControllerClientImpl::SetAdditionalHeaders(const std::vector<std::string>& 
     _SetupHTTPHeadersMultipartFormData();
 }
 
-void ControllerClientImpl::_ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout, bool checkForErrors, bool returnRawResponse, bool useZmq)
+void ControllerClientImpl::_ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout, bool checkForErrors, bool returnRawResponse, bool useZmq, bool useMsgpack)
 {
     rResult.SetNull(); // zero output
 
@@ -338,8 +338,7 @@ void ControllerClientImpl::_ExecuteGraphQuery(const char* operationName, const c
     {
         boost::mutex::scoped_lock lock(_mutex);
 
-        rapidjson::StringBuffer& rRequestStringBuffer = _rRequestStringBufferCache;
-        rRequestStringBuffer.Clear();
+        std::string msg;
 
         {
             // use the callers allocator to construct the request body
@@ -356,16 +355,31 @@ void ControllerClientImpl::_ExecuteGraphQuery(const char* operationName, const c
                 rRequest.AddMember(rapidjson::Document::StringRefType("path"), rValue, rAlloc);
             }
 
-            rapidjson::Writer<rapidjson::StringBuffer> writer(rRequestStringBuffer);
-            rRequest.Accept(writer);
+            if (useMsgpack) {
+                std::vector<char> v;
+                MsgPack::DumpMsgPack(rRequest, v);
+                msg = std::string(v.begin(), v.end());
+            } else {
+                rapidjson::StringBuffer& rRequestStringBuffer = _rRequestStringBufferCache;
+                rRequestStringBuffer.Clear();
+                rapidjson::Writer<rapidjson::StringBuffer> writer(rRequestStringBuffer);
+                rRequest.Accept(writer);
+                msg = rRequestStringBuffer.GetString();
+            }
         }
 
         _uri = _baseuri + "api/v2/graphql";
         if (useZmq) {
             std::string result_ss;
             try {
-                result_ss = _zmqMujinGraphQLClient->Call(rRequestStringBuffer.GetString(), timeout);
-                ParseJson(rResultDoc, result_ss);
+                result_ss = _zmqMujinGraphQLClient->Call(msg, timeout);
+
+                // parse response
+                if (useMsgpack) {
+                    MsgPack::ParseMsgPack(rResultDoc, result_ss);
+                } else {
+                    ParseJson(rResultDoc, result_ss);
+                }
             }
             catch (const MujinException& e) {
                 MUJIN_LOG_ERROR(e.what());
@@ -383,11 +397,10 @@ void ControllerClientImpl::_ExecuteGraphQuery(const char* operationName, const c
                 }
             }
         } else {
-            _CallPost(_uri, rRequestStringBuffer.GetString(), rResultDoc, 200, timeout);
+            _CallPost(_uri, msg, rResultDoc, 200, timeout);
         }
     }
 
-    // parse response
     if (!rResultDoc.IsObject()) {
         throw MUJIN_EXCEPTION_FORMAT("Execute graph query does not return valid response \"%s\", invalid response: %s", operationName%mujinjson::DumpJson(rResultDoc), MEC_HTTPServer);
     }
@@ -441,6 +454,14 @@ void ControllerClientImpl::ExecuteGraphQueryZmq(const char* operationName, const
         throw MUJIN_EXCEPTION_FORMAT0("ExecuteGraphQuery via ZMQ called, but no ZMQ connection is available", MEC_NotInitialized);
     }
     _ExecuteGraphQuery(operationName, query, rVariables, rResult, rAlloc, timeout, false, true, true);
+}
+
+void ControllerClientImpl::ExecuteGraphQueryZmqMsgpack(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout)
+{
+    if (!_zmqIsInitialized) {
+        throw MUJIN_EXCEPTION_FORMAT0("ExecuteGraphQuery via ZMQ with Msgpack called, but no ZMQ connection is available", MEC_NotInitialized);
+    }
+    _ExecuteGraphQuery(operationName, query, rVariables, rResult, rAlloc, timeout, false, true, true, true);
 }
 
 void ControllerClientImpl::RestartServer(double timeout)
