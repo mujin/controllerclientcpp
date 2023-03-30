@@ -364,12 +364,6 @@ public:
     /// \param rResult The entire result field of the query. Should have keys "data" and "errors". Each error should have keys: "message", "locations", "path", "extensions". And "extensions" has keys "errorCode".
     virtual void ExecuteGraphQueryRaw(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout = 60.0) = 0;
 
-    /// \brief Sends a GraphQL query or mutation to the Mujin Controller via ZMQ (not HTTP).
-    ///
-    /// Throws an exception if there are any errors
-    /// \param rResultData The "data" field of the result if the query returns without problems
-    virtual void ExecuteGraphQueryZmq(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout = 60.0) = 0;
-
     /// \brief returns the mujin controller version
     virtual std::string GetVersion() = 0;
 
@@ -1215,6 +1209,8 @@ protected:
     \param timeout set timeout in seconds for the initial login requests
  */
 MUJINCLIENT_API ControllerClientPtr CreateControllerClient(const std::string& usernamepassword, const std::string& url=std::string(), const std::string& proxyserverport=std::string(), const std::string& proxyuserpw=std::string(), int options=0, double timeout=3.0);
+
+MUJINCLIENT_API ControllerClientPtr CreateControllerClientInternal(const std::string& usernamepassword, const std::string& url=std::string(), const std::string& proxyserverport=std::string(), const std::string& proxyuserpw=std::string(), int options=0, double timeout=3.0);
 
 /// \brief called at the very end of an application to safely destroy all controller client resources
 MUJINCLIENT_API void DestroyControllerClient();

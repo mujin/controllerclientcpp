@@ -30,6 +30,7 @@ set(SOURCE_FILES
   mujindefinitions.cpp
   mujinjson.cpp
   utf8.h
+  mujinrapidjsonmsgpack.cpp
 )
 
 if (libzmq_FOUND)

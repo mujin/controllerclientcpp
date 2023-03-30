@@ -180,6 +180,18 @@ else()
   add_definitions("-DRAPIDJSON_ASSERT=BOOST_ASSERT")
 endif()
 
+#msgpack
+set(MUJIN_CONTROLLERCLIENT_USEMSGPACK 0)
+find_package(PkgConfig)
+if( PKG_CONFIG_EXECUTABLE )
+  pkg_check_modules(msgpack msgpack)
+  if( msgpack_FOUND )
+    set(MUJIN_CONTROLLERCLIENT_USEMSGPACK 1)
+  else()
+    message(STATUS "Could not find msgpack, only public HTTP interface will be available.")
+  endif()
+endif()
+
 if( Boost_FOUND )
   include_directories(${Boost_INCLUDE_DIRS})
   set(MUJINCLIENT_LINK_DIRS ${MUJINCLIENT_LINK_DIRS} ${Boost_LIBRARY_DIRS})
