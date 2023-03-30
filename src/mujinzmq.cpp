@@ -406,7 +406,7 @@ void ZmqClient::_InitializeSocket(boost::shared_ptr<zmq::context_t> context)
 void ZmqClient::_DestroySocket()
 {
     if (!!_socket) {
-        _socket->setsockopt(ZMQ_LINGER, 0);
+        _socket->set(zmq::sockopt::linger, 0);
         _socket->close();
         _socket.reset();
     }
@@ -480,7 +480,7 @@ void ZmqServer::_InitializeSocket(boost::shared_ptr<zmq::context_t> context)
 void ZmqServer::_DestroySocket()
 {
     if (!!_socket) {
-        _socket->setsockopt(ZMQ_LINGER, 0);
+        _socket->set(zmq::sockopt::linger, 0);
         _socket->close();
         _socket.reset();
     }

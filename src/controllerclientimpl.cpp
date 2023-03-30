@@ -17,7 +17,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/scope_exit.hpp>
 #include <boost/property_tree/xml_parser.hpp>
-#include <strstream>
+#include <sstream>
 
 #define SKIP_PEER_VERIFICATION // temporary
 //#define SKIP_HOSTNAME_VERIFICATION
@@ -126,7 +126,7 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
     _mujinControllerIp = _baseuri.substr(_baseuri.find("//")+2, _baseuri.size());
     _mujinControllerIp.erase(remove(_mujinControllerIp.begin(), _mujinControllerIp.end(), '/'), _mujinControllerIp.end());  // Remove / from string
     // Remove port
-    int idx = _mujinControllerIp.find(':');
+    size_t idx = _mujinControllerIp.find(':');
     if (idx != std::string::npos) {
         _mujinControllerIp = _mujinControllerIp.substr(0, idx);
     }
