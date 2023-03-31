@@ -42,6 +42,7 @@ public:
     virtual void SetProxy(const std::string& serverport, const std::string& userpw);
     virtual void SetLanguage(const std::string& language);
     virtual void SetUserAgent(const std::string& userAgent);
+    virtual void SetInternalClient(const bool useInternalCommunication = true);
     virtual void SetAdditionalHeaders(const std::vector<std::string>& additionalHeaders);
     virtual void RestartServer(double timeout);
     virtual void _ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout, bool checkForErrors, bool returnRawResponse, bool useInternalComm);

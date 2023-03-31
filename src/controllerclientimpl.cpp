@@ -93,7 +93,6 @@ std::wstring ParseWincapsWCNPath(const T& sourcefilename, const boost::function<
 
 ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, const std::string& baseuri, const std::string& proxyserverport, const std::string& proxyuserpw, int options, double timeout, bool isInternalClient)
 {
-    _isInternalClient = isInternalClient;
     size_t usernameindex = 0;
     usernameindex = usernamepassword.find_first_of(':');
     BOOST_ASSERT(usernameindex != std::string::npos );
@@ -131,9 +130,8 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
     if (idx != std::string::npos) {
         _mujinControllerIp = _mujinControllerIp.substr(0, idx);
     }
-    if (_isInternalClient) {
-        boost::shared_ptr<zmq::context_t> zmqcontext(new zmq::context_t(1));
-        InitializeZMQ(7801, zmqcontext);
+    if (isInternalClient) {
+        SetInternalClient();
     }
 
     //CURLcode code = curl_global_init(CURL_GLOBAL_SSL|CURL_GLOBAL_WIN32);
@@ -321,6 +319,15 @@ void ControllerClientImpl::SetLanguage(const std::string& language)
 void ControllerClientImpl::SetUserAgent(const std::string& userAgent)
 {
     CURL_OPTION_SETTER(_curl, CURLOPT_USERAGENT, userAgent.c_str());
+}
+
+void ControllerClientImpl::SetInternalClient(const bool useInternalCommunication)
+{
+    _isInternalClient = useInternalCommunication;
+    if (useInternalCommunication) {
+        boost::shared_ptr<zmq::context_t> zmqcontext(new zmq::context_t(1));
+        InitializeZMQ(7801, zmqcontext);
+    }
 }
 
 void ControllerClientImpl::SetAdditionalHeaders(const std::vector<std::string>& additionalHeaders)

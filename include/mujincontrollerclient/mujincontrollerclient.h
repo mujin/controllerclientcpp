@@ -330,6 +330,9 @@ public:
     /// \brief sets the user agent to be sent with each http request
     virtual void SetUserAgent(const std::string& userAgent) = 0;
 
+    /// \brief Configures the controllerclient to use the internal communication protocol. Same effect as passing isInternalClient or using CreateControllerClientInternal.
+    virtual void SetInternalClient(const bool useInternalCommunication = true) = 0;
+
     /// \brief sets additional http headers to be included on all requests
     ///
     /// \param additionalHeaders expect each value to be in the format of "Header-Name: header-value"
@@ -1210,6 +1213,8 @@ protected:
  */
 MUJINCLIENT_API ControllerClientPtr CreateControllerClient(const std::string& usernamepassword, const std::string& url=std::string(), const std::string& proxyserverport=std::string(), const std::string& proxyuserpw=std::string(), int options=0, double timeout=3.0);
 
+/** \en \brief Same as CreateControllerClient, but uses privileged internal communication.
+*/
 MUJINCLIENT_API ControllerClientPtr CreateControllerClientInternal(const std::string& usernamepassword, const std::string& url=std::string(), const std::string& proxyserverport=std::string(), const std::string& proxyuserpw=std::string(), int options=0, double timeout=3.0);
 
 /// \brief called at the very end of an application to safely destroy all controller client resources
