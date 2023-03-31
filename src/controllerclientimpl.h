@@ -27,7 +27,9 @@ namespace mujinclient {
 class ControllerClientImpl : public ControllerClient, public boost::enable_shared_from_this<ControllerClientImpl>
 {
 public:
-    ControllerClientImpl(const std::string& usernamepassword, const std::string& baseuri, const std::string& proxyserverport, const std::string& proxyuserpw, int options, double timeout);
+    /// @brief Creates a Mujin controller client instance.
+    /// @param internalClient If True, uses internal communication (ZMQ and MsgPack) instead of the public HTTP interface and JSON.
+    ControllerClientImpl(const std::string& usernamepassword, const std::string& baseuri, const std::string& proxyserverport, const std::string& proxyuserpw, int options, double timeout, bool isInternalClient=false);
     virtual ~ControllerClientImpl();
 
     virtual void InitializeZMQ(const int zmqPort, boost::shared_ptr<zmq::context_t> zmqcontext);
@@ -289,6 +291,7 @@ protected:
 
     rapidjson::StringBuffer _rRequestStringBufferCache; ///< cache for request string, protected by _mutex
 
+    bool _isInternalClient;  // If True, uses ZMQ and MsgPack for communication with the controller. If False, uses HTTP and JSON.
     boost::shared_ptr<zmq::context_t> _zmqcontext;
     std::string _mujinControllerIp;
     int _zmqPort;
