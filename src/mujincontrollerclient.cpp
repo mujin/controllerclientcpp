@@ -1328,6 +1328,11 @@ ControllerClientPtr CreateControllerClient(const std::string& usernamepassword, 
     return ControllerClientPtr(new ControllerClientImpl(usernamepassword, baseurl, proxyserverport, proxyuserpw, options, timeout));
 }
 
+// ControllerClientPtr CreateControllerClientInternal(const std::string& usernamepassword, const std::string& baseurl, const std::string& proxyserverport, const std::string& proxyuserpw, int options, double timeout)
+// {
+//     return ControllerClientPtr(new ControllerClientImpl(usernamepassword, baseurl, proxyserverport, proxyuserpw, options, timeout, true));
+// }
+
 void ControllerClientDestroy()
 {
     DestroyControllerClient();

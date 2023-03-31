@@ -1222,6 +1222,8 @@ protected:
  */
 MUJINCLIENT_API ControllerClientPtr CreateControllerClient(const std::string& usernamepassword, const std::string& url=std::string(), const std::string& proxyserverport=std::string(), const std::string& proxyuserpw=std::string(), int options=0, double timeout=3.0);
 
+// MUJINCLIENT_API ControllerClientPtr CreateControllerClientInternal(const std::string& usernamepassword, const std::string& url=std::string(), const std::string& proxyserverport=std::string(), const std::string& proxyuserpw=std::string(), int options=0, double timeout=3.0);
+
 /// \brief called at the very end of an application to safely destroy all controller client resources
 MUJINCLIENT_API void DestroyControllerClient();
 
