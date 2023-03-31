@@ -331,7 +331,7 @@ public:
     virtual void SetUserAgent(const std::string& userAgent) = 0;
 
     /// \brief Configures the controllerclient to use the internal communication protocol. Same effect as passing isInternalClient or using CreateControllerClientInternal.
-    virtual void SetInternalClient(const bool useInternalCommunication = true) = 0;
+    virtual void SetInternalClient(const bool useInternalCommunication = true, const int zmqPort = 7801) = 0;
 
     /// \brief sets additional http headers to be included on all requests
     ///

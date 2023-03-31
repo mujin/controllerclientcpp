@@ -29,7 +29,7 @@ class ControllerClientImpl : public ControllerClient, public boost::enable_share
 public:
     /// @brief Creates a Mujin controller client instance.
     /// @param internalClient If True, uses internal communication (ZMQ and MsgPack) instead of the public HTTP interface and JSON.
-    ControllerClientImpl(const std::string& usernamepassword, const std::string& baseuri, const std::string& proxyserverport, const std::string& proxyuserpw, int options, double timeout, bool isInternalClient=false);
+    ControllerClientImpl(const std::string& usernamepassword, const std::string& baseuri, const std::string& proxyserverport, const std::string& proxyuserpw, int options, double timeout, bool isInternalClient=false, int zmqPort = 7801);
     virtual ~ControllerClientImpl();
 
     virtual void InitializeZMQ(const int zmqPort, boost::shared_ptr<zmq::context_t> zmqcontext);
@@ -42,7 +42,7 @@ public:
     virtual void SetProxy(const std::string& serverport, const std::string& userpw);
     virtual void SetLanguage(const std::string& language);
     virtual void SetUserAgent(const std::string& userAgent);
-    virtual void SetInternalClient(const bool useInternalCommunication = true);
+    virtual void SetInternalClient(const bool useInternalCommunication = true, const int zmqPort = 7801);
     virtual void SetAdditionalHeaders(const std::vector<std::string>& additionalHeaders);
     virtual void RestartServer(double timeout);
     virtual void _ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout, bool checkForErrors, bool returnRawResponse, bool useInternalComm);
