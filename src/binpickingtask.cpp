@@ -713,6 +713,7 @@ BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionInfo::M
 {
     size2D.fill(0);
     maxPossibleSize.fill(0);
+    maxPossibleSizeOriginal.fill(0);
 }
 
 BinPickingTaskResource::ResultGetBinpickingState::RemoveObjectFromObjectListInfo::RemoveObjectFromObjectListInfo() :
