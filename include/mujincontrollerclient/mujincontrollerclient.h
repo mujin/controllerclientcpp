@@ -292,10 +292,26 @@ public:
     std::map<std::string, RobotProgramData> programs; ///< the keys are the robot instance primary keys of the scene
 };
 
+/// \brief Webstack Graph Client Interface.
+class MUJINCLIENT_API WebstackGraphClient
+{
+public:
+    /// \brief Execute GraphQL query or mutation against Mujin Controller.
+    ///
+    /// Throws an exception if there are any errors
+    /// \param rResultData The "data" field of the result if the query returns without problems
+    virtual void ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResultData, rapidjson::Document::AllocatorType& rAlloc, double timeout = 60.0) = 0;
+
+    /// \brief Execute the GraphQL query or mutation against Mujin Controller and return any output as-is without doing any error processing
+    ///
+    /// \param rResult The entire result field of the query. Should have keys "data" and "errors". Each error should have keys: "message", "locations", "path", "extensions". And "extensions" has keys "errorCode".
+    virtual void ExecuteGraphQueryRaw(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout = 60.0) = 0;
+};
+
 /// \brief Creates on MUJIN Controller instance.
 ///
 /// Only one call can be made at a time. In order to make multiple calls simultaneously, create another instance.
-class MUJINCLIENT_API ControllerClient
+class MUJINCLIENT_API ControllerClient : public WebstackGraphClient
 {
 public:
     virtual ~ControllerClient() {
@@ -351,17 +367,6 @@ public:
     /// If the server is not responding, call this method to clear the server state and initialize everything.
     /// The method is blocking, when it returns the MUJIN Controller would have been restarted.
     virtual void RestartServer(double timeout = 5.0) = 0;
-
-    /// \brief Execute GraphQL query or mutation against Mujin Controller.
-    ///
-    /// Throws an exception if there are any errors
-    /// \param rResultData The "data" field of the result if the query returns without problems
-    virtual void ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResultData, rapidjson::Document::AllocatorType& rAlloc, double timeout = 60.0) = 0;
-
-    /// \brief Execute the GraphQL query or mutation against Mujin Controller and return any output as-is without doing any error processing
-    ///
-    /// \param rResult The entire result field of the query. Should have keys "data" and "errors". Each error should have keys: "message", "locations", "path", "extensions". And "extensions" has keys "errorCode".
-    virtual void ExecuteGraphQueryRaw(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout = 60.0) = 0;
 
     /// \brief returns the mujin controller version
     virtual std::string GetVersion() = 0;
