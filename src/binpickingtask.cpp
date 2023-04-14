@@ -623,8 +623,8 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
         removeObjectFromObjectListInfos.resize(rRemoveObjectFromObjectList.Size());
         for(int iitem = 0; iitem < (int)removeObjectFromObjectListInfos.size(); ++iitem) {
             const rapidjson::Value& rInfo = rRemoveObjectFromObjectList[iitem];
-            removeObjectFromObjectListInfos[iitem].timestamp = GetJsonValueByPath<double>(rInfo, "timestamp", 0);
-            removeObjectFromObjectListInfos[iitem].objectPk = GetJsonValueByPath<std::string>(rInfo, "objectPk", "");
+            removeObjectFromObjectListInfos[iitem].timestamp = GetJsonValueByKey<double, double>(rInfo, "timestamp", 0);
+            removeObjectFromObjectListInfos[iitem].objectPk = GetJsonValueByKey<std::string, std::string>(rInfo, "objectPk", std::string());
         }
     }
 
