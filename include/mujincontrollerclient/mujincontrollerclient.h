@@ -1206,8 +1206,9 @@ protected:
     \param proxyuserpw If non-empty, [user name]:[password] to use for the connection to the HTTP proxy.
     \param options １が指定されたら、クライアントがGETのみを呼び出し出来ます。それで初期化がもっと速くなれます。
     \param timeout set timeout in seconds for the initial login requests
+    \param unixendpoint if not empty, will use unix socket to connect to the controller
  */
-MUJINCLIENT_API ControllerClientPtr CreateControllerClient(const std::string& usernamepassword, const std::string& url=std::string(), const std::string& proxyserverport=std::string(), const std::string& proxyuserpw=std::string(), int options=0, double timeout=3.0);
+MUJINCLIENT_API ControllerClientPtr CreateControllerClient(const std::string& usernamepassword, const std::string& url=std::string(), const std::string& proxyserverport=std::string(), const std::string& proxyuserpw=std::string(), int options=0, double timeout=3.0, const std::string& unixendpoint=std::string());
 
 /// \brief called at the very end of an application to safely destroy all controller client resources
 MUJINCLIENT_API void DestroyControllerClient();

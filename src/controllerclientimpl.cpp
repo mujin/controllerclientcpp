@@ -91,7 +91,7 @@ std::wstring ParseWincapsWCNPath(const T& sourcefilename, const boost::function<
     return strWCNPath;
 }
 
-ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, const std::string& baseuri, const std::string& proxyserverport, const std::string& proxyuserpw, int options, double timeout)
+ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, const std::string& baseuri, const std::string& proxyserverport, const std::string& proxyuserpw, int options, double timeout, const std::string& unixendpoint)
 {
     size_t usernameindex = 0;
     usernameindex = usernamepassword.find_first_of(':');
@@ -163,6 +163,10 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
 
     CURL_OPTION_SETTER(_curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
     CURL_OPTION_SETTER(_curl, CURLOPT_USERPWD, usernamepassword.c_str());
+
+    if( !unixendpoint.empty() ) {
+        CURL_OPTION_SETTER(_curl, CURLOPT_UNIX_SOCKET_PATH, unixendpoint.c_str());
+    }
 
     // need to set the following?
     //CURLOPT_USERAGENT
