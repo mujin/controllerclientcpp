@@ -618,8 +618,8 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/connectedBodyActiveStates", registerMinViableRegionInfo.connectedBodyActiveStates);
 
     removeObjectFromObjectListInfos.clear();
-    if( v.HasMember("removeObjectFromObjectList") && v["removeObjectFromObjectList"].IsArray()) {
-        const rapidjson::Value& rRemoveObjectFromObjectList = v["removeObjectFromObjectList"];
+    if( v.HasMember("removeObjectsFromObjectList") && v["removeObjectsFromObjectList"].IsArray()) {
+        const rapidjson::Value& rRemoveObjectFromObjectList = v["removeObjectsFromObjectList"];
         removeObjectFromObjectListInfos.resize(rRemoveObjectFromObjectList.Size());
         for(int iitem = 0; iitem < (int)removeObjectFromObjectListInfos.size(); ++iitem) {
             const rapidjson::Value& rInfo = rRemoveObjectFromObjectList[iitem];
