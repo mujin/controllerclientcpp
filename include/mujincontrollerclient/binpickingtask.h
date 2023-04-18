@@ -567,8 +567,8 @@ public:
         const rapidjson::Document &mvrResultInfo,
         double timeout /* second */=5.0);
 
-    // send result of RemoveObjectFromObjectList request
-    virtual void SendRemoveObjectFromObjectListResult(const std::vector<ResultGetBinpickingState::RemoveObjectFromObjectListInfo>& removeObjectFromObjectListInfos, const bool success, const double timeout /* second */=5.0);
+    // send result of RemoveObjectsFromObjectList request
+    virtual void SendRemoveObjectsFromObjectListResult(const std::vector<ResultGetBinpickingState::RemoveObjectFromObjectListInfo>& removeObjectFromObjectListInfos, const bool success, const double timeout /* second */=5.0);
 
     // send result of RemoveObjectFromObjectList request
     virtual void SendTriggerDetectionCaptureResult(const std::string& triggerType, const std::string& returnCode, double timeout /* second */=5.0);

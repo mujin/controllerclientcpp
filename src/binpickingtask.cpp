@@ -1095,13 +1095,13 @@ void BinPickingTaskResource::SendMVRRegistrationResult(
 
 }
 
-void BinPickingTaskResource::SendRemoveObjectFromObjectListResult(
+void BinPickingTaskResource::SendRemoveObjectsFromObjectListResult(
     const std::vector<ResultGetBinpickingState::RemoveObjectFromObjectListInfo>& removeObjectFromObjectListInfos,
     const bool success,
     const double timeout)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
-    _ss << GetJsonString("command", "SendRemoveObjectFromObjectListResult") << ", ";
+    _ss << GetJsonString("command", "SendRemoveObjectsFromObjectListResult") << ", ";
     _ss << GetJsonString("objectPks") << ": [";
     for (size_t iInfo = 0; iInfo < removeObjectFromObjectListInfos.size(); ++iInfo) {
         _ss << GetJsonString(removeObjectFromObjectListInfos[iInfo].objectPk);
