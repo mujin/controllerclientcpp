@@ -1192,7 +1192,7 @@ protected:
 
     You must not call it when any other thread in the program (i.e. a thread sharing the same memory) is running.
     \param usernamepassword user:password
-    \param url the URI-encoded URL of controller server, it needs to have a trailing slash. It can also be in the form of https://username@server/ in order to force login of a particular user. If not specified, will use the default mujin controller URL
+    \param url the URI-encoded URL of controller server, it needs to have a trailing slash. It can also be in the form of https://username@server/ in order to force login of a particular user.
     \param proxyserverport Specify proxy server to use. To specify port number in this string, append :[port] to the end of the host name. The proxy string may be prefixed with [protocol]:// since any such prefix will be ignored. The proxy's port number may optionally be specified with the separate option. If not specified, will default to using port 1080 for proxies. Setting to empty string will disable the proxy.
     \param proxyuserpw If non-empty, [user name]:[password] to use for the connection to the HTTP proxy.
     \param options extra options for connecting to the controller. If 0x1 is set, the client will optimize usage to only allow GET calls. Set 0x80000000 if using a development server.
@@ -1201,14 +1201,14 @@ protected:
 
     この関数はスレッドセーフではないため、呼び出す時に他のスレッドが走っていないようにご注意ください。
     \param usernamepassword ユーザ:パスワード
-    \param url コントローラにアクセスするためのURLです。スラッシュ「/」で終わる必要があります。強制的にユーザも指定出来ます、例えば<b>https://username@server/</b>。指定されていなければデフォールトのMUJINコントローラURLが使用されます。
+    \param url コントローラにアクセスするためのURLです。スラッシュ「/」で終わる必要があります。強制的にユーザも指定出来ます、例えば<b>https://username@server/</b>。
     \param proxyserverport Specify proxy server to use. To specify port number in this string, append :[port] to the end of the host name. The proxy string may be prefixed with [protocol]:// since any such prefix will be ignored. The proxy's port number may optionally be specified with the separate option. If not specified, will default to using port 1080 for proxies. Setting to empty string will disable the proxy.
     \param proxyuserpw If non-empty, [user name]:[password] to use for the connection to the HTTP proxy.
     \param options １が指定されたら、クライアントがGETのみを呼び出し出来ます。それで初期化がもっと速くなれます。
     \param timeout set timeout in seconds for the initial login requests
     \param unixendpoint if not empty, will use unix socket to connect to the controller
  */
-MUJINCLIENT_API ControllerClientPtr CreateControllerClient(const std::string& usernamepassword, const std::string& url=std::string(), const std::string& proxyserverport=std::string(), const std::string& proxyuserpw=std::string(), int options=0, double timeout=3.0, const std::string& unixendpoint=std::string());
+MUJINCLIENT_API ControllerClientPtr CreateControllerClient(const std::string& usernamepassword, const std::string& url, const std::string& proxyserverport=std::string(), const std::string& proxyuserpw=std::string(), int options=0, double timeout=3.0, const std::string& unixendpoint=std::string());
 
 /// \brief called at the very end of an application to safely destroy all controller client resources
 MUJINCLIENT_API void DestroyControllerClient();
