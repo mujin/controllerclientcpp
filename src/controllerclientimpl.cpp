@@ -123,16 +123,6 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
         _basewebdavuri = str(boost::format("%su/%s/")%_baseuri%_username);
     }
 
-    _mujinControllerIp = _baseuri.substr(_baseuri.find("//")+2, _baseuri.size());
-    _mujinControllerIp.erase(remove(_mujinControllerIp.begin(), _mujinControllerIp.end(), '/'), _mujinControllerIp.end());  // Remove / from string
-    // Remove port
-    int idx = _mujinControllerIp.find(':');
-    if (idx != std::string::npos) {
-        _mujinControllerIp = _mujinControllerIp.substr(0, idx);
-    }
-    boost::shared_ptr<zmq::context_t> zmqcontext(new zmq::context_t(1));
-    InitializeZMQ(7801, zmqcontext);
-
     //CURLcode code = curl_global_init(CURL_GLOBAL_SSL|CURL_GLOBAL_WIN32);
     _curl = curl_easy_init();
     BOOST_ASSERT(!!_curl);
@@ -254,20 +244,6 @@ ControllerClientImpl::~ControllerClientImpl()
     curl_easy_cleanup(_curl);
 }
 
-void ControllerClientImpl::InitializeZMQ(const int zmqPort, boost::shared_ptr<zmq::context_t> zmqcontext) {
-    _zmqPort = zmqPort;
-    _zmqcontext = zmqcontext;
-    _zmqIsInitialized = true;
-
-    _zmqMujinGraphQLClient.reset(new ZmqMujinControllerClient(_zmqcontext, _mujinControllerIp, _zmqPort));
-    if (!_zmqMujinGraphQLClient) {
-        // Not throwing an Exception so old controllers do not cause problems
-        MUJIN_LOG_ERROR(boost::str(boost::format("Failed to establish ZMQ connection to mujin controller at %s:%d")%_mujinControllerIp%_zmqPort));
-        // throw MujinException(boost::str(boost::format("Failed to establish ZMQ connection to mujin controller at %s:%d")%_mujinControllerIp%_zmqPort), MEC_Failed);
-        _zmqIsInitialized = false;
-    }
-}
-
 std::string ControllerClientImpl::GetVersion()
 {
     if (!_profile.IsObject()) {
@@ -329,7 +305,7 @@ void ControllerClientImpl::SetAdditionalHeaders(const std::vector<std::string>& 
     _SetupHTTPHeadersMultipartFormData();
 }
 
-void ControllerClientImpl::_ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout, bool checkForErrors, bool returnRawResponse, bool useZmq)
+void ControllerClientImpl::_ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout, bool checkForErrors, bool returnRawResponse)
 {
     rResult.SetNull(); // zero output
 
@@ -351,40 +327,13 @@ void ControllerClientImpl::_ExecuteGraphQuery(const char* operationName, const c
             rRequest.AddMember(rapidjson::Document::StringRefType("query"), rValue, rAlloc);
             rValue.CopyFrom(rVariables, rAlloc);
             rRequest.AddMember(rapidjson::Document::StringRefType("variables"), rValue, rAlloc);
-            if (useZmq) {
-                rValue.SetString("/api/v2/graphql", rAlloc);
-                rRequest.AddMember(rapidjson::Document::StringRefType("path"), rValue, rAlloc);
-            }
 
             rapidjson::Writer<rapidjson::StringBuffer> writer(rRequestStringBuffer);
             rRequest.Accept(writer);
         }
 
         _uri = _baseuri + "api/v2/graphql";
-        if (useZmq) {
-            std::string result_ss;
-            try {
-                result_ss = _zmqMujinGraphQLClient->Call(rRequestStringBuffer.GetString(), timeout);
-                ParseJson(rResultDoc, result_ss);
-            }
-            catch (const MujinException& e) {
-                MUJIN_LOG_ERROR(e.what());
-                if (e.GetCode() == MEC_ZMQNoResponse) {
-                    MUJIN_LOG_INFO("reinitializing zmq connection with webstack");
-                    _zmqMujinGraphQLClient.reset(new ZmqMujinControllerClient(_zmqcontext, _mujinControllerIp, _zmqPort));
-                    if (!_zmqMujinGraphQLClient) {
-                        throw MujinException(boost::str(boost::format("Failed to establish ZMQ connection to mujin controller at %s:%d")%_mujinControllerIp%_zmqPort), MEC_Failed);
-                    }
-                } else if (e.GetCode() == MEC_Timeout) {
-                    throw MujinException("Failed to call GraphQL over ZMQ (timeout)");
-                }
-                else {
-                    throw;
-                }
-            }
-        } else {
-            _CallPost(_uri, rRequestStringBuffer.GetString(), rResultDoc, 200, timeout);
-        }
+        _CallPost(_uri, rRequestStringBuffer.GetString(), rResultDoc, 200, timeout);
     }
 
     // parse response
@@ -427,20 +376,12 @@ void ControllerClientImpl::_ExecuteGraphQuery(const char* operationName, const c
 
 void ControllerClientImpl::ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout)
 {
-    _ExecuteGraphQuery(operationName, query, rVariables, rResult, rAlloc, timeout, true, false, false);
+    _ExecuteGraphQuery(operationName, query, rVariables, rResult, rAlloc, timeout, true, false);
 }
 
 void ControllerClientImpl::ExecuteGraphQueryRaw(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout)
 {
-    _ExecuteGraphQuery(operationName, query, rVariables, rResult, rAlloc, timeout, false, true, false);
-}
-
-void ControllerClientImpl::ExecuteGraphQueryZmq(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout)
-{
-    if (!_zmqIsInitialized) {
-        throw MUJIN_EXCEPTION_FORMAT0("ExecuteGraphQuery via ZMQ called, but no ZMQ connection is available", MEC_NotInitialized);
-    }
-    _ExecuteGraphQuery(operationName, query, rVariables, rResult, rAlloc, timeout, false, true, true);
+    _ExecuteGraphQuery(operationName, query, rVariables, rResult, rAlloc, timeout, false, true);
 }
 
 void ControllerClientImpl::RestartServer(double timeout)
