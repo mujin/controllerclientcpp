@@ -41,8 +41,24 @@ MUJIN_LOGGER("mujin.controllerclientcpp.binpickingtask");
 
 namespace mujinclient {
 using namespace utils;
-namespace mujinjson = mujinjson_external;
 using namespace mujinjson;
+
+static void LoadAABBFromJsonValue(const rapidjson::Value& rAABB, mujin::AABB& aabb)
+{
+    BOOST_ASSERT(rAABB.IsObject());
+    BOOST_ASSERT(rAABB.HasMember("pos"));
+    BOOST_ASSERT(rAABB.HasMember("extents"));
+    const rapidjson::Value& rPos = rAABB["pos"];
+    BOOST_ASSERT(rPos.IsArray());
+    mujinjson::LoadJsonValue(rPos[0], aabb.pos[0]);
+    mujinjson::LoadJsonValue(rPos[1], aabb.pos[1]);
+    mujinjson::LoadJsonValue(rPos[2], aabb.pos[2]);
+    const rapidjson::Value& rExtents = rAABB["extents"];
+    BOOST_ASSERT(rExtents.IsArray());
+    mujinjson::LoadJsonValue(rExtents[0], aabb.extents[0]);
+    mujinjson::LoadJsonValue(rExtents[1], aabb.extents[1]);
+    mujinjson::LoadJsonValue(rExtents[2], aabb.extents[2]);
+}
 
 BinPickingResultResource::BinPickingResultResource(ControllerClientPtr controller, const std::string& pk) : PlanningResultResource(controller,"binpickingresult", pk)
 {
@@ -476,35 +492,39 @@ void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const rapid
 
     const rapidjson::Value& sensors = output["sensors"];
     for (rapidjson::Document::ConstMemberIterator it = sensors.MemberBegin(); it != sensors.MemberEnd(); it++) {
-        std::string sensorname = it->name.GetString();
-        Transform transform;
-        RobotResource::AttachedSensorResource::SensorData sensordata;
-        LoadJsonValueByKey(it->value, "translation", transform.translate);
-        LoadJsonValueByKey(it->value, "quaternion", transform.quaternion);
+        mujin::SensorSelectionInfo sensorSelectionInfo;
+        LoadJsonValue(it->name, sensorSelectionInfo.sensorName);
+        for (rapidjson::Document::ConstMemberIterator itlink = it->value.MemberBegin(); itlink != it->value.MemberEnd(); itlink++) {
+            LoadJsonValue(itlink->name, sensorSelectionInfo.sensorLinkName);
+            Transform transform;
+            RobotResource::AttachedSensorResource::SensorData sensordata;
+            LoadJsonValueByKey(itlink->value, "translation", transform.translate);
+            LoadJsonValueByKey(itlink->value, "quaternion", transform.quaternion);
 
-        const rapidjson::Value &sensor = it->value["sensordata"];
-        LoadJsonValueByKey(sensor, "distortion_coeffs", sensordata.distortion_coeffs);
-        LoadJsonValueByKey(sensor, "intrinsic", sensordata.intrinsic);
+            const rapidjson::Value &sensor = itlink->value["sensordata"];
+            LoadJsonValueByKey(sensor, "distortion_coeffs", sensordata.distortion_coeffs);
+            LoadJsonValueByKey(sensor, "intrinsic", sensordata.intrinsic);
 
-        std::vector<int> imagedimensions;
-        LoadJsonValueByKey(sensor, "image_dimensions", imagedimensions);
-        if (imagedimensions.size() == 2) {
-            imagedimensions.push_back(1);
+            std::vector<int> imagedimensions;
+            LoadJsonValueByKey(sensor, "image_dimensions", imagedimensions);
+            if (imagedimensions.size() == 2) {
+                imagedimensions.push_back(1);
+            }
+            if (imagedimensions.size() != 3) {
+                throw MujinException("the length of image_dimensions is invalid", MEC_Failed);
+            }
+            for (int i = 0; i < 3; i++) {
+                sensordata.image_dimensions[i] = imagedimensions[i];
+            }
+
+            LoadJsonValueByKey(sensor, "extra_parameters", sensordata.extra_parameters);
+            LoadJsonValueByKey(sensor, "distortion_model", sensordata.distortion_model);
+            LoadJsonValueByKey(sensor, "focal_length", sensordata.focal_length);
+            LoadJsonValueByKey(sensor, "measurement_time", sensordata.measurement_time);
+
+            msensortransform[sensorSelectionInfo] = transform;
+            msensordata[sensorSelectionInfo] = sensordata;
         }
-        if (imagedimensions.size() != 3) {
-            throw MujinException("the length of image_dimensions is invalid", MEC_Failed);
-        }
-        for (int i = 0; i < 3; i++) {
-            sensordata.image_dimensions[i] = imagedimensions[i];
-        }
-
-        LoadJsonValueByKey(sensor, "extra_parameters", sensordata.extra_parameters);
-        LoadJsonValueByKey(sensor, "distortion_model", sensordata.distortion_model);
-        LoadJsonValueByKey(sensor, "focal_length", sensordata.focal_length);
-        LoadJsonValueByKey(sensor, "measurement_time", sensordata.measurement_time);
-
-        msensortransform[sensorname] = transform;
-        msensordata[sensorname] = sensordata;
     }
 }
 
@@ -551,7 +571,8 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     if( v.HasMember("occlusionResults") && v["occlusionResults"].IsArray() ) {
         vOcclusionResults.resize(v["occlusionResults"].Size());
         for(int iocc = 0; iocc < (int)vOcclusionResults.size(); ++iocc) {
-            vOcclusionResults[iocc].cameraname = GetJsonValueByKey<std::string,std::string>(v["occlusionResults"][iocc], "cameraname", std::string());
+            vOcclusionResults[iocc].sensorName = GetJsonValueByKey<std::string,std::string>(v["occlusionResults"][iocc], "sensorName", std::string());
+            vOcclusionResults[iocc].sensorLinkName = GetJsonValueByKey<std::string,std::string>(v["occlusionResults"][iocc], "sensorLinkName", std::string());
             vOcclusionResults[iocc].bodyname = GetJsonValueByKey<std::string,std::string>(v["occlusionResults"][iocc], "bodyname", std::string());
             vOcclusionResults[iocc].isocclusion = GetJsonValueByKey<int,int>(v["occlusionResults"][iocc], "isocclusion", -1);
         }
@@ -584,7 +605,9 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     registerMinViableRegionInfo.minCornerVisibleInsideDist = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/minCornerVisibleInsideDist", 0);
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/minViableRegion/size2D", registerMinViableRegionInfo.minViableRegion.size2D);
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/minViableRegion/maxPossibleSize", registerMinViableRegionInfo.minViableRegion.maxPossibleSize);
+    LoadJsonValueByPath(v, "/registerMinViableRegionInfo/minViableRegion/maxPossibleSizeOriginal", registerMinViableRegionInfo.minViableRegion.maxPossibleSizeOriginal, registerMinViableRegionInfo.minViableRegion.maxPossibleSize);
     registerMinViableRegionInfo.minViableRegion.cornerMask = GetJsonValueByPath<uint64_t>(v, "/registerMinViableRegionInfo/minViableRegion/cornerMask", 0);
+    registerMinViableRegionInfo.minViableRegion.cornerMaskOriginal = GetJsonValueByPath<uint64_t>(v, "/registerMinViableRegionInfo/minViableRegion/cornerMaskOriginal", 0);
     registerMinViableRegionInfo.occlusionFreeCornerMask = GetJsonValueByPath<uint64_t>(v, "/registerMinViableRegionInfo/occlusionFreeCornerMask", 0);
     registerMinViableRegionInfo.maxPossibleSizePadding = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/maxPossibleSizePadding", 30);
     registerMinViableRegionInfo.waitForTriggerOnCapturing = GetJsonValueByPath<bool>(v, "/registerMinViableRegionInfo/waitForTriggerOnCapturing", false);
@@ -611,8 +634,16 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     runtimeRegistrationInfo.endEffectorPoseInfo.updateTimeStampMS = GetJsonValueByPath<uint64_t>(v, "/runtimeRegistrationInfo/endEffectorPoseInfo/updateTimeStampMS", 0);
     runtimeRegistrationInfo.endEffectorPoseInfo.registrationLocationArrivalTimeStampMS = GetJsonValueByPath<uint64_t>(v, "/runtimeRegistrationInfo/endEffectorPoseInfo/registrationLocationArrivalTimeStampMS", 0);
 
-    removeObjectFromObjectListInfo.timestamp = GetJsonValueByPath<double>(v, "/removeObjectFromObjectList/timestamp", 0);
-    removeObjectFromObjectListInfo.objectPk = GetJsonValueByPath<std::string>(v, "/removeObjectFromObjectList/objectPk", "");
+    removeObjectFromObjectListInfos.clear();
+    if( v.HasMember("removeObjectsFromObjectList") && v["removeObjectsFromObjectList"].IsArray()) {
+        const rapidjson::Value& rRemoveObjectFromObjectList = v["removeObjectsFromObjectList"];
+        removeObjectFromObjectListInfos.resize(rRemoveObjectFromObjectList.Size());
+        for(int iitem = 0; iitem < (int)removeObjectFromObjectListInfos.size(); ++iitem) {
+            const rapidjson::Value& rInfo = rRemoveObjectFromObjectList[iitem];
+            removeObjectFromObjectListInfos[iitem].timestamp = GetJsonValueByKey<double, double>(rInfo, "timestamp", 0);
+            removeObjectFromObjectListInfos[iitem].objectPk = GetJsonValueByKey<std::string, std::string>(rInfo, "objectPk", std::string());
+        }
+    }
 
     triggerDetectionCaptureInfo.timestamp = GetJsonValueByPath<double>(v, "/triggerDetectionCaptureInfo/timestamp", 0);
     triggerDetectionCaptureInfo.triggerType = GetJsonValueByPath<std::string>(v, "/triggerDetectionCaptureInfo/triggerType", "");
@@ -658,8 +689,9 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
             pickPlaceHistoryItems[iitem].object_uri = GetJsonValueByKey<std::string,std::string>(rItem, "object_uri", std::string());
 
             pickPlaceHistoryItems[iitem].objectpose = Transform();
-            if( rItem.HasMember("objectpose") ) {
-                const rapidjson::Value& rObjectPose = rItem["objectpose"];
+            const rapidjson::Value::ConstMemberIterator itPose = rItem.FindMember("objectpose");
+            if( itPose != rItem.MemberEnd() ) {
+                const rapidjson::Value& rObjectPose = itPose->value;;
                 if( rObjectPose.IsArray() && rObjectPose.Size() == 7 ) {
                     LoadJsonValue(rObjectPose[0], pickPlaceHistoryItems[iitem].objectpose.quaternion[0]);
                     LoadJsonValue(rObjectPose[1], pickPlaceHistoryItems[iitem].objectpose.quaternion[1]);
@@ -669,6 +701,13 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
                     LoadJsonValue(rObjectPose[5], pickPlaceHistoryItems[iitem].objectpose.translate[1]);
                     LoadJsonValue(rObjectPose[6], pickPlaceHistoryItems[iitem].objectpose.translate[2]);
                 }
+            }
+
+            pickPlaceHistoryItems[iitem].localaabb = mujin::AABB();
+            const rapidjson::Value::ConstMemberIterator itLocalAABB = rItem.FindMember("localaabb");
+            if( itLocalAABB != rItem.MemberEnd() ) {
+                const rapidjson::Value& rLocalAABB = itLocalAABB->value;
+                LoadAABBFromJsonValue(rLocalAABB, pickPlaceHistoryItems[iitem].localaabb);
             }
 
             pickPlaceHistoryItems[iitem].sensorTimeStampUS = GetJsonValueByKey<unsigned long long>(rItem, "sensorTimeStampUS", 0);
@@ -699,6 +738,7 @@ BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionInfo::M
 {
     size2D.fill(0);
     maxPossibleSize.fill(0);
+    maxPossibleSizeOriginal.fill(0);
 }
 
 BinPickingTaskResource::ResultGetBinpickingState::RuntimeRegistrationInfo::RuntimeRegistrationInfo()
@@ -1119,14 +1159,21 @@ void BinPickingTaskResource::SendRuntimeRegistrationResult(const rapidjson::Docu
     ExecuteCommand(_ss.str(), pt, timeout);
 }
 
-void BinPickingTaskResource::SendRemoveObjectFromObjectListResult(
-    const std::string& objectPk,
-    bool success,
-    double timeout)
+void BinPickingTaskResource::SendRemoveObjectsFromObjectListResult(
+    const std::vector<ResultGetBinpickingState::RemoveObjectFromObjectListInfo>& removeObjectFromObjectListInfos,
+    const bool success,
+    const double timeout)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
-    _ss << GetJsonString("command", "SendRemoveObjectFromObjectListResult") << ", ";
-    _ss << GetJsonString("objectPk", objectPk) << ", ";
+    _ss << GetJsonString("command", "SendRemoveObjectsFromObjectListResult") << ", ";
+    _ss << GetJsonString("objectPks") << ": [";
+    for (size_t iInfo = 0; iInfo < removeObjectFromObjectListInfos.size(); ++iInfo) {
+        _ss << GetJsonString(removeObjectFromObjectListInfos[iInfo].objectPk);
+        if (iInfo != removeObjectFromObjectListInfos.size() - 1) {
+            _ss << ", ";
+        }
+    }
+    _ss << "], ";
     _ss << GetJsonString("success", success) << ", ";
     _ss << "}";
     rapidjson::Document pt(rapidjson::kObjectType);
@@ -1451,14 +1498,14 @@ PlanningResultResourcePtr BinPickingTaskResource::GetResult()
     return result;
 }
 
-void BinPickingTaskResource::GetInstObjectAndSensorInfo(const std::vector<std::string>& instobjectnames, const std::vector<std::string>& sensornames, ResultGetInstObjectAndSensorInfo& result, const std::string& unit, const double timeout)
+void BinPickingTaskResource::GetInstObjectAndSensorInfo(const std::vector<std::string>& instobjectnames, const std::vector<mujin::SensorSelectionInfo>& sensorSelectionInfos, ResultGetInstObjectAndSensorInfo& result, const std::string& unit, const double timeout)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "GetInstObjectAndSensorInfo";
     _ss << GetJsonString("command", command) << ", ";
     _ss << GetJsonString("tasktype", _tasktype) << ", ";
     _ss << GetJsonString("instobjectnames") << ": " << GetJsonString(instobjectnames) << ", ";
-    _ss << GetJsonString("sensornames") << ": " << GetJsonString(sensornames) << ", ";
+    _ss << GetJsonString("sensorSelectionInfos") << ": " << GetJsonString(sensorSelectionInfos) << ", ";
     _ss << GetJsonString("unit", unit);
     _ss << "}";
     rapidjson::Document pt(rapidjson::kObjectType);
@@ -1467,7 +1514,7 @@ void BinPickingTaskResource::GetInstObjectAndSensorInfo(const std::vector<std::s
         result.Parse(pt);
     }
     catch(const std::exception& ex) {
-        MUJIN_LOG_ERROR(str(boost::format("got error when parsing result: %s")%DumpJson(pt)));
+        MUJIN_LOG_ERROR(str(boost::format("got error when parsing result. exception: %s result: %s")%ex.what()%DumpJson(pt)));
         throw;
     }
 }
@@ -1490,7 +1537,7 @@ void BinPickingTaskResource::GetInstObjectInfoFromURI(const std::string& objectu
         result.Parse(pt);
     }
     catch(const std::exception& ex) {
-        MUJIN_LOG_ERROR(str(boost::format("got error when parsing result: %s")%DumpJson(pt)));
+        MUJIN_LOG_ERROR(str(boost::format("got error when parsing result: %s result: %s")%ex.what()%DumpJson(pt)));
         throw;
     }
 }
