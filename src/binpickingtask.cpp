@@ -617,8 +617,16 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/fullDofValues", registerMinViableRegionInfo.fullDofValues);
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/connectedBodyActiveStates", registerMinViableRegionInfo.connectedBodyActiveStates);
 
-    removeObjectFromObjectListInfo.timestamp = GetJsonValueByPath<double>(v, "/removeObjectFromObjectList/timestamp", 0);
-    removeObjectFromObjectListInfo.objectPk = GetJsonValueByPath<std::string>(v, "/removeObjectFromObjectList/objectPk", "");
+    removeObjectFromObjectListInfos.clear();
+    if( v.HasMember("removeObjectsFromObjectList") && v["removeObjectsFromObjectList"].IsArray()) {
+        const rapidjson::Value& rRemoveObjectFromObjectList = v["removeObjectsFromObjectList"];
+        removeObjectFromObjectListInfos.resize(rRemoveObjectFromObjectList.Size());
+        for(int iitem = 0; iitem < (int)removeObjectFromObjectListInfos.size(); ++iitem) {
+            const rapidjson::Value& rInfo = rRemoveObjectFromObjectList[iitem];
+            removeObjectFromObjectListInfos[iitem].timestamp = GetJsonValueByKey<double, double>(rInfo, "timestamp", 0);
+            removeObjectFromObjectListInfos[iitem].objectPk = GetJsonValueByKey<std::string, std::string>(rInfo, "objectPk", std::string());
+        }
+    }
 
     triggerDetectionCaptureInfo.timestamp = GetJsonValueByPath<double>(v, "/triggerDetectionCaptureInfo/timestamp", 0);
     triggerDetectionCaptureInfo.triggerType = GetJsonValueByPath<std::string>(v, "/triggerDetectionCaptureInfo/triggerType", "");
@@ -1087,14 +1095,21 @@ void BinPickingTaskResource::SendMVRRegistrationResult(
 
 }
 
-void BinPickingTaskResource::SendRemoveObjectFromObjectListResult(
-    const std::string& objectPk,
-    bool success,
-    double timeout)
+void BinPickingTaskResource::SendRemoveObjectsFromObjectListResult(
+    const std::vector<ResultGetBinpickingState::RemoveObjectFromObjectListInfo>& removeObjectFromObjectListInfos,
+    const bool success,
+    const double timeout)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
-    _ss << GetJsonString("command", "SendRemoveObjectFromObjectListResult") << ", ";
-    _ss << GetJsonString("objectPk", objectPk) << ", ";
+    _ss << GetJsonString("command", "SendRemoveObjectsFromObjectListResult") << ", ";
+    _ss << GetJsonString("objectPks") << ": [";
+    for (size_t iInfo = 0; iInfo < removeObjectFromObjectListInfos.size(); ++iInfo) {
+        _ss << GetJsonString(removeObjectFromObjectListInfos[iInfo].objectPk);
+        if (iInfo != removeObjectFromObjectListInfos.size() - 1) {
+            _ss << ", ";
+        }
+    }
+    _ss << "], ";
     _ss << GetJsonString("success", success) << ", ";
     _ss << "}";
     rapidjson::Document pt(rapidjson::kObjectType);
