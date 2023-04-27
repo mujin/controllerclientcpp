@@ -29,11 +29,10 @@ set(SOURCE_FILES
   mujincontrollerclient.cpp
   mujindefinitions.cpp
   mujinjson.cpp
-  utf8.h
-)
+  utf8.h )
 
 if (libzmq_FOUND)
-  set(SOURCE_FILES ${SOURCE_FILES} binpickingtaskzmq.h binpickingtaskzmq.cpp mujinzmq.cpp mujinzmqclient.cpp)
+  set(SOURCE_FILES ${SOURCE_FILES} binpickingtaskzmq.h binpickingtaskzmq.cpp mujinzmq.cpp)
 endif()
 
 add_library(libmujincontrollerclient SHARED ${SOURCE_FILES})
