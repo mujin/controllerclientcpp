@@ -488,6 +488,8 @@ void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const rapid
             mujinjson::SaveJsonValue(*pr, it->value["geometryInfos"]);
             mrGeometryInfos[objname] = pr;
         }
+
+        LoadJsonValueByKey(it->value, "uri", muri[objname]);
     }
 
     const rapidjson::Value& sensors = output["sensors"];
