@@ -303,6 +303,7 @@ public:
     {
         virtual ~ResultGetInstObjectAndSensorInfo();
         void Parse(const rapidjson::Value& pt);
+        std::map<std::string, std::string> muri;
         std::map<std::string, Transform> minstobjecttransform;
         std::map<std::string, ResultOBB> minstobjectobb;
         std::map<std::string, ResultOBB> minstobjectinnerobb;
