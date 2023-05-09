@@ -28,7 +28,7 @@
 #include <vector>
 #include <map>
 #include <iostream>
-#include <execinfo.h>  // backtrace stuff
+#include <boost/stacktrace.hpp>
 
 #include <rapidjson/pointer.h>
 #include <rapidjson/stringbuffer.h>
@@ -172,26 +172,7 @@ inline void ParseJson(rapidjson::Document& d, const char* str, size_t length) {
     d.GetAllocator().Clear();
     d.Parse<rapidjson::kParseFullPrecisionFlag>(str, length); // parse float in full precision mode
     if (d.HasParseError()) {
-        {
-            const int BT_BUF_SIZE = 100;
-            void *buffer[BT_BUF_SIZE];
-
-            int nptrs = backtrace(buffer, BT_BUF_SIZE);
-            std::string output_buffer = boost::str(boost::format("backtrace() returned %d addresses\n") % nptrs);
-
-            char **strings = backtrace_symbols(buffer, nptrs);
-            if (strings == NULL) {
-                perror("backtrace_symbols");
-                exit(EXIT_FAILURE);
-            }
-
-            for (int j = 0; j < nptrs; j++) {
-                output_buffer += boost::str(boost::format("%s\n") % strings[j]);
-            }
-            free(strings);
-
-            throw MujinJSONException( output_buffer );
-        }
+        throw MujinJSONException( boost::stacktrace::stacktrace() );
 
         const std::string substr(str, length < 200 ? length : 200);
         throw MujinJSONException(boost::str(boost::format("Json string is invalid (offset %u) %s data is '%s'.")%((unsigned)d.GetErrorOffset())%GetParseError_En(d.GetParseError())%substr));
