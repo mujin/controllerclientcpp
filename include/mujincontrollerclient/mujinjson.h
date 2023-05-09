@@ -172,7 +172,7 @@ inline void ParseJson(rapidjson::Document& d, const char* str, size_t length) {
     d.GetAllocator().Clear();
     d.Parse<rapidjson::kParseFullPrecisionFlag>(str, length); // parse float in full precision mode
     if (d.HasParseError()) {
-        throw MujinJSONException( boost::stacktrace::stacktrace() );
+        throw MujinJSONException( boost::stacktrace::to_string(boost::stacktrace::stacktrace()) );
 
         const std::string substr(str, length < 200 ? length : 200);
         throw MujinJSONException(boost::str(boost::format("Json string is invalid (offset %u) %s data is '%s'.")%((unsigned)d.GetErrorOffset())%GetParseError_En(d.GetParseError())%substr));
