@@ -162,7 +162,7 @@ inline void DumpJson(const rapidjson::Value& value, std::ostream& os, const unsi
     }
 }
 
-void print_backtrace(void);
+MUJINCLIENT_API void print_backtrace(void);
 
 inline void ParseJson(rapidjson::Document& d, const char* str, size_t length) {
     // repeatedly calling Parse on the same rapidjson::Document will not release previsouly allocated memory, memory will accumulate until the object is destroyed
