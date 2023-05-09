@@ -5,8 +5,6 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <execinfo.h>  // backtrace stuff
-#include <string>
 
 namespace mujinjson {
 

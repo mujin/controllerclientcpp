@@ -28,6 +28,7 @@
 #include <vector>
 #include <map>
 #include <iostream>
+#include <execinfo.h>  // backtrace stuff
 
 #include <rapidjson/pointer.h>
 #include <rapidjson/stringbuffer.h>
