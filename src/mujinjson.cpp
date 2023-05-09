@@ -113,6 +113,7 @@ void __InternalParseJsonFile(rapidjson::Document& d, const char* filename)
 
 void print_backtrace(void)
 {
+    const int BT_BUF_SIZE = 100;
     int nptrs;
     void *buffer[BT_BUF_SIZE];
     char **strings;
