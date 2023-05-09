@@ -112,28 +112,4 @@ void __InternalParseJsonFile(rapidjson::Document& d, const char* filename)
     return ParseJsonFile(d, filename, buffer);
 }
 
-void print_backtrace(void)
-{
-    const int BT_BUF_SIZE = 100;
-    int nptrs;
-    void *buffer[BT_BUF_SIZE];
-    char **strings;
-
-    nptrs = backtrace(buffer, BT_BUF_SIZE);
-    std::string output_buffer = boost::str(boost::format("backtrace() returned %d addresses\n") % nptrs);
-
-    strings = backtrace_symbols(buffer, nptrs);
-    if (strings == NULL) {
-        perror("backtrace_symbols");
-        exit(EXIT_FAILURE);
-    }
-
-    for (int j = 0; j < nptrs; j++) {
-        output_buffer += boost::str(boost::format("%s\n") % strings[j]);
-    }
-    free(strings);
-
-    throw MujinJSONException( output_buffer );
-}
-
 } // end namespace mujinjson

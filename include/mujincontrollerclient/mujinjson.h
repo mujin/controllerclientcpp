@@ -162,8 +162,6 @@ inline void DumpJson(const rapidjson::Value& value, std::ostream& os, const unsi
     }
 }
 
-MUJINCLIENT_API void print_backtrace(void);
-
 inline void ParseJson(rapidjson::Document& d, const char* str, size_t length) {
     // repeatedly calling Parse on the same rapidjson::Document will not release previsouly allocated memory, memory will accumulate until the object is destroyed
     // we use a new temporary Document to parse, and swap content with the original one, so that memory in original Document will be released when this function ends
@@ -173,7 +171,26 @@ inline void ParseJson(rapidjson::Document& d, const char* str, size_t length) {
     d.GetAllocator().Clear();
     d.Parse<rapidjson::kParseFullPrecisionFlag>(str, length); // parse float in full precision mode
     if (d.HasParseError()) {
-        print_backtrace();
+        {
+            const int BT_BUF_SIZE = 100;
+            void *buffer[BT_BUF_SIZE];
+
+            int nptrs = backtrace(buffer, BT_BUF_SIZE);
+            std::string output_buffer = boost::str(boost::format("backtrace() returned %d addresses\n") % nptrs);
+
+            char **strings = backtrace_symbols(buffer, nptrs);
+            if (strings == NULL) {
+                perror("backtrace_symbols");
+                exit(EXIT_FAILURE);
+            }
+
+            for (int j = 0; j < nptrs; j++) {
+                output_buffer += boost::str(boost::format("%s\n") % strings[j]);
+            }
+            free(strings);
+
+            throw MujinJSONException( output_buffer );
+        }
 
         const std::string substr(str, length < 200 ? length : 200);
         throw MujinJSONException(boost::str(boost::format("Json string is invalid (offset %u) %s data is '%s'.")%((unsigned)d.GetErrorOffset())%GetParseError_En(d.GetParseError())%substr));
