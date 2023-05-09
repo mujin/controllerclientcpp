@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <execinfo.h>  // backtrace stuff
+#include <string>
 
 namespace mujinjson {
 
@@ -119,7 +120,7 @@ void print_backtrace(void)
     char **strings;
 
     nptrs = backtrace(buffer, BT_BUF_SIZE);
-    boost::str output_buffer = boost::str(boost::format("backtrace() returned %d addresses\n") % nptrs);
+    std::string output_buffer = boost::str(boost::format("backtrace() returned %d addresses\n") % nptrs);
 
     strings = backtrace_symbols(buffer, nptrs);
     if (strings == NULL) {
