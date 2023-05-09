@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <execinfo.h>  // backtrace stuff
 
 namespace mujinjson {
 
@@ -108,6 +109,27 @@ void __InternalParseJsonFile(rapidjson::Document& d, const char* filename)
 {
     std::vector<char> buffer;
     return ParseJsonFile(d, filename, buffer);
+}
+
+void print_backtrace(void)
+{
+    int nptrs;
+    void *buffer[BT_BUF_SIZE];
+    char **strings;
+
+    nptrs = backtrace(buffer, BT_BUF_SIZE);
+    MUJIN_LOG_ERROR_FORMAT("backtrace() returned %d addresses\n", nptrs);
+
+    strings = backtrace_symbols(buffer, nptrs);
+    if (strings == NULL) {
+        perror("backtrace_symbols");
+        exit(EXIT_FAILURE);
+    }
+
+    for (int j = 0; j < nptrs; j++)
+        MUJIN_LOG_ERROR_FORMAT("%s\n", strings[j]);
+
+    free(strings);
 }
 
 } // end namespace mujinjson

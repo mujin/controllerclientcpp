@@ -162,6 +162,8 @@ inline void DumpJson(const rapidjson::Value& value, std::ostream& os, const unsi
     }
 }
 
+void print_backtrace(void);
+
 inline void ParseJson(rapidjson::Document& d, const char* str, size_t length) {
     // repeatedly calling Parse on the same rapidjson::Document will not release previsouly allocated memory, memory will accumulate until the object is destroyed
     // we use a new temporary Document to parse, and swap content with the original one, so that memory in original Document will be released when this function ends
@@ -171,8 +173,9 @@ inline void ParseJson(rapidjson::Document& d, const char* str, size_t length) {
     d.GetAllocator().Clear();
     d.Parse<rapidjson::kParseFullPrecisionFlag>(str, length); // parse float in full precision mode
     if (d.HasParseError()) {
-        const std::string substr(str, length < 200 ? length : 200);
+        print_backtrace();
 
+        const std::string substr(str, length < 200 ? length : 200);
         throw MujinJSONException(boost::str(boost::format("Json string is invalid (offset %u) %s data is '%s'.")%((unsigned)d.GetErrorOffset())%GetParseError_En(d.GetParseError())%substr));
     }
 }
