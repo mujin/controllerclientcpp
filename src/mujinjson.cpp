@@ -119,7 +119,7 @@ void print_backtrace(void)
     char **strings;
 
     nptrs = backtrace(buffer, BT_BUF_SIZE);
-    MUJIN_LOG_ERROR_FORMAT("backtrace() returned %d addresses\n", nptrs);
+    boost::str output_buffer = boost::str(boost::format("backtrace() returned %d addresses\n" % nptrs));
 
     strings = backtrace_symbols(buffer, nptrs);
     if (strings == NULL) {
@@ -128,9 +128,11 @@ void print_backtrace(void)
     }
 
     for (int j = 0; j < nptrs; j++)
-        MUJIN_LOG_ERROR_FORMAT("%s\n", strings[j]);
+        output_buffer += boost::str(boost::format("%s\n", strings[j]));
 
     free(strings);
+
+    throw MujinJSONException( output_buffer );
 }
 
 } // end namespace mujinjson
