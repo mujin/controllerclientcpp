@@ -172,7 +172,7 @@ inline void ParseJson(rapidjson::Document& d, const char* str, size_t length) {
     d.GetAllocator().Clear();
     d.Parse<rapidjson::kParseFullPrecisionFlag>(str, length); // parse float in full precision mode
     if (d.HasParseError()) {
-        {
+        if (0) {
             const int BT_BUF_SIZE = 100;
             void *buffer[BT_BUF_SIZE];
 
