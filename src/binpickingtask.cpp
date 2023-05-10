@@ -702,7 +702,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
 
 BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionInfo::RegisterMinViableRegionInfo() :
     objectWeight(0.0),
-    sensortimestamp(0),
+    sensorTimeStampMS(0),
     robotDepartStopTimestamp(0),
     transferSpeedPostMult(1.0),
     minCornerVisibleDist(30),
