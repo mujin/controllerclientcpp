@@ -209,7 +209,7 @@ public:
             std::array<double, 3> translation_; ///< Translation of the 2D MVR plane (height = 0)
             std::array<double, 4> quat_; ///< Rotation of the 2D MVR plane (height = 0)
             double objectWeight; ///< If non-zero, use this weight fo registration. unit is kg. zero means unknown.
-            uint64_t sensortimestamp; ///< Same as DetectedObject's timestamp sent to planning
+            uint64_t sensorTimeStampMS; ///< Same as DetectedObject's timestamp sent to planning
             double robotDepartStopTimestamp; ///< Force capture after robot stops
             std::array<double, 3> liftedWorldOffset; ///< [dx, dy, dz], mm in world frame
             std::array<double, 3> maxCandidateSize; ///< the max candidate size expecting
@@ -219,12 +219,12 @@ public:
             double minCornerVisibleDist; ///< how much distance along with uncertain edge from uncertain corner robot exposes to camera
             double minCornerVisibleInsideDist; ///< how much distance inside MVR robot exposes to camera
             uint64_t occlusionFreeCornerMask; ///< mask of corners that robot exposes to camera
-            bool waitForTriggerOnCapturing; ///<  if true, sensor will wait trigger on capturing
+            bool skipAppendingToObjectSet; ///<  if true, skip appending newly created registration data into an active object set
             double maxPossibleSizePadding; ///< how much to additionally expose max possible size region to vision
             std::vector<double> fullDofValues; ///< robot configuration state on capturing
             std::vector<int8_t> connectedBodyActiveStates; ///< robot configuration state on capturing
             bool IsEmpty() const {
-                return sensortimestamp == 0;
+                return sensorTimeStampMS == 0;
             }
         } registerMinViableRegionInfo;
 
@@ -303,6 +303,7 @@ public:
     {
         virtual ~ResultGetInstObjectAndSensorInfo();
         void Parse(const rapidjson::Value& pt);
+        std::map<std::string, std::string> muri;
         std::map<std::string, Transform> minstobjecttransform;
         std::map<std::string, ResultOBB> minstobjectobb;
         std::map<std::string, ResultOBB> minstobjectinnerobb;
