@@ -570,13 +570,14 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     lastGrabbedTargetTimeStamp = (unsigned long long)(GetJsonValueByKey<double>(v, "lastGrabbedTargetTimeStamp", 0) * 1000.0); // s -> ms
 
     vOcclusionResults.clear();
-    if( v.HasMember("occlusionResults") && v["occlusionResults"].IsArray() ) {
-        vOcclusionResults.resize(v["occlusionResults"].Size());
+    const rapidjson::Value::ConstMemberIterator itOcclusionResults = v.FindMember("occlusionResults");
+    if( itOcclusionResults != v.MemberEnd() && itOcclusionResults->value.IsArray() ) {
+        vOcclusionResults.resize(itOcclusionResults->value.Size());
         for(int iocc = 0; iocc < (int)vOcclusionResults.size(); ++iocc) {
-            vOcclusionResults[iocc].sensorName = GetJsonValueByKey<std::string,std::string>(v["occlusionResults"][iocc], "sensorName", std::string());
-            vOcclusionResults[iocc].sensorLinkName = GetJsonValueByKey<std::string,std::string>(v["occlusionResults"][iocc], "sensorLinkName", std::string());
-            vOcclusionResults[iocc].bodyname = GetJsonValueByKey<std::string,std::string>(v["occlusionResults"][iocc], "bodyname", std::string());
-            vOcclusionResults[iocc].isocclusion = GetJsonValueByKey<int,int>(v["occlusionResults"][iocc], "isocclusion", -1);
+            const rapidjson::Value& result = itOcclusionResults->value[iocc];
+            vOcclusionResults[iocc].sensorSelectionInfo = GetJsonValueByKey<mujin::SensorSelectionInfo,mujin::SensorSelectionInfo>(result, "sensorSelectionInfo", mujin::SensorSelectionInfo());
+            vOcclusionResults[iocc].bodyname = GetJsonValueByKey<std::string,std::string>(result, "bodyname", std::string());
+            vOcclusionResults[iocc].isocclusion = GetJsonValueByKey<int,int>(result, "isocclusion", -1);
         }
     }
 
