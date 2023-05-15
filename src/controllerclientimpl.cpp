@@ -224,7 +224,7 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
         _charset = itcodepage->second;
     }
 #endif
-    MUJIN_LOG_INFO("setting character set to " << _charset);
+    MUJIN_LOG_INFO(std::string("setting character set to ")+_charset);
     _SetupHTTPHeadersJSON();
     _SetupHTTPHeadersSTL();
     _SetupHTTPHeadersMultipartFormData();
@@ -1922,7 +1922,7 @@ void ControllerClientImpl::_DeleteDirectoryOnController(const std::string& destu
     CURL_PERFORM(_curl);
     long http_code = 0;
     CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
-    MUJIN_LOG_INFO("response code: " << http_code);
+    MUJIN_LOG_INFO(str(boost::format("response code: %d")%http_code));
 }
 
 size_t ControllerClientImpl::_ReadUploadCallback(void *ptr, size_t size, size_t nmemb, void *stream)
