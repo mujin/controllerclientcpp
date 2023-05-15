@@ -570,13 +570,14 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     lastGrabbedTargetTimeStamp = (unsigned long long)(GetJsonValueByKey<double>(v, "lastGrabbedTargetTimeStamp", 0) * 1000.0); // s -> ms
 
     vOcclusionResults.clear();
-    if( v.HasMember("occlusionResults") && v["occlusionResults"].IsArray() ) {
-        vOcclusionResults.resize(v["occlusionResults"].Size());
+    const rapidjson::Value::ConstMemberIterator itOcclusionResults = v.FindMember("occlusionResults");
+    if( itOcclusionResults != v.MemberEnd() && itOcclusionResults->value.IsArray() ) {
+        vOcclusionResults.resize(itOcclusionResults->value.Size());
         for(int iocc = 0; iocc < (int)vOcclusionResults.size(); ++iocc) {
-            vOcclusionResults[iocc].sensorName = GetJsonValueByKey<std::string,std::string>(v["occlusionResults"][iocc], "sensorName", std::string());
-            vOcclusionResults[iocc].sensorLinkName = GetJsonValueByKey<std::string,std::string>(v["occlusionResults"][iocc], "sensorLinkName", std::string());
-            vOcclusionResults[iocc].bodyname = GetJsonValueByKey<std::string,std::string>(v["occlusionResults"][iocc], "bodyname", std::string());
-            vOcclusionResults[iocc].isocclusion = GetJsonValueByKey<int,int>(v["occlusionResults"][iocc], "isocclusion", -1);
+            const rapidjson::Value& result = itOcclusionResults->value[iocc];
+            vOcclusionResults[iocc].sensorSelectionInfo = GetJsonValueByKey<mujin::SensorSelectionInfo,mujin::SensorSelectionInfo>(result, "sensorSelectionInfo", mujin::SensorSelectionInfo());
+            vOcclusionResults[iocc].bodyname = GetJsonValueByKey<std::string,std::string>(result, "bodyname", std::string());
+            vOcclusionResults[iocc].isocclusion = GetJsonValueByKey<int,int>(result, "isocclusion", -1);
         }
     }
 
@@ -592,7 +593,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/translation_", registerMinViableRegionInfo.translation_);
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/quat_", registerMinViableRegionInfo.quat_);
     registerMinViableRegionInfo.objectWeight = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/objectWeight", 0);
-    registerMinViableRegionInfo.sensortimestamp = GetJsonValueByPath<uint64_t>(v, "/registerMinViableRegionInfo/sensortimestamp", 0);
+    registerMinViableRegionInfo.sensorTimeStampMS = GetJsonValueByPath<uint64_t>(v, "/registerMinViableRegionInfo/sensorTimeStampMS", 0);
     registerMinViableRegionInfo.robotDepartStopTimestamp = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/robotDepartStopTimestamp", 0);
     registerMinViableRegionInfo.transferSpeedPostMult = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/transferSpeedPostMult", 1.0);
     {
@@ -612,7 +613,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     registerMinViableRegionInfo.minViableRegion.cornerMaskOriginal = GetJsonValueByPath<uint64_t>(v, "/registerMinViableRegionInfo/minViableRegion/cornerMaskOriginal", 0);
     registerMinViableRegionInfo.occlusionFreeCornerMask = GetJsonValueByPath<uint64_t>(v, "/registerMinViableRegionInfo/occlusionFreeCornerMask", 0);
     registerMinViableRegionInfo.maxPossibleSizePadding = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/maxPossibleSizePadding", 30);
-    registerMinViableRegionInfo.waitForTriggerOnCapturing = GetJsonValueByPath<bool>(v, "/registerMinViableRegionInfo/waitForTriggerOnCapturing", false);
+    registerMinViableRegionInfo.skipAppendingToObjectSet = GetJsonValueByPath<bool>(v, "/registerMinViableRegionInfo/skipAppendingToObjectSet", false);
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/liftedWorldOffset", registerMinViableRegionInfo.liftedWorldOffset);
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/minCandidateSize", registerMinViableRegionInfo.minCandidateSize);
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/maxCandidateSize", registerMinViableRegionInfo.maxCandidateSize);
@@ -702,13 +703,13 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
 
 BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionInfo::RegisterMinViableRegionInfo() :
     objectWeight(0.0),
-    sensortimestamp(0),
+    sensorTimeStampMS(0),
     robotDepartStopTimestamp(0),
     transferSpeedPostMult(1.0),
     minCornerVisibleDist(30),
     minCornerVisibleInsideDist(0),
     occlusionFreeCornerMask(0),
-    waitForTriggerOnCapturing(false),
+    skipAppendingToObjectSet(false),
     maxPossibleSizePadding(30)
 {
     translation_.fill(0);
