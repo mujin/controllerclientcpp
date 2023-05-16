@@ -2012,13 +2012,13 @@ void ControllerClientImpl::CreateLogEntries(const std::vector<LogEntryPtr>& logE
                     CURLFORM_COPYCONTENTS, DumpJson(logEntry->entry).c_str(),
                     CURLFORM_CONTENTTYPE, "application/json",
                     CURLFORM_END);
-        // add resources
-        for (LogEntryResourcePtr resource : logEntry->resources) {
+        // add attachments
+        for (LogEntryAttachmentPtr attachment : logEntry->attachments) {
             curl_formadd(&formpost, &lastptr,
-                CURLFORM_COPYNAME, "resource",
-                CURLFORM_BUFFER, resource->filename.c_str(),
-                CURLFORM_BUFFERPTR, resource->data.data(),
-                CURLFORM_BUFFERLENGTH, (long)(resource->data.size()),
+                CURLFORM_COPYNAME, "attachment",
+                CURLFORM_BUFFER, attachment->filename.c_str(),
+                CURLFORM_BUFFERPTR, attachment->data.data(),
+                CURLFORM_BUFFERLENGTH, (long)(attachment->data.size()),
                 CURLFORM_END);
         }
     }

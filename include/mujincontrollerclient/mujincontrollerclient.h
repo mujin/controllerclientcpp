@@ -111,22 +111,22 @@ typedef boost::shared_ptr<DebugResource> DebugResourcePtr;
 typedef boost::weak_ptr<DebugResource> DebugResourceWeakPtr;
 typedef double Real;
 
-/// \brief a resource attached to a log entry
-struct LogEntryResource
+/// \brief an attachment to a log entry
+struct LogEntryAttachment
 {
     std::string filename; // filename
-    std::vector<unsigned char> data; // data for the resource
+    std::vector<unsigned char> data; // data for the attachment
 };
 
-typedef boost::shared_ptr<LogEntryResource> LogEntryResourcePtr;
-typedef boost::weak_ptr<LogEntryResource> LogEntryResourceWeakPtr;
+typedef boost::shared_ptr<LogEntryAttachment> LogEntryAttachmentPtr;
+typedef boost::weak_ptr<LogEntryAttachment> LogEntryAttachmentWeakPtr;
 
 /// \brief a log entry in mujin controller
 struct LogEntry
 {
     rapidjson::Document entry; // log entry data in JSON format
     std::string logType; // log type
-    std::vector<LogEntryResourcePtr> resources; // a list of related resources
+    std::vector<LogEntryAttachmentPtr> attachments; // a list of related attachments
 };
 
 typedef boost::shared_ptr<LogEntry> LogEntryPtr;
@@ -681,7 +681,7 @@ public:
     /// \brief get debug infos
     virtual void GetDebugInfos(std::vector<DebugResourcePtr>& debuginfos, double timeout = 5) = 0;
 
-    /// \brief create log entries and resource attachments such as images, additional files, etc.
+    /// \brief create log entries and attachments such as images, additional files, etc.
     virtual void CreateLogEntries(const std::vector<LogEntryPtr>& logEntries) = 0;
 
 };
