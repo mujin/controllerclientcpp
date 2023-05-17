@@ -35,6 +35,7 @@ public:
     virtual std::string GetVersion();
     virtual void SetCharacterEncoding(const std::string& newencoding);
     virtual void SetProxy(const std::string& serverport, const std::string& userpw);
+    virtual void SetUnixEndpoint(const std::string& unixendpoint) override;
     virtual void SetLanguage(const std::string& language);
     virtual void SetUserAgent(const std::string& userAgent);
     virtual void SetAdditionalHeaders(const std::vector<std::string>& additionalHeaders);
