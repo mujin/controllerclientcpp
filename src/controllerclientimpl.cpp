@@ -91,7 +91,7 @@ std::wstring ParseWincapsWCNPath(const T& sourcefilename, const boost::function<
     return strWCNPath;
 }
 
-ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, const std::string& baseuri, const std::string& proxyserverport, const std::string& proxyuserpw, int options, double timeout, const std::string& unixendpoint)
+ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, const std::string& baseuri, const std::string& proxyserverport, const std::string& proxyuserpw, int options, double timeout)
 {
     BOOST_ASSERT( !baseuri.empty() );
     size_t usernameindex = 0;
@@ -158,10 +158,6 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
 
     CURL_OPTION_SETTER(_curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
     CURL_OPTION_SETTER(_curl, CURLOPT_USERPWD, usernamepassword.c_str());
-
-    if( !unixendpoint.empty() ) {
-        CURL_OPTION_SETTER(_curl, CURLOPT_UNIX_SOCKET_PATH, unixendpoint.c_str());
-    }
 
     // need to set the following?
     //CURLOPT_USERAGENT
@@ -274,8 +270,18 @@ void ControllerClientImpl::SetCharacterEncoding(const std::string& newencoding)
 
 void ControllerClientImpl::SetProxy(const std::string& serverport, const std::string& userpw)
 {
+    // mutally exclusive with unix endpoint settings
+    CURL_OPTION_SETTER(_curl, CURLOPT_UNIX_SOCKET_PATH, NULL);
     CURL_OPTION_SETTER(_curl, CURLOPT_PROXY, serverport.c_str());
     CURL_OPTION_SETTER(_curl, CURLOPT_PROXYUSERPWD, userpw.c_str());
+}
+
+void ControllerClientImpl::SetUnixEndpoint(const std::string& unixendpoint)
+{
+    // mutually exclusive with proxy settings
+    CURL_OPTION_SETTER(_curl, CURLOPT_PROXY, NULL);
+    CURL_OPTION_SETTER(_curl, CURLOPT_PROXYUSERPWD, NULL);
+    CURL_OPTION_SETTER(_curl, CURLOPT_UNIX_SOCKET_PATH, unixendpoint.c_str());
 }
 
 void ControllerClientImpl::SetLanguage(const std::string& language)

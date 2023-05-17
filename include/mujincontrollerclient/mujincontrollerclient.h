@@ -340,11 +340,16 @@ public:
     /// \brief returns the URI used to setup the connection
     virtual const std::string& GetBaseURI() const = 0;
 
-    /// \brief If necessary, changes the proxy to communicate to the controller server
+    /// \brief If necessary, changes the proxy to communicate to the controller server. Setting proxy disables previously set unix endpoint.
     ///
     /// \param serverport Specify proxy server to use. To specify port number in this string, append :[port] to the end of the host name. The proxy string may be prefixed with [protocol]:// since any such prefix will be ignored. The proxy's port number may optionally be specified with the separate option. If not specified, will default to using port 1080 for proxies. Setting to empty string will disable the proxy.
     /// \param userpw If non-empty, [user name]:[password] to use for the connection to the HTTP proxy.
     virtual void SetProxy(const std::string& serverport, const std::string& userpw) = 0;
+
+    /// \brief If necessary, changes the unix domain socket to be used to communicate to the controller server. Setting unix endpoint disables previously set proxy.
+    ///
+    /// \param unixendpoint Specify the file path to the unix domain socket to connect to.
+    virtual void SetUnixEndpoint(const std::string& unixendpoint) = 0;
 
     /// \brief Restarts the MUJIN Controller Server and destroys any optimizaiton jobs.
     ///
@@ -1206,9 +1211,8 @@ protected:
     \param proxyuserpw If non-empty, [user name]:[password] to use for the connection to the HTTP proxy.
     \param options １が指定されたら、クライアントがGETのみを呼び出し出来ます。それで初期化がもっと速くなれます。
     \param timeout set timeout in seconds for the initial login requests
-    \param unixendpoint if not empty, will use unix socket to connect to the controller
  */
-MUJINCLIENT_API ControllerClientPtr CreateControllerClient(const std::string& usernamepassword, const std::string& url, const std::string& proxyserverport=std::string(), const std::string& proxyuserpw=std::string(), int options=0, double timeout=3.0, const std::string& unixendpoint=std::string());
+MUJINCLIENT_API ControllerClientPtr CreateControllerClient(const std::string& usernamepassword, const std::string& url, const std::string& proxyserverport=std::string(), const std::string& proxyuserpw=std::string(), int options=0, double timeout=3.0);
 
 /// \brief called at the very end of an application to safely destroy all controller client resources
 MUJINCLIENT_API void DestroyControllerClient();

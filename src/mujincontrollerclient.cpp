@@ -1323,9 +1323,9 @@ void DebugResource::Download(std::ostream& outputStream, double timeout)
     controller->CallGet(str(boost::format("%s/%s/download/")%GetResourceName()%GetPrimaryKey()), outputStream, 200, timeout);
 }
 
-ControllerClientPtr CreateControllerClient(const std::string& usernamepassword, const std::string& baseurl, const std::string& proxyserverport, const std::string& proxyuserpw, int options, double timeout, const std::string& unixendpoint)
+ControllerClientPtr CreateControllerClient(const std::string& usernamepassword, const std::string& baseurl, const std::string& proxyserverport, const std::string& proxyuserpw, int options, double timeout)
 {
-    return ControllerClientPtr(new ControllerClientImpl(usernamepassword, baseurl, proxyserverport, proxyuserpw, options, timeout, unixendpoint));
+    return ControllerClientPtr(new ControllerClientImpl(usernamepassword, baseurl, proxyserverport, proxyuserpw, options, timeout));
 }
 
 void ControllerClientDestroy()

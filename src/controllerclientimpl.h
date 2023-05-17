@@ -26,7 +26,7 @@ namespace mujinclient {
 class ControllerClientImpl : public ControllerClient, public boost::enable_shared_from_this<ControllerClientImpl>
 {
 public:
-    ControllerClientImpl(const std::string& usernamepassword, const std::string& baseuri, const std::string& proxyserverport, const std::string& proxyuserpw, int options, double timeout, const std::string& unixendpoint);
+    ControllerClientImpl(const std::string& usernamepassword, const std::string& baseuri, const std::string& proxyserverport, const std::string& proxyuserpw, int options, double timeout);
     virtual ~ControllerClientImpl();
 
     virtual const std::string& GetUserName() const;
@@ -35,6 +35,7 @@ public:
     virtual std::string GetVersion();
     virtual void SetCharacterEncoding(const std::string& newencoding);
     virtual void SetProxy(const std::string& serverport, const std::string& userpw);
+    virtual void SetUnixEndpoint(const std::string& unixendpoint) override;
     virtual void SetLanguage(const std::string& language);
     virtual void SetUserAgent(const std::string& userAgent);
     virtual void SetAdditionalHeaders(const std::vector<std::string>& additionalHeaders);
