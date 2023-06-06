@@ -606,12 +606,20 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     }
     registerMinViableRegionInfo.minCornerVisibleDist = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/minCornerVisibleDist", 30);
     registerMinViableRegionInfo.minCornerVisibleInsideDist = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/minCornerVisibleInsideDist", 0);
+    registerMinViableRegionInfo.maxCornerAngleDeviation = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/maxCornerAngleDeviation", 0);
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/minViableRegion/size2D", registerMinViableRegionInfo.minViableRegion.size2D);
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/minViableRegion/maxPossibleSize", registerMinViableRegionInfo.minViableRegion.maxPossibleSize);
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/minViableRegion/maxPossibleSizeOriginal", registerMinViableRegionInfo.minViableRegion.maxPossibleSizeOriginal, registerMinViableRegionInfo.minViableRegion.maxPossibleSize);
-    registerMinViableRegionInfo.minViableRegion.cornerMask = GetJsonValueByPath<uint64_t>(v, "/registerMinViableRegionInfo/minViableRegion/cornerMask", 0);
-    registerMinViableRegionInfo.minViableRegion.cornerMaskOriginal = GetJsonValueByPath<uint64_t>(v, "/registerMinViableRegionInfo/minViableRegion/cornerMaskOriginal", 0);
-    registerMinViableRegionInfo.occlusionFreeCornerMask = GetJsonValueByPath<uint64_t>(v, "/registerMinViableRegionInfo/occlusionFreeCornerMask", 0);
+    registerMinViableRegionInfo.minViableRegion.cornerMask = GetJsonValueByPath<uint8_t>(v, "/registerMinViableRegionInfo/minViableRegion/cornerMask", 0);
+    registerMinViableRegionInfo.minViableRegion.cornerMaskOriginal = GetJsonValueByPath<uint8_t>(v, "/registerMinViableRegionInfo/minViableRegion/cornerMaskOriginal", 0);
+    registerMinViableRegionInfo.occlusionFreeCornerMask = GetJsonValueByPath<uint8_t>(v, "/registerMinViableRegionInfo/occlusionFreeCornerMask", 0);
+    const uint8_t registrationMode = GetJsonValueByPath<uint8_t>(v, "/registerMinViableRegionInfo/registrationMode", MVRRM_Drag);
+    if( registrationMode > MVRRM_PerpendicularDrag ) {
+        throw MujinException(str(boost::format("got unexpected value %d when receiving /registerMinViableRegionInfo/registrationMode. assuming 'drag'")%(int)registrationMode), MEC_InvalidArguments);
+    }
+    else {
+        registerMinViableRegionInfo.registrationMode = static_cast<MinViableRegionRegistrationMode>(registrationMode);
+    }
     registerMinViableRegionInfo.maxPossibleSizePadding = GetJsonValueByPath<double>(v, "/registerMinViableRegionInfo/maxPossibleSizePadding", 30);
     registerMinViableRegionInfo.skipAppendingToObjectSet = GetJsonValueByPath<bool>(v, "/registerMinViableRegionInfo/skipAppendingToObjectSet", false);
     LoadJsonValueByPath(v, "/registerMinViableRegionInfo/liftedWorldOffset", registerMinViableRegionInfo.liftedWorldOffset);

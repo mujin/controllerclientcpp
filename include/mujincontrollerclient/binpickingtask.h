@@ -32,6 +32,13 @@ struct CropContainerMarginsXYZXYZ
     double maxMargins[3]; ///< XYZ of how much to crop from min margins (value > 0 means crop inside)
 };
 
+enum MinViableRegionRegistrationMode : uint8_t {
+    MVRRM_None = 0, ///< registration without touching
+    MVRRM_Lift = 1,
+    MVRRM_Drag = 2,
+    MVRRM_PerpendicularDrag = 3,
+};
+
 typedef boost::shared_ptr<CropContainerMarginsXYZXYZ> CropContainerMarginsXYZXYZPtr;
 
 class MUJINCLIENT_API BinPickingResultResource : public PlanningResultResource
@@ -197,11 +204,11 @@ public:
             struct MinViableRegionInfo
             {
                 MinViableRegionInfo();
-                std::array<double, 2> size2D; ///< width and height on the MVR
+                std::array<double, 2> size2D; ///< width and length on the MVR
                 std::array<double, 3> maxPossibleSize; ///< the max possible size of actual item
-                uint64_t cornerMask; ///< Represents the corner(s) used for corner based detection. 4 bit. -x-y = 1, +x-y = 2, -x+y=4, +x+y = 8
                 std::array<double, 3> maxPossibleSizeOriginal; ///< the maxPossibleSize that has originally been given from vision
-                uint64_t cornerMaskOriginal; ///< the cornerMask that has originally been given from vision
+                uint8_t cornerMaskOriginal; ///< the cornerMask that has originally been given from vision
+                uint8_t cornerMask; ///< Represents the corner(s) used for corner based detection. 4 bit. -x-y = 1, +x-y = 2, -x+y = 4, +x+y = 8
             } minViableRegion;
 
             std::string locationName; ///< The name of the location where the minViableRegion was triggered for
@@ -217,7 +224,9 @@ public:
             CopyableRapidJsonDocument graspModelInfo; ///< Parameters used for grasping model generation for the object
             double minCornerVisibleDist; ///< how much distance along with uncertain edge from uncertain corner robot exposes to camera
             double minCornerVisibleInsideDist; ///< how much distance inside MVR robot exposes to camera
-            uint64_t occlusionFreeCornerMask; ///< mask of corners that robot exposes to camera
+            double maxCornerAngleDeviation; ///< how much angle deviation around uncertain corner is considered to expose to camera
+            uint8_t occlusionFreeCornerMask; ///< mask of corners that robot exposes to camera. 4 bit. -x-y = 1, +x-y = 2, -x+y = 4, +x+y = 8
+            MinViableRegionRegistrationMode registrationMode; ///< lift, drag or perpendicular drag
             bool skipAppendingToObjectSet; ///<  if true, skip appending newly created registration data into an active object set
             double maxPossibleSizePadding; ///< how much to additionally expose max possible size region to vision
             std::vector<double> fullDofValues; ///< robot configuration state on capturing
