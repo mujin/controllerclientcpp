@@ -160,9 +160,9 @@ enum ExecutionVerificationMode : uint8_t
     EVM_PointCloudOnChangeAfterGrab = 6, ///< For dest containers only. Do verification on the real-time point cloud data only when container is known to have changed and after robot has grabbed the part. When robot goes into dest container and leaves, that counts as a change. Enabling this option means the robot will stop more while grabbing object.
 };
 
-const char* GetExecutionVerificationModeString(ExecutionVerificationMode mode);
+MUJINCLIENT_API const char* GetExecutionVerificationModeString(ExecutionVerificationMode mode);
 
-ExecutionVerificationMode GetExecutionVerificationModeFromString(const char* pModeStr, ExecutionVerificationMode defaultMode);
+MUJINCLIENT_API ExecutionVerificationMode GetExecutionVerificationModeFromString(const char* pModeStr, ExecutionVerificationMode defaultMode);
 
 } // end namespace mujin
 
