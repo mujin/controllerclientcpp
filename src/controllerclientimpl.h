@@ -29,8 +29,13 @@ public:
     ControllerClientImpl(const std::string& usernamepassword, const std::string& baseuri, const std::string& proxyserverport, const std::string& proxyuserpw, int options, double timeout);
     virtual ~ControllerClientImpl();
 
-    virtual const std::string& GetUserName() const;
-    virtual const std::string& GetBaseURI() const;
+    const std::string& GetUserName() const override;
+    const std::string& GetBaseURI() const override;
+
+    std::string GetURIWithUsernamePassword() const override
+    {
+        return _fulluri;
+    }
 
     virtual std::string GetVersion();
     virtual void SetCharacterEncoding(const std::string& newencoding);
@@ -270,6 +275,7 @@ protected:
     boost::mutex _mutex;
     std::stringstream _buffer;
     std::string _baseuri, _baseapiuri, _basewebdavuri, _uri, _username;
+    std::string _fulluri; ///< full connection URI with username and password. http://username@password:path
 
     curl_slist *_httpheadersjson;
     curl_slist *_httpheadersstl;

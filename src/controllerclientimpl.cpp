@@ -103,6 +103,15 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
     _httpheadersjson = NULL;
     _httpheadersstl = NULL;
     _httpheadersmultipartformdata = NULL;
+
+    size_t authorityindex = baseuri.find("//");
+    if( authorityindex != std::string::npos ) {
+        _fulluri = baseuri.substr(0,authorityindex+2) + usernamepassword + "@" + baseuri.substr(authorityindex+2);
+    }
+    else {
+        // no idea what to do here..
+        _fulluri = std::string("//") + usernamepassword + "@" + baseuri;
+    }
     _baseuri = baseuri;
     // ensure trailing slash
     if( _baseuri[_baseuri.size()-1] != '/' ) {
