@@ -164,6 +164,18 @@ MUJINCLIENT_API const char* GetExecutionVerificationModeString(ExecutionVerifica
 
 MUJINCLIENT_API ExecutionVerificationMode GetExecutionVerificationModeFromString(const char* pModeStr, ExecutionVerificationMode defaultMode);
 
+
+enum MinViableRegionRegistrationMode : uint8_t {
+    MVRRM_None = 0, ///< registration without touching
+    MVRRM_Lift = 1,
+    MVRRM_Drag = 2,
+    MVRRM_PerpendicularDrag = 3,
+};
+
+MUJINCLIENT_API const char* GetMinViableRegionRegistrationModeString(MinViableRegionRegistrationMode mode);
+
+MUJINCLIENT_API MinViableRegionRegistrationMode GetMinViableRegionRegistrationModeFromString(const char* pModeStr, MinViableRegionRegistrationMode defaultMode);
+
 } // end namespace mujin
 
 #endif
