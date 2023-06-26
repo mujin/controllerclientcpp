@@ -37,6 +37,63 @@ namespace mujinclient {
 
 using namespace mujinjson;
 
+/// \brief given a port string "80", fill ControllerClientInfo httpPort
+static void _ParseClientInfoPort(const char* port, size_t length, ControllerClientInfo& clientInfo)
+{
+    clientInfo.httpPort = 0;
+    for (; length > 0; ++port, --length) {
+        clientInfo.httpPort = clientInfo.httpPort * 10 + (*port - '0');
+    }
+}
+
+/// \brief given a url "http[s]://[username[:password]@]hostname[:port][/path]", parse ControllerClientInfo
+static void _ParseClientInfoFromURL(const char* url, ControllerClientInfo& clientInfo)
+{
+    clientInfo.Reset();
+    const char* colonSlashSlash = strstr(url, "://");
+    if (colonSlashSlash == nullptr) {
+        return;
+    }
+    const char* hostname = colonSlashSlash + sizeof("://") - 1;
+    const char* at = strstr(hostname, "@"); // not found is ok
+    const char* slash = strstr(hostname, "/"); // not found is ok
+    if (at != nullptr && (slash == nullptr || at < slash)) {
+        // if the at is before the slash, i.e. for the username:password
+        const char* usernamePassword = hostname;
+        hostname = at + sizeof("@") - 1;
+        const char* colon = strstr(usernamePassword, ":"); // not found is ok
+        if (colon != nullptr) {
+            const char* password = colon + sizeof(":") - 1;
+            clientInfo.username = std::string(usernamePassword, colon - usernamePassword);
+            clientInfo.password = std::string(password, at - password);
+        } else {
+            clientInfo.username = std::string(usernamePassword, at - usernamePassword);
+        }
+    }
+    const char* port = strstr(hostname, ":"); // not found is ok
+    if (slash == nullptr) {
+        if (port == nullptr) {
+            // no port, no slash
+            clientInfo.host = hostname;
+        } else {
+            // has port, no slash
+            const char* portStart = port + sizeof(":") - 1;
+            _ParseClientInfoPort(portStart, strlen(portStart), clientInfo);
+            clientInfo.host = std::string(hostname, port - hostname);
+        }
+    } else {
+        if (port != nullptr && port < slash) {
+            // has port before slash
+            const char* portStart = port + sizeof(":") - 1;
+            _ParseClientInfoPort(portStart, slash - portStart, clientInfo);
+            clientInfo.host = std::string(hostname, port - hostname);
+        } else {
+            // no port, but has slash
+            clientInfo.host = std::string(hostname, slash - hostname);
+        }
+    }
+}
+
 template <typename T>
 std::wstring ParseWincapsWCNPath(const T& sourcefilename, const boost::function<std::string(const T&)>& ConvertToFileSystemEncoding)
 {
@@ -94,11 +151,10 @@ std::wstring ParseWincapsWCNPath(const T& sourcefilename, const boost::function<
 ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, const std::string& baseuri, const std::string& proxyserverport, const std::string& proxyuserpw, int options, double timeout)
 {
     BOOST_ASSERT( !baseuri.empty() );
-    size_t usernameindex = 0;
-    usernameindex = usernamepassword.find_first_of(':');
+    const size_t usernameindex = usernamepassword.find_first_of(':');
     BOOST_ASSERT(usernameindex != std::string::npos );
-    _username = usernamepassword.substr(0,usernameindex);
-    std::string password = usernamepassword.substr(usernameindex+1);
+    _username = usernamepassword.substr(0, usernameindex);
+    const std::string password = usernamepassword.substr(usernameindex + 1);
 
     _httpheadersjson = NULL;
     _httpheadersstl = NULL;
@@ -112,6 +168,11 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
         // no idea what to do here..
         _fulluri = std::string("//") + usernamepassword + "@" + baseuri;
     }
+
+    _ParseClientInfoFromURL(baseuri.c_str(), _clientInfo);
+    _clientInfo.username = _username;
+    _clientInfo.password = password;
+
     _baseuri = baseuri;
     // ensure trailing slash
     if( _baseuri[_baseuri.size()-1] != '/' ) {
@@ -265,6 +326,11 @@ const std::string& ControllerClientImpl::GetUserName() const
 const std::string& ControllerClientImpl::GetBaseURI() const
 {
     return _baseuri;
+}
+
+const ControllerClientInfo& ControllerClientImpl::GetClientInfo() const
+{
+    return _clientInfo;
 }
 
 void ControllerClientImpl::SetCharacterEncoding(const std::string& newencoding)

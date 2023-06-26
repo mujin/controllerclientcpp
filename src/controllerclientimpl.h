@@ -31,6 +31,7 @@ public:
 
     const std::string& GetUserName() const override;
     const std::string& GetBaseURI() const override;
+    const ControllerClientInfo& GetClientInfo() const override;
 
     std::string GetURIWithUsernamePassword() const override
     {
@@ -276,6 +277,7 @@ protected:
     std::stringstream _buffer;
     std::string _baseuri, _baseapiuri, _basewebdavuri, _uri, _username;
     std::string _fulluri; ///< full connection URI with username and password. http://username@password:path
+    ControllerClientInfo _clientInfo;
 
     curl_slist *_httpheadersjson;
     curl_slist *_httpheadersstl;

@@ -63,6 +63,33 @@
 
 namespace mujinclient {
 
+/// \brief connecting to a controller's webstack
+class MUJINCLIENT_API ControllerClientInfo : public mujinjson::JsonSerializable
+{
+public:
+    virtual void Reset();
+
+    void LoadFromJson(const rapidjson::Value& rClientInfo) override;
+    void SaveToJson(rapidjson::Value& rClientInfo, rapidjson::Document::AllocatorType& alloc) const override;
+    void SaveToJson(rapidjson::Document& rClientInfo) const override;
+
+    bool operator==(const ControllerClientInfo &rhs) const;
+    bool operator!=(const ControllerClientInfo &rhs) const {
+        return !operator==(rhs);
+    }
+    std::string GetURL(bool bIncludeNamePassword) const;
+
+    inline bool IsEnabled() const {
+        return !host.empty();
+    }
+
+    std::string host;
+    uint32_t httpPort = 0; ///< Post to communicate with the webstack. If 0, then use the default port
+    std::string username;
+    std::string password;
+    bool uploadFilesWithNoModifyDate = false; ///< if true, then any files uploaded will not change the modified date. By default, uploading files changes the modified date.
+};
+
 typedef mujin::Transform Transform;
 
 enum TaskResourceOptions
@@ -342,6 +369,9 @@ public:
 
     /// \brief full connection URI with username and password. http://username@password:path
     virtual std::string GetURIWithUsernamePassword() const = 0;
+
+    /// \brief returns the client info used to construct this client
+    virtual const ControllerClientInfo& GetClientInfo() const = 0;
 
     /// \brief If necessary, changes the proxy to communicate to the controller server. Setting proxy disables previously set unix endpoint.
     ///
