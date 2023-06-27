@@ -37,7 +37,7 @@ void ControllerClientInfo::Reset()
     httpPort = 0;
     username.clear();
     password.clear();
-    uploadFilesWithNoModifyDate = false;
+    additionalHeaders.clear();
 }
 
 void ControllerClientInfo::LoadFromJson(const rapidjson::Value& rClientInfo)
@@ -46,7 +46,8 @@ void ControllerClientInfo::LoadFromJson(const rapidjson::Value& rClientInfo)
     mujinjson::LoadJsonValueByKey(rClientInfo, "httpPort", httpPort);
     mujinjson::LoadJsonValueByKey(rClientInfo, "username", username);
     mujinjson::LoadJsonValueByKey(rClientInfo, "password", password);
-    mujinjson::LoadJsonValueByKey(rClientInfo, "uploadFilesWithNoModifyDate", uploadFilesWithNoModifyDate);
+    mujinjson::LoadJsonValueByKey(rClientInfo, "additionalHeaders", additionalHeaders);
+    mujinjson::LoadJsonValueByKey(rClientInfo, "unixEndpoint", unixEndpoint);
 }
 
 void ControllerClientInfo::SaveToJson(rapidjson::Value& rClientInfo, rapidjson::Document::AllocatorType& alloc) const
@@ -64,7 +65,12 @@ void ControllerClientInfo::SaveToJson(rapidjson::Value& rClientInfo, rapidjson::
     if( !password.empty() ) {
         mujinjson::SetJsonValueByKey(rClientInfo, "password", password, alloc);
     }
-    mujinjson::SetJsonValueByKey(rClientInfo, "uploadFilesWithNoModifyDate", uploadFilesWithNoModifyDate, alloc);
+    if( !additionalHeaders.empty() ) {
+        mujinjson::SetJsonValueByKey(rClientInfo, "additionalHeaders", additionalHeaders, alloc);
+    }
+    if( !unixEndpoint.empty() ) {
+        mujinjson::SetJsonValueByKey(rClientInfo, "unixEndpoint", unixEndpoint, alloc);
+    }
 }
 
 void ControllerClientInfo::SaveToJson(rapidjson::Document& rClientInfo) const
@@ -74,11 +80,12 @@ void ControllerClientInfo::SaveToJson(rapidjson::Document& rClientInfo) const
 
 bool ControllerClientInfo::operator==(const ControllerClientInfo &rhs) const
 {
-    return host     == rhs.host &&
+    return host == rhs.host &&
            httpPort == rhs.httpPort &&
            username == rhs.username &&
            password == rhs.password &&
-           uploadFilesWithNoModifyDate == rhs.uploadFilesWithNoModifyDate;
+           additionalHeaders == rhs.additionalHeaders &&
+           unixEndpoint == rhs.unixEndpoint;
 }
 
 std::string ControllerClientInfo::GetURL(bool bIncludeNamePassword) const

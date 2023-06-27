@@ -349,6 +349,7 @@ void ControllerClientImpl::SetProxy(const std::string& serverport, const std::st
     CURL_OPTION_SETTER(_curl, CURLOPT_UNIX_SOCKET_PATH, NULL);
     CURL_OPTION_SETTER(_curl, CURLOPT_PROXY, serverport.c_str());
     CURL_OPTION_SETTER(_curl, CURLOPT_PROXYUSERPWD, userpw.c_str());
+    _clientInfo.unixEndpoint.clear();
 }
 
 void ControllerClientImpl::SetUnixEndpoint(const std::string& unixendpoint)
@@ -357,6 +358,7 @@ void ControllerClientImpl::SetUnixEndpoint(const std::string& unixendpoint)
     CURL_OPTION_SETTER(_curl, CURLOPT_PROXY, NULL);
     CURL_OPTION_SETTER(_curl, CURLOPT_PROXYUSERPWD, NULL);
     CURL_OPTION_SETTER(_curl, CURLOPT_UNIX_SOCKET_PATH, unixendpoint.c_str());
+    _clientInfo.unixEndpoint = unixEndpoint;
 }
 
 void ControllerClientImpl::SetLanguage(const std::string& language)
@@ -380,6 +382,7 @@ void ControllerClientImpl::SetAdditionalHeaders(const std::vector<std::string>& 
 {
     boost::mutex::scoped_lock lock(_mutex);
     _additionalHeaders = additionalHeaders;
+    _clientInfo.additionalHeaders = additionalHeaders;
     _SetupHTTPHeadersJSON();
     _SetupHTTPHeadersSTL();
     _SetupHTTPHeadersMultipartFormData();

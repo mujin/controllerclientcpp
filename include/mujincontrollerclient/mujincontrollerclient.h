@@ -84,10 +84,11 @@ public:
     }
 
     std::string host;
-    uint32_t httpPort = 0; ///< Post to communicate with the webstack. If 0, then use the default port
+    uint16_t httpPort = 0; ///< Post to communicate with the webstack. If 0, then use the default port
     std::string username;
     std::string password;
-    bool uploadFilesWithNoModifyDate = false; ///< if true, then any files uploaded will not change the modified date. By default, uploading files changes the modified date.
+    std::vector<std::string> additionalHeaders; ///< expect each value to be in the format of "Header-Name: header-value"
+    std::string unixEndpoint; ///< unix socket endpoint for communicating with HTTP server over unix socket
 };
 
 typedef mujin::Transform Transform;
