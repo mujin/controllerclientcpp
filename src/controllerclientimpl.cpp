@@ -358,7 +358,7 @@ void ControllerClientImpl::SetUnixEndpoint(const std::string& unixendpoint)
     CURL_OPTION_SETTER(_curl, CURLOPT_PROXY, NULL);
     CURL_OPTION_SETTER(_curl, CURLOPT_PROXYUSERPWD, NULL);
     CURL_OPTION_SETTER(_curl, CURLOPT_UNIX_SOCKET_PATH, unixendpoint.c_str());
-    _clientInfo.unixEndpoint = unixEndpoint;
+    _clientInfo.unixEndpoint = unixendpoint;
 }
 
 void ControllerClientImpl::SetLanguage(const std::string& language)
