@@ -38,6 +38,7 @@ void ControllerClientInfo::Reset()
     username.clear();
     password.clear();
     additionalHeaders.clear();
+    unixEndpoint.clear();
 }
 
 void ControllerClientInfo::LoadFromJson(const rapidjson::Value& rClientInfo)
