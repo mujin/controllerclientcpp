@@ -169,6 +169,9 @@ void BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionIn
 void BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionInfo::DeserializeJSON(const rapidjson::Value& rInfo)
 {
     minViableRegion = MinViableRegionInfo();
+    if( rInfo.IsNull() ) {
+        return;
+    }
     rapidjson::Value::ConstMemberIterator itMinViableRegion = rInfo.FindMember("minViableRegion");
     if( itMinViableRegion != rInfo.MemberEnd() ) {
         const rapidjson::Value& rMinViableRegion = itMinViableRegion->value;
