@@ -676,6 +676,7 @@ void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const rapid
         }
 
         LoadJsonValueByKey(it->value, "uri", muri[objname]);
+        LoadJsonValueByKey(it->value, "objectType", mObjectType[objname]);
     }
 
     const rapidjson::Value& sensors = output["sensors"];

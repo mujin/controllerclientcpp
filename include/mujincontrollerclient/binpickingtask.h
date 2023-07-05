@@ -321,6 +321,7 @@ public:
         std::map<mujin::SensorSelectionInfo, Transform> msensortransform;
         std::map<mujin::SensorSelectionInfo, RobotResource::AttachedSensorResource::SensorData> msensordata;
         std::map<std::string, boost::shared_ptr<rapidjson::Document> > mrGeometryInfos; ///< for every object, list of all the geometry infos
+        std::map<std::string, std::string> mObjectType;
     };
 
     struct MUJINCLIENT_API ResultHeartBeat : public ResultBase
