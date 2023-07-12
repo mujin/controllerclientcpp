@@ -34,7 +34,7 @@ const char* GetExecutionVerificationModeString(ExecutionVerificationMode mode)
 
 ExecutionVerificationMode GetExecutionVerificationModeFromString(const char* pModeStr, ExecutionVerificationMode defaultMode)
 {
-    if( pModeStr[0] == 0 ) {
+    if( !pModeStr || pModeStr[0] == 0 ) {
         return defaultMode;
     }
     if( strcmp(pModeStr, "never") == 0 ) {
