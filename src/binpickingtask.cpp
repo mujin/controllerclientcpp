@@ -71,8 +71,8 @@ BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionInfo::R
     skipAppendingToObjectSet(false),
     maxPossibleSizePadding(30)
 {
-    translation_.fill(0);
-    quat_.fill(0);
+    translation.fill(0);
+    quaternion.fill(0);
     liftedWorldOffset.fill(0);
     maxCandidateSize.fill(0);
     minCandidateSize.fill(0);
@@ -95,8 +95,8 @@ BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionInfo& B
 {
     minViableRegion = rhs.minViableRegion;
     locationName = rhs.locationName;
-    translation_ = rhs.translation_;
-    quat_ = rhs.quat_;
+    translation = rhs.translation;
+    quaternion = rhs.quaternion;
     objectWeight = rhs.objectWeight;
     sensorTimeStampMS = rhs.sensorTimeStampMS;
     robotDepartStopTimestamp = rhs.robotDepartStopTimestamp;
@@ -136,8 +136,8 @@ void BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionIn
     }
 
     SetJsonValueByKey(rInfo, "locationName", locationName, alloc);
-    SetJsonValueByKey(rInfo, "translation_", translation_, alloc);
-    SetJsonValueByKey(rInfo, "quat_", quat_, alloc);
+    SetJsonValueByKey(rInfo, "translation", translation, alloc);
+    SetJsonValueByKey(rInfo, "quaternion", quaternion, alloc);
     SetJsonValueByKey(rInfo, "objectWeight", objectWeight, alloc);
     SetJsonValueByKey(rInfo, "sensorTimeStampMS", sensorTimeStampMS, alloc);
     SetJsonValueByKey(rInfo, "robotDepartStopTimestamp", robotDepartStopTimestamp, alloc);
@@ -183,8 +183,8 @@ void BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionIn
     }
 
     LoadJsonValueByKey(rInfo, "locationName", locationName);
-    LoadJsonValueByKey(rInfo, "translation_", translation_);
-    LoadJsonValueByKey(rInfo, "quat_", quat_);
+    LoadJsonValueByKey(rInfo, "translation", translation);
+    LoadJsonValueByKey(rInfo, "quaternion", quaternion);
     objectWeight = GetJsonValueByKey<double>(rInfo, "objectWeight", 0);
     sensorTimeStampMS = GetJsonValueByKey<uint64_t>(rInfo, "sensorTimeStampMS", 0);
     robotDepartStopTimestamp = GetJsonValueByKey<double>(rInfo, "robotDepartStopTimestamp", 0);
@@ -229,9 +229,9 @@ void BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionIn
     minViableRegion.maxPossibleSizeOriginal[0] *= fUnitScale;
     minViableRegion.maxPossibleSizeOriginal[1] *= fUnitScale;
     minViableRegion.maxPossibleSizeOriginal[2] *= fUnitScale;
-    translation_[0] *= fUnitScale;
-    translation_[1] *= fUnitScale;
-    translation_[2] *= fUnitScale;
+    translation[0] *= fUnitScale;
+    translation[1] *= fUnitScale;
+    translation[2] *= fUnitScale;
     liftedWorldOffset[0] *= fUnitScale;
     liftedWorldOffset[1] *= fUnitScale;
     liftedWorldOffset[2] *= fUnitScale;
@@ -480,11 +480,11 @@ std::string utils::GetJsonString(const BinPickingTaskResource::DetectedObject& o
 {
     std::stringstream ss;
     ss << std::setprecision(std::numeric_limits<Real>::digits10+1);
-    //"{\"name\": \"obj\",\"translation_\":[100,200,300],\"quat_\":[1,0,0,0],\"confidence\":0.5}"
+    //"{\"name\": \"obj\",\"translation\":[100,200,300],\"quaternion\":[1,0,0,0],\"confidence\":0.5}"
     ss << "{";
     ss << GetJsonString("name") << ": " << GetJsonString(obj.name) << ", ";
     ss << GetJsonString("object_uri") << ": " << GetJsonString(obj.object_uri) << ", ";
-    ss << GetJsonString("translation_") << ": [";
+    ss << GetJsonString("translation") << ": [";
     for (unsigned int i=0; i<3; i++) {
         ss << obj.transform.translate[i];
         if (i!=3-1) {
@@ -492,7 +492,7 @@ std::string utils::GetJsonString(const BinPickingTaskResource::DetectedObject& o
         }
     }
     ss << "], ";
-    ss << GetJsonString("quat_") << ": [";
+    ss << GetJsonString("quaternion") << ": [";
     for (unsigned int i=0; i<4; i++) {
         ss << obj.transform.quaternion[i];
         if (i!=4-1) {
