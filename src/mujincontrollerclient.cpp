@@ -303,11 +303,13 @@ ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::GetGeometryFro
                 /// geomtype ///
                 // mesh
                 // box: half_extents
-                // cylinder: height, radius
+                // cylinder: height, topRadius, bottomRadius
                 // sphere: radius
                 LoadJsonValueByKey(*it,"half_extents",geometry->half_extents);
                 LoadJsonValueByKey(*it,"height",geometry->height);
                 LoadJsonValueByKey(*it,"radius",geometry->radius);
+                LoadJsonValueByKey(*it,"topRadius",geometry->topRadius);
+                LoadJsonValueByKey(*it,"bottomRadius",geometry->bottomRadius);
                 return geometry;
             }
         }
@@ -340,6 +342,8 @@ void ObjectResource::LinkResource::GetGeometries(std::vector<ObjectResource::Geo
                 LoadJsonValueByKey(*it,"half_extents",geometry->half_extents);
                 LoadJsonValueByKey(*it,"height",geometry->height);
                 LoadJsonValueByKey(*it,"radius",geometry->radius);
+                LoadJsonValueByKey(*it,"topRadius",geometry->topRadius);
+                LoadJsonValueByKey(*it,"bottomRadius",geometry->bottomRadius);
                 geometries.push_back(geometry);
             }
         }
