@@ -765,6 +765,8 @@ public:
         Real half_extents[3];
         Real height;
         Real radius;
+        Real topRadius;
+        Real bottomRadius;
 
         virtual void GetMesh(std::string& primitive, std::vector<std::vector<int> >& indices, std::vector<std::vector<Real> >& vertices);
         virtual void SetGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& unit, double timeout = 5.0);
