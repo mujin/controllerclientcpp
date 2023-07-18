@@ -289,7 +289,7 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
         _charset = itcodepage->second;
     }
 #endif
-    MUJIN_LOG_INFO("setting character set to " << _charset);
+    MUJIN_LOG_VERBOSE("setting character set to " << _charset);
     _SetupHTTPHeadersJSON();
     _SetupHTTPHeadersSTL();
     _SetupHTTPHeadersMultipartFormData();
