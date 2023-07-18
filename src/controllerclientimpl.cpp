@@ -748,7 +748,7 @@ int ControllerClientImpl::CallGet(const std::string& relativeuri, rapidjson::Doc
 
 int ControllerClientImpl::_CallGet(const std::string& desturi, rapidjson::Document& pt, int expectedhttpcode, double timeout)
 {
-    MUJIN_LOG_INFO(str(boost::format("GET %s")%desturi));
+    MUJIN_LOG_DEBUG(str(boost::format("GET %s")%desturi));
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_TIMEOUT_MS, 0L, (long)(timeout * 1000L));
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPHEADER, NULL, _httpheadersjson);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, desturi.c_str());
