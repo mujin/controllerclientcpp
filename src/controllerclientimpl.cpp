@@ -392,7 +392,7 @@ void ControllerClientImpl::_ExecuteGraphQuery(const char* operationName, const c
 {
     rResult.SetNull(); // zero output
 
-    rapidjson::Document rResultDoc(&rAlloc);
+    rapidjson::Value rResultDoc;
 
     {
         boost::mutex::scoped_lock lock(_mutex);
@@ -416,7 +416,7 @@ void ControllerClientImpl::_ExecuteGraphQuery(const char* operationName, const c
         }
 
         _uri = _baseuri + "api/v2/graphql";
-        _CallPost(_uri, rRequestStringBuffer.GetString(), rResultDoc, 200, timeout);
+        _CallPost(_uri, rRequestStringBuffer.GetString(), rResultDoc, rAlloc, 200, timeout);
     }
 
     // parse response
@@ -743,10 +743,10 @@ int ControllerClientImpl::CallGet(const std::string& relativeuri, rapidjson::Doc
     boost::mutex::scoped_lock lock(_mutex);
     _uri = _baseapiuri;
     _uri += relativeuri;
-    return _CallGet(_uri, pt, expectedhttpcode, timeout);
+    return _CallGet(_uri, pt, pt.GetAllocator(), expectedhttpcode, timeout);
 }
 
-int ControllerClientImpl::_CallGet(const std::string& desturi, rapidjson::Document& pt, int expectedhttpcode, double timeout)
+int ControllerClientImpl::_CallGet(const std::string& desturi, rapidjson::Value& rResponse, rapidjson::Document::AllocatorType& alloc, int expectedhttpcode, double timeout)
 {
     MUJIN_LOG_DEBUG(str(boost::format("GET %s")%desturi));
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_TIMEOUT_MS, 0L, (long)(timeout * 1000L));
@@ -761,11 +761,11 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, rapidjson::Docume
     long http_code = 0;
     CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
     if( _buffer.rdbuf()->in_avail() > 0 ) {
-        mujinjson::ParseJson(pt, _buffer.str());
+        mujinjson::ParseJson(rResponse, alloc, _buffer);
     }
     if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
-        std::string error_message = GetJsonValueByKey<std::string>(pt, "error_message");
-        std::string traceback = GetJsonValueByKey<std::string>(pt, "traceback");
+        std::string error_message = GetJsonValueByKey<std::string>(rResponse, "error_message");
+        std::string traceback = GetJsonValueByKey<std::string>(rResponse, "traceback");
         throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s: %s", desturi%http_code%error_message, MEC_HTTPServer);
     }
     return http_code;
@@ -879,11 +879,11 @@ int ControllerClientImpl::CallPost(const std::string& relativeuri, const std::st
     boost::mutex::scoped_lock lock(_mutex);
     _uri = _baseapiuri;
     _uri += relativeuri;
-    return _CallPost(_uri, data, pt, expectedhttpcode, timeout);
+    return _CallPost(_uri, data, pt, pt.GetAllocator(), expectedhttpcode, timeout);
 }
 
 /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
-int ControllerClientImpl::_CallPost(const std::string& desturi, const std::string& data, rapidjson::Document& pt, int expectedhttpcode, double timeout)
+int ControllerClientImpl::_CallPost(const std::string& desturi, const std::string& data, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& alloc, int expectedhttpcode, double timeout)
 {
     MUJIN_LOG_VERBOSE(str(boost::format("POST %s")%desturi));
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_TIMEOUT_MS, 0L, (long)(timeout * 1000L));
@@ -900,13 +900,13 @@ int ControllerClientImpl::_CallPost(const std::string& desturi, const std::strin
     long http_code = 0;
     CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
     if( _buffer.rdbuf()->in_avail() > 0 ) {
-        ParseJson(pt, _buffer.str());
+        ParseJson(rResult, alloc, _buffer);
     } else {
-        pt.SetObject();
+        rResult.SetObject();
     }
     if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
-        std::string error_message = GetJsonValueByKey<std::string>(pt, "error_message");
-        std::string traceback = GetJsonValueByKey<std::string>(pt, "traceback");
+        std::string error_message = GetJsonValueByKey<std::string>(rResult, "error_message");
+        std::string traceback = GetJsonValueByKey<std::string>(rResult, "traceback");
         throw MUJIN_EXCEPTION_FORMAT("HTTP POST to '%s' returned HTTP status %s: %s", desturi%http_code%error_message, MEC_HTTPServer);
     }
     return http_code;
@@ -1508,7 +1508,7 @@ void ControllerClientImpl::Upgrade(std::istream& inputStream, bool autorestart, 
         _UploadFileToControllerViaForm(inputStream, "", _baseuri+"upgrade/"+query, timeout);
     } else {
         rapidjson::Document pt(rapidjson::kObjectType);
-        _CallPost(_baseuri+"upgrade/"+query, "", pt, 200, timeout);
+        _CallPost(_baseuri+"upgrade/"+query, "", pt, pt.GetAllocator(), 200, timeout);
     }
 }
 
@@ -1516,7 +1516,7 @@ bool ControllerClientImpl::GetUpgradeStatus(std::string& status, double &progres
 {
     boost::mutex::scoped_lock lock(_mutex);
     rapidjson::Document pt(rapidjson::kObjectType);
-    _CallGet(_baseuri+"upgrade/", pt, 200, timeout);
+    _CallGet(_baseuri+"upgrade/", pt, pt.GetAllocator(), 200, timeout);
     if(pt.IsNull()) {
         return false;
     }
@@ -1534,7 +1534,7 @@ void ControllerClientImpl::Reboot(double timeout)
 {
     boost::mutex::scoped_lock lock(_mutex);
     rapidjson::Document pt(rapidjson::kObjectType);
-    _CallPost(_baseuri+"reboot/", "", pt, 200, timeout);
+    _CallPost(_baseuri+"reboot/", "", pt, pt.GetAllocator(), 200, timeout);
 }
 
 void ControllerClientImpl::DeleteAllScenes(double timeout)
@@ -1587,7 +1587,7 @@ void ControllerClientImpl::ModifySceneAddReferenceObjectPK(const std::string &sc
     pt.AddMember("referenceobjectpk", value, pt.GetAllocator());
 
     boost::mutex::scoped_lock lock(_mutex);
-    _CallPost(_baseuri + "referenceobjectpks/add/", DumpJson(pt), pt2, 200, timeout);
+    _CallPost(_baseuri + "referenceobjectpks/add/", DumpJson(pt), pt2, pt2.GetAllocator(), 200, timeout);
 }
 
 void ControllerClientImpl::ModifySceneRemoveReferenceObjectPK(const std::string &scenepk, const std::string &referenceobjectpk, double timeout)
@@ -1604,7 +1604,7 @@ void ControllerClientImpl::ModifySceneRemoveReferenceObjectPK(const std::string 
     pt.AddMember("referenceobjectpk", value, pt.GetAllocator());
 
     boost::mutex::scoped_lock lock(_mutex);
-    _CallPost(_baseuri + "referenceobjectpks/remove/", DumpJson(pt), pt2, 200, timeout);
+    _CallPost(_baseuri + "referenceobjectpks/remove/", DumpJson(pt), pt2, pt2.GetAllocator(), 200, timeout);
 }
 
 void ControllerClientImpl::_UploadDirectoryToController_UTF8(const std::string& copydir_utf8, const std::string& rawuri)
@@ -1994,7 +1994,7 @@ void ControllerClientImpl::_DeleteFileOnController(const std::string& desturi)
     std::string filename = desturi.substr(_basewebdavuri.size());
 
     rapidjson::Document pt(rapidjson::kObjectType);
-    _CallPost(_baseuri+"file/delete/?filename="+filename, "", pt, 200, 5.0);
+    _CallPost(_baseuri+"file/delete/?filename="+filename, "", pt, pt.GetAllocator(), 200, 5.0);
 }
 
 void ControllerClientImpl::_DeleteDirectoryOnController(const std::string& desturi)
@@ -2056,7 +2056,7 @@ void ControllerClientImpl::GetDebugInfos(std::vector<DebugResourcePtr>& debuginf
 void ControllerClientImpl::ListFilesInController(std::vector<FileEntry>& fileentries, const std::string &dirname, double timeout)
 {
     rapidjson::Document pt(rapidjson::kObjectType);
-    _CallGet(_baseuri+"file/list/?dirname="+dirname, pt, 200, timeout);
+    _CallGet(_baseuri+"file/list/?dirname="+dirname, pt, pt.GetAllocator(), 200, timeout);
     fileentries.resize(pt.MemberCount());
     size_t iobj = 0;
     for (rapidjson::Document::MemberIterator it = pt.MemberBegin(); it != pt.MemberEnd(); ++it) {
