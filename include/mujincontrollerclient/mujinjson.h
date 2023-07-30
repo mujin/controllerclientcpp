@@ -22,6 +22,7 @@
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/format.hpp>
+#include <boost/assert.hpp>
 #include <stdint.h>
 #include <string>
 #include <stdexcept>

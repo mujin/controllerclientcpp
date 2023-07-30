@@ -175,10 +175,10 @@ endif()
 find_package(RapidJSON QUIET)
 if (NOT RapidJSON_FOUND)
   message(FATAL_ERROR "could not find RapidJSON")
-else()
-  include_directories(SYSTEM ${RapidJSON_INCLUDE_DIRS})
-  add_definitions("-DRAPIDJSON_ASSERT=BOOST_ASSERT")
 endif()
+
+include_directories(SYSTEM ${RapidJSON_INCLUDE_DIRS})
+add_definitions("-DRAPIDJSON_ASSERT=BOOST_ASSERT")
 
 if( Boost_FOUND )
   include_directories(${Boost_INCLUDE_DIRS})
