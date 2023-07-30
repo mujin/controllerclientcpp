@@ -844,6 +844,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
             const rapidjson::Value& rItem = v["pickPlaceHistoryItems"][iitem];
             pickPlaceHistoryItems[iitem].pickPlaceType = GetJsonValueByKey<std::string,std::string>(rItem, "pickPlaceType", std::string());
             pickPlaceHistoryItems[iitem].locationName = GetJsonValueByKey<std::string,std::string>(rItem, "locationName", std::string());
+            pickPlaceHistoryItems[iitem].containerName = GetJsonValueByKey<std::string,std::string>(rItem, "containerName", std::string());
             pickPlaceHistoryItems[iitem].eventTimeStampUS = GetJsonValueByKey<unsigned long long>(rItem, "eventTimeStampUS", 0);
             pickPlaceHistoryItems[iitem].object_uri = GetJsonValueByKey<std::string,std::string>(rItem, "object_uri", std::string());
 

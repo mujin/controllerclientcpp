@@ -115,7 +115,8 @@ struct MUJINCLIENT_API SensorSelectionInfo : public mujinjson::JsonSerializable
 struct MUJINCLIENT_API PickPlaceHistoryItem
 {
     std::string pickPlaceType; ///< the type of action that ocurred can be: "picked", "placed", "touched"
-    std::string locationName; ///< the name of the region where picking occurred for "picked", where placing occurred when "placed", and where touching occurred for "touched"
+    std::string locationName; ///< the name of the location where picking occurred for "picked", where placing occurred when "placed", and where touching occurred for "touched"
+    std::string containerName; ///< the name of the container where picking occurred for "picked", where placing occurred when "placed", and where touching occurred for "touched"
     unsigned long long eventTimeStampUS; ///< time that the event ocurred in us (from Linux epoch). For "picked" this is the chuck time, for "placed this is the unchuck time, for "touched" this is the time when the robot supposedly stopped touching/disturbing the object.
     std::string object_uri; ///< the object uri
     Transform objectpose; ///< 7-values in world, unit is usually mm
