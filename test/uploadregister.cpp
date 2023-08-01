@@ -12,14 +12,11 @@ int main(int argc, char ** argv)
         if( argc >= 5 ) {
             controller = CreateControllerClient(argv[1], argv[2], argv[3], argv[4]);
         }
-        if( argc == 4 ) {
+        else if( argc == 4 ) {
             controller = CreateControllerClient(argv[1], argv[2], argv[3]);
         }
-        else if( argc == 3 ) {
-            controller = CreateControllerClient(argv[1], argv[2]);
-        }
         else {
-            controller = CreateControllerClient(argv[1]);
+            controller = CreateControllerClient(argv[1], argv[2]);
         }
         std::cout << "connected to controller v" << controller->GetVersion() << std::endl;
 
@@ -35,7 +32,7 @@ int main(int argc, char ** argv)
         std::string desturi = "mujin:/testupload/hello.txt";
         std::vector<unsigned char> vdata(5), vtestoutputdata;
         vdata[0] = 'H'; vdata[1] = 'e'; vdata[2] = 'l'; vdata[3] = 'l'; vdata[4] = 'o';
-        controller->UploadDataToController_UTF8(vdata,desturi);
+        controller->UploadDataToController_UTF8(vdata.data(),vdata.size(),desturi);
 
         controller->DownloadFileFromController_UTF8(desturi, vtestoutputdata);
         BOOST_ASSERT(vdata.size() == vtestoutputdata.size());
