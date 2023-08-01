@@ -165,7 +165,6 @@ int main(int argc, char ** argv)
             }
             std::istringstream ss(s);
             while (ss) {
-                std::string s;
                 if (!std::getline(ss, s, ',')) {
                     break;
                 }

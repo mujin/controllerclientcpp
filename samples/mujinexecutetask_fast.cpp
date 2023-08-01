@@ -13,7 +13,7 @@ using namespace mujinclient;
 
 int main(int argc, char ** argv)
 {
-    if( argc < 2 ) {
+    if( argc < 3 ) {
         std::cout << "need username:password. Example: mujinclienttest myuser:mypass [url]\n\nurl - [optional] For example https://controller.mujin.co.jp/" << std::endl;
         return 1;
     }
@@ -22,14 +22,11 @@ int main(int argc, char ** argv)
         if( argc >= 5 ) {
             controller = CreateControllerClient(argv[1], argv[2], argv[3], argv[4]);
         }
-        if( argc == 4 ) {
+        else if( argc == 4 ) {
             controller = CreateControllerClient(argv[1], argv[2], argv[3]);
         }
-        else if( argc == 3 ) {
-            controller = CreateControllerClient(argv[1], argv[2]);
-        }
         else {
-            controller = CreateControllerClient(argv[1]);
+            controller = CreateControllerClient(argv[1], argv[2]);
         }
         std::cout << "connected to controller v" << controller->GetVersion() << std::endl;
 
