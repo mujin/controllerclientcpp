@@ -150,7 +150,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionIn
     {
         rapidjson::Value rTemp;
         rTemp.CopyFrom(graspModelInfo, alloc);
-        rInfo.AddMember("raspModelInfo", rTemp, alloc);
+        rInfo.AddMember("graspModelInfo", rTemp, alloc);
     }
     SetJsonValueByKey(rInfo, "minCornerVisibleDist", minCornerVisibleDist, alloc);
     SetJsonValueByKey(rInfo, "minCornerVisibleInsideDist", minCornerVisibleInsideDist, alloc);
