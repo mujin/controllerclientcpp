@@ -63,6 +63,34 @@
 
 namespace mujinclient {
 
+/// \brief connecting to a controller's webstack
+class MUJINCLIENT_API ControllerClientInfo : public mujinjson::JsonSerializable
+{
+public:
+    virtual void Reset();
+
+    void LoadFromJson(const rapidjson::Value& rClientInfo) override;
+    void SaveToJson(rapidjson::Value& rClientInfo, rapidjson::Document::AllocatorType& alloc) const override;
+    void SaveToJson(rapidjson::Document& rClientInfo) const override;
+
+    bool operator==(const ControllerClientInfo &rhs) const;
+    bool operator!=(const ControllerClientInfo &rhs) const {
+        return !operator==(rhs);
+    }
+    std::string GetURL(bool bIncludeNamePassword) const;
+
+    inline bool IsEnabled() const {
+        return !host.empty();
+    }
+
+    std::string host;
+    uint16_t httpPort = 0; ///< Post to communicate with the webstack. If 0, then use the default port
+    std::string username;
+    std::string password;
+    std::vector<std::string> additionalHeaders; ///< expect each value to be in the format of "Header-Name: header-value"
+    std::string unixEndpoint; ///< unix socket endpoint for communicating with HTTP server over unix socket
+};
+
 typedef mujin::Transform Transform;
 
 enum TaskResourceOptions
@@ -360,6 +388,12 @@ public:
 
     /// \brief returns the URI used to setup the connection
     virtual const std::string& GetBaseURI() const = 0;
+
+    /// \brief full connection URI with username and password. http://username@password:path
+    virtual std::string GetURIWithUsernamePassword() const = 0;
+
+    /// \brief returns the client info used to construct this client
+    virtual const ControllerClientInfo& GetClientInfo() const = 0;
 
     /// \brief If necessary, changes the proxy to communicate to the controller server. Setting proxy disables previously set unix endpoint.
     ///
@@ -756,6 +790,8 @@ public:
         Real half_extents[3];
         Real height;
         Real radius;
+        Real topRadius;
+        Real bottomRadius;
 
         virtual void GetMesh(std::string& primitive, std::vector<std::vector<int> >& indices, std::vector<std::vector<Real> >& vertices);
         virtual void SetGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& unit, double timeout = 5.0);

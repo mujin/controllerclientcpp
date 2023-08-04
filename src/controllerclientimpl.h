@@ -29,8 +29,14 @@ public:
     ControllerClientImpl(const std::string& usernamepassword, const std::string& baseuri, const std::string& proxyserverport, const std::string& proxyuserpw, int options, double timeout);
     virtual ~ControllerClientImpl();
 
-    virtual const std::string& GetUserName() const;
-    virtual const std::string& GetBaseURI() const;
+    const std::string& GetUserName() const override;
+    const std::string& GetBaseURI() const override;
+    const ControllerClientInfo& GetClientInfo() const override;
+
+    std::string GetURIWithUsernamePassword() const override
+    {
+        return _fulluri;
+    }
 
     virtual std::string GetVersion();
     virtual void SetCharacterEncoding(const std::string& newencoding);
@@ -222,11 +228,11 @@ protected:
     //@{
 
     /// \param desturi expects the fully resolved URI to pass to curl
-    int _CallGet(const std::string& desturi, rapidjson::Document& pt, int expectedhttpcode=200, double timeout = 5.0);
+    int _CallGet(const std::string& desturi, rapidjson::Value& rRequest, rapidjson::Document::AllocatorType& alloc, int expectedhttpcode=200, double timeout = 5.0);
     int _CallGet(const std::string& desturi, std::string& outputdata, int expectedhttpcode=200, double timeout = 5.0);
     int _CallGet(const std::string& desturi, std::vector<unsigned char>& outputdata, int expectedhttpcode=200, double timeout = 5.0);
     int _CallGet(const std::string& desturi, std::ostream& outputStream, int expectedhttpcode=200, double timeout = 5.0);
-    int _CallPost(const std::string& desturi, const std::string& data, rapidjson::Document& pt, int expectedhttpcode=201, double timeout = 5.0);
+    int _CallPost(const std::string& desturi, const std::string& data, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& alloc, int expectedhttpcode=201, double timeout = 5.0);
 
     /// \brief desturi is URL-encoded. Also assume _mutex is locked.
     virtual void _UploadFileToController_UTF8(const std::string& filename, const std::string& desturi);
@@ -273,6 +279,8 @@ protected:
     boost::mutex _mutex;
     std::stringstream _buffer;
     std::string _baseuri, _baseapiuri, _basewebdavuri, _uri, _username;
+    std::string _fulluri; ///< full connection URI with username and password. http://username@password:path
+    ControllerClientInfo _clientInfo;
 
     curl_slist *_httpheadersjson;
     curl_slist *_httpheadersstl;
