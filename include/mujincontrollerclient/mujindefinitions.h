@@ -43,7 +43,16 @@ template<class T> inline bool FuzzyEquals(const std::vector<T>& p, const std::ve
     return true;
 }
 
-template<class T, size_t N> inline bool FuzzyEquals(const T (&p)[N], const T (&q)[N], double epsilon=1e-3) {
+template<class T, size_t N> inline bool FuzzyEquals(const T (&p)[N], const T (&q)[N], double epsilon=1e-4) {
+    for (size_t i = 0; i < N; ++i) {
+        if (!FuzzyEquals(p[i], q[i], epsilon)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+template<class T, size_t N> inline bool FuzzyEquals(const std::array<T,N>& p, const std::array<T,N>& q, double epsilon=1e-4) {
     for (size_t i = 0; i < N; ++i) {
         if (!FuzzyEquals(p[i], q[i], epsilon)) {
             return false;
@@ -65,8 +74,8 @@ struct Transform
     inline bool operator==(const Transform& other) const {
         return !operator!=(other);
     }
-    Real quaternion[4]; ///< quaternion [cos(ang/2), axis*sin(ang/2)]
-    Real translate[3]; ///< translation x,y,z
+    std::array<Real,4> quaternion; ///< quaternion [cos(ang/2), axis*sin(ang/2)]
+    std::array<Real,3> translate; ///< translation x,y,z
 };
 
 struct AABB
@@ -81,12 +90,13 @@ struct AABB
     inline bool operator==(const AABB& other) const {
         return !operator!=(other);
     }
-    Real pos[3]; ///< center of AABB
-    Real extents[3]; ///< half extents of AABB
+    std::array<Real,3> pos; ///< center of AABB
+    std::array<Real,3> extents; ///< half extents of AABB
 };
 
-struct MUJINCLIENT_API SensorSelectionInfo : public mujinjson::JsonSerializable
+class MUJINCLIENT_API SensorSelectionInfo : public mujinjson::JsonSerializable
 {
+public:
     SensorSelectionInfo() = default;
     SensorSelectionInfo(const std::string& sensorNameIn, const std::string& sensorLinkNameIn) : sensorName(sensorNameIn), sensorLinkName(sensorLinkNameIn) {
     }
@@ -112,16 +122,22 @@ struct MUJINCLIENT_API SensorSelectionInfo : public mujinjson::JsonSerializable
 
 
 /// \brief the picking history being published from the slave. Anytime the robot goes inside of the source container, its pick history will be udpated.
-struct MUJINCLIENT_API PickPlaceHistoryItem
+class MUJINCLIENT_API PickPlaceHistoryItem : public mujinjson::JsonSerializable
 {
+public:
+    void Reset();
+
+    void LoadFromJson(const rapidjson::Value& rItem) override;
+    void SaveToJson(rapidjson::Value& rItem, rapidjson::Document::AllocatorType& alloc) const override;
+
     std::string pickPlaceType; ///< the type of action that ocurred can be: "picked", "placed", "touched"
     std::string locationName; ///< the name of the location where picking occurred for "picked", where placing occurred when "placed", and where touching occurred for "touched"
     std::string containerName; ///< the name of the container where picking occurred for "picked", where placing occurred when "placed", and where touching occurred for "touched"
-    unsigned long long eventTimeStampUS; ///< time that the event ocurred in us (from Linux epoch). For "picked" this is the chuck time, for "placed this is the unchuck time, for "touched" this is the time when the robot supposedly stopped touching/disturbing the object.
+    unsigned long long eventTimeStampUS = 0; ///< time that the event ocurred in us (from Linux epoch). For "picked" this is the chuck time, for "placed this is the unchuck time, for "touched" this is the time when the robot supposedly stopped touching/disturbing the object.
     std::string object_uri; ///< the object uri
     Transform objectpose; ///< 7-values in world, unit is usually mm
     AABB localaabb; ///< AABB of object in object frame.
-    unsigned long long sensorTimeStampUS; ///< sensor timestamp in us (from Linux epoch) of when the object was detected in the scene
+    unsigned long long sensorTimeStampUS = 0; ///< sensor timestamp in us (from Linux epoch) of when the object was detected in the scene
 };
 
 /// \brief Holds the state of each region coming from the planning side.
