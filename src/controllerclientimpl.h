@@ -156,7 +156,7 @@ public:
     std::string CreateObjectGeometry(const std::string& objectPk, const std::string& geometryName, const std::string& linkPk, const std::string& geomtype, double timeout = 5);
 
     std::string CreateIkParam(const std::string& objectPk, const std::string& name, const std::string& iktype, double timeout = 5);
-    std::string CreateLink(const std::string& objectPk, const std::string& parentlinkPk, const std::string& name, const Real quaternion[4], const Real translate[3], double timeout = 5);
+    std::string CreateLink(const std::string& objectPk, const std::string& parentlinkPk, const std::string& name, const std::array<Real,4> &quaternion, const std::array<Real,3> &translate, double timeout = 5);
 
     /// \brief set geometry for an object
     /// \param objectPk primary key for the object
