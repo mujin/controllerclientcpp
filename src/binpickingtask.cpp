@@ -43,23 +43,6 @@ namespace mujinclient {
 using namespace utils;
 using namespace mujinjson;
 
-static void LoadAABBFromJsonValue(const rapidjson::Value& rAABB, mujin::AABB& aabb)
-{
-    BOOST_ASSERT(rAABB.IsObject());
-    BOOST_ASSERT(rAABB.HasMember("pos"));
-    BOOST_ASSERT(rAABB.HasMember("extents"));
-    const rapidjson::Value& rPos = rAABB["pos"];
-    BOOST_ASSERT(rPos.IsArray());
-    mujinjson::LoadJsonValue(rPos[0], aabb.pos[0]);
-    mujinjson::LoadJsonValue(rPos[1], aabb.pos[1]);
-    mujinjson::LoadJsonValue(rPos[2], aabb.pos[2]);
-    const rapidjson::Value& rExtents = rAABB["extents"];
-    BOOST_ASSERT(rExtents.IsArray());
-    mujinjson::LoadJsonValue(rExtents[0], aabb.extents[0]);
-    mujinjson::LoadJsonValue(rExtents[1], aabb.extents[1]);
-    mujinjson::LoadJsonValue(rExtents[2], aabb.extents[2]);
-}
-
 BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionInfo::RegisterMinViableRegionInfo() :
     objectWeight(0.0),
     sensorTimeStampMS(0),
@@ -838,41 +821,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     }
 
     pickPlaceHistoryItems.clear();
-    if( v.HasMember("pickPlaceHistoryItems") && v["pickPlaceHistoryItems"].IsArray() ) {
-        pickPlaceHistoryItems.resize(v["pickPlaceHistoryItems"].Size());
-        for(int iitem = 0; iitem < (int)pickPlaceHistoryItems.size(); ++iitem) {
-            const rapidjson::Value& rItem = v["pickPlaceHistoryItems"][iitem];
-            pickPlaceHistoryItems[iitem].pickPlaceType = GetJsonValueByKey<std::string,std::string>(rItem, "pickPlaceType", std::string());
-            pickPlaceHistoryItems[iitem].locationName = GetJsonValueByKey<std::string,std::string>(rItem, "locationName", std::string());
-            pickPlaceHistoryItems[iitem].containerName = GetJsonValueByKey<std::string,std::string>(rItem, "containerName", std::string());
-            pickPlaceHistoryItems[iitem].eventTimeStampUS = GetJsonValueByKey<unsigned long long>(rItem, "eventTimeStampUS", 0);
-            pickPlaceHistoryItems[iitem].object_uri = GetJsonValueByKey<std::string,std::string>(rItem, "object_uri", std::string());
-
-            pickPlaceHistoryItems[iitem].objectpose = Transform();
-            const rapidjson::Value::ConstMemberIterator itPose = rItem.FindMember("objectpose");
-            if( itPose != rItem.MemberEnd() ) {
-                const rapidjson::Value& rObjectPose = itPose->value;;
-                if( rObjectPose.IsArray() && rObjectPose.Size() == 7 ) {
-                    LoadJsonValue(rObjectPose[0], pickPlaceHistoryItems[iitem].objectpose.quaternion[0]);
-                    LoadJsonValue(rObjectPose[1], pickPlaceHistoryItems[iitem].objectpose.quaternion[1]);
-                    LoadJsonValue(rObjectPose[2], pickPlaceHistoryItems[iitem].objectpose.quaternion[2]);
-                    LoadJsonValue(rObjectPose[3], pickPlaceHistoryItems[iitem].objectpose.quaternion[3]);
-                    LoadJsonValue(rObjectPose[4], pickPlaceHistoryItems[iitem].objectpose.translate[0]);
-                    LoadJsonValue(rObjectPose[5], pickPlaceHistoryItems[iitem].objectpose.translate[1]);
-                    LoadJsonValue(rObjectPose[6], pickPlaceHistoryItems[iitem].objectpose.translate[2]);
-                }
-            }
-
-            pickPlaceHistoryItems[iitem].localaabb = mujin::AABB();
-            const rapidjson::Value::ConstMemberIterator itLocalAABB = rItem.FindMember("localaabb");
-            if( itLocalAABB != rItem.MemberEnd() ) {
-                const rapidjson::Value& rLocalAABB = itLocalAABB->value;
-                LoadAABBFromJsonValue(rLocalAABB, pickPlaceHistoryItems[iitem].localaabb);
-            }
-
-            pickPlaceHistoryItems[iitem].sensorTimeStampUS = GetJsonValueByKey<unsigned long long>(rItem, "sensorTimeStampUS", 0);
-        }
-    }
+    mujinjson::LoadJsonValueByKey(v, "pickPlaceHistoryItems", pickPlaceHistoryItems);
 }
 
 BinPickingTaskResource::ResultGetBinpickingState::RemoveObjectFromObjectListInfo::RemoveObjectFromObjectListInfo() :
@@ -1945,8 +1894,8 @@ void utils::GetSensorTransform(SceneResource& scene, const std::string& bodyname
     for (size_t i=0; i<attachedsensors.size(); ++i) {
         if (attachedsensors.at(i)->name == sensorname) {
             Transform transform;
-            std::copy(attachedsensors.at(i)->quaternion, attachedsensors.at(i)->quaternion+4, transform.quaternion);
-            std::copy(attachedsensors.at(i)->translate, attachedsensors.at(i)->translate+3, transform.translate);
+            std::copy(attachedsensors.at(i)->quaternion.begin(), attachedsensors.at(i)->quaternion.end(), transform.quaternion.begin());
+            std::copy(attachedsensors.at(i)->translate.begin(), attachedsensors.at(i)->translate.end(), transform.translate.begin());
             if (unit == "m") { //?!
                 transform.translate[0] *= 0.001;
                 transform.translate[1] *= 0.001;

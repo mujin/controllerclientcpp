@@ -873,9 +873,9 @@ public:
         std::string frame_origin;
         std::string frame_tip;
         std::string pk;
-        Real direction[3];
-        Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-        Real translate[3];
+        std::array<Real,3> direction;
+        std::array<Real,4> quaternion; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        std::array<Real,3> translate;
     };
     typedef boost::shared_ptr<ToolResource> ToolResourcePtr;
 
@@ -889,8 +889,8 @@ public:
         std::string frame_origin;
         std::string pk;
         //Real direction[3];
-        Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-        Real translate[3];
+        std::array<Real,4> quaternion; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        std::array<Real,3> translate;
         std::string sensortype;
 
         struct SensorData {
