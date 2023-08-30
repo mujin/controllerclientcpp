@@ -511,14 +511,14 @@ template<class U> inline void LoadJsonValue(const rapidjson::Value& v, std::unor
 
     // Ensure our output is a blank slate
     t.clear();
-    U value;
     for (rapidjson::Value::ConstMemberIterator it = v.MemberBegin();
          it != v.MemberEnd(); ++it) {
-        LoadJsonValue(it->value, value);
-        // Our key name needs to be explicitly length-constructed since it may
-        // contain \0 bytes.
-        // Move our temporary value to try and minimize copying of complex types
-        t[std::string(it->name.GetString(), it->name.GetStringLength())] = std::move(value);
+        // Deserialize directly into the map to avoid copying temporaries.
+        // Note that our key needs to be explicitly length-constructed since it
+        // may contain \0 bytes.
+        LoadJsonValue(
+            it->value,
+            t[std::string(it->name.GetString(), it->name.GetStringLength())]);
     }
 }
 
