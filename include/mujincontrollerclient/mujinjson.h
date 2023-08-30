@@ -27,6 +27,7 @@
 #include <string>
 #include <stdexcept>
 #include <vector>
+#include <unordered_map>
 #include <map>
 #include <iostream>
 
@@ -206,7 +207,7 @@ inline void ParseJson(rapidjson::Value& r, rapidjson::Document::AllocatorType& a
         throw MujinJSONException(boost::str(boost::format("Json stream is invalid (offset %u) %s")%((unsigned)rTemp.GetErrorOffset())%GetParseError_En(rTemp.GetParseError())));
     }
     r.Swap(rTemp);
-    
+
 //    rapidjson::ParseResult parseResult = reader.template Parse<rapidjson::kParseFullPrecisionFlag>(isw, rTemp);
 //    if( parseResult.IsError() ) {
 //        *stack_.template Pop<ValueType>(1)
@@ -501,6 +502,26 @@ template<class U> inline void LoadJsonValue(const rapidjson::Value& v, std::map<
     }
 }
 
+template<class U> inline void LoadJsonValue(const rapidjson::Value& v, std::unordered_map<std::string, U>& t) {
+    // It doesn't make sense to construct an unordered map from anything other
+    // than a full JSON object
+    if (!v.IsObject()) {
+        throw MujinJSONException("Cannot convert json type " + GetJsonTypeName(v) + " to unordered_map");
+    }
+
+    // Ensure our output is a blank slate
+    t.clear();
+    U value;
+    for (rapidjson::Value::ConstMemberIterator it = v.MemberBegin();
+         it != v.MemberEnd(); ++it) {
+        LoadJsonValue(it->value, value);
+        // Our key name needs to be explicitly length-constructed since it may
+        // contain \0 bytes.
+        // Move our temporary value to try and minimize copying of complex types
+        t[std::string(it->name.GetString(), it->name.GetStringLength())] = std::move(value);
+    }
+}
+
 //Save a data structure to rapidjson::Value format
 
 /*template<class T> inline void SaveJsonValue(rapidjson::Value& v, const T& t, rapidjson::Document::AllocatorType& alloc) {*/
@@ -643,6 +664,16 @@ template<size_t N> inline void SaveJsonValue(rapidjson::Value& v, const std::arr
 template<class U> inline void SaveJsonValue(rapidjson::Value& v, const std::map<std::string, U>& t, rapidjson::Document::AllocatorType& alloc) {
     v.SetObject();
     for (typename std::map<std::string, U>::const_iterator it = t.begin(); it != t.end(); ++it) {
+        rapidjson::Value name, value;
+        SaveJsonValue(name, it->first, alloc);
+        SaveJsonValue(value, it->second, alloc);
+        v.AddMember(name, value, alloc);
+    }
+}
+
+template<class U> inline void SaveJsonValue(rapidjson::Value& v, const std::unordered_map<std::string, U>& t, rapidjson::Document::AllocatorType& alloc) {
+    v.SetObject();
+    for (typename std::unordered_map<std::string, U>::const_iterator it = t.begin(); it != t.end(); ++it) {
         rapidjson::Value name, value;
         SaveJsonValue(name, it->first, alloc);
         SaveJsonValue(value, it->second, alloc);
