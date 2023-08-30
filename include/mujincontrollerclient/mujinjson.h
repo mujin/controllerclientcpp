@@ -491,11 +491,14 @@ template<class U> inline void LoadJsonValue(const rapidjson::Value& v, std::map<
         }
     } else if (v.IsObject()) {
         t.clear();
-        U value;
         for (rapidjson::Value::ConstMemberIterator it = v.MemberBegin();
              it != v.MemberEnd(); ++it) {
-            LoadJsonValue(it->value, value);
-            t[std::string(it->name.GetString(), it->name.GetStringLength())] = value; // string can contain null character
+            // Deserialize directly into the map to avoid copying temporaries.
+            // Note that our key needs to be explicitly length-constructed since
+            // it may contain \0 bytes.
+            LoadJsonValue(it->value,
+                          t[std::string(it->name.GetString(),
+                                        it->name.GetStringLength())]);
         }
     } else {
         throw MujinJSONException("Cannot convert json type " + GetJsonTypeName(v) + " to Map");
