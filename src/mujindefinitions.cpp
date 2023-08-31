@@ -18,6 +18,91 @@ void SensorSelectionInfo::SaveToJson(rapidjson::Value& rSensorSelectionInfo, rap
     mujinjson::SetJsonValueByKey(rSensorSelectionInfo, "sensorLinkName", sensorLinkName, alloc);
 }
 
+void PickPlaceHistoryItem::Reset()
+{
+    pickPlaceType.clear();
+    locationName.clear();
+    containerName.clear();
+    eventTimeStampUS = 0;
+    object_uri.clear();
+    objectpose = Transform();
+    localaabb = AABB();
+    sensorTimeStampUS = 0;
+}
+
+static void _LoadAABBFromJsonValue(const rapidjson::Value& rAABB, mujin::AABB& aabb)
+{
+    BOOST_ASSERT(rAABB.IsObject());
+    BOOST_ASSERT(rAABB.HasMember("pos"));
+    BOOST_ASSERT(rAABB.HasMember("extents"));
+    const rapidjson::Value& rPos = rAABB["pos"];
+    BOOST_ASSERT(rPos.IsArray());
+    mujinjson::LoadJsonValue(rPos[0], aabb.pos[0]);
+    mujinjson::LoadJsonValue(rPos[1], aabb.pos[1]);
+    mujinjson::LoadJsonValue(rPos[2], aabb.pos[2]);
+    const rapidjson::Value& rExtents = rAABB["extents"];
+    BOOST_ASSERT(rExtents.IsArray());
+    mujinjson::LoadJsonValue(rExtents[0], aabb.extents[0]);
+    mujinjson::LoadJsonValue(rExtents[1], aabb.extents[1]);
+    mujinjson::LoadJsonValue(rExtents[2], aabb.extents[2]);
+}
+
+void PickPlaceHistoryItem::LoadFromJson(const rapidjson::Value& rItem)
+{
+    mujinjson::LoadJsonValueByKey(rItem, "pickPlaceType", pickPlaceType);
+    mujinjson::LoadJsonValueByKey(rItem, "locationName", locationName);
+    mujinjson::LoadJsonValueByKey(rItem, "containerName", containerName);
+    mujinjson::LoadJsonValueByKey(rItem, "eventTimeStampUS", eventTimeStampUS);
+    mujinjson::LoadJsonValueByKey(rItem, "object_uri", object_uri);
+
+    const rapidjson::Value::ConstMemberIterator itPose = rItem.FindMember("objectpose");
+    if( itPose != rItem.MemberEnd() ) {
+        const rapidjson::Value& rObjectPose = itPose->value;;
+        if( rObjectPose.IsArray() && rObjectPose.Size() == 7 ) {
+            mujinjson::LoadJsonValue(rObjectPose[0], objectpose.quaternion[0]);
+            mujinjson::LoadJsonValue(rObjectPose[1], objectpose.quaternion[1]);
+            mujinjson::LoadJsonValue(rObjectPose[2], objectpose.quaternion[2]);
+            mujinjson::LoadJsonValue(rObjectPose[3], objectpose.quaternion[3]);
+            mujinjson::LoadJsonValue(rObjectPose[4], objectpose.translate[0]);
+            mujinjson::LoadJsonValue(rObjectPose[5], objectpose.translate[1]);
+            mujinjson::LoadJsonValue(rObjectPose[6], objectpose.translate[2]);
+        }
+    }
+
+    const rapidjson::Value::ConstMemberIterator itLocalAABB = rItem.FindMember("localaabb");
+    if( itLocalAABB != rItem.MemberEnd() ) {
+        const rapidjson::Value& rLocalAABB = itLocalAABB->value;
+        _LoadAABBFromJsonValue(rLocalAABB, localaabb);
+    }
+
+    mujinjson::LoadJsonValueByKey(rItem, "sensorTimeStampUS", sensorTimeStampUS);
+}
+
+void PickPlaceHistoryItem::SaveToJson(rapidjson::Value& rItem, rapidjson::Document::AllocatorType& alloc) const
+{
+    rItem.SetObject();
+    mujinjson::SetJsonValueByKey(rItem, "pickPlaceType", pickPlaceType, alloc);
+    mujinjson::SetJsonValueByKey(rItem, "locationName", locationName, alloc);
+    mujinjson::SetJsonValueByKey(rItem, "containerName", containerName, alloc);
+    mujinjson::SetJsonValueByKey(rItem, "eventTimeStampUS", eventTimeStampUS, alloc);
+    mujinjson::SetJsonValueByKey(rItem, "object_uri", object_uri, alloc);
+    std::array<Real,7> posearray;
+    posearray[0] = objectpose.quaternion[0];
+    posearray[1] = objectpose.quaternion[1];
+    posearray[2] = objectpose.quaternion[2];
+    posearray[3] = objectpose.quaternion[3];
+    posearray[4] = objectpose.translate[0];
+    posearray[5] = objectpose.translate[1];
+    posearray[6] = objectpose.translate[2];
+    mujinjson::SetJsonValueByKey(rItem, "objectpose", posearray, alloc);
+
+    rapidjson::Value rLocalAABB; rLocalAABB.SetObject();
+    mujinjson::SetJsonValueByKey(rLocalAABB, "pos", localaabb.pos, alloc);
+    mujinjson::SetJsonValueByKey(rLocalAABB, "extents", localaabb.extents, alloc);
+    rItem.AddMember("localaabb", rLocalAABB, alloc);
+    mujinjson::SetJsonValueByKey(rItem, "sensorTimeStampUS", sensorTimeStampUS, alloc);
+}
+
 const char* GetExecutionVerificationModeString(ExecutionVerificationMode mode)
 {
     switch(mode) {
