@@ -29,6 +29,7 @@
 #include <vector>
 #include <unordered_map>
 #include <map>
+#include <deque>
 #include <iostream>
 
 #include <rapidjson/pointer.h>
@@ -505,6 +506,26 @@ template<class U> inline void LoadJsonValue(const rapidjson::Value& v, std::map<
     }
 }
 
+template<class U> inline void LoadJsonValue(const rapidjson::Value& v, std::deque<U>& t) {
+    // It doesn't make sense to construct a deque from anything other than a JSON array
+    if (!v.IsArray()) {
+        throw MujinJSONException("Cannot convert json type " + GetJsonTypeName(v) + " to deque");
+    }
+
+    // Ensure our output is a blank slate
+    t.clear();
+
+    // Preallocate to fit the incoming data. Deque has no reserve, only resize.
+    t.resize(v.Size());
+
+    // Iterate each array entry and attempt to deserialize it directly as a member type
+    typename std::deque<U>::size_type emplaceIndex = 0;
+    for (rapidjson::Value::ConstValueIterator it = v.Begin(); it != v.End(); ++it) {
+        // Deserialize directly into the map to avoid copying temporaries.
+        LoadJsonValue(*it, t[emplaceIndex++]);
+    }
+}
+
 template<class U> inline void LoadJsonValue(const rapidjson::Value& v, std::unordered_map<std::string, U>& t) {
     // It doesn't make sense to construct an unordered map from anything other
     // than a full JSON object
@@ -681,6 +702,16 @@ template<class U> inline void SaveJsonValue(rapidjson::Value& v, const std::unor
         SaveJsonValue(name, it->first, alloc);
         SaveJsonValue(value, it->second, alloc);
         v.AddMember(name, value, alloc);
+    }
+}
+
+template <class U> inline void SaveJsonValue(rapidjson::Value& v, const std::deque<U>& t, rapidjson::Document::AllocatorType& alloc) {
+    v.SetArray();
+    v.Reserve(t.size(), alloc);
+    for (typename std::deque<U>::const_iterator it = t.begin(); it != t.end(); ++it) {
+        rapidjson::Value value;
+        SaveJsonValue(value, *it, alloc);
+        v.PushBack(value, alloc);
     }
 }
 
