@@ -705,10 +705,10 @@ template<class U> inline void SaveJsonValue(rapidjson::Value& v, const std::unor
     }
 }
 
-template <class U> inline void SaveJsonValue(rapidjson::Value& v, const std::deque<U>& t, rapidjson::Document::AllocatorType& alloc) {
+template <class T, class AllocT> inline void SaveJsonValue(rapidjson::Value& v, const std::deque<T, AllocT>& t, rapidjson::Document::AllocatorType& alloc) {
     v.SetArray();
     v.Reserve(t.size(), alloc);
-    for (typename std::deque<U>::const_iterator it = t.begin(); it != t.end(); ++it) {
+    for (typename std::deque<T, AllocT>::const_iterator it = t.begin(); it != t.end(); ++it) {
         rapidjson::Value value;
         SaveJsonValue(value, *it, alloc);
         v.PushBack(value, alloc);
