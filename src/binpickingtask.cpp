@@ -23,12 +23,14 @@
 #include "mujincontrollerclient/zmq.hpp"
 #endif
 
+#include <cmath>
+
 #ifdef _WIN32
 #include <float.h>
 #define isnan _isnan
+#else
+using std::isnan;
 #endif
-
-#include <cmath>
 
 #include "logging.h"
 
