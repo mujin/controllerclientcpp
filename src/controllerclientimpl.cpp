@@ -2092,7 +2092,7 @@ void ControllerClientImpl::CreateLogEntries(const std::vector<LogEntryPtr>& logE
         std::string form_name = "logEntry/" + logEntry->logType;
         curl_formadd(&formpost, &lastptr,
                     CURLFORM_COPYNAME, form_name.c_str(),
-                    CURLFORM_COPYCONTENTS, DumpJson(logEntry->entry).c_str(),
+                    CURLFORM_COPYCONTENTS, DumpJson(logEntry->rEntry).c_str(),
                     CURLFORM_CONTENTTYPE, "application/json",
                     CURLFORM_END);
         // add attachments

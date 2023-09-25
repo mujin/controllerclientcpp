@@ -152,7 +152,7 @@ typedef boost::weak_ptr<LogEntryAttachment> LogEntryAttachmentWeakPtr;
 /// \brief a log entry in mujin controller
 struct LogEntry
 {
-    rapidjson::Document entry; // log entry data in JSON format
+    rapidjson::Value rEntry; // log entry data in JSON format
     std::string logType; // log type
     std::vector<LogEntryAttachmentPtr> attachments; // a list of related attachments
 };
