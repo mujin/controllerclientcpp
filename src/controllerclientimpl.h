@@ -169,7 +169,7 @@ public:
     void GetDebugInfos(std::vector<DebugResourcePtr>& debuginfos, double timeout = 5);
 
     /// \brief create log entries and attachments such as images, additional files, etc.
-    virtual void CreateLogEntries(const std::vector<LogEntryPtr>& logEntries);
+    void CreateLogEntries(const std::vector<LogEntryPtr>& logEntries) override;
 
     inline std::string GetBaseUri() const
     {
