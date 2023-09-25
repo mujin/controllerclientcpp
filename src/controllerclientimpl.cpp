@@ -2150,9 +2150,9 @@ void ControllerClientImpl::CreateLogEntries(const std::vector<LogEntryPtr>& logE
     
     // exract the log entry ids
     const rapidjson::Value& logEntryIdsArray = rResultDoc["logEntryIds"];
-    for (rapidjson::SizeType index = 0; index < logEntryIdsArray.Size(); index++) {
-        if (logEntryIdsArray[index].IsString()) {
-            createdLogEntryIds.push_back(logEntryIdsArray[index].GetString());
+    for (rapidjson::Value::ConstValueIterator itLogEntryId = logEntryIdsArray.Begin(); itLogEntryId != logEntryIdsArray.End(); ++itLogEntryId) {
+        if (itLogEntryId->IsString()) {
+            createdLogEntryIds.push_back(itLogEntryId->GetString());
         }
     }
 }
