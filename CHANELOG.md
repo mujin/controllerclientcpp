@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.71.0 (2023-10-20)
+
+- Add `EdgeValidationInfos` to `PickPlaceHistoryItem` for the size validation feature.
+
 ## 0.70.1 (2023-08-23)
 
 - Add `CreateLogEntries` API support for uploading structured log entries with attachments.
