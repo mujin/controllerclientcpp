@@ -27,6 +27,7 @@ void PickPlaceHistoryItem::Reset()
     object_uri.clear();
     objectpose = Transform();
     localaabb = AABB();
+    edgeValidationInfos.clear();
     sensorTimeStampUS = 0;
 }
 
@@ -45,6 +46,24 @@ static void _LoadAABBFromJsonValue(const rapidjson::Value& rAABB, mujin::AABB& a
     mujinjson::LoadJsonValue(rExtents[0], aabb.extents[0]);
     mujinjson::LoadJsonValue(rExtents[1], aabb.extents[1]);
     mujinjson::LoadJsonValue(rExtents[2], aabb.extents[2]);
+}
+
+static void _LoadEdgeValidationInfosFromJsonValue(const rapidjson::Value& rEdgeValidationInfos, std::vector<EdgeValidationInfo>& edgeValidationInfos)
+{
+    BOOST_ASSERT(rEdgeValidationInfos.IsArray());
+    edgeValidationInfos.clear();
+    edgeValidationInfos.resize(rEdgeValidationInfos.GetArray().Size());
+    size_t i = 0;
+    for ( const rapidjson::Value& rEdgeValidationInfo : rEdgeValidationInfos.GetArray() ) {
+        BOOST_ASSERT(rEdgeValidationInfo.IsObject());
+        BOOST_ASSERT(rEdgeValidationInfo.HasMember("edgeType"));
+        BOOST_ASSERT(rEdgeValidationInfo.HasMember("result"));
+        BOOST_ASSERT(rEdgeValidationInfo.HasMember("measuredLocalLineSegment"));
+        mujinjson::LoadJsonValue(rEdgeValidationInfo["edgeType"], edgeValidationInfos[i].edgeType);
+        mujinjson::LoadJsonValue(rEdgeValidationInfo["result"], edgeValidationInfos[i].result);
+        mujinjson::LoadJsonValue(rEdgeValidationInfo["measuredLocalLineSegment"], edgeValidationInfos[i].measuredLocalLineSegment);
+        i ++;
+    }
 }
 
 void PickPlaceHistoryItem::LoadFromJson(const rapidjson::Value& rItem)
@@ -75,6 +94,12 @@ void PickPlaceHistoryItem::LoadFromJson(const rapidjson::Value& rItem)
         _LoadAABBFromJsonValue(rLocalAABB, localaabb);
     }
 
+    const rapidjson::Value::ConstMemberIterator itEdgeValidationInfos = rItem.FindMember("edgeValidationInfos");
+    if( itLocalAABB != rItem.MemberEnd() ) {
+        const rapidjson::Value& rEdgeValidationInfos = itEdgeValidationInfos->value;
+        _LoadEdgeValidationInfosFromJsonValue(rEdgeValidationInfos, edgeValidationInfos);
+    }
+
     mujinjson::LoadJsonValueByKey(rItem, "sensorTimeStampUS", sensorTimeStampUS);
 }
 
@@ -100,6 +125,17 @@ void PickPlaceHistoryItem::SaveToJson(rapidjson::Value& rItem, rapidjson::Docume
     mujinjson::SetJsonValueByKey(rLocalAABB, "pos", localaabb.pos, alloc);
     mujinjson::SetJsonValueByKey(rLocalAABB, "extents", localaabb.extents, alloc);
     rItem.AddMember("localaabb", rLocalAABB, alloc);
+
+    std::vector<rapidjson::Value> rEdgeValidationInfos;
+    for (size_t i = 0; i < edgeValidationInfos.size(); ++i) {
+        rapidjson::Value rEdgeValidationInfo; rEdgeValidationInfo.SetObject();
+        mujinjson::SetJsonValueByKey(rEdgeValidationInfo, "edgeType", edgeValidationInfos[i].edgeType, alloc);
+        mujinjson::SetJsonValueByKey(rEdgeValidationInfo, "result", edgeValidationInfos[i].result, alloc);
+        mujinjson::SetJsonValueByKey(rEdgeValidationInfo, "measuredLocalLineSegment", edgeValidationInfos[i].measuredLocalLineSegment, alloc);
+        rEdgeValidationInfos[i] = rEdgeValidationInfo;
+    }
+    mujinjson::SetJsonValueByKey(rItem, "edgeValidationInfos", rEdgeValidationInfos, alloc);
+
     mujinjson::SetJsonValueByKey(rItem, "sensorTimeStampUS", sensorTimeStampUS, alloc);
 }
 
