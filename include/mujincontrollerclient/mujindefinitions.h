@@ -95,7 +95,7 @@ struct AABB
 };
 
 struct EdgeValidationInfo
-{   
+{
     std::string edgeType;
     std::string result;
     std::vector<std::array<Real,3>> measuredLocalLineSegment;
