@@ -249,6 +249,7 @@ public:
                 double objectWeight; ///< If non-zero, use this weight fo registration. unit is kg. zero means unknown.
                 uint64_t sensorTimeStampMS; ///< sensor timestamp of the item. If non-zero, then valid.
                 uint64_t updateTimeStampMS; ///< timestamp this request was sent. If non-zero, then valid.
+                std::vector<std::array<double, 3> > detectionPointcloudCorners3D;  ///< a list of 3D corners in the pointcloud from which the detection was created.
             } objectInfo;
 
             struct EndEffectorPoseInfo
