@@ -234,6 +234,12 @@ public:
         {
             RuntimeRegistrationInfo();
 
+            struct DetectionPointCloudCorner3D
+            {
+                std::array<double, 3> cornerPoint; ///< The point in 3D where the corner is located.
+                std::array<std::array<double, 3>, 2> cornerAxes; ///< Two normalized vectors that describe the axes of the corner in 3D.
+            };
+
             struct ObjectInfo
             {
                 ObjectInfo();
@@ -249,7 +255,7 @@ public:
                 double objectWeight; ///< If non-zero, use this weight fo registration. unit is kg. zero means unknown.
                 uint64_t sensorTimeStampMS; ///< sensor timestamp of the item. If non-zero, then valid.
                 uint64_t updateTimeStampMS; ///< timestamp this request was sent. If non-zero, then valid.
-                std::vector<std::array<double, 3> > detectionPointcloudCorners3D;  ///< a list of 3D corners in the pointcloud from which the detection was created.
+                std::vector<DetectionPointCloudCorner3D> detectionPointCloudCorners3D;  ///< a list of 3D corners in the pointcloud from which the detection was created.
             } objectInfo;
 
             struct EndEffectorPoseInfo

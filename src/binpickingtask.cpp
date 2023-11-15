@@ -624,7 +624,18 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
     LoadJsonValueByPath(v, "/runtimeRegistrationInfo/objectInfo/quaternion", runtimeRegistrationInfo.objectInfo.quaternion);
     LoadJsonValueByPath(v, "/runtimeRegistrationInfo/objectInfo/translationInEndEffector", runtimeRegistrationInfo.objectInfo.translationInEndEffector);
     LoadJsonValueByPath(v, "/runtimeRegistrationInfo/objectInfo/quaternionInEndEffector", runtimeRegistrationInfo.objectInfo.quaternionInEndEffector);
-    LoadJsonValueByPath(v, "/runtimeRegistrationInfo/objectInfo/detectionPointcloudCorners3D", runtimeRegistrationInfo.objectInfo.detectionPointcloudCorners3D);
+    runtimeRegistrationInfo.objectInfo.detectionPointCloudCorners3D.clear();
+    const rapidjson::Value *pChild = rapidjson::Pointer("/runtimeRegistrationInfo/objectInfo/detectionPointCloudCorners3D").Get(v);
+    if (!!pChild && !pChild->IsNull()) {
+        const rapidjson::Value& child = *pChild; 
+        runtimeRegistrationInfo.objectInfo.detectionPointCloudCorners3D.resize(child.Size());
+        for(int idpcc = 0; idpcc < (int)runtimeRegistrationInfo.objectInfo.detectionPointCloudCorners3D.size(); ++idpcc) {
+            const rapidjson::Value& result = child[idpcc];
+            runtimeRegistrationInfo.objectInfo.detectionPointCloudCorners3D[idpcc].cornerPoint = GetJsonValueByKey<std::array<double, 3> >(result, "cornerPoint");
+            runtimeRegistrationInfo.objectInfo.detectionPointCloudCorners3D[idpcc].cornerAxes = GetJsonValueByKey<std::array<std::array<double, 3>, 2> >(result, "cornerAxes");
+        }
+    }
+
     runtimeRegistrationInfo.objectInfo.unit = GetJsonValueByPath<std::string>(v, "/runtimeRegistrationInfo/objectInfo/unit", "mm");
     runtimeRegistrationInfo.objectInfo.pickLocationName = GetJsonValueByPath<std::string>(v, "/runtimeRegistrationInfo/objectInfo/pickLocationName", "");
     runtimeRegistrationInfo.objectInfo.registrationLocationName = GetJsonValueByPath<std::string>(v, "/runtimeRegistrationInfo/objectInfo/registrationLocationName", "");
