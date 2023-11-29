@@ -31,7 +31,15 @@ MUJIN_LOGGER("mujin.controllerclientcpp");
 #define CURL_OPTION_SAVE_SETTER(curl, curlopt, curvalue, newvalue) CURL_OPTION_SAVER(curl, curlopt, curvalue); CURL_OPTION_SETTER(curl, curlopt, newvalue)
 #define CURL_INFO_GETTER(curl, curlinfo, outvalue) CHECKCURLCODE(curl_easy_getinfo(curl, curlinfo, outvalue), "curl_easy_getinfo " # curlinfo)
 #define CURL_PERFORM(curl) CHECKCURLCODE(curl_easy_perform(curl), "curl_easy_perform")
-#define CURL_FORM_RELEASER(form) boost::shared_ptr<void> __curlformreleaser ## form((void*)0, boost::bind(boost::function<void(decltype(form))>(curl_formfree), form))
+
+struct CURLFormReleaser {
+    struct curl_httppost *& form;
+
+    ~CURLFormReleaser()
+    {
+        curl_formfree(std::exchange(form, nullptr));
+    }
+};
 
 namespace mujinclient {
 
@@ -1910,7 +1918,7 @@ void ControllerClientImpl::_UploadFileToControllerViaForm(std::istream& inputStr
     // prepare form
     struct curl_httppost *formpost = NULL;
     struct curl_httppost *lastptr = NULL;
-    CURL_FORM_RELEASER(formpost);
+    CURLFormReleaser curlFormReleaser{formpost};
     curl_formadd(&formpost, &lastptr,
                  CURLFORM_COPYNAME, "files[]",
                  CURLFORM_FILENAME, filename.empty() ? "unused" : filename.c_str(),
@@ -1958,7 +1966,7 @@ void ControllerClientImpl::_UploadDataToControllerViaForm(const void* data, size
     // prepare form
     struct curl_httppost *formpost = NULL;
     struct curl_httppost *lastptr = NULL;
-    CURL_FORM_RELEASER(formpost);
+    CURLFormReleaser curlFormReleaser{formpost};
     curl_formadd(&formpost, &lastptr,
                  CURLFORM_PTRNAME, "files[]",
                  CURLFORM_BUFFER, filename.empty() ? "unused" : filename.c_str(),
@@ -2091,7 +2099,7 @@ void ControllerClientImpl::CreateLogEntries(const std::vector<LogEntryPtr>& logE
     // prepare the form
     struct curl_httppost *formpost = NULL;
     struct curl_httppost *lastptr = NULL;
-    CURL_FORM_RELEASER(formpost);
+    CURLFormReleaser curlFormReleaser{formpost};
 
     rapidjson::StringBuffer& rRequestStringBuffer = _rRequestStringBufferCache;
     rapidjson::Writer<rapidjson::StringBuffer> writer(rRequestStringBuffer);
