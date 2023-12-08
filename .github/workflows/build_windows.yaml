@@ -1,0 +1,54 @@
+name: Build Windows
+  
+on:
+  push:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-2022]
+        architecture: ["x64"]
+
+    steps:
+    - uses: actions/checkout@v3
+    - uses: microsoft/setup-msbuild@v1.1
+    - name: Install Visual C++ 2010
+      run: |
+        MsiExec.exe /passive '/X{F0C3E5D1-1ADE-321E-8167-68EF0DE699A5}'
+        MsiExec.exe /passive '/X{1D8E6291-B0D5-35EC-8441-6616F567A0F7}'
+        choco install windows-sdk-7.1 -f -y --version 7.1.7600.20220204
+        choco install KB2519277 -f -y
+    - name: Add VC2010 path
+      # https://stackoverflow.com/questions/24775363/how-to-build-with-v90-platform-toolset-in-vs2012-without-vs2008-using-windows-s/25671529#25671529
+      run: echo "C:\Program Files (x86)\Microsoft Visual Studio 10.0\Common7\IDE" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+    - name: Put ammintrin.h
+      # https://stackoverflow.com/questions/30485525/missing-ammintrin-h-when-compiling-hadoop-on-windows
+      # Usually VS2010 -> Windows7.1SDK -> VS2010SP1 -> KB2519277 installation, but skipping VS2010 might have issues...
+      run: curl -L -o "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\ammintrin.h" http://www.mathworks.com/matlabcentral/answers/uploaded_files/735/ammintrin.m
+    - name: Install RapidJSON
+      run: |
+        git clone https://github.com/Tencent/rapidjson.git && mkdir rapidjson\build
+        cd rapidjson\build
+        # there are no stable version available
+        # but take the last version without -targets.cmake
+        git checkout 516d0473949fdcf0a6dc9fbb40fa92b3b85db184
+        cmake .. -G 'Visual Studio 17 2022' -A x64 -T Windows7.1SDK -DRAPIDJSON_HAS_STDSTRING=ON -DRAPIDJSON_BUILD_DOC=OFF -DRAPIDJSON_BUILD_EXAMPLES=OFF -DRAPIDJSON_BUILD_TESTS=OFF
+        msbuild ALL_BUILD.vcxproj /p:Configuration=Release
+        cd ..\..
+    - name: Install libzmq
+      run: |
+        git clone https://github.com/zeromq/libzmq.git && mkdir libzmq\build
+        cd libzmq\build
+        git checkout v4.3.5
+        cmake .. -G 'Visual Studio 17 2022' -A x64 -T Windows7.1SDK -DBUILD_TESTS=OFF
+        msbuild ALL_BUILD.vcxproj /p:Configuration=Release
+        cd ..\..
+    - name: Install
+      run: |
+        mkdir -p build
+        cd build
+        cmake .. -G 'Visual Studio 17 2022' -A x64 -T Windows7.1SDK -DCMAKE_CXX_STANDARD=11 "-DZeroMQ_DIR=${PWD}\..\libzmq\build" -DCMAKE_CONFIGURATION_TYPES=Release -DOPT_SAMPLES=OFF -DOPT_BUILD_TESTS=OFF
+        msbuild ALL_BUILD.vcxproj /p:Configuration=Release
+        cd ..
