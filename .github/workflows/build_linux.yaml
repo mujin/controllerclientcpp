@@ -1,0 +1,37 @@
+name: Build Linux
+  
+on:
+  push:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-20.04]
+        architecture: ["x64"]
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up APT
+      if: ${{ matrix.os == 'ubuntu-20.04' || matrix.os == 'ubuntu-22.04' }}
+      run: |
+        sudo apt-get update -y
+        sudo apt-get -y install g++ cmake-data cmake ninja-build libzmq3-dev liblog4cxx-dev libboost-filesystem-dev libboost-system-dev libboost-thread-dev libboost-date-time-dev libboost-program-options-dev libcurl4-openssl-dev
+    - name: Install RapidJSON
+      run: |
+        set -e
+        git clone https://github.com/Tencent/rapidjson.git && mkdir rapidjson/build
+        cd rapidjson/build
+        # there are no stable version available
+        cmake .. -GNinja -DRAPIDJSON_HAS_STDSTRING=ON -DRAPIDJSON_BUILD_DOC=OFF -DRAPIDJSON_BUILD_EXAMPLES=OFF -DRAPIDJSON_BUILD_TESTS=OFF
+        ninja -j4 && sudo ninja install
+        cd ../..
+    - name: Install
+      run: |
+        set -e
+        mkdir -p build
+        cd build
+        cmake .. -GNinja -DOPT_SAMPLES=OFF -DOPT_BUILD_TESTS=OFF
+        ninja -j4 && sudo ninja install
+        cd ..
