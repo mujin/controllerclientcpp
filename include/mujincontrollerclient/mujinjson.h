@@ -358,6 +358,7 @@ inline void LoadJsonValue(const rapidjson::Value& v, unsigned long long& t) {
     }
 }
 
+#ifndef _MSC_VER
 inline void LoadJsonValue(const rapidjson::Value& v, uint64_t& t) {
     if (v.IsUint64()) {
         t = v.GetUint64();
@@ -381,6 +382,7 @@ inline void LoadJsonValue(const rapidjson::Value& v, int64_t& t) {
         throw MujinJSONException("Cannot convert json type " + GetJsonString(v) + " to Int64");
     }
 }
+#endif
 
 inline void LoadJsonValue(const rapidjson::Value& v, double& t) {
     if (v.IsNumber()) {
@@ -576,9 +578,11 @@ inline void SaveJsonValue(rapidjson::Value& v, long long t, rapidjson::Document:
     v.SetInt64(t);
 }
 
+#ifndef _MSC_VER
 inline void SaveJsonValue(rapidjson::Value& v, int64_t t, rapidjson::Document::AllocatorType& alloc) {
     v.SetInt64(t);
 }
+#endif
 
 inline void SaveJsonValue(rapidjson::Value& v, unsigned long long t, rapidjson::Document::AllocatorType& alloc) {
     v.SetUint64(t);
