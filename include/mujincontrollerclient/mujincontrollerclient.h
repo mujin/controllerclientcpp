@@ -139,6 +139,27 @@ typedef boost::shared_ptr<DebugResource> DebugResourcePtr;
 typedef boost::weak_ptr<DebugResource> DebugResourceWeakPtr;
 typedef double Real;
 
+/// \brief an attachment to a log entry
+struct LogEntryAttachment
+{
+    std::string filename; // filename
+    std::vector<unsigned char> data; // data for the attachment
+};
+
+typedef boost::shared_ptr<LogEntryAttachment> LogEntryAttachmentPtr;
+typedef boost::weak_ptr<LogEntryAttachment> LogEntryAttachmentWeakPtr;
+
+/// \brief a log entry in mujin controller
+struct LogEntry
+{
+    rapidjson::Value rEntry; // log entry data in JSON format
+    std::string logType; // log type
+    std::vector<LogEntryAttachmentPtr> attachments; // a list of related attachments
+};
+
+typedef boost::shared_ptr<LogEntry> LogEntryPtr;
+typedef boost::weak_ptr<LogEntry> LogEntryWeakPtr;
+
 /// \brief status code for a job
 ///
 /// Definitions are very similar to http://ros.org/doc/api/actionlib_msgs/html/msg/GoalStatus.html
@@ -698,6 +719,12 @@ public:
 
     /// \brief get debug infos
     virtual void GetDebugInfos(std::vector<DebugResourcePtr>& debuginfos, double timeout = 5) = 0;
+
+    /// \brief create log entries and attachments such as images, additional files, etc.
+    /// \param logEntries a vector of log entries to upload
+    /// \param createdLogEntryIds an optional vector for storing the created log entry ids
+    /// \param timeout timeout of uploading log entries in seconds
+    virtual void CreateLogEntries(const std::vector<LogEntryPtr>& logEntries, std::vector<std::string>& createdLogEntryIds, double timeout = 5) = 0;
 };
 
 class MUJINCLIENT_API WebResource
