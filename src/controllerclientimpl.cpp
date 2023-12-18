@@ -1084,7 +1084,7 @@ std::string ControllerClientImpl::CreateIkParam(const std::string& objectPk, con
     return GetJsonValueByKey<std::string>(pt, "pk");
 }
 
-std::string ControllerClientImpl::CreateLink(const std::string& objectPk, const std::string& parentlinkPk, const std::string& name, const Real quaternion[4], const Real translate[3], double timeout)
+std::string ControllerClientImpl::CreateLink(const std::string& objectPk, const std::string& parentlinkPk, const std::string& name, const std::array<Real,4> &quaternion, const std::array<Real,3> &translate, double timeout)
 {
     rapidjson::Document pt(rapidjson::kObjectType);
     std::string data(str(boost::format("{\"name\":\"%s\", \"quaternion\":[%.15f,%.15f,%.15f,%.15f], \"translate\":[%.15f,%.15f,%.15f]")%name%quaternion[0]%quaternion[1]%quaternion[2]%quaternion[3]%translate[0]%translate[1]%translate[2]));

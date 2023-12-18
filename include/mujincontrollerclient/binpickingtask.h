@@ -28,8 +28,8 @@ namespace mujinclient {
 /// Margins of the container to be cropped (or enlarged if negative), in order to define 3D container region under (calibration & shape) uncertainty - for pointcloud processing.
 struct CropContainerMarginsXYZXYZ
 {
-    double minMargins[3]; ///< XYZ of how much to crop from min margins (value > 0 means crop inside)
-    double maxMargins[3]; ///< XYZ of how much to crop from min margins (value > 0 means crop inside)
+    std::array<double,3> minMargins; ///< XYZ of how much to crop from min margins (value > 0 means crop inside)
+    std::array<double,3> maxMargins; ///< XYZ of how much to crop from min margins (value > 0 means crop inside)
 };
 
 typedef boost::shared_ptr<CropContainerMarginsXYZXYZ> CropContainerMarginsXYZXYZPtr;

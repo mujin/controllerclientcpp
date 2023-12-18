@@ -279,9 +279,9 @@ struct RobotPlacementOptimizationParameters
     }
     std::string targetname; ///< the name of the target object to optimize for. Cannot be blank. Has to start with "0 instobject " is targetting an environment instance object. For Example "0 instobject myrobot".
     std::string framename; ///< The name of the frame to define the optimization parameters in. If blank, will use the targetname's coordinate system. For environment inst object frames, has to be "0 instobject mytargetname"
-    Real maxrange[4]; ///< X, Y, Z, Angle (deg)
-    Real minrange[4]; ///< X, Y, Z, Angle (deg)
-    Real stepsize[4]; ///< X, Y, Z, Angle (deg)
+    std::array<Real,4> maxrange; ///< X, Y, Z, Angle (deg)
+    std::array<Real,4> minrange; ///< X, Y, Z, Angle (deg)
+    std::array<Real,4> stepsize; ///< X, Y, Z, Angle (deg)
     int ignorebasecollision; ///< If 1, when moving the robot, allow collisions of the base with the environment, this allows users to search for a base placement and while ignoring small obstacles. By default this is 0.
 
     std::string unit; ///< the unit that information is used in. m, mm, nm, inch, etc
@@ -310,12 +310,12 @@ struct PlacementsOptimizationParameters
     }
 
     // for every target, there's one setting:
-    boost::array<std::string, 2> targetnames; ///< the primary key of the target object to optimize for. If blank, will use robot. Has to start with "0 instobject " for environment inst object targets.
-    boost::array<std::string, 2> framenames; ///< The primary key of the frame to define the optimization parameters in. If blank, will use the target's coordinate system. Has to start iwth "0 instobject " for environment inst object frames.
-    boost::array<Real[4],2> maxranges; ///< X, Y, Z, Angle (deg)
-    boost::array<Real[4],2> minranges; ///< X, Y, Z, Angle (deg)
-    boost::array<Real[4],2> stepsizes; ///< X, Y, Z, Angle (deg)
-    boost::array<int,2> ignorebasecollisions; ///< If 1, when moving the robot, allow collisions of the base with the environment, this allows users to search for a base placement and while ignoring small obstacles. By default this is 0.
+    std::array<std::string, 2> targetnames; ///< the primary key of the target object to optimize for. If blank, will use robot. Has to start with "0 instobject " for environment inst object targets.
+    std::array<std::string, 2> framenames; ///< The primary key of the frame to define the optimization parameters in. If blank, will use the target's coordinate system. Has to start iwth "0 instobject " for environment inst object frames.
+    std::array<std::array<Real,4>,2> maxranges; ///< X, Y, Z, Angle (deg)
+    std::array<std::array<Real,4>,2> minranges; ///< X, Y, Z, Angle (deg)
+    std::array<std::array<Real,4>,2> stepsizes; ///< X, Y, Z, Angle (deg)
+    std::array<int,2> ignorebasecollisions; ///< If 1, when moving the robot, allow collisions of the base with the environment, this allows users to search for a base placement and while ignoring small obstacles. By default this is 0.
 
     // shared settings
     std::string unit; ///< the unit that information is used in. m, mm, nm, inch, etc
@@ -784,12 +784,12 @@ public:
         std::string objectpk;
         std::string linkpk;
         std::string geomtype;
-        Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-        Real translate[3];
+        std::array<Real,4> quaternion; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        std::array<Real,3> translate;
         bool visible;
-        Real diffusecolor[4];
+        std::array<Real,4> diffusecolor;
         Real transparency;
-        Real half_extents[3];
+        std::array<Real,3> half_extents;
         Real height;
         Real radius;
         Real topRadius;
@@ -811,9 +811,9 @@ public:
         std::string name;
         std::string pk;
         std::string iktype;
-        Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-        Real translation[3];
-        Real direction[3];
+        std::array<Real,4> quaternion; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        std::array<Real,3> translation;
+        std::array<Real,3> direction;
         Real angle;
     };
     typedef boost::shared_ptr<IkParamResource> IkParamResourcePtr;
@@ -831,7 +831,7 @@ public:
 
         virtual void GetGeometries(std::vector<GeometryResourcePtr>& links);
 
-        virtual boost::shared_ptr<LinkResource> AddChildLink(const std::string& name, const Real quaternion[4], const Real translate[3]);
+        virtual boost::shared_ptr<LinkResource> AddChildLink(const std::string& name, const std::array<Real,4> &quaternion, const std::array<Real,3> &translate);
 
         virtual void SetCollision(bool collision);
         /// 0 -> off, 1 -> on
@@ -845,8 +845,8 @@ public:
         std::string pk;
         std::string objectpk;
         std::string parentlinkpk;
-        Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-        Real translate[3];
+        std::array<Real,4> quaternion; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        std::array<Real,3> translate;
         bool collision;
     };
     typedef boost::shared_ptr<LinkResource> LinkResourcePtr;
@@ -859,7 +859,7 @@ public:
 
     virtual void GetIkParams(std::vector<IkParamResourcePtr>& ikparams);
 
-    virtual LinkResourcePtr AddLink(const std::string& name, const Real quaternion[4], const Real translate[3]);
+    virtual LinkResourcePtr AddLink(const std::string& name, const std::array<Real,4> &quaternion, const std::array<Real,3> &translate);
     virtual IkParamResourcePtr AddIkParam(const std::string& name, const std::string& iktype);
 
     virtual void SetCollision(bool collision);
@@ -879,8 +879,8 @@ public:
     std::string scenepk;
     std::string unit;
     std::string uri;
-    Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-    Real translate[3];
+    std::array<Real,4> quaternion; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+    std::array<Real,3> translate;
 
 protected:
     ObjectResource(ControllerClientPtr controller, const std::string& resource, const std::string& pk);
@@ -915,7 +915,7 @@ public:
         std::string name;
         std::string frame_origin;
         std::string pk;
-        //Real direction[3];
+        //std::array<Real,3> direction;
         std::array<Real,4> quaternion; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
         std::array<Real,3> translate;
         std::string sensortype;
@@ -923,22 +923,22 @@ public:
         struct SensorData {
 public:
             bool operator!=(const SensorData& other) const {
-                return std::memcmp(distortion_coeffs, other.distortion_coeffs, 5 * sizeof(Real)) != 0 ||
+                return distortion_coeffs != other.distortion_coeffs ||
                        distortion_model != other.distortion_model ||
                        focal_length != other.focal_length ||
-                       std::memcmp(image_dimensions, other.image_dimensions, 3 * sizeof(int)) != 0 ||
-                       std::memcmp(intrinsic, other.intrinsic, 6 * sizeof(Real)) != 0 ||
+                       image_dimensions != other.image_dimensions ||
+                       intrinsic != other.intrinsic ||
                        measurement_time != other.measurement_time ||
                        extra_parameters != other.extra_parameters;
             }
             bool operator==(const SensorData& other) const {
                 return !operator!=(other);
             }
-            Real distortion_coeffs[5];
+            std::array<Real,5> distortion_coeffs;
             std::string distortion_model;
             Real focal_length;
-            int image_dimensions[3];
-            Real intrinsic[6];
+            std::array<int,3> image_dimensions;
+            std::array<Real,6> intrinsic;
             Real measurement_time;
             std::vector<Real> extra_parameters;
         };
@@ -977,16 +977,16 @@ public:
         class MUJINCLIENT_API Link {
 public:
             std::string name;
-            Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-            Real translate[3];
+            std::array<Real,4> quaternion; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+            std::array<Real,3> translate;
         };
 
         class MUJINCLIENT_API Tool {
 public:
             std::string name;
-            Real direction[3];
-            Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-            Real translate[3];
+            std::array<Real,3> direction;
+            std::array<Real,4> quaternion; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+            std::array<Real,3> translate;
         };
 
         class MUJINCLIENT_API Grab {
@@ -1012,8 +1012,8 @@ public:
         class MUJINCLIENT_API AttachedSensor {
 public:
             std::string name;
-            Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-            Real translate[3];
+            std::array<Real,4> quaternion; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+            std::array<Real,3> translate;
         };
 
         void SetTransform(const Transform& t);
@@ -1028,8 +1028,8 @@ public:
         std::string object_pk;
         std::string reference_object_pk;
         std::string reference_uri;
-        Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-        Real translate[3];
+        std::array<Real,4> quaternion; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        std::array<Real,3> translate;
         std::vector<Grab> grabs;
         std::vector<Link> links;
         std::vector<Tool> tools;
@@ -1096,7 +1096,7 @@ public:
     /// \param quaternion quaternion of the object
     /// \param translate translation of the object
     /// \return pointer to inst object created
-    virtual SceneResource::InstObjectPtr CreateInstObject(const std::string& name, const std::string& referenceUri, const Real quaternion[4], const Real translate[3], double timeout = 300);
+    virtual SceneResource::InstObjectPtr CreateInstObject(const std::string& name, const std::string& referenceUri, const std::array<Real,4> &quaternion, const std::array<Real,3> &translate, double timeout = 300);
 
     /// \brief deletes an inst object in scene
     /// \param pk primary key of the object to delete
