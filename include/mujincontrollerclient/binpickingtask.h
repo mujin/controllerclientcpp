@@ -256,6 +256,7 @@ public:
                 uint64_t sensorTimeStampMS; ///< sensor timestamp of the item. If non-zero, then valid.
                 uint64_t updateTimeStampMS; ///< timestamp this request was sent. If non-zero, then valid.
                 std::vector<DetectionPointCloudCorner3D> detectionPointCloudCorners3D;  ///< a list of 3D corners in the pointcloud from which the detection was created.
+
             } objectInfo;
 
             struct EndEffectorPoseInfo
