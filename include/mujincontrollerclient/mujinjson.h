@@ -22,11 +22,14 @@
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/format.hpp>
+#include <boost/assert.hpp>
 #include <stdint.h>
 #include <string>
 #include <stdexcept>
 #include <vector>
+#include <unordered_map>
 #include <map>
+#include <deque>
 #include <iostream>
 
 #include <rapidjson/pointer.h>
@@ -162,13 +165,11 @@ inline void DumpJson(const rapidjson::Value& value, std::ostream& os, const unsi
     }
 }
 
-inline void ParseJson(rapidjson::Document& d, const char* str, size_t length) {
-    // repeatedly calling Parse on the same rapidjson::Document will not release previsouly allocated memory, memory will accumulate until the object is destroyed
-    // we use a new temporary Document to parse, and swap content with the original one, so that memory in original Document will be released when this function ends
-    // see: https://github.com/Tencent/rapidjson/issues/1333
-    // a newer solution that allows reuse of allocated memory is to clear the previous document first
+/// \brief this clears the allcoator!
+inline void ParseJson(rapidjson::Document& d, const char* str, size_t length)
+{
     d.SetNull();
-    d.GetAllocator().Clear();
+    d.GetAllocator().Clear(); // dangerous if used by other existing objects
     d.Parse<rapidjson::kParseFullPrecisionFlag>(str, length); // parse float in full precision mode
     if (d.HasParseError()) {
         const std::string substr(str, length < 200 ? length : 200);
@@ -177,10 +178,12 @@ inline void ParseJson(rapidjson::Document& d, const char* str, size_t length) {
     }
 }
 
+/// \brief this clears the allcoator!
 inline void ParseJson(rapidjson::Document& d, const std::string& str) {
     ParseJson(d, str.c_str(), str.size());
 }
 
+/// \brief this clears the allcoator!
 inline void ParseJson(rapidjson::Document& d, std::istream& is) {
     rapidjson::IStreamWrapper isw(is);
     // see note in: void ParseJson(rapidjson::Document& d, const std::string& str)
@@ -190,6 +193,27 @@ inline void ParseJson(rapidjson::Document& d, std::istream& is) {
     if (d.HasParseError()) {
         throw MujinJSONException(boost::str(boost::format("Json stream is invalid (offset %u) %s")%((unsigned)d.GetErrorOffset())%GetParseError_En(d.GetParseError())));
     }
+}
+
+inline void ParseJson(rapidjson::Value& r, rapidjson::Document::AllocatorType& alloc, std::istream& is)
+{
+    rapidjson::IStreamWrapper isw(is);
+    rapidjson::GenericReader<rapidjson::Value::EncodingType, rapidjson::Value::EncodingType, rapidjson::Document::AllocatorType> reader(&alloc);
+    //ClearStackOnExit scope(*this);
+
+    size_t kDefaultStackCapacity = 1024;
+    rapidjson::Document rTemp(&alloc, kDefaultStackCapacity); // needed by Parse to be a document
+    rTemp.ParseStream<rapidjson::kParseFullPrecisionFlag>(isw); // parse float in full precision mode
+    if (rTemp.HasParseError()) {
+        throw MujinJSONException(boost::str(boost::format("Json stream is invalid (offset %u) %s")%((unsigned)rTemp.GetErrorOffset())%GetParseError_En(rTemp.GetParseError())));
+    }
+    r.Swap(rTemp);
+
+//    rapidjson::ParseResult parseResult = reader.template Parse<rapidjson::kParseFullPrecisionFlag>(isw, rTemp);
+//    if( parseResult.IsError() ) {
+//        *stack_.template Pop<ValueType>(1)
+//        throw MujinJSONException(boost::str(boost::format("Json stream is invalid (offset %u) %s")%((unsigned)parseResult.Offset())%GetParseError_En(parseResult.Code())));
+//    }
 }
 
 template <typename Container>
@@ -468,14 +492,57 @@ template<class U> inline void LoadJsonValue(const rapidjson::Value& v, std::map<
         }
     } else if (v.IsObject()) {
         t.clear();
-        U value;
         for (rapidjson::Value::ConstMemberIterator it = v.MemberBegin();
              it != v.MemberEnd(); ++it) {
-            LoadJsonValue(it->value, value);
-            t[std::string(it->name.GetString(), it->name.GetStringLength())] = value; // string can contain null character
+            // Deserialize directly into the map to avoid copying temporaries.
+            // Note that our key needs to be explicitly length-constructed since
+            // it may contain \0 bytes.
+            LoadJsonValue(it->value,
+                          t[std::string(it->name.GetString(),
+                                        it->name.GetStringLength())]);
         }
     } else {
         throw MujinJSONException("Cannot convert json type " + GetJsonTypeName(v) + " to Map");
+    }
+}
+
+template<class U> inline void LoadJsonValue(const rapidjson::Value& v, std::deque<U>& t) {
+    // It doesn't make sense to construct a deque from anything other than a JSON array
+    if (!v.IsArray()) {
+        throw MujinJSONException("Cannot convert json type " + GetJsonTypeName(v) + " to deque");
+    }
+
+    // Ensure our output is a blank slate
+    t.clear();
+
+    // Preallocate to fit the incoming data. Deque has no reserve, only resize.
+    t.resize(v.Size());
+
+    // Iterate each array entry and attempt to deserialize it directly as a member type
+    typename std::deque<U>::size_type emplaceIndex = 0;
+    for (rapidjson::Value::ConstValueIterator it = v.Begin(); it != v.End(); ++it) {
+        // Deserialize directly into the map to avoid copying temporaries.
+        LoadJsonValue(*it, t[emplaceIndex++]);
+    }
+}
+
+template<class U> inline void LoadJsonValue(const rapidjson::Value& v, std::unordered_map<std::string, U>& t) {
+    // It doesn't make sense to construct an unordered map from anything other
+    // than a full JSON object
+    if (!v.IsObject()) {
+        throw MujinJSONException("Cannot convert json type " + GetJsonTypeName(v) + " to unordered_map");
+    }
+
+    // Ensure our output is a blank slate
+    t.clear();
+    for (rapidjson::Value::ConstMemberIterator it = v.MemberBegin();
+         it != v.MemberEnd(); ++it) {
+        // Deserialize directly into the map to avoid copying temporaries.
+        // Note that our key needs to be explicitly length-constructed since it
+        // may contain \0 bytes.
+        LoadJsonValue(
+            it->value,
+            t[std::string(it->name.GetString(), it->name.GetStringLength())]);
     }
 }
 
@@ -628,6 +695,26 @@ template<class U> inline void SaveJsonValue(rapidjson::Value& v, const std::map<
     }
 }
 
+template<class U> inline void SaveJsonValue(rapidjson::Value& v, const std::unordered_map<std::string, U>& t, rapidjson::Document::AllocatorType& alloc) {
+    v.SetObject();
+    for (typename std::unordered_map<std::string, U>::const_iterator it = t.begin(); it != t.end(); ++it) {
+        rapidjson::Value name, value;
+        SaveJsonValue(name, it->first, alloc);
+        SaveJsonValue(value, it->second, alloc);
+        v.AddMember(name, value, alloc);
+    }
+}
+
+template <class T, class AllocT> inline void SaveJsonValue(rapidjson::Value& v, const std::deque<T, AllocT>& t, rapidjson::Document::AllocatorType& alloc) {
+    v.SetArray();
+    v.Reserve(t.size(), alloc);
+    for (typename std::deque<T, AllocT>::const_iterator it = t.begin(); it != t.end(); ++it) {
+        rapidjson::Value value;
+        SaveJsonValue(value, *it, alloc);
+        v.PushBack(value, alloc);
+    }
+}
+
 template<class T> inline void SaveJsonValue(rapidjson::Document& v, const T& t) {
     // rapidjson::Value::CopyFrom also doesn't free up memory, need to clear memory
     // see note in: void ParseJson(rapidjson::Document& d, const std::string& str)
@@ -740,6 +827,26 @@ template<class T> inline T GetJsonValueByKey(const rapidjson::Value& v, const ch
 
 inline std::string GetStringJsonValueByKey(const rapidjson::Value& v, const char* key, const std::string& defaultValue=std::string()) {
     return GetJsonValueByKey<std::string, std::string>(v, key, defaultValue);
+}
+
+/// \brief default value is returned when there is no key or value is null
+inline const char* GetCStringJsonValueByKey(const rapidjson::Value& v, const char* key, const char* pDefaultValue=nullptr) {
+    if (!v.IsObject()) {
+        throw MujinJSONException("Cannot load value of non-object.");
+    }
+    rapidjson::Value::ConstMemberIterator itMember = v.FindMember(key);
+    if (itMember != v.MemberEnd() ) {
+        const rapidjson::Value& child = itMember->value;
+        if (!child.IsNull()) {
+            if( child.IsString() ) {
+                return child.GetString();
+            }
+            else {
+                throw MujinJSONException("In GetCStringJsonValueByKey, expecting a String, but got a different object type");
+            }
+        }
+    }
+    return pDefaultValue; // not present
 }
 
 template<class T> inline T GetJsonValueByPath(const rapidjson::Value& v, const char* key) {

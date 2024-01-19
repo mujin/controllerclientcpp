@@ -63,6 +63,34 @@
 
 namespace mujinclient {
 
+/// \brief connecting to a controller's webstack
+class MUJINCLIENT_API ControllerClientInfo : public mujinjson::JsonSerializable
+{
+public:
+    virtual void Reset();
+
+    void LoadFromJson(const rapidjson::Value& rClientInfo) override;
+    void SaveToJson(rapidjson::Value& rClientInfo, rapidjson::Document::AllocatorType& alloc) const override;
+    void SaveToJson(rapidjson::Document& rClientInfo) const override;
+
+    bool operator==(const ControllerClientInfo &rhs) const;
+    bool operator!=(const ControllerClientInfo &rhs) const {
+        return !operator==(rhs);
+    }
+    std::string GetURL(bool bIncludeNamePassword) const;
+
+    inline bool IsEnabled() const {
+        return !host.empty();
+    }
+
+    std::string host;
+    uint16_t httpPort = 0; ///< Post to communicate with the webstack. If 0, then use the default port
+    std::string username;
+    std::string password;
+    std::vector<std::string> additionalHeaders; ///< expect each value to be in the format of "Header-Name: header-value"
+    std::string unixEndpoint; ///< unix socket endpoint for communicating with HTTP server over unix socket
+};
+
 typedef mujin::Transform Transform;
 
 enum TaskResourceOptions
@@ -110,6 +138,27 @@ typedef boost::weak_ptr<BinPickingResultResource> BinPickingResultResourceWeakPt
 typedef boost::shared_ptr<DebugResource> DebugResourcePtr;
 typedef boost::weak_ptr<DebugResource> DebugResourceWeakPtr;
 typedef double Real;
+
+/// \brief an attachment to a log entry
+struct LogEntryAttachment
+{
+    std::string filename; // filename
+    std::vector<unsigned char> data; // data for the attachment
+};
+
+typedef boost::shared_ptr<LogEntryAttachment> LogEntryAttachmentPtr;
+typedef boost::weak_ptr<LogEntryAttachment> LogEntryAttachmentWeakPtr;
+
+/// \brief a log entry in mujin controller
+struct LogEntry
+{
+    rapidjson::Value rEntry; // log entry data in JSON format
+    std::string logType; // log type
+    std::vector<LogEntryAttachmentPtr> attachments; // a list of related attachments
+};
+
+typedef boost::shared_ptr<LogEntry> LogEntryPtr;
+typedef boost::weak_ptr<LogEntry> LogEntryWeakPtr;
 
 /// \brief status code for a job
 ///
@@ -339,6 +388,12 @@ public:
 
     /// \brief returns the URI used to setup the connection
     virtual const std::string& GetBaseURI() const = 0;
+
+    /// \brief full connection URI with username and password. http://username@password:path
+    virtual std::string GetURIWithUsernamePassword() const = 0;
+
+    /// \brief returns the client info used to construct this client
+    virtual const ControllerClientInfo& GetClientInfo() const = 0;
 
     /// \brief If necessary, changes the proxy to communicate to the controller server. Setting proxy disables previously set unix endpoint.
     ///
@@ -664,6 +719,12 @@ public:
 
     /// \brief get debug infos
     virtual void GetDebugInfos(std::vector<DebugResourcePtr>& debuginfos, double timeout = 5) = 0;
+
+    /// \brief create log entries and attachments such as images, additional files, etc.
+    /// \param logEntries a vector of log entries to upload
+    /// \param createdLogEntryIds an optional vector for storing the created log entry ids
+    /// \param timeout timeout of uploading log entries in seconds
+    virtual void CreateLogEntries(const std::vector<LogEntryPtr>& logEntries, std::vector<std::string>& createdLogEntryIds, double timeout = 5) = 0;
 };
 
 class MUJINCLIENT_API WebResource
@@ -731,6 +792,8 @@ public:
         Real half_extents[3];
         Real height;
         Real radius;
+        Real topRadius;
+        Real bottomRadius;
 
         virtual void GetMesh(std::string& primitive, std::vector<std::vector<int> >& indices, std::vector<std::vector<Real> >& vertices);
         virtual void SetGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& unit, double timeout = 5.0);
@@ -837,9 +900,9 @@ public:
         std::string frame_origin;
         std::string frame_tip;
         std::string pk;
-        Real direction[3];
-        Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-        Real translate[3];
+        std::array<Real,3> direction;
+        std::array<Real,4> quaternion; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        std::array<Real,3> translate;
     };
     typedef boost::shared_ptr<ToolResource> ToolResourcePtr;
 
@@ -853,8 +916,8 @@ public:
         std::string frame_origin;
         std::string pk;
         //Real direction[3];
-        Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-        Real translate[3];
+        std::array<Real,4> quaternion; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        std::array<Real,3> translate;
         std::string sensortype;
 
         struct SensorData {

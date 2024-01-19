@@ -31,11 +31,76 @@ MUJIN_LOGGER("mujin.controllerclientcpp");
 #define CURL_OPTION_SAVE_SETTER(curl, curlopt, curvalue, newvalue) CURL_OPTION_SAVER(curl, curlopt, curvalue); CURL_OPTION_SETTER(curl, curlopt, newvalue)
 #define CURL_INFO_GETTER(curl, curlinfo, outvalue) CHECKCURLCODE(curl_easy_getinfo(curl, curlinfo, outvalue), "curl_easy_getinfo " # curlinfo)
 #define CURL_PERFORM(curl) CHECKCURLCODE(curl_easy_perform(curl), "curl_easy_perform")
-#define CURL_FORM_RELEASER(form) boost::shared_ptr<void> __curlformreleaser ## form((void*)0, boost::bind(boost::function<void(decltype(form))>(curl_formfree), form))
+
+struct CURLFormReleaser {
+    struct curl_httppost *& form;
+
+    ~CURLFormReleaser()
+    {
+        curl_formfree(std::exchange(form, nullptr));
+    }
+};
 
 namespace mujinclient {
 
 using namespace mujinjson;
+
+/// \brief given a port string "80", fill ControllerClientInfo httpPort
+static void _ParseClientInfoPort(const char* port, size_t length, ControllerClientInfo& clientInfo)
+{
+    clientInfo.httpPort = 0;
+    for (; length > 0; ++port, --length) {
+        clientInfo.httpPort = clientInfo.httpPort * 10 + (*port - '0');
+    }
+}
+
+/// \brief given a url "http[s]://[username[:password]@]hostname[:port][/path]", parse ControllerClientInfo
+static void _ParseClientInfoFromURL(const char* url, ControllerClientInfo& clientInfo)
+{
+    clientInfo.Reset();
+    const char* colonSlashSlash = strstr(url, "://");
+    if (colonSlashSlash == nullptr) {
+        return;
+    }
+    const char* hostname = colonSlashSlash + sizeof("://") - 1;
+    const char* at = strstr(hostname, "@"); // not found is ok
+    const char* slash = strstr(hostname, "/"); // not found is ok
+    if (at != nullptr && (slash == nullptr || at < slash)) {
+        // if the at is before the slash, i.e. for the username:password
+        const char* usernamePassword = hostname;
+        hostname = at + sizeof("@") - 1;
+        const char* colon = strstr(usernamePassword, ":"); // not found is ok
+        if (colon != nullptr) {
+            const char* password = colon + sizeof(":") - 1;
+            clientInfo.username = std::string(usernamePassword, colon - usernamePassword);
+            clientInfo.password = std::string(password, at - password);
+        } else {
+            clientInfo.username = std::string(usernamePassword, at - usernamePassword);
+        }
+    }
+    const char* port = strstr(hostname, ":"); // not found is ok
+    if (slash == nullptr) {
+        if (port == nullptr) {
+            // no port, no slash
+            clientInfo.host = hostname;
+        } else {
+            // has port, no slash
+            const char* portStart = port + sizeof(":") - 1;
+            _ParseClientInfoPort(portStart, strlen(portStart), clientInfo);
+            clientInfo.host = std::string(hostname, port - hostname);
+        }
+    } else {
+        if (port != nullptr && port < slash) {
+            // has port before slash
+            const char* portStart = port + sizeof(":") - 1;
+            _ParseClientInfoPort(portStart, slash - portStart, clientInfo);
+            clientInfo.host = std::string(hostname, port - hostname);
+        } else {
+            // no port, but has slash
+            clientInfo.host = std::string(hostname, slash - hostname);
+        }
+    }
+}
 
 template <typename T>
 std::wstring ParseWincapsWCNPath(const T& sourcefilename, const boost::function<std::string(const T&)>& ConvertToFileSystemEncoding)
@@ -94,15 +159,28 @@ std::wstring ParseWincapsWCNPath(const T& sourcefilename, const boost::function<
 ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, const std::string& baseuri, const std::string& proxyserverport, const std::string& proxyuserpw, int options, double timeout)
 {
     BOOST_ASSERT( !baseuri.empty() );
-    size_t usernameindex = 0;
-    usernameindex = usernamepassword.find_first_of(':');
+    const size_t usernameindex = usernamepassword.find_first_of(':');
     BOOST_ASSERT(usernameindex != std::string::npos );
-    _username = usernamepassword.substr(0,usernameindex);
-    std::string password = usernamepassword.substr(usernameindex+1);
+    _username = usernamepassword.substr(0, usernameindex);
+    const std::string password = usernamepassword.substr(usernameindex + 1);
 
     _httpheadersjson = NULL;
     _httpheadersstl = NULL;
     _httpheadersmultipartformdata = NULL;
+
+    size_t authorityindex = baseuri.find("//");
+    if( authorityindex != std::string::npos ) {
+        _fulluri = baseuri.substr(0,authorityindex+2) + usernamepassword + "@" + baseuri.substr(authorityindex+2);
+    }
+    else {
+        // no idea what to do here..
+        _fulluri = std::string("//") + usernamepassword + "@" + baseuri;
+    }
+
+    _ParseClientInfoFromURL(baseuri.c_str(), _clientInfo);
+    _clientInfo.username = _username;
+    _clientInfo.password = password;
+
     _baseuri = baseuri;
     // ensure trailing slash
     if( _baseuri[_baseuri.size()-1] != '/' ) {
@@ -219,7 +297,7 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
         _charset = itcodepage->second;
     }
 #endif
-    MUJIN_LOG_INFO("setting character set to " << _charset);
+    MUJIN_LOG_VERBOSE("setting character set to " << _charset);
     _SetupHTTPHeadersJSON();
     _SetupHTTPHeadersSTL();
     _SetupHTTPHeadersMultipartFormData();
@@ -258,6 +336,11 @@ const std::string& ControllerClientImpl::GetBaseURI() const
     return _baseuri;
 }
 
+const ControllerClientInfo& ControllerClientImpl::GetClientInfo() const
+{
+    return _clientInfo;
+}
+
 void ControllerClientImpl::SetCharacterEncoding(const std::string& newencoding)
 {
     boost::mutex::scoped_lock lock(_mutex);
@@ -274,6 +357,7 @@ void ControllerClientImpl::SetProxy(const std::string& serverport, const std::st
     CURL_OPTION_SETTER(_curl, CURLOPT_UNIX_SOCKET_PATH, NULL);
     CURL_OPTION_SETTER(_curl, CURLOPT_PROXY, serverport.c_str());
     CURL_OPTION_SETTER(_curl, CURLOPT_PROXYUSERPWD, userpw.c_str());
+    _clientInfo.unixEndpoint.clear();
 }
 
 void ControllerClientImpl::SetUnixEndpoint(const std::string& unixendpoint)
@@ -282,6 +366,7 @@ void ControllerClientImpl::SetUnixEndpoint(const std::string& unixendpoint)
     CURL_OPTION_SETTER(_curl, CURLOPT_PROXY, NULL);
     CURL_OPTION_SETTER(_curl, CURLOPT_PROXYUSERPWD, NULL);
     CURL_OPTION_SETTER(_curl, CURLOPT_UNIX_SOCKET_PATH, unixendpoint.c_str());
+    _clientInfo.unixEndpoint = unixendpoint;
 }
 
 void ControllerClientImpl::SetLanguage(const std::string& language)
@@ -305,6 +390,7 @@ void ControllerClientImpl::SetAdditionalHeaders(const std::vector<std::string>& 
 {
     boost::mutex::scoped_lock lock(_mutex);
     _additionalHeaders = additionalHeaders;
+    _clientInfo.additionalHeaders = additionalHeaders;
     _SetupHTTPHeadersJSON();
     _SetupHTTPHeadersSTL();
     _SetupHTTPHeadersMultipartFormData();
@@ -314,7 +400,7 @@ void ControllerClientImpl::_ExecuteGraphQuery(const char* operationName, const c
 {
     rResult.SetNull(); // zero output
 
-    rapidjson::Document rResultDoc(&rAlloc);
+    rapidjson::Value rResultDoc;
 
     {
         boost::mutex::scoped_lock lock(_mutex);
@@ -338,7 +424,7 @@ void ControllerClientImpl::_ExecuteGraphQuery(const char* operationName, const c
         }
 
         _uri = _baseuri + "api/v2/graphql";
-        _CallPost(_uri, rRequestStringBuffer.GetString(), rResultDoc, 200, timeout);
+        _CallPost(_uri, rRequestStringBuffer.GetString(), rResultDoc, rAlloc, 200, timeout);
     }
 
     // parse response
@@ -665,12 +751,12 @@ int ControllerClientImpl::CallGet(const std::string& relativeuri, rapidjson::Doc
     boost::mutex::scoped_lock lock(_mutex);
     _uri = _baseapiuri;
     _uri += relativeuri;
-    return _CallGet(_uri, pt, expectedhttpcode, timeout);
+    return _CallGet(_uri, pt, pt.GetAllocator(), expectedhttpcode, timeout);
 }
 
-int ControllerClientImpl::_CallGet(const std::string& desturi, rapidjson::Document& pt, int expectedhttpcode, double timeout)
+int ControllerClientImpl::_CallGet(const std::string& desturi, rapidjson::Value& rResponse, rapidjson::Document::AllocatorType& alloc, int expectedhttpcode, double timeout)
 {
-    MUJIN_LOG_INFO(str(boost::format("GET %s")%desturi));
+    MUJIN_LOG_DEBUG(str(boost::format("GET %s")%desturi));
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_TIMEOUT_MS, 0L, (long)(timeout * 1000L));
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPHEADER, NULL, _httpheadersjson);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, desturi.c_str());
@@ -683,11 +769,11 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, rapidjson::Docume
     long http_code = 0;
     CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
     if( _buffer.rdbuf()->in_avail() > 0 ) {
-        mujinjson::ParseJson(pt, _buffer.str());
+        mujinjson::ParseJson(rResponse, alloc, _buffer);
     }
     if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
-        std::string error_message = GetJsonValueByKey<std::string>(pt, "error_message");
-        std::string traceback = GetJsonValueByKey<std::string>(pt, "traceback");
+        std::string error_message = GetJsonValueByKey<std::string>(rResponse, "error_message");
+        std::string traceback = GetJsonValueByKey<std::string>(rResponse, "traceback");
         throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s: %s", desturi%http_code%error_message, MEC_HTTPServer);
     }
     return http_code;
@@ -801,11 +887,11 @@ int ControllerClientImpl::CallPost(const std::string& relativeuri, const std::st
     boost::mutex::scoped_lock lock(_mutex);
     _uri = _baseapiuri;
     _uri += relativeuri;
-    return _CallPost(_uri, data, pt, expectedhttpcode, timeout);
+    return _CallPost(_uri, data, pt, pt.GetAllocator(), expectedhttpcode, timeout);
 }
 
 /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
-int ControllerClientImpl::_CallPost(const std::string& desturi, const std::string& data, rapidjson::Document& pt, int expectedhttpcode, double timeout)
+int ControllerClientImpl::_CallPost(const std::string& desturi, const std::string& data, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& alloc, int expectedhttpcode, double timeout)
 {
     MUJIN_LOG_VERBOSE(str(boost::format("POST %s")%desturi));
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_TIMEOUT_MS, 0L, (long)(timeout * 1000L));
@@ -822,13 +908,13 @@ int ControllerClientImpl::_CallPost(const std::string& desturi, const std::strin
     long http_code = 0;
     CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
     if( _buffer.rdbuf()->in_avail() > 0 ) {
-        ParseJson(pt, _buffer.str());
+        ParseJson(rResult, alloc, _buffer);
     } else {
-        pt.SetObject();
+        rResult.SetObject();
     }
     if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
-        std::string error_message = GetJsonValueByKey<std::string>(pt, "error_message");
-        std::string traceback = GetJsonValueByKey<std::string>(pt, "traceback");
+        std::string error_message = GetJsonValueByKey<std::string>(rResult, "error_message");
+        std::string traceback = GetJsonValueByKey<std::string>(rResult, "traceback");
         throw MUJIN_EXCEPTION_FORMAT("HTTP POST to '%s' returned HTTP status %s: %s", desturi%http_code%error_message, MEC_HTTPServer);
     }
     return http_code;
@@ -1430,7 +1516,7 @@ void ControllerClientImpl::Upgrade(std::istream& inputStream, bool autorestart, 
         _UploadFileToControllerViaForm(inputStream, "", _baseuri+"upgrade/"+query, timeout);
     } else {
         rapidjson::Document pt(rapidjson::kObjectType);
-        _CallPost(_baseuri+"upgrade/"+query, "", pt, 200, timeout);
+        _CallPost(_baseuri+"upgrade/"+query, "", pt, pt.GetAllocator(), 200, timeout);
     }
 }
 
@@ -1438,7 +1524,7 @@ bool ControllerClientImpl::GetUpgradeStatus(std::string& status, double &progres
 {
     boost::mutex::scoped_lock lock(_mutex);
     rapidjson::Document pt(rapidjson::kObjectType);
-    _CallGet(_baseuri+"upgrade/", pt, 200, timeout);
+    _CallGet(_baseuri+"upgrade/", pt, pt.GetAllocator(), 200, timeout);
     if(pt.IsNull()) {
         return false;
     }
@@ -1456,7 +1542,7 @@ void ControllerClientImpl::Reboot(double timeout)
 {
     boost::mutex::scoped_lock lock(_mutex);
     rapidjson::Document pt(rapidjson::kObjectType);
-    _CallPost(_baseuri+"reboot/", "", pt, 200, timeout);
+    _CallPost(_baseuri+"reboot/", "", pt, pt.GetAllocator(), 200, timeout);
 }
 
 void ControllerClientImpl::DeleteAllScenes(double timeout)
@@ -1509,7 +1595,7 @@ void ControllerClientImpl::ModifySceneAddReferenceObjectPK(const std::string &sc
     pt.AddMember("referenceobjectpk", value, pt.GetAllocator());
 
     boost::mutex::scoped_lock lock(_mutex);
-    _CallPost(_baseuri + "referenceobjectpks/add/", DumpJson(pt), pt2, 200, timeout);
+    _CallPost(_baseuri + "referenceobjectpks/add/", DumpJson(pt), pt2, pt2.GetAllocator(), 200, timeout);
 }
 
 void ControllerClientImpl::ModifySceneRemoveReferenceObjectPK(const std::string &scenepk, const std::string &referenceobjectpk, double timeout)
@@ -1526,7 +1612,7 @@ void ControllerClientImpl::ModifySceneRemoveReferenceObjectPK(const std::string 
     pt.AddMember("referenceobjectpk", value, pt.GetAllocator());
 
     boost::mutex::scoped_lock lock(_mutex);
-    _CallPost(_baseuri + "referenceobjectpks/remove/", DumpJson(pt), pt2, 200, timeout);
+    _CallPost(_baseuri + "referenceobjectpks/remove/", DumpJson(pt), pt2, pt2.GetAllocator(), 200, timeout);
 }
 
 void ControllerClientImpl::_UploadDirectoryToController_UTF8(const std::string& copydir_utf8, const std::string& rawuri)
@@ -1832,7 +1918,7 @@ void ControllerClientImpl::_UploadFileToControllerViaForm(std::istream& inputStr
     // prepare form
     struct curl_httppost *formpost = NULL;
     struct curl_httppost *lastptr = NULL;
-    CURL_FORM_RELEASER(formpost);
+    CURLFormReleaser curlFormReleaser{formpost};
     curl_formadd(&formpost, &lastptr,
                  CURLFORM_COPYNAME, "files[]",
                  CURLFORM_FILENAME, filename.empty() ? "unused" : filename.c_str(),
@@ -1880,7 +1966,7 @@ void ControllerClientImpl::_UploadDataToControllerViaForm(const void* data, size
     // prepare form
     struct curl_httppost *formpost = NULL;
     struct curl_httppost *lastptr = NULL;
-    CURL_FORM_RELEASER(formpost);
+    CURLFormReleaser curlFormReleaser{formpost};
     curl_formadd(&formpost, &lastptr,
                  CURLFORM_PTRNAME, "files[]",
                  CURLFORM_BUFFER, filename.empty() ? "unused" : filename.c_str(),
@@ -1916,7 +2002,7 @@ void ControllerClientImpl::_DeleteFileOnController(const std::string& desturi)
     std::string filename = desturi.substr(_basewebdavuri.size());
 
     rapidjson::Document pt(rapidjson::kObjectType);
-    _CallPost(_baseuri+"file/delete/?filename="+filename, "", pt, 200, 5.0);
+    _CallPost(_baseuri+"file/delete/?filename="+filename, "", pt, pt.GetAllocator(), 200, 5.0);
 }
 
 void ControllerClientImpl::_DeleteDirectoryOnController(const std::string& desturi)
@@ -1978,7 +2064,7 @@ void ControllerClientImpl::GetDebugInfos(std::vector<DebugResourcePtr>& debuginf
 void ControllerClientImpl::ListFilesInController(std::vector<FileEntry>& fileentries, const std::string &dirname, double timeout)
 {
     rapidjson::Document pt(rapidjson::kObjectType);
-    _CallGet(_baseuri+"file/list/?dirname="+dirname, pt, 200, timeout);
+    _CallGet(_baseuri+"file/list/?dirname="+dirname, pt, pt.GetAllocator(), 200, timeout);
     fileentries.resize(pt.MemberCount());
     size_t iobj = 0;
     for (rapidjson::Document::MemberIterator it = pt.MemberBegin(); it != pt.MemberEnd(); ++it) {
@@ -1989,6 +2075,93 @@ void ControllerClientImpl::ListFilesInController(std::vector<FileEntry>& fileent
         LoadJsonValueByKey(it->value, "size", fileentry.size);
 
         iobj++;
+    }
+}
+
+void ControllerClientImpl::CreateLogEntries(const std::vector<LogEntryPtr>& logEntries, std::vector<std::string>& createdLogEntryIds, double timeout)
+{
+    if (logEntries.empty()) {
+        return;
+    }
+
+    boost::mutex::scoped_lock lock(_mutex);
+
+    // prepare the cURL options
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_TIMEOUT_MS, 0L, (long)(timeout * 1000L));
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPHEADER, NULL, _httpheadersmultipartformdata);
+    _uri = _baseuri + "api/v2/logEntry";
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, _uri.c_str());
+    _buffer.clear();
+    _buffer.str("");
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEFUNCTION, NULL, _WriteStringStreamCallback);
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEDATA, NULL, &_buffer);
+
+    // prepare the form
+    struct curl_httppost *formpost = NULL;
+    struct curl_httppost *lastptr = NULL;
+    CURLFormReleaser curlFormReleaser{formpost};
+
+    rapidjson::StringBuffer& rRequestStringBuffer = _rRequestStringBufferCache;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(rRequestStringBuffer);
+
+    for (const LogEntryPtr logEntry : logEntries) {
+        if (!logEntry) {
+            continue;
+        }
+
+        // add log entry content
+        rRequestStringBuffer.Clear();
+        writer.Reset(rRequestStringBuffer);
+        logEntry->rEntry.Accept(writer);
+        std::string formName = "logEntry/" + logEntry->logType;
+        curl_formadd(&formpost, &lastptr,
+                    CURLFORM_COPYNAME, formName.c_str(),
+                    CURLFORM_COPYCONTENTS, rRequestStringBuffer.GetString(),
+                    CURLFORM_CONTENTTYPE, "application/json",
+                    CURLFORM_END);
+
+        // add attachments
+        for (const LogEntryAttachmentPtr attachment : logEntry->attachments) {
+            if (!attachment) {
+                continue;
+            }
+            curl_formadd(&formpost, &lastptr,
+                CURLFORM_COPYNAME, "attachment",
+                CURLFORM_BUFFER, attachment->filename.c_str(),
+                CURLFORM_BUFFERPTR, attachment->data.data(),
+                CURLFORM_BUFFERLENGTH, (long)(attachment->data.size()),
+                CURLFORM_END);
+        }
+    }
+
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPPOST, NULL, formpost);
+
+    // perform the call
+    CURL_PERFORM(_curl);
+
+    // get http status
+    long http_code = 0;
+    CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
+    if (http_code != 201) {
+        throw MUJIN_EXCEPTION_FORMAT("upload failed with HTTP status %d", http_code, MEC_HTTPServer);
+    }
+
+    // parse the result
+    if (_buffer.rdbuf()->in_avail() <= 0) {
+        return;
+    }
+    rapidjson::Document rResultDoc;
+    mujinjson::ParseJson(rResultDoc, _buffer);
+    if (!rResultDoc.IsObject() || !rResultDoc.HasMember("logEntryIds") || !rResultDoc["logEntryIds"].IsArray()) {
+        throw MUJIN_EXCEPTION_FORMAT("invalid response received while uploading log entries: %s", mujinjson::DumpJson(rResultDoc), MEC_HTTPServer);
+    }
+    
+    // exract the log entry ids
+    const rapidjson::Value& logEntryIdsArray = rResultDoc["logEntryIds"];
+    for (rapidjson::Value::ConstValueIterator itLogEntryId = logEntryIdsArray.Begin(); itLogEntryId != logEntryIdsArray.End(); ++itLogEntryId) {
+        if (itLogEntryId->IsString()) {
+            createdLogEntryIds.push_back(itLogEntryId->GetString());
+        }
     }
 }
 
