@@ -29,7 +29,7 @@ int main(int argc, char ** argv)
             controller = CreateControllerClient(argv[1], argv[2]);
         }
         else {
-            BOOST_ASSERT(0);
+            controller = CreateControllerClient(argv[1]);
         }
         std::cout << "connected to controller v" << controller->GetVersion() << std::endl;
 

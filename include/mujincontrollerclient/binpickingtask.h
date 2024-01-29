@@ -139,18 +139,6 @@ public:
         std::vector<std::string> extra;
     };
 
-    class CopyableRapidJsonDocument : public rapidjson::Document
-    {
-public:
-        // Since ResultGetBinpickingState needs to be copyable while rapidjson::Document is not, there needs to be a small wrapper
-        CopyableRapidJsonDocument& operator=(const CopyableRapidJsonDocument& other) {
-            SetNull();
-            GetAllocator().Clear();
-            CopyFrom(other, GetAllocator());
-            return *this;
-        }
-    };
-
     struct MUJINCLIENT_API ResultGetBinpickingState : public ResultBase
     {
         /// \brief holds published occlusion results of camera and container pairs
@@ -193,29 +181,32 @@ public:
         struct RegisterMinViableRegionInfo
         {
             RegisterMinViableRegionInfo();
-            RegisterMinViableRegionInfo(const RegisterMinViableRegionInfo& rhs);
 
-            RegisterMinViableRegionInfo& operator=(const RegisterMinViableRegionInfo& rhs);
-
-            void SerializeJSON(rapidjson::Value& rInfo, rapidjson::Document::AllocatorType& allocator) const;
-            void DeserializeJSON(const rapidjson::Value& rInfo);
-
-            /// \brief scales all translational components by this value
-            void ConvertLengthUnitScale(double fUnitScale);
+            class CopyableRapidJsonDocument : public rapidjson::Document
+            {
+            public:
+                // Since ResultGetBinpickingState needs to be copyable while rapidjson::Document is not, there needs to be a small wrapper
+                CopyableRapidJsonDocument& operator=(const CopyableRapidJsonDocument& other) {
+                    SetNull();
+                    GetAllocator().Clear();
+                    CopyFrom(other, GetAllocator());
+                    return *this;
+                }
+            };
 
             struct MinViableRegionInfo
             {
                 MinViableRegionInfo();
-                std::array<double, 2> size2D; ///< width and length on the MVR
+                std::array<double, 2> size2D; ///< width and height on the MVR
                 std::array<double, 3> maxPossibleSize; ///< the max possible size of actual item
+                uint64_t cornerMask; ///< Represents the corner(s) used for corner based detection. 4 bit. -x-y = 1, +x-y = 2, -x+y=4, +x+y = 8
                 std::array<double, 3> maxPossibleSizeOriginal; ///< the maxPossibleSize that has originally been given from vision
-                uint8_t cornerMaskOriginal; ///< the cornerMask that has originally been given from vision
-                uint8_t cornerMask; ///< Represents the corner(s) used for corner based detection. 4 bit. -x-y = 1, +x-y = 2, -x+y = 4, +x+y = 8
+                uint64_t cornerMaskOriginal; ///< the cornerMask that has originally been given from vision
             } minViableRegion;
 
             std::string locationName; ///< The name of the location where the minViableRegion was triggered for
-            std::array<double, 3> translation; ///< Translation of the 2D MVR plane (height = 0)
-            std::array<double, 4> quaternion; ///< Rotation of the 2D MVR plane (height = 0)
+            std::array<double, 3> translation_; ///< Translation of the 2D MVR plane (height = 0)
+            std::array<double, 4> quat_; ///< Rotation of the 2D MVR plane (height = 0)
             double objectWeight; ///< If non-zero, use this weight fo registration. unit is kg. zero means unknown.
             uint64_t sensorTimeStampMS; ///< Same as DetectedObject's timestamp sent to planning
             double robotDepartStopTimestamp; ///< Force capture after robot stops
@@ -223,12 +214,10 @@ public:
             std::array<double, 3> maxCandidateSize; ///< the max candidate size expecting
             std::array<double, 3> minCandidateSize; ///< the min candidate size expecting
             double transferSpeedPostMult; ///< transfer speed multiplication factor
-            rapidjson::Document graspModelInfo; ///< Parameters used for grasping model generation for the object
+            CopyableRapidJsonDocument graspModelInfo; ///< Parameters used for grasping model generation for the object
             double minCornerVisibleDist; ///< how much distance along with uncertain edge from uncertain corner robot exposes to camera
             double minCornerVisibleInsideDist; ///< how much distance inside MVR robot exposes to camera
-            double maxCornerAngleDeviation; ///< how much angle deviation around uncertain corner is considered to expose to camera
-            uint8_t occlusionFreeCornerMask; ///< mask of corners that robot exposes to camera. 4 bit. -x-y = 1, +x-y = 2, -x+y = 4, +x+y = 8
-            mujin::MinViableRegionRegistrationMode registrationMode; ///< lift, drag or perpendicular drag
+            uint64_t occlusionFreeCornerMask; ///< mask of corners that robot exposes to camera
             bool skipAppendingToObjectSet; ///<  if true, skip appending newly created registration data into an active object set
             double maxPossibleSizePadding; ///< how much to additionally expose max possible size region to vision
             std::vector<double> fullDofValues; ///< robot configuration state on capturing
@@ -237,6 +226,52 @@ public:
                 return sensorTimeStampMS == 0;
             }
         } registerMinViableRegionInfo;
+
+        /**
+         * Information needed to register a new object at runtime
+         */
+        struct RuntimeRegistrationInfo
+        {
+            RuntimeRegistrationInfo();
+
+            struct DetectionPointCloudCorner3D
+            {
+                std::array<double, 3> cornerPoint; ///< The point in 3D where the corner is located.
+                std::array<std::array<double, 3>, 2> cornerAxes; ///< Two normalized vectors that describe the axes of the corner in 3D.
+            };
+
+            struct ObjectInfo
+            {
+                ObjectInfo();
+
+                /** Information about the object that was picked **/
+                std::array<double, 3> translation; ///< translation of object w.r.t. world when picked in the container
+                std::array<double, 4> quaternion; ///< quaternion of object w.r.t. world when picked in the container
+                std::array<double, 3> translationInEndEffector; ///< translation of picked object w.r.t. end effector
+                std::array<double, 4> quaternionInEndEffector; ///< quaternion of picked object w.r.t. end effector
+                std::string unit; ///< the unit of translation
+                std::string pickLocationName; ///< The name of the location where the item was
+                std::string registrationLocationName; ///< The name of the location for registering object
+                double objectWeight; ///< If non-zero, use this weight fo registration. unit is kg. zero means unknown.
+                uint64_t sensorTimeStampMS; ///< sensor timestamp of the item. If non-zero, then valid.
+                uint64_t updateTimeStampMS; ///< timestamp this request was sent. If non-zero, then valid.
+                std::vector<DetectionPointCloudCorner3D> detectionPointCloudCorners3D;  ///< a list of 3D corners in the pointcloud from which the detection was created.
+
+            } objectInfo;
+
+            struct EndEffectorPoseInfo
+            {
+                EndEffectorPoseInfo();
+
+                /** Information about the current EndEffectorPose **/
+                int poseId; ///< id to represent which pose this is among end effector poses given from vision
+                std::array<double, 3> translation; ///< translation of end effector w.r.t. world
+                std::array<double, 4> quaternion; ///< quaternion of end effector w.r.t. world
+                std::string unit; ///< the unit of translation
+                uint64_t updateTimeStampMS; ///< timestamp this request was sent. If non-zero, then valid.
+                uint64_t registrationLocationArrivalTimeStampMS; ///< timestamp the robot will arrive at registration location. If non-zero, then valid.
+            } endEffectorPoseInfo;
+        } runtimeRegistrationInfo;
 
         struct RemoveObjectFromObjectListInfo {
             RemoveObjectFromObjectListInfo();
@@ -253,11 +288,10 @@ public:
             double timestamp; ///< timestamp this request was sent. If non-zero, then valid.
             std::string triggerType; ///< The type of trigger this is. For now can be: "phase1Detection", "phase2Detection"
             std::string locationName; ///< The name of the location for this detection trigger.
-            std::string targetUpdateNamePrefix; ///< if not empty, use this new targetUpdateNamePrefix for the triggering, otherwise do not change the original targetUpdateNamePrefix
+            std::string targetupdatename; ///< if not empty, use this new targetupdatename for the triggering, otherwise do not change the original targetupdatename
         } triggerDetectionCaptureInfo;
 
         std::vector<mujin::PickPlaceHistoryItem> pickPlaceHistoryItems; ///< history of pick/place actions that occurred in planning. Events should be sorted in the order they happen, ie event [0] happens before event [1], meaning event[0].eventTimeStampUS is before event[1].eventTimeStampUS
-        CopyableRapidJsonDocument rUnitInfo; ///< the unitInfo struct that specifies what the units for the data in this struct are
     };
 
     struct MUJINCLIENT_API ResultIsRobotOccludingBody : public ResultBase
@@ -321,7 +355,6 @@ public:
         std::map<mujin::SensorSelectionInfo, Transform> msensortransform;
         std::map<mujin::SensorSelectionInfo, RobotResource::AttachedSensorResource::SensorData> msensordata;
         std::map<std::string, boost::shared_ptr<rapidjson::Document> > mrGeometryInfos; ///< for every object, list of all the geometry infos
-        std::map<std::string, std::string> mObjectType;
     };
 
     struct MUJINCLIENT_API ResultHeartBeat : public ResultBase
@@ -580,6 +613,14 @@ public:
         const rapidjson::Document &mvrResultInfo,
         double timeout /* second */=5.0);
 
+    virtual void SendRuntimeRegistrationEndEffectorPoses(
+        const rapidjson::Document &endEffectorPosesInfo,
+        double timeout /* second */=5.0);
+
+    virtual void SendRuntimeRegistrationResult(
+        const rapidjson::Document &registrationResultInfo,
+        double timeout /* second */=5.0);
+
     // send result of RemoveObjectsFromObjectList request
     virtual void SendRemoveObjectsFromObjectListResult(const std::vector<ResultGetBinpickingState::RemoveObjectFromObjectListInfo>& removeObjectFromObjectListInfos, const bool success, const double timeout /* second */=5.0);
 
@@ -604,7 +645,7 @@ protected:
     rapidjson::Document _rUserInfo;  ///< userinfo json
     rapidjson::Document _rSceneParams; ///\ parameters of the scene to run tasks on the backend zmq slave
     std::string _sceneparams_json, _userinfo_json;
-
+    
     std::string _slaverequestid; ///< to ensure the same slave is used for binpicking task
     std::string _scenepk; ///< scene pk
     std::string _callerid; ///< string identifying the caller
