@@ -539,6 +539,19 @@ public:
     /// \param timeout timeout of communication
     virtual void Release(const std::string& targetname, const std::string& robotname = "", const std::string& toolname = "", const double timeout = 1);
 
+    /// \brief enables object
+    /// \param objectName name of the target to enable
+    /// \param state whether to enable
+    /// \param timeout timeout of communication
+    virtual void EnableObject(const std::string& objectName, bool state, const double timeout = 1);
+
+    /// \brief enables object link
+    /// \param objectName name of the target to enable
+    /// \param linkName link name of the target to enable
+    /// \param state whether to enable
+    /// \param timeout timeout of communication
+    virtual void EnableLink(const std::string& objectName, const std::string& linkName, bool state, const double timeout = 1);
+
     /// \brief calls planning GetRobotBridgeIOVariableString and returns the contents of the signal in a string with correct endianness
     virtual void GetRobotBridgeIOVariableString(const std::vector<std::string>& ionames, std::vector<std::string>& iovalues, const double timeout=10);
 

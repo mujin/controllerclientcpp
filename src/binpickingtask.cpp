@@ -1531,12 +1531,12 @@ void BinPickingTaskResource::Grab(const std::string& targetname, const std::stri
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
     _ss << GetJsonString("command", "Grab") << ", ";
-    _ss << GetJsonString("targetname", targetname) << ", ";
+    _ss << ", " << GetJsonString("targetname", targetname);
     if (!robotname.empty()) {
-        _ss << GetJsonString("robotname", robotname) << ", ";
+        _ss << ", " << GetJsonString("robotname", robotname);
     }
     if (!toolname.empty()) {
-        _ss << GetJsonString("toolname", toolname) << ", ";
+        _ss << ", " << GetJsonString("toolname", toolname);
     }
     _ss << "}";
     rapidjson::Document d;
@@ -1546,14 +1546,37 @@ void BinPickingTaskResource::Grab(const std::string& targetname, const std::stri
 void BinPickingTaskResource::Release(const std::string& targetname, const std::string& robotname, const std::string& toolname, const double timeout)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
-    _ss << GetJsonString("command", "Release") << ", ";
-    _ss << GetJsonString("targetname", targetname) << ", ";
+    _ss << GetJsonString("command", "Release");
+    _ss << ", " << GetJsonString("targetname", targetname);
     if (!robotname.empty()) {
-        _ss << GetJsonString("robotname", robotname) << ", ";
+        _ss << ", " << GetJsonString("robotname", robotname);
     }
     if (!toolname.empty()) {
-        _ss << GetJsonString("toolname", toolname) << ", ";
+        _ss << ", " << GetJsonString("toolname", toolname);
     }
+    _ss << "}";
+    rapidjson::Document d;
+    ExecuteCommand(_ss.str(), d, timeout);
+}
+
+void BinPickingTaskResource::EnableObject(const std::string& objectName, bool state, const double timeout)
+{
+    SetMapTaskParameters(_ss, _mapTaskParameters);
+    _ss << GetJsonString("command", "EnableObject");
+    _ss << ", " << GetJsonString("objectName", objectName);
+    _ss << ", " << GetJsonString("state", state);
+    _ss << "}";
+    rapidjson::Document d;
+    ExecuteCommand(_ss.str(), d, timeout);
+}
+
+void BinPickingTaskResource::EnableLink(const std::string& objectName, const std::string& linkName, bool state, const double timeout)
+{
+    SetMapTaskParameters(_ss, _mapTaskParameters);
+    _ss << GetJsonString("command", "EnableLink");
+    _ss << ", " << GetJsonString("objectName", objectName);
+    _ss << ", " << GetJsonString("linkName", linkName);
+    _ss << ", " << GetJsonString("state", state);
     _ss << "}";
     rapidjson::Document d;
     ExecuteCommand(_ss.str(), d, timeout);
