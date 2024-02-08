@@ -530,27 +530,27 @@ public:
     /// \param robotname name of the robot to grab with
     /// \param toolname name of the tool to grab with
     /// \param timeout timeout of communication
-    virtual void Grab(const std::string& targetname, const std::string& robotname = "", const std::string& toolname = "", const double timeout = 1);
+    virtual void Grab(const std::string& targetname, const std::string& robotname = "", const std::string& toolname = "", const double timeout = 5);
 
     /// \brief releases object
     /// \param targetname name of the target to release
     /// \param robotname name of the robot to release from
     /// \param toolname name of the tool to release from
     /// \param timeout timeout of communication
-    virtual void Release(const std::string& targetname, const std::string& robotname = "", const std::string& toolname = "", const double timeout = 1);
+    virtual void Release(const std::string& targetname, const std::string& robotname = "", const std::string& toolname = "", const double timeout = 5);
 
     /// \brief enables object
     /// \param objectName name of the target to enable
     /// \param state whether to enable
     /// \param timeout timeout of communication
-    virtual void EnableObject(const std::string& objectName, bool state, const double timeout = 1);
+    virtual void EnableObject(const std::string& objectName, bool state, const double timeout = 5);
 
     /// \brief enables object link
     /// \param objectName name of the target to enable
     /// \param linkName link name of the target to enable
     /// \param state whether to enable
     /// \param timeout timeout of communication
-    virtual void EnableLink(const std::string& objectName, const std::string& linkName, bool state, const double timeout = 1);
+    virtual void EnableLink(const std::string& objectName, const std::string& linkName, bool state, const double timeout = 5);
 
     /// \brief calls planning GetRobotBridgeIOVariableString and returns the contents of the signal in a string with correct endianness
     virtual void GetRobotBridgeIOVariableString(const std::vector<std::string>& ionames, std::vector<std::string>& iovalues, const double timeout=10);
