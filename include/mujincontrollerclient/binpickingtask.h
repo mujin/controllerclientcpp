@@ -539,16 +539,16 @@ public:
     /// \param timeout timeout of communication
     virtual void Release(const std::string& targetname, const std::string& robotname = "", const std::string& toolname = "", const double timeout = 5);
 
-    /// \brief enables object
-    /// \param objectName name of the target to enable
-    /// \param state whether to enable
+    /// \brief manipulates enabled state of object
+    /// \param objectName name of the object to modify enabled state of.
+    /// \param state whether to enable (true) or disable (false) link
     /// \param timeout timeout of communication
     virtual void EnableObject(const std::string& objectName, bool state, const double timeout = 5);
 
-    /// \brief enables object link
-    /// \param objectName name of the target to enable
-    /// \param linkName link name of the target to enable
-    /// \param state whether to enable
+    /// \brief manipulates enabled state of link
+    /// \param objectName name of the object link belongs to
+    /// \param linkName name of the link to modify enabled state of.
+    /// \param state whether to enable (true) or disable (false) link.
     /// \param timeout timeout of communication
     virtual void EnableLink(const std::string& objectName, const std::string& linkName, bool state, const double timeout = 5);
 
