@@ -1,8 +1,8 @@
 // -*- coding: utf-8 -*-
-/** \example mujinendjogmode.cpp
+/** \example mujinenableobject.cpp
 
-    Shows how to end jog mode
-    example: mujinendjogmode --controller_hostname localhost --task_scenepk machine.mujin.dae --taskparameters '{"robotname":"robot","toolname":"tool"}'
+    Shows how to manipulate enabled state of object
+    example: mujinenableobject --controller_hostname localhost --task_scenepk machine.mujin.dae --object_name object --link_name object --state 1 --taskparameters '{"robotname":"robot","toolname":"tool"}'
  */
 
 #include <mujincontrollerclient/binpickingtask.h>
@@ -45,6 +45,9 @@ bool ParseOptions(int argc, char ** argv, bpo::variables_map& opts)
         ("taskparameters", bpo::value<string>()->default_value("{}"), "binpicking task parameters, e.g. {\"robotname\": \"robot\", \"toolname\": \"tool\"}")
         ("zmq_port", bpo::value<unsigned int>()->default_value(11000), "port of the binpicking task on the mujin controller")
         ("heartbeat_port", bpo::value<unsigned int>()->default_value(11001), "port of the binpicking task's heartbeat signal on the mujin controller")
+        ("object_name", bpo::value<string>()->required(), "name of the object to modify enabled state of")
+        ("link_name", bpo::value<string>()->default_value(""), "name of the link to modify enabled state of")
+        ("state", bpo::value<bool>()->default_value(false), "whether to enable (true) or disable (false) link")
         ;
 
     try {
@@ -172,8 +175,14 @@ int main(int argc, char ** argv)
     boost::shared_ptr<zmq::context_t> zmqcontext(new zmq::context_t(1));
     InitializeTask(opts, zmqcontext, pBinpickingTask);
 
-    const double timeout = opts["controller_command_timeout"].as<double>();
+    const string objectName = opts["object_name"].as<string>();
+    const string linkName = opts["link_name"].as<string>();
+    const bool state = opts["state"].as<bool>();
+    if(linkName == "") {
+        pBinpickingTask->EnableObject(objectName, state);
+    } else {
+        pBinpickingTask->EnableLink(objectName, linkName, state);
+    }
 
-    pBinpickingTask->EndJogMode();
     return 0;
 }
