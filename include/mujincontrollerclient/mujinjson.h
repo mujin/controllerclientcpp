@@ -384,6 +384,7 @@ inline void LoadJsonValue(const rapidjson::Value& v, int64_t& t) {
 }
 
 #ifdef __SIZEOF_INT128__
+// rapidjson does not support 128bit interger so take it as a string.
 inline void LoadJsonValue(const rapidjson::Value& v, __uint128_t& t) {
     if (v.IsUint64()) {
         t = v.GetUint64();
@@ -397,6 +398,7 @@ inline void LoadJsonValue(const rapidjson::Value& v, __uint128_t& t) {
 }
 #endif
 
+// rapidjson does not support 128bit interger so take it as a string.
 inline void LoadJsonValue(const rapidjson::Value& v, boost::multiprecision::uint128_t& t) {
     if (v.IsUint64()) {
         t = v.GetUint64();
@@ -626,6 +628,7 @@ inline void SaveJsonValue(rapidjson::Value& v, int8_t t, rapidjson::Document::Al
 }
 
 #ifdef __SIZEOF_INT128__
+// rapidjson does not support 128bit interger so save it as a string.
 inline void SaveJsonValue(rapidjson::Value& v, __uint128_t t, rapidjson::Document::AllocatorType& alloc) {
     char buffer[39];            // the maximum number of digits of 128bit unsigned integer is 39
     char *d = std::end(buffer);
@@ -639,6 +642,7 @@ inline void SaveJsonValue(rapidjson::Value& v, __uint128_t t, rapidjson::Documen
 }
 #endif
 
+// rapidjson does not support 128bit interger so save it as a string.
 inline void SaveJsonValue(rapidjson::Value& v, boost::multiprecision::uint128_t t, rapidjson::Document::AllocatorType& alloc) {
     v.SetString(t.str().c_str(), alloc);
 }
