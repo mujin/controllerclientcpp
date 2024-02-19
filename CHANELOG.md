@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.71.0 (2024-02-19)
+
+- Support the conversion between RapidJSON String and C++ __uint128_t
+
 ## 0.70.2 (2023-11-21)
 
 - Fix memory leak by incorrect usage of `curl_formfree`.
