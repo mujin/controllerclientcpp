@@ -31,7 +31,15 @@ MUJIN_LOGGER("mujin.controllerclientcpp");
 #define CURL_OPTION_SAVE_SETTER(curl, curlopt, curvalue, newvalue) CURL_OPTION_SAVER(curl, curlopt, curvalue); CURL_OPTION_SETTER(curl, curlopt, newvalue)
 #define CURL_INFO_GETTER(curl, curlinfo, outvalue) CHECKCURLCODE(curl_easy_getinfo(curl, curlinfo, outvalue), "curl_easy_getinfo " # curlinfo)
 #define CURL_PERFORM(curl) CHECKCURLCODE(curl_easy_perform(curl), "curl_easy_perform")
-#define CURL_FORM_RELEASER(form) boost::shared_ptr<void> __curlformreleaser ## form((void*)0, boost::bind(boost::function<void(decltype(form))>(curl_formfree), form))
+
+struct CURLFormReleaser {
+    struct curl_httppost *& form;
+
+    ~CURLFormReleaser()
+    {
+        curl_formfree(std::exchange(form, nullptr));
+    }
+};
 
 namespace mujinclient {
 
@@ -1910,7 +1918,7 @@ void ControllerClientImpl::_UploadFileToControllerViaForm(std::istream& inputStr
     // prepare form
     struct curl_httppost *formpost = NULL;
     struct curl_httppost *lastptr = NULL;
-    CURL_FORM_RELEASER(formpost);
+    CURLFormReleaser curlFormReleaser{formpost};
     curl_formadd(&formpost, &lastptr,
                  CURLFORM_COPYNAME, "files[]",
                  CURLFORM_FILENAME, filename.empty() ? "unused" : filename.c_str(),
@@ -1958,7 +1966,7 @@ void ControllerClientImpl::_UploadDataToControllerViaForm(const void* data, size
     // prepare form
     struct curl_httppost *formpost = NULL;
     struct curl_httppost *lastptr = NULL;
-    CURL_FORM_RELEASER(formpost);
+    CURLFormReleaser curlFormReleaser{formpost};
     curl_formadd(&formpost, &lastptr,
                  CURLFORM_PTRNAME, "files[]",
                  CURLFORM_BUFFER, filename.empty() ? "unused" : filename.c_str(),
@@ -2067,6 +2075,93 @@ void ControllerClientImpl::ListFilesInController(std::vector<FileEntry>& fileent
         LoadJsonValueByKey(it->value, "size", fileentry.size);
 
         iobj++;
+    }
+}
+
+void ControllerClientImpl::CreateLogEntries(const std::vector<LogEntryPtr>& logEntries, std::vector<std::string>& createdLogEntryIds, double timeout)
+{
+    if (logEntries.empty()) {
+        return;
+    }
+
+    boost::mutex::scoped_lock lock(_mutex);
+
+    // prepare the cURL options
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_TIMEOUT_MS, 0L, (long)(timeout * 1000L));
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPHEADER, NULL, _httpheadersmultipartformdata);
+    _uri = _baseuri + "api/v2/logEntry";
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, _uri.c_str());
+    _buffer.clear();
+    _buffer.str("");
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEFUNCTION, NULL, _WriteStringStreamCallback);
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEDATA, NULL, &_buffer);
+
+    // prepare the form
+    struct curl_httppost *formpost = NULL;
+    struct curl_httppost *lastptr = NULL;
+    CURLFormReleaser curlFormReleaser{formpost};
+
+    rapidjson::StringBuffer& rRequestStringBuffer = _rRequestStringBufferCache;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(rRequestStringBuffer);
+
+    for (const LogEntryPtr logEntry : logEntries) {
+        if (!logEntry) {
+            continue;
+        }
+
+        // add log entry content
+        rRequestStringBuffer.Clear();
+        writer.Reset(rRequestStringBuffer);
+        logEntry->rEntry.Accept(writer);
+        std::string formName = "logEntry/" + logEntry->logType;
+        curl_formadd(&formpost, &lastptr,
+                    CURLFORM_COPYNAME, formName.c_str(),
+                    CURLFORM_COPYCONTENTS, rRequestStringBuffer.GetString(),
+                    CURLFORM_CONTENTTYPE, "application/json",
+                    CURLFORM_END);
+
+        // add attachments
+        for (const LogEntryAttachmentPtr attachment : logEntry->attachments) {
+            if (!attachment) {
+                continue;
+            }
+            curl_formadd(&formpost, &lastptr,
+                CURLFORM_COPYNAME, "attachment",
+                CURLFORM_BUFFER, attachment->filename.c_str(),
+                CURLFORM_BUFFERPTR, attachment->data.data(),
+                CURLFORM_BUFFERLENGTH, (long)(attachment->data.size()),
+                CURLFORM_END);
+        }
+    }
+
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPPOST, NULL, formpost);
+
+    // perform the call
+    CURL_PERFORM(_curl);
+
+    // get http status
+    long http_code = 0;
+    CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
+    if (http_code != 201) {
+        throw MUJIN_EXCEPTION_FORMAT("upload failed with HTTP status %d", http_code, MEC_HTTPServer);
+    }
+
+    // parse the result
+    if (_buffer.rdbuf()->in_avail() <= 0) {
+        return;
+    }
+    rapidjson::Document rResultDoc;
+    mujinjson::ParseJson(rResultDoc, _buffer);
+    if (!rResultDoc.IsObject() || !rResultDoc.HasMember("logEntryIds") || !rResultDoc["logEntryIds"].IsArray()) {
+        throw MUJIN_EXCEPTION_FORMAT("invalid response received while uploading log entries: %s", mujinjson::DumpJson(rResultDoc), MEC_HTTPServer);
+    }
+    
+    // exract the log entry ids
+    const rapidjson::Value& logEntryIdsArray = rResultDoc["logEntryIds"];
+    for (rapidjson::Value::ConstValueIterator itLogEntryId = logEntryIdsArray.Begin(); itLogEntryId != logEntryIdsArray.End(); ++itLogEntryId) {
+        if (itLogEntryId->IsString()) {
+            createdLogEntryIds.push_back(itLogEntryId->GetString());
+        }
     }
 }
 
