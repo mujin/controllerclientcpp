@@ -94,11 +94,12 @@ struct AABB
     std::array<Real,3> extents; ///< half extents of AABB
 };
 
+/// \brief To feedback edge validation result by sensor(s) on a robot to vision
 struct EdgeValidationInfo
 {
-    std::string edgeType;
-    std::string result;
-    std::vector<std::array<Real,3>> measuredLocalLineSegment;
+    std::string edgeType; ///< specify which edge this validation info is about. one of "xp", "xn", "yp", "yn", "zp", "zn"
+    std::string result; ///< tells result of validation.
+    std::vector<std::array<Real,3>> measuredLocalLineSegment; ///< If a sensor measures an actual edge, this will be set. Definition is a line segment along with scan line of the sensor that starts from top of the item and ends with the measured edge.
 };
 
 class MUJINCLIENT_API SensorSelectionInfo : public mujinjson::JsonSerializable
@@ -144,7 +145,7 @@ public:
     std::string object_uri; ///< the object uri
     Transform objectpose; ///< 7-values in world, unit is usually mm
     AABB localaabb; ///< AABB of object in object frame.
-    std::vector<EdgeValidationInfo> edgeValidationInfos; ///< truckbotv2: use list because LIDARs can validate multiple edges
+    std::vector<EdgeValidationInfo> edgeValidationInfos; ///< edge validation results by sensor(s) on a robot to give feedback to vision
     unsigned long long sensorTimeStampUS = 0; ///< sensor timestamp in us (from Linux epoch) of when the object was detected in the scene
 };
 
