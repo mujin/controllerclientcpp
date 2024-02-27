@@ -438,6 +438,35 @@ template<typename T, typename U> inline void LoadJsonValue(const rapidjson::Valu
     }
 }
 
+namespace {
+
+// See https://stackoverflow.com/questions/5688355/partial-specialisation-of-member-function-with-non-type-parameter
+// for why this is a struct with a static method.
+template <std::size_t N, typename... Ts>
+struct TupleLoader {
+    static inline void LoadTupleEntry(const rapidjson::Value& v, std::tuple<Ts...>& t) {
+        LoadJsonValue(v[N], std::get<N>(t));
+        TupleLoader<N - 1, Ts...>::LoadTupleEntry(v, t);
+    }
+
+};
+
+template<typename... Ts>
+struct TupleLoader<0, Ts...> {
+    static inline void LoadTupleEntry(const rapidjson::Value& v, std::tuple<Ts...> & t) {
+        LoadJsonValue(v[0], std::get<0>(t));
+    }
+};
+
+}
+
+template <typename... Ts>
+inline void LoadJsonValue(const rapidjson::Value& v, std::tuple<Ts...>& t) {
+    if (!v.IsArray()) throw MujinJSONException("Cannot convert json type " + GetJsonTypeName(v) + " to tuple");
+    if (v.GetArray().Size() != sizeof...(Ts)) throw MujinJSONException("Tuple length mismatch!");
+    TupleLoader<sizeof...(Ts) - 1, Ts...>::LoadTupleEntry(v, t);
+}
+
 template<class T, size_t N> inline void LoadJsonValue(const rapidjson::Value& v, T (&p)[N]) {
     if (v.IsArray()) {
         if (v.GetArray().Size() != N) {
@@ -684,6 +713,38 @@ template<class T, class U> inline void SaveJsonValue(rapidjson::Value& v, const 
     rapidjson::Value rSecond;
     SaveJsonValue(rSecond, t.second, alloc);
     v.PushBack(rSecond, alloc);
+}
+
+namespace {
+
+// See https://stackoverflow.com/questions/5688355/partial-specialisation-of-member-function-with-non-type-parameter
+// for why this is a struct with a static method.
+template <std::size_t N, typename... Ts>
+struct TupleSaver {
+    static inline void SaveTupleValue(rapidjson::Value & v, const std::tuple<Ts...>& t, rapidjson::Document::AllocatorType& alloc) {
+        TupleSaver<N - 1, Ts...>::SaveTupleValue(v, t, alloc);
+        rapidjson::Value currentEntry;
+        SaveToJson(currentEntry, std::get<N>(t), alloc);
+        v.PushBack(currentEntry, alloc);
+    }
+};
+
+template <typename... Ts>
+struct TupleSaver<0, Ts...> {
+    static inline void SaveTupleValue(rapidjson::Value & v, const std::tuple<Ts...>& t, rapidjson::Document::AllocatorType& alloc) {
+        rapidjson::Value firstEntry;
+        SaveToJson(firstEntry, std::get<0>(t), alloc);
+        v.PushBack(firstEntry, alloc);
+    }
+};
+
+}
+
+template <typename... Ts>
+inline void SaveJsonValue(rapidjson::Value & v, const std::tuple<Ts...>& t, rapidjson::Document::AllocatorType& alloc) {
+    v.SetArray();
+    v.Reserve(sizeof...(Ts), alloc);
+    TupleSaver<sizeof...(Ts) - 1, Ts...>::SaveTupleValue(v, t, alloc);
 }
 
 template<class T, class AllocT> inline void SaveJsonValue(rapidjson::Value& v, const std::vector<T, AllocT>& t, rapidjson::Document::AllocatorType& alloc) {
