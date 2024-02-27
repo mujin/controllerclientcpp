@@ -18,29 +18,30 @@
 #define MUJIN_CONTROLLERCLIENT_JSON_H
 
 #include <array>
-#include <boost/shared_ptr.hpp>
-#include <boost/smart_ptr/make_shared.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/format.hpp>
-#include <boost/assert.hpp>
-#include <boost/variant.hpp>
-#include <boost/optional.hpp>
+#include <deque>
+#include <iostream>
+#include <map>
 #include <stdint.h>
 #include <string>
 #include <stdexcept>
-#include <vector>
 #include <unordered_map>
-#include <map>
-#include <deque>
-#include <iostream>
+#include <vector>
 
-#include <rapidjson/pointer.h>
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/ostreamwrapper.h>
-#include <rapidjson/istreamwrapper.h>
-#include <rapidjson/writer.h>
+#include <boost/assert.hpp>
+#include <boost/format.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/optional.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/smart_ptr/make_shared.hpp>
+#include <boost/variant.hpp>
+
 #include <rapidjson/error/en.h>
+#include <rapidjson/istreamwrapper.h>
+#include <rapidjson/ostreamwrapper.h>
+#include <rapidjson/pointer.h>
 #include <rapidjson/prettywriter.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
 
 #include <mujincontrollerclient/config.h>
 
