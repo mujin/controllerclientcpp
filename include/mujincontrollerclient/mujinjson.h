@@ -264,6 +264,10 @@ template<class T, class S> inline T LexicalCast(const S& v, const std::string& t
     }
 }
 
+// Forward-declaration: template lookups need this to understand std::vector<boost::optional<std::string>>.
+template <typename T>
+inline void LoadJsonValue(const rapidjson::Value& v, boost::optional<T>& t);
+
 //store a json value to local data structures
 //for compatibility with ptree, type conversion is made. will remove them in the future
 inline void LoadJsonValue(const rapidjson::Value& v, JsonSerializable& t) {
@@ -438,35 +442,6 @@ template<typename T, typename U> inline void LoadJsonValue(const rapidjson::Valu
     }
 }
 
-namespace {
-
-// See https://stackoverflow.com/questions/5688355/partial-specialisation-of-member-function-with-non-type-parameter
-// for why this is a struct with a static method.
-template <std::size_t N, typename... Ts>
-struct TupleLoader {
-    static inline void LoadTupleEntry(const rapidjson::Value& v, std::tuple<Ts...>& t) {
-        LoadJsonValue(v[N], std::get<N>(t));
-        TupleLoader<N - 1, Ts...>::LoadTupleEntry(v, t);
-    }
-
-};
-
-template<typename... Ts>
-struct TupleLoader<0, Ts...> {
-    static inline void LoadTupleEntry(const rapidjson::Value& v, std::tuple<Ts...> & t) {
-        LoadJsonValue(v[0], std::get<0>(t));
-    }
-};
-
-}
-
-template <typename... Ts>
-inline void LoadJsonValue(const rapidjson::Value& v, std::tuple<Ts...>& t) {
-    if (!v.IsArray()) throw MujinJSONException("Cannot convert json type " + GetJsonTypeName(v) + " to tuple");
-    if (v.GetArray().Size() != sizeof...(Ts)) throw MujinJSONException("Tuple length mismatch!");
-    TupleLoader<sizeof...(Ts) - 1, Ts...>::LoadTupleEntry(v, t);
-}
-
 template<class T, size_t N> inline void LoadJsonValue(const rapidjson::Value& v, T (&p)[N]) {
     if (v.IsArray()) {
         if (v.GetArray().Size() != N) {
@@ -630,11 +605,45 @@ inline void LoadJsonValue(const rapidjson::Value& v, boost::variant<Ts...>& t) {
     }
 }
 
+namespace {
+
+// See https://stackoverflow.com/questions/5688355/partial-specialisation-of-member-function-with-non-type-parameter
+// for why this is a struct with a static method.
+template <std::size_t N, typename... Ts>
+struct TupleLoader {
+    static inline void LoadTupleEntry(const rapidjson::Value& v, std::tuple<Ts...>& t) {
+        LoadJsonValue(v[N], std::get<N>(t));
+        TupleLoader<N - 1, Ts...>::LoadTupleEntry(v, t);
+    }
+
+};
+
+template<typename... Ts>
+struct TupleLoader<0, Ts...> {
+    static inline void LoadTupleEntry(const rapidjson::Value& v, std::tuple<Ts...> & t) {
+        LoadJsonValue(v[0], std::get<0>(t));
+    }
+};
+
+}
+
+template <typename... Ts>
+inline void LoadJsonValue(const rapidjson::Value& v, std::tuple<Ts...>& t) {
+    if (!v.IsArray()) throw MujinJSONException("Cannot convert json type " + GetJsonTypeName(v) + " to tuple");
+    if (v.GetArray().Size() != sizeof...(Ts)) throw MujinJSONException("Tuple length mismatch!");
+    TupleLoader<sizeof...(Ts) - 1, Ts...>::LoadTupleEntry(v, t);
+}
+
+
 //Save a data structure to rapidjson::Value format
 
 /*template<class T> inline void SaveJsonValue(rapidjson::Value& v, const T& t, rapidjson::Document::AllocatorType& alloc) {*/
 /*JsonWrapper<T>::SaveToJson(v, t, alloc);*/
 /*}*/
+
+// Forward-declaration so that template-lookup can find std::vector<boost::optional<std::string>>
+template <typename T>
+inline void SaveJsonValue(rapidjson::Value& v, const boost::optional<T>& t, rapidjson::Document::AllocatorType& alloc);
 
 inline void SaveJsonValue(rapidjson::Value& v, const JsonSerializable& t, rapidjson::Document::AllocatorType& alloc) {
     t.SaveToJson(v, alloc);
@@ -713,38 +722,6 @@ template<class T, class U> inline void SaveJsonValue(rapidjson::Value& v, const 
     rapidjson::Value rSecond;
     SaveJsonValue(rSecond, t.second, alloc);
     v.PushBack(rSecond, alloc);
-}
-
-namespace {
-
-// See https://stackoverflow.com/questions/5688355/partial-specialisation-of-member-function-with-non-type-parameter
-// for why this is a struct with a static method.
-template <std::size_t N, typename... Ts>
-struct TupleSaver {
-    static inline void SaveTupleValue(rapidjson::Value & v, const std::tuple<Ts...>& t, rapidjson::Document::AllocatorType& alloc) {
-        TupleSaver<N - 1, Ts...>::SaveTupleValue(v, t, alloc);
-        rapidjson::Value currentEntry;
-        SaveToJson(currentEntry, std::get<N>(t), alloc);
-        v.PushBack(currentEntry, alloc);
-    }
-};
-
-template <typename... Ts>
-struct TupleSaver<0, Ts...> {
-    static inline void SaveTupleValue(rapidjson::Value & v, const std::tuple<Ts...>& t, rapidjson::Document::AllocatorType& alloc) {
-        rapidjson::Value firstEntry;
-        SaveToJson(firstEntry, std::get<0>(t), alloc);
-        v.PushBack(firstEntry, alloc);
-    }
-};
-
-}
-
-template <typename... Ts>
-inline void SaveJsonValue(rapidjson::Value & v, const std::tuple<Ts...>& t, rapidjson::Document::AllocatorType& alloc) {
-    v.SetArray();
-    v.Reserve(sizeof...(Ts), alloc);
-    TupleSaver<sizeof...(Ts) - 1, Ts...>::SaveTupleValue(v, t, alloc);
 }
 
 template<class T, class AllocT> inline void SaveJsonValue(rapidjson::Value& v, const std::vector<T, AllocT>& t, rapidjson::Document::AllocatorType& alloc) {
@@ -843,6 +820,9 @@ inline void SaveJsonValue(rapidjson::Value& v, const boost::optional<T>& t, rapi
 namespace {
 // Cannot be inside the function -- https://stackoverflow.com/questions/4299314/member-template-in-local-class
 struct JsonSavingVisitor : public boost::static_visitor<void> {
+    JsonSavingVisitor(rapidjson::Value& cvArg, rapidjson::Document::AllocatorType& callocArg)
+        : cv(cvArg), calloc(callocArg) {}
+
     rapidjson::Value& cv;
     rapidjson::Document::AllocatorType& calloc;
 
@@ -855,7 +835,8 @@ struct JsonSavingVisitor : public boost::static_visitor<void> {
 
 template <typename... Ts>
 inline void SaveJsonValue(rapidjson::Value& v, const boost::variant<Ts...>& t, rapidjson::Document::AllocatorType& alloc) {
-    boost::apply_visitor(JsonSavingVisitor(v, alloc), t);
+    JsonSavingVisitor visitor(v, alloc);
+    boost::apply_visitor(visitor, t);
 }
 
 
@@ -866,6 +847,39 @@ template<class T> inline void SaveJsonValue(rapidjson::Document& v, const T& t) 
     v.GetAllocator().Clear();
     SaveJsonValue(v, t, v.GetAllocator());
 }
+
+namespace {
+
+// See https://stackoverflow.com/questions/5688355/partial-specialisation-of-member-function-with-non-type-parameter
+// for why this is a struct with a static method.
+template <std::size_t N, typename... Ts>
+struct TupleSaver {
+    static inline void SaveTupleValue(rapidjson::Value & v, const std::tuple<Ts...>& t, rapidjson::Document::AllocatorType& alloc) {
+        TupleSaver<N - 1, Ts...>::SaveTupleValue(v, t, alloc);
+        rapidjson::Value currentEntry;
+        SaveJsonValue(currentEntry, std::get<N>(t), alloc);
+        v.PushBack(currentEntry, alloc);
+    }
+};
+
+template <typename... Ts>
+struct TupleSaver<0, Ts...> {
+    static inline void SaveTupleValue(rapidjson::Value & v, const std::tuple<Ts...>& t, rapidjson::Document::AllocatorType& alloc) {
+        rapidjson::Value firstEntry;
+        SaveJsonValue(firstEntry, std::get<0>(t), alloc);
+        v.PushBack(firstEntry, alloc);
+    }
+};
+
+}
+
+template <typename... Ts>
+inline void SaveJsonValue(rapidjson::Value & v, const std::tuple<Ts...>& t, rapidjson::Document::AllocatorType& alloc) {
+    v.SetArray();
+    v.Reserve(sizeof...(Ts), alloc);
+    TupleSaver<sizeof...(Ts) - 1, Ts...>::SaveTupleValue(v, t, alloc);
+}
+
 
 template<class T, class U> inline void SetJsonValueByKey(rapidjson::Value& v, const U& key, const T& t, rapidjson::Document::AllocatorType& alloc);
 
