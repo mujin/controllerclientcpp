@@ -267,6 +267,9 @@ template<class T, class S> inline T LexicalCast(const S& v, const std::string& t
 // Forward-declaration: template lookups need this to understand std::vector<boost::optional<std::string>>.
 template <typename T>
 inline void LoadJsonValue(const rapidjson::Value& v, boost::optional<T>& t);
+// Forward-declaration so that template-lookup can find std::tuple<std::tuple<Ts...>, ...>
+template <typename... Ts>
+inline void LoadJsonValue(const rapidjson::Value& v, std::tuple<Ts...>& t);
 
 //store a json value to local data structures
 //for compatibility with ptree, type conversion is made. will remove them in the future
@@ -644,6 +647,9 @@ inline void LoadJsonValue(const rapidjson::Value& v, std::tuple<Ts...>& t) {
 // Forward-declaration so that template-lookup can find std::vector<boost::optional<std::string>>
 template <typename T>
 inline void SaveJsonValue(rapidjson::Value& v, const boost::optional<T>& t, rapidjson::Document::AllocatorType& alloc);
+// Forward-declaration so that template-lookup can find std::tuple<std::tuple<Ts...>, ...>
+template <typename... Ts>
+inline void SaveJsonValue(rapidjson::Value & v, const std::tuple<Ts...>& t, rapidjson::Document::AllocatorType& alloc);
 
 inline void SaveJsonValue(rapidjson::Value& v, const JsonSerializable& t, rapidjson::Document::AllocatorType& alloc) {
     t.SaveToJson(v, alloc);
