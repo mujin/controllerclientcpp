@@ -1756,7 +1756,7 @@ void BinPickingTaskResource::ExecuteSingleXMLTrajectory(const std::string& traje
 void BinPickingTaskResource::Grab(const std::string& targetname, const std::string& robotname, const std::string& toolname, const double timeout)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
-    _ss << GetJsonString("command", "Grab") << ", ";
+    _ss << GetJsonString("command", "Grab");
     _ss << ", " << GetJsonString("targetname", targetname);
     if (!robotname.empty()) {
         _ss << ", " << GetJsonString("robotname", robotname);
