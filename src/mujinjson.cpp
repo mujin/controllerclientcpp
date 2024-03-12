@@ -4,7 +4,17 @@
 
 #include <fcntl.h>
 #include <sys/stat.h>
+
+#if defined(_WIN32)
+#include <io.h>
+#else
 #include <unistd.h>
+#endif
+
+#if defined(_MSC_VER)
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+#endif
 
 namespace mujinjson {
 
