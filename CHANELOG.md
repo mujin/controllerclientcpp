@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.70.2 (2024-03-26)
+
+- Add objectType field in RegisterMinViableRegionInfo
+
 ## 0.70.2 (2023-11-21)
 
 - Fix memory leak by incorrect usage of `curl_formfree`.
