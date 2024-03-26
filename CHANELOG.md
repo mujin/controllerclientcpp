@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.70.2 (2024-03-26)
+## 0.71.0 (2024-03-26)
 
 - Add objectType field in RegisterMinViableRegionInfo
 
