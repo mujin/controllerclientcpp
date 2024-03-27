@@ -264,6 +264,51 @@ template<class T, class S> inline T LexicalCast(const S& v, const std::string& t
     }
 }
 
+
+/// \brief A thin wrapper around a rapidjson::Document to enable copying, simplifying use in STL containers.
+class CopyableRapidJsonDocument : public rapidjson::Document, public JsonSerializable
+{
+public:
+    CopyableRapidJsonDocument() = default;
+
+    CopyableRapidJsonDocument(const CopyableRapidJsonDocument& other)
+        : rapidjson::Document()
+    {
+        CopyFrom(other, GetAllocator());
+    }
+
+    CopyableRapidJsonDocument& operator=(const CopyableRapidJsonDocument& other) {
+        Reset();
+        CopyFrom(other, GetAllocator());
+        return *this;
+    }
+
+    explicit CopyableRapidJsonDocument(const rapidjson::Value& value)
+        : rapidjson::Document()
+    {
+        CopyFrom(value, GetAllocator());
+    }
+
+    explicit CopyableRapidJsonDocument(rapidjson::Document&& value)
+        : rapidjson::Document(std::move(value)) {}
+
+
+    void Reset() {
+        SetNull();
+        GetAllocator().Clear();
+    }
+
+    /// \brief Load a JSON value. Resets this value and then copies v into this.
+    void LoadFromJson(const rapidjson::Value& v) override {
+        Reset();
+        CopyFrom(v, GetAllocator());
+    }
+
+    void SaveToJson(rapidjson::Value& v, rapidjson::Document::AllocatorType& alloc) const override {
+        v.CopyFrom(*this, alloc);
+    }
+};  // class CopyableRapidJsonDocument
+
 // Forward-declaration: template lookups need this to understand std::vector<boost::optional<std::string>>.
 template <typename T>
 inline void LoadJsonValue(const rapidjson::Value& v, boost::optional<T>& t);
@@ -703,6 +748,11 @@ inline void SaveJsonValue(rapidjson::Value& v, double t, rapidjson::Document::Al
 
 inline void SaveJsonValue(rapidjson::Value& v, float t, rapidjson::Document::AllocatorType& alloc) {
     v.SetDouble(t);
+}
+
+// Disambiguates between SaveJsonValue(..., const rapidjson::Value&, ...) and SaveJsonValue(..., const JsonSerializable&, ...).
+inline void SaveJsonValue(rapidjson::Value& v, const CopyableRapidJsonDocument& t, rapidjson::Document::AllocatorType& alloc) {
+    t.SaveToJson(v, alloc);
 }
 
 inline void SaveJsonValue(rapidjson::Value& v, const rapidjson::Value& t, rapidjson::Document::AllocatorType& alloc) {
