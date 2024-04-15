@@ -1,8 +1,12 @@
 # Changelog
 
-## 0.71.0 (2023-10-20)
+## 0.72.0 (2024-04-15)
 
 - Add `EdgeValidationInfos` to `PickPlaceHistoryItem` for the size validation feature.
+
+## 0.71.0 (2024-03-26)
+
+- Add objectType field in RegisterMinViableRegionInfo
 
 ## 0.70.2 (2023-11-21)
 

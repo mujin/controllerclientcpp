@@ -217,6 +217,7 @@ public:
             std::array<double, 3> translation; ///< Translation of the 2D MVR plane (height = 0)
             std::array<double, 4> quaternion; ///< Rotation of the 2D MVR plane (height = 0)
             double objectWeight; ///< If non-zero, use this weight fo registration. unit is kg. zero means unknown.
+            std::string objectType; ///< The type of the object
             uint64_t sensorTimeStampMS; ///< Same as DetectedObject's timestamp sent to planning
             double robotDepartStopTimestamp; ///< Force capture after robot stops
             std::array<double, 3> liftedWorldOffset; ///< [dx, dy, dz], mm in world frame
