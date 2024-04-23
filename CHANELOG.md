@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.71.1 (2024-04-23)
+
+- Use direct logEntry and logEntryAttachment.
+
 ## 0.71.0 (2024-03-26)
 
 - Add objectType field in RegisterMinViableRegionInfo
