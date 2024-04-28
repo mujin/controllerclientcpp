@@ -144,6 +144,13 @@ struct LogEntryAttachment
 {
     std::string filename; // filename
     std::vector<unsigned char> data; // data for the attachment
+
+    // default constructor
+    LogEntryAttachment() = default;
+
+    // move constructor (delete copy constructor)
+    LogEntryAttachment(LogEntryAttachment&& other) = default;
+    LogEntryAttachment& operator=(LogEntryAttachment&& other) = default;
 };
 
 typedef boost::shared_ptr<LogEntryAttachment> LogEntryAttachmentPtr;
@@ -154,7 +161,7 @@ struct LogEntry
 {
     rapidjson::Value rEntry; // log entry data in JSON format
     std::string logType; // log type
-    std::vector<LogEntryAttachmentPtr> attachments; // a list of related attachments
+    std::vector<LogEntryAttachment> attachments; // a list of related attachments
 };
 
 typedef boost::shared_ptr<LogEntry> LogEntryPtr;
@@ -724,7 +731,7 @@ public:
     /// \param logEntries a vector of log entries to upload
     /// \param createdLogEntryIds an optional vector for storing the created log entry ids
     /// \param timeout timeout of uploading log entries in seconds
-    virtual void CreateLogEntries(const std::vector<LogEntryPtr>& logEntries, std::vector<std::string>& createdLogEntryIds, double timeout = 5) = 0;
+    virtual void CreateLogEntries(const std::vector<LogEntry>& logEntries, std::vector<std::string>& createdLogEntryIds, double timeout = 5) = 0;
 };
 
 class MUJINCLIENT_API WebResource

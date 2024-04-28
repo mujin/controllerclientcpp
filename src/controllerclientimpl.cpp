@@ -2078,7 +2078,7 @@ void ControllerClientImpl::ListFilesInController(std::vector<FileEntry>& fileent
     }
 }
 
-void ControllerClientImpl::CreateLogEntries(const std::vector<LogEntryPtr>& logEntries, std::vector<std::string>& createdLogEntryIds, double timeout)
+void ControllerClientImpl::CreateLogEntries(const std::vector<LogEntry>& logEntries, std::vector<std::string>& createdLogEntryIds, double timeout)
 {
     if (logEntries.empty()) {
         return;
@@ -2104,16 +2104,12 @@ void ControllerClientImpl::CreateLogEntries(const std::vector<LogEntryPtr>& logE
     rapidjson::StringBuffer& rRequestStringBuffer = _rRequestStringBufferCache;
     rapidjson::Writer<rapidjson::StringBuffer> writer(rRequestStringBuffer);
 
-    for (const LogEntryPtr logEntry : logEntries) {
-        if (!logEntry) {
-            continue;
-        }
-
+    for (const LogEntry &logEntry : logEntries) {
         // add log entry content
         rRequestStringBuffer.Clear();
         writer.Reset(rRequestStringBuffer);
-        logEntry->rEntry.Accept(writer);
-        std::string formName = "logEntry/" + logEntry->logType;
+        logEntry.rEntry.Accept(writer);
+        std::string formName = "logEntry/" + logEntry.logType;
         curl_formadd(&formpost, &lastptr,
                     CURLFORM_COPYNAME, formName.c_str(),
                     CURLFORM_COPYCONTENTS, rRequestStringBuffer.GetString(),
@@ -2121,15 +2117,12 @@ void ControllerClientImpl::CreateLogEntries(const std::vector<LogEntryPtr>& logE
                     CURLFORM_END);
 
         // add attachments
-        for (const LogEntryAttachmentPtr attachment : logEntry->attachments) {
-            if (!attachment) {
-                continue;
-            }
+        for (const LogEntryAttachment &attachment : logEntry.attachments) {
             curl_formadd(&formpost, &lastptr,
                 CURLFORM_COPYNAME, "attachment",
-                CURLFORM_BUFFER, attachment->filename.c_str(),
-                CURLFORM_BUFFERPTR, attachment->data.data(),
-                CURLFORM_BUFFERLENGTH, (long)(attachment->data.size()),
+                CURLFORM_BUFFER, attachment.filename.c_str(),
+                CURLFORM_BUFFERPTR, attachment.data.data(),
+                CURLFORM_BUFFERLENGTH, (long)(attachment.data.size()),
                 CURLFORM_END);
         }
     }

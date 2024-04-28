@@ -172,7 +172,7 @@ public:
     /// \param logEntries a vector of log entries to upload
     /// \param createdLogEntryIds an optional vector for storing the created log entry ids
     /// \param timeout timeout of uploading log entries in seconds
-    void CreateLogEntries(const std::vector<LogEntryPtr>& logEntries, std::vector<std::string>& createdLogEntryIds, double timeout = 5) override;
+    void CreateLogEntries(const std::vector<LogEntry>& logEntries, std::vector<std::string>& createdLogEntryIds, double timeout = 5) override;
 
     inline std::string GetBaseUri() const
     {
