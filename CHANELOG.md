@@ -1,8 +1,12 @@
 # Changelog
 
-## 0.72.0 (2024-04-15)
+## 0.73.0 (2024-04-28)
 
 - Add `EdgeValidationInfos` to `PickPlaceHistoryItem` for the size validation feature.
+
+## 0.72.0 (2024-04-27)
+
+- change `CreateLogEntries` to use `vector<LogEntry>` for memory optimization
 
 ## 0.71.0 (2024-03-26)
 
