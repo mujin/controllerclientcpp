@@ -332,7 +332,7 @@ void ObjectResource::LinkResource::GetGeometries(std::vector<ObjectResource::Geo
                 ObjectResource::GeometryResourcePtr geometry(new GeometryResource(controller, this->objectpk, GetJsonValueByKey<std::string>(*it, "pk")));
                 geometry->linkpk = linkpk;
                 LoadJsonValueByKey(*it,"name",geometry->name,geometry->pk);
-                LoadJsonValueByKey(*it,"visible",geometry->visible);
+                LoadJsonValueByKey(*it,"visible",geometry->visible,true);
                 LoadJsonValueByKey(*it,"geomtype",geometry->geomtype);
                 LoadJsonValueByKey(*it,"transparency",geometry->transparency);
                 LoadJsonValueByKey(*it,"quaternion",geometry->quaternion);
