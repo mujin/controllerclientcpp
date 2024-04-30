@@ -793,7 +793,7 @@ public:
         std::string geomtype;
         Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
         Real translate[3];
-        bool visible;
+        bool visible = true;
         Real diffusecolor[4];
         Real transparency;
         Real half_extents[3];
