@@ -83,6 +83,7 @@ BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionInfo& B
     translation = rhs.translation;
     quaternion = rhs.quaternion;
     objectWeight = rhs.objectWeight;
+    objectType = rhs.objectType;
     sensorTimeStampMS = rhs.sensorTimeStampMS;
     robotDepartStopTimestamp = rhs.robotDepartStopTimestamp;
     liftedWorldOffset = rhs.liftedWorldOffset;
@@ -124,6 +125,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionIn
     SetJsonValueByKey(rInfo, "translation", translation, alloc);
     SetJsonValueByKey(rInfo, "quaternion", quaternion, alloc);
     SetJsonValueByKey(rInfo, "objectWeight", objectWeight, alloc);
+    SetJsonValueByKey(rInfo, "objectType", objectType, alloc);
     SetJsonValueByKey(rInfo, "sensorTimeStampMS", sensorTimeStampMS, alloc);
     SetJsonValueByKey(rInfo, "robotDepartStopTimestamp", robotDepartStopTimestamp, alloc);
 
@@ -171,6 +173,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionIn
     LoadJsonValueByKey(rInfo, "translation", translation);
     LoadJsonValueByKey(rInfo, "quaternion", quaternion);
     objectWeight = GetJsonValueByKey<double>(rInfo, "objectWeight", 0);
+    LoadJsonValueByKey(rInfo, "objectType", objectType);
     sensorTimeStampMS = GetJsonValueByKey<uint64_t>(rInfo, "sensorTimeStampMS", 0);
     robotDepartStopTimestamp = GetJsonValueByKey<double>(rInfo, "robotDepartStopTimestamp", 0);
 
