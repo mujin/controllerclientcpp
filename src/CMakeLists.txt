@@ -35,9 +35,7 @@ if (libzmq_FOUND)
   set(SOURCE_FILES ${SOURCE_FILES} binpickingtaskzmq.h binpickingtaskzmq.cpp mujinzmq.cpp)
 endif()
 
-add_library(libmujincontrollerclientbase OBJECT ${SOURCE_FILES})
-
-add_library(libmujincontrollerclient SHARED $<TARGET_OBJECTS:libmujincontrollerclientbase>)
+add_library(libmujincontrollerclient SHARED ${SOURCE_FILES})
 if( EXTRA_MSVC_DEPEND )
   message(STATUS "adding msvc_boost dependency")
   add_dependencies(libmujincontrollerclient ${EXTRA_MSVC_DEPEND})
@@ -65,7 +63,7 @@ if( OPT_BUILD_STATIC )
     set(LIBMUJINCONTROLLERCLIENT_NAME mujincontrollerclient${MUJINCLIENT_LIBRARY_SUFFIX})
   endif()
 
-  add_library(libmujincontrollerclient_static STATIC $<TARGET_OBJECTS:libmujincontrollerclientbase>)
+  add_library(libmujincontrollerclient_static STATIC ${SOURCE_FILES})
   set_target_properties(libmujincontrollerclient_static PROPERTIES OUTPUT_NAME ${LIBMUJINCONTROLLERCLIENT_NAME}
                                            SOVERSION 0 # always have it 0 since we're including the soversion as part of the library name
                                            VERSION ${MUJINCLIENT_VERSION}
