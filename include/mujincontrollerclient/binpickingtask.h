@@ -255,6 +255,7 @@ public:
             std::string triggerType; ///< The type of trigger this is. For now can be: "phase1Detection", "phase2Detection"
             std::string locationName; ///< The name of the location for this detection trigger.
             std::string targetUpdateNamePrefix; ///< if not empty, use this new targetUpdateNamePrefix for the triggering, otherwise do not change the original targetUpdateNamePrefix
+            bool waitForCaptureTrigger; ///< if true, capturing will wait for trigger (different from this detection trigger) from robotbridge.
         } triggerDetectionCaptureInfo;
 
         std::vector<mujin::PickPlaceHistoryItem> pickPlaceHistoryItems; ///< history of pick/place actions that occurred in planning. Events should be sorted in the order they happen, ie event [0] happens before event [1], meaning event[0].eventTimeStampUS is before event[1].eventTimeStampUS

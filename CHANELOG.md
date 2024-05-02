@@ -1,8 +1,9 @@
 # Changelog
 
-## 0.73.0 (2024-04-28)
+## 0.73.0 (2024-05-02)
 
 - Add `EdgeValidationInfos` to `PickPlaceHistoryItem` for the size validation feature.
+- Add `waitForCaptureTrigger` to `TriggerDetectionCaptureInfo` to use capturing with wait-for-trigger enabled.
 
 ## 0.72.0 (2024-04-27)
 
