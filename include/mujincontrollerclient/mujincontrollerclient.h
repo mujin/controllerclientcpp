@@ -732,6 +732,10 @@ public:
     /// \param createdLogEntryIds an optional vector for storing the created log entry ids
     /// \param timeout timeout of uploading log entries in seconds
     virtual void CreateLogEntries(const std::vector<LogEntry>& logEntries, std::vector<std::string>& createdLogEntryIds, double timeout = 5) = 0;
+
+    /// \brief report stat data
+    /// \param data the stat data
+    virtual void ReportStats(const rapidjson::Value& data, rapidjson::Document::AllocatorType& rAlloc, double timeout = 5) = 0;
 };
 
 class MUJINCLIENT_API WebResource

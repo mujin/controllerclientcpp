@@ -174,6 +174,10 @@ public:
     /// \param timeout timeout of uploading log entries in seconds
     void CreateLogEntries(const std::vector<LogEntry>& logEntries, std::vector<std::string>& createdLogEntryIds, double timeout = 5) override;
 
+    /// \brief report stat data
+    /// \param data the stat data
+    virtual void ReportStats(const rapidjson::Value& data, rapidjson::Document::AllocatorType& rAlloc, double timeout) override;
+
     inline std::string GetBaseUri() const
     {
         return _baseuri;

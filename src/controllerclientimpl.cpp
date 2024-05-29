@@ -2158,4 +2158,28 @@ void ControllerClientImpl::CreateLogEntries(const std::vector<LogEntry>& logEntr
     }
 }
 
+void ControllerClientImpl::ReportStats(const rapidjson::Value& data, rapidjson::Document::AllocatorType& rAlloc, double timeout)
+{
+
+    boost::mutex::scoped_lock lock(_mutex);
+    rapidjson::StringBuffer& rRequestStringBuffer = _rRequestStringBufferCache;
+    rRequestStringBuffer.Clear();
+
+    // use the callers allocator to construct the request body
+    rapidjson::Value rRequest, rValue;
+    rRequest.SetObject();
+    rValue.CopyFrom(data, rAlloc);
+    rRequest.AddMember(rapidjson::Document::StringRefType("entries"), rValue, rAlloc);
+
+    rapidjson::Writer<rapidjson::StringBuffer> writer(rRequestStringBuffer);
+    rRequest.Accept(writer);
+
+    _uri = _baseuri + "stats";
+    
+    rapidjson::Value rResultDoc;
+    if( _CallPost(_uri, rRequestStringBuffer.GetString(), rResultDoc, rAlloc, 200, timeout) != 200 ) {
+        throw MUJIN_EXCEPTION_FORMAT0("Failed to report stat, please try again or contact MUJIN support", MEC_HTTPServer);
+    }
+}
+
 } // end namespace mujinclient
