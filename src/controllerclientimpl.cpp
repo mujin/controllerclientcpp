@@ -2174,12 +2174,11 @@ void ControllerClientImpl::ReportStats(const rapidjson::Value& data, rapidjson::
     rapidjson::Writer<rapidjson::StringBuffer> writer(rRequestStringBuffer);
     rRequest.Accept(writer);
 
-    _uri = _baseuri + "stats";
+    _uri = _baseuri + "stats/";
     
     rapidjson::Value rResultDoc;
-    if( _CallPost(_uri, rRequestStringBuffer.GetString(), rResultDoc, rAlloc, 200, timeout) != 200 ) {
-        throw MUJIN_EXCEPTION_FORMAT0("Failed to report stat, please try again or contact MUJIN support", MEC_HTTPServer);
-    }
+    rResultDoc.SetObject();
+    _CallPost(_uri, rRequestStringBuffer.GetString(), rResultDoc, rAlloc, 200, timeout);
 }
 
 } // end namespace mujinclient
