@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.73.0 (2024-05-29)
+
+- Introduce `ReportStats` API.
+
 ## 0.72.0 (2024-04-27)
 
 - change `CreateLogEntries` to use `vector<LogEntry>` for memory optimization

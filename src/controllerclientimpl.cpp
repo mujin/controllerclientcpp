@@ -2177,7 +2177,6 @@ void ControllerClientImpl::ReportStats(const rapidjson::Value& data, rapidjson::
     _uri = _baseuri + "stats/";
     
     rapidjson::Value rResultDoc;
-    rResultDoc.SetObject();
     _CallPost(_uri, rRequestStringBuffer.GetString(), rResultDoc, rAlloc, 200, timeout);
 }
 
