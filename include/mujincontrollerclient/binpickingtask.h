@@ -278,8 +278,8 @@ public:
     struct MUJINCLIENT_API ResultAABB : public ResultBase
     {
         void Parse(const rapidjson::Value& pt);
-        std::vector<Real> pos;
-        std::vector<Real> extents;
+        std::array<double, 3> pos;
+        std::array<double, 3> extents;
     };
 
     struct MUJINCLIENT_API ResultOBB : public ResultBase
@@ -287,17 +287,15 @@ public:
         void Parse(const rapidjson::Value& pt);
         bool operator!=(const ResultOBB& other) const {
             return !mujin::FuzzyEquals(translation, other.translation) ||
-                   !mujin::FuzzyEquals(extents, other.extents) ||
-                   !mujin::FuzzyEquals(rotationmat, other.rotationmat) ||
-                   !mujin::FuzzyEquals(quaternion, other.quaternion);
+                !mujin::FuzzyEquals(quaternion, other.quaternion) ||
+                !mujin::FuzzyEquals(extents, other.extents);
         }
         bool operator==(const ResultOBB& other) const {
             return !operator!=(other);
         }
-        std::vector<Real> translation;
-        std::vector<Real> extents;
-        std::vector<Real> rotationmat;  // row major
-        std::vector<Real> quaternion; // the quaternion
+        std::array<double, 3> translation;
+        std::array<double, 4> quaternion;
+        std::array<double, 3> extents;
     };
 
     struct MUJINCLIENT_API ResultInstObjectInfo : public ResultBase
