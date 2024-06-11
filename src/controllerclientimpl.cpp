@@ -1925,9 +1925,10 @@ void ControllerClientImpl::_UploadFileToControllerViaForm(std::istream& inputStr
         throw MUJIN_EXCEPTION_FORMAT0("failed to rewind inputStream", MEC_InvalidArguments);
     }
 
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_READFUNCTION, NULL, _ReadIStreamCallback);
     // prepare form
-    struct curl_httppost *formpost = NULL;
-    struct curl_httppost *lastptr = NULL;
+    struct curl_httppost *formpost = nullptr;
+    struct curl_httppost *lastptr = nullptr;
     CURLFormReleaser curlFormReleaser{formpost};
     curl_formadd(&formpost, &lastptr,
                  CURLFORM_COPYNAME, "files[]",
