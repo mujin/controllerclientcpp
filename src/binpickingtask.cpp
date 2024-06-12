@@ -563,11 +563,8 @@ BinPickingTaskResource::ResultGetJointValues::~ResultGetJointValues()
 {
 }
 
-void BinPickingTaskResource::ResultGetJointValues::Parse(const rapidjson::Value& pt)
+void BinPickingTaskResource::ResultGetJointValues::Parse(const rapidjson::Value& v)
 {
-    BOOST_ASSERT(pt.IsObject() && pt.HasMember("output"));
-    const rapidjson::Value& v = pt["output"];
-
     LoadJsonValueByKey(v, "robottype", robottype);
     LoadJsonValueByKey(v, "jointnames", jointnames);
     LoadJsonValueByKey(v, "currentjointvalues", currentjointvalues);
@@ -587,10 +584,8 @@ BinPickingTaskResource::ResultMoveJoints::~ResultMoveJoints()
 {
 }
 
-void BinPickingTaskResource::ResultMoveJoints::Parse(const rapidjson::Value& pt)
+void BinPickingTaskResource::ResultMoveJoints::Parse(const rapidjson::Value& v)
 {
-    BOOST_ASSERT(pt.IsObject() && pt.HasMember("output"));
-    const rapidjson::Value& v = pt["output"];
     LoadJsonValueByKey(v, "robottype", robottype);
     LoadJsonValueByKey(v, "timedjointvalues", timedjointvalues);
     LoadJsonValueByKey(v, "numpoints", numpoints);
@@ -600,11 +595,8 @@ BinPickingTaskResource::ResultTransform::~ResultTransform()
 {
 }
 
-void BinPickingTaskResource::ResultTransform::Parse(const rapidjson::Value& pt)
+void BinPickingTaskResource::ResultTransform::Parse(const rapidjson::Value& v)
 {
-    BOOST_ASSERT(pt.IsObject() && pt.HasMember("output"));
-    const rapidjson::Value& v = pt["output"];
-
     LoadJsonValueByKey(v, "translation", transform.translate);
     LoadJsonValueByKey(v, "quaternion", transform.quaternion);
 }
@@ -613,11 +605,8 @@ BinPickingTaskResource::ResultInstObjectInfo::~ResultInstObjectInfo()
 {
 }
 
-void BinPickingTaskResource::ResultInstObjectInfo::Parse(const rapidjson::Value& pt)
+void BinPickingTaskResource::ResultInstObjectInfo::Parse(const rapidjson::Value& rOutput)
 {
-    BOOST_ASSERT(pt.IsObject() && pt.HasMember("output"));
-    const rapidjson::Value& rOutput = pt["output"];
-
     LoadJsonValueByKey(rOutput, "translation", instobjecttransform.translate);
     LoadJsonValueByKey(rOutput, "quaternion", instobjecttransform.quaternion);
     instobjectobb.Parse(rOutput["obb"]);
@@ -636,11 +625,8 @@ BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::~ResultGetInstObjectAn
 {
 }
 
-void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const rapidjson::Value& pt)
+void BinPickingTaskResource::ResultGetInstObjectAndSensorInfo::Parse(const rapidjson::Value& output)
 {
-    BOOST_ASSERT(pt.IsObject() && pt.HasMember("output"));
-    const rapidjson::Value& output = pt["output"];
-
     mrGeometryInfos.clear();
 
     const rapidjson::Value& instobjects = output["instobjects"];
@@ -727,11 +713,8 @@ BinPickingTaskResource::ResultGetBinpickingState::~ResultGetBinpickingState()
 {
 }
 
-void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Value& pt)
+void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Value& v)
 {
-    BOOST_ASSERT(pt.IsObject() && pt.HasMember("output"));
-    const rapidjson::Value& v = pt["output"];
-
     {
         rUnitInfo.SetNull();
         rUnitInfo.GetAllocator().Clear();
@@ -843,20 +826,16 @@ BinPickingTaskResource::ResultIsRobotOccludingBody::~ResultIsRobotOccludingBody(
 {
 }
 
-void BinPickingTaskResource::ResultIsRobotOccludingBody::Parse(const rapidjson::Value& pt)
+void BinPickingTaskResource::ResultIsRobotOccludingBody::Parse(const rapidjson::Value& v)
 {
-    BOOST_ASSERT(pt.IsObject() && pt.HasMember("output"));
-    const rapidjson::Value& v = pt["output"];
     if (!v.IsObject() || !v.HasMember("occluded")) {
         throw MujinException("Output does not have \"occluded\" attribute!", MEC_Failed);
     }
     result = GetJsonValueByKey<int>(v, "occluded", 1) == 1;
 }
 
-void BinPickingTaskResource::ResultGetPickedPositions::Parse(const rapidjson::Value& pt)
+void BinPickingTaskResource::ResultGetPickedPositions::Parse(const rapidjson::Value& v)
 {
-    BOOST_ASSERT(pt.IsObject() && pt.HasMember("output"));
-    const rapidjson::Value& v = pt["output"];
     for (rapidjson::Document::ConstMemberIterator value = v.MemberBegin(); value != v.MemberEnd(); ++value) {
         if (std::string(value->name.GetString()) == "positions" && value->value.IsArray()) {
             for (rapidjson::Document::ConstValueIterator it = value->value.Begin(); it != value->value.End(); ++it) {
@@ -876,10 +855,8 @@ void BinPickingTaskResource::ResultGetPickedPositions::Parse(const rapidjson::Va
     }
 }
 
-void BinPickingTaskResource::ResultAABB::Parse(const rapidjson::Value& pt)
+void BinPickingTaskResource::ResultAABB::Parse(const rapidjson::Value& v)
 {
-    BOOST_ASSERT(pt.IsObject() && pt.HasMember("output"));
-    const rapidjson::Value& v = pt["output"];
     LoadJsonValueByKey(v, "pos", pos);
     LoadJsonValueByKey(v, "extents", extents);
     if (pos.size() != 3) {
@@ -890,19 +867,15 @@ void BinPickingTaskResource::ResultAABB::Parse(const rapidjson::Value& pt)
     }
 }
 
-void BinPickingTaskResource::ResultOBB::Parse(const rapidjson::Value& pt)
+void BinPickingTaskResource::ResultOBB::Parse(const rapidjson::Value& v)
 {
-    const rapidjson::Value&  v = (pt.IsObject()&&pt.HasMember("output") ? pt["output"] : pt);
-
     LoadJsonValueByKey(v, "translation", translation);
     LoadJsonValueByKey(v, "extents", extents);
     LoadJsonValueByKey(v, "quaternion", quaternion);
 }
 
-void BinPickingTaskResource::ResultComputeIkParamPosition::Parse(const rapidjson::Value& pt)
+void BinPickingTaskResource::ResultComputeIkParamPosition::Parse(const rapidjson::Value& v)
 {
-    BOOST_ASSERT(pt.IsObject() && pt.HasMember("output"));
-    const rapidjson::Value& v = pt["output"];
     LoadJsonValueByKey(v, "translation", translation);
     LoadJsonValueByKey(v, "quaternion", quaternion);
     LoadJsonValueByKey(v, "direction", direction);
@@ -924,10 +897,8 @@ void BinPickingTaskResource::ResultComputeIkParamPosition::Parse(const rapidjson
     }
 }
 
-void BinPickingTaskResource::ResultComputeIKFromParameters::Parse(const rapidjson::Value& pt)
+void BinPickingTaskResource::ResultComputeIKFromParameters::Parse(const rapidjson::Value& v_)
 {
-    BOOST_ASSERT(pt.IsObject() && pt.HasMember("output"));
-    const rapidjson::Value& v_ = pt["output"];
     BOOST_ASSERT(v_.IsObject() && v_.HasMember("solutions"));
     const rapidjson::Value& v = v_["solutions"];
     for (rapidjson::Document::ConstValueIterator it = v.Begin(); it != v.End(); ++it) {
@@ -1045,12 +1016,12 @@ GenerateMoveToolByIkParamCommand(const std::string &movetype, const std::string 
 
 }
 
-void SetTrajectory(const rapidjson::Value &pt,
+void SetTrajectory(const rapidjson::Value &output,
                    std::string *pTraj) {
-    if (!(pt.IsObject() && pt.HasMember("output") && pt["output"].HasMember("trajectory"))) {
+    if (!(output.IsObject() && output.HasMember("trajectory"))) {
         throw MujinException("trajectory is not available in output", MEC_Failed);
     }
-    *pTraj = GetJsonValueByPath<std::string>(pt, "/output/trajectory");
+    *pTraj = GetJsonValueByKey<std::string>(output, "trajectory");
 }
 }
 
@@ -1717,10 +1688,8 @@ void BinPickingTaskResource::GetGrabbed(std::vector<std::string>& grabbed, const
     if (!robotname.empty()) {
         SetJsonValueByKey(pt, "robotname", robotname);
     }
-    rapidjson::Document d;
-    ExecuteCommand(DumpJson(pt), d, timeout); // need to check return code
-    BOOST_ASSERT(d.IsObject() && d.HasMember("output"));
-    const rapidjson::Value& v = d["output"];
+    rapidjson::Document v;
+    ExecuteCommand(DumpJson(pt), v, timeout); // need to check return code
     if(v.HasMember("names") && !v["names"].IsNull()) {
         LoadJsonValueByKey(v, "names", grabbed);
     }
@@ -1775,10 +1744,8 @@ void BinPickingTaskResource::GetRobotBridgeIOVariableString(const std::vector<st
     _ss << GetJsonString("command", "GetRobotBridgeIOVariableString") << ", ";
     _ss << "\"ionames\":" << GetJsonString(ionames);
     _ss << "}";
-    rapidjson::Document d;
-    ExecuteCommand(_ss.str(), d, timeout);
-    BOOST_ASSERT(d.IsObject() && d.HasMember("output"));
-    const rapidjson::Value& rIOOutputs = d["output"];
+    rapidjson::Document rIOOutputs;
+    ExecuteCommand(_ss.str(), rIOOutputs, timeout);
 
     // process
     iovalues.resize(ionames.size());
@@ -1802,6 +1769,8 @@ void BinPickingTaskResource::ExecuteCommand(const std::string& taskparameters, r
     if (!_bIsInitialized) {
         throw MujinException("BinPicking task is not initialized, please call Initialzie() first.", MEC_Failed);
     }
+
+    throw MujinException("not implemented");
 
     GETCONTROLLERIMPL();
 
