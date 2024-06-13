@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.73.0 (2024-06-08)
+
+- Remove `rotationmat` from `ResultOBB`. Use fixed size array on `ResultOBB`.
+
+## 0.72.0 (2024-04-27)
+
+- change `CreateLogEntries` to use `vector<LogEntry>` for memory optimization
+
+## 0.71.0 (2024-03-26)
+
+- Add objectType field in RegisterMinViableRegionInfo
+
 ## 0.70.2 (2023-11-21)
 
 - Fix memory leak by incorrect usage of `curl_formfree`.

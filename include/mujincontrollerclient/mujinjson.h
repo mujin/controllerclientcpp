@@ -348,6 +348,18 @@ inline void LoadJsonValue(const rapidjson::Value& v, int& t) {
     }
 }
 
+inline void LoadJsonValue(const rapidjson::Value& v, int16_t& t) {
+    if (v.IsInt()) {
+        t = v.GetInt();
+    } else if (v.IsString()) {
+        t = boost::lexical_cast<int16_t>(v.GetString());
+    } else if (v.IsBool()) {
+        t = v.GetBool() ? 1 : 0;
+    } else {
+        throw MujinJSONException("Cannot convert JSON type %s to Int" + GetJsonString(v));
+    }
+}
+
 inline void LoadJsonValue(const rapidjson::Value& v, int8_t& t) {
     if (v.IsInt()) {
         t = v.GetInt();
