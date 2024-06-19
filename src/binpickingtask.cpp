@@ -18,6 +18,8 @@
 #endif
 #include <boost/thread.hpp> // for sleep
 #include "mujincontrollerclient/binpickingtask.h"
+#include "mujincontrollerclient/mujinjsonmsgpack.h"
+#include "mujincontrollerclient/mujinmasterslaveclient.h"
 
 #ifdef MUJIN_USEZMQ
 #include "mujincontrollerclient/zmq.hpp"
@@ -1933,21 +1935,71 @@ std::string utils::GetHeartbeat(const std::string& endpoint) {
     zmq::context_t zmqcontext(1);
     zmq::socket_t socket(zmqcontext, ZMQ_SUB);
     socket.connect(endpoint.c_str());
-    socket.setsockopt(ZMQ_SUBSCRIBE, "", 0);
+    socket.set(zmq::sockopt::subscribe, "m");
 
-    zmq::pollitem_t pollitem;
-    memset(&pollitem, 0, sizeof(zmq::pollitem_t));
-    pollitem.socket = socket;
-    pollitem.events = ZMQ_POLLIN;
-
-    zmq::poll(&pollitem,1, 50); // wait 50 ms for message
+    zmq::pollitem_t pollitem = {
+        .socket = socket,
+        .events = ZMQ_POLLIN,
+    };
+    zmq::poll(&pollitem, 1, 50); // wait 50 ms for message
     if (!(pollitem.revents & ZMQ_POLLIN)) {
         return "";
     }
 
     zmq::message_t reply;
-    socket.recv(&reply);
-    const std::string received((char *)reply.data (), (size_t)reply.size());
+    socket.recv(reply);
+    BOOST_ASSERT(reply.more() && reply.to_string() == "m");
+
+    socket.recv(reply);
+    socket.set(zmq::sockopt::unsubscribe, "m");
+
+    // FIXME: for backward compatibility, we reconstruct the old format
+    rapidjson::Document document = mujinmasterslaveclient::DecodeFromFrame<rapidjson::Document>(reply);
+    const rapidjson::Document::ConstMemberIterator slaves = document.FindMember("slaves");
+    size_t numSlaves = 0;
+    if (slaves != document.MemberEnd()) {
+        for (rapidjson::Document::ConstValueIterator iterator = slaves->value.Begin(); iterator != slaves->value.End(); ++iterator) {
+            std::string topic("s");
+            topic += iterator->GetString();
+            socket.set(zmq::sockopt::subscribe, topic);
+            ++numSlaves;
+        }
+    }
+    document.AddMember("slavestates", rapidjson::Value(rapidjson::kObjectType), document.GetAllocator());
+    rapidjson::Value &slaveStates = document["slavestates"];
+
+    while (numSlaves > 0) {
+        zmq::poll(&pollitem, 1, 50); // wait 50 ms for message
+        if (!(pollitem.revents & ZMQ_POLLIN)) {
+            break;
+        }
+
+        socket.recv(reply);
+        BOOST_ASSERT(reply.more());
+        const std::string topic = reply.to_string();
+
+        socket.recv(reply);
+        socket.set(zmq::sockopt::unsubscribe, topic);
+
+        GenericMsgpackParser parser(document.GetAllocator());
+        if (!msgpack::parse(reply.data<char>(), reply.size(), parser)) {
+            throw std::invalid_argument("unable to parse");
+        }
+
+        if (topic.empty() || topic[0] != 's') {
+            continue;
+        }
+
+        const std::string slaveRequestId = "slaverequestid-" + topic.substr(1);
+        if (slaveStates.FindMember(rapidjson::StringRef(slaveRequestId.data(), slaveRequestId.size())) == slaveStates.MemberEnd()) {
+            --numSlaves;
+            slaveStates.AddMember(
+                rapidjson::Value(slaveRequestId.data(), slaveRequestId.size(), document.GetAllocator()),
+                parser.Extract(), document.GetAllocator());
+        }
+    }
+
+    const std::string received = DumpJson(document);
 #ifndef _WIN32
     return received;
 #else
