@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.73.2 (2024-06-26)
+
+- Fix invalid JSON string construction.
+
+## 0.73.1 (2024-06-12)
+
+- Add post helper function for formdata.
+
 ## 0.73.0 (2024-06-08)
 
 - Remove `rotationmat` from `ResultOBB`. Use fixed size array on `ResultOBB`.
