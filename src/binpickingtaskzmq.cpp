@@ -81,12 +81,12 @@ void BinPickingTaskZmqResource::Initialize(const std::string& defaultTaskParamet
 
 void _LogTaskParametersAndThrow(const std::string& taskparameters) {
     std::string errstr;
-    if (taskparameters.size()>1000) {
-        errstr = taskparameters.substr(0, 1000);
+    if (taskparameters.size() > 1000) {
+        errstr = taskparameters.substr(0, 1000 - 3) + "...";
     } else {
         errstr = taskparameters;
     }
-    throw MujinException(boost::str(boost::format("Timed out receiving response of command with taskparameters=%s...")%errstr));
+    throw MujinException(boost::str(boost::format("Timed out receiving response of command with taskparameters=%s")%errstr), MEC_Timeout);
 }
 
 void BinPickingTaskZmqResource::ExecuteCommand(const std::string& taskparameters, rapidjson::Document &pt, const double timeout /* [sec] */, const bool getresult)
@@ -189,8 +189,6 @@ void BinPickingTaskZmqResource::_ExecuteCommandZMQ(const std::string& command, r
             if (!_zmqmujincontrollerclient) {
                 throw MujinException(boost::str(boost::format("Failed to establish ZMQ connection to mujin controller at %s:%d")%_mujinControllerIp%_zmqPort), MEC_Failed);
             }
-        } else if (e.GetCode() == MEC_Timeout) {
-            throw MujinException("");  // Filled by `ExecuteCommand` callers who can access taskparameters more easily
         }
         else {
             throw;

@@ -897,25 +897,6 @@ void BinPickingTaskResource::ResultOBB::Parse(const rapidjson::Value& pt)
 
     LoadJsonValueByKey(v, "translation", translation);
     LoadJsonValueByKey(v, "extents", extents);
-    std::vector<std::vector<Real> > rotationmatrix2d;
-    LoadJsonValueByKey(v, "rotationmat", rotationmatrix2d);
-    if (translation.size() != 3) {
-        throw MujinException("The length of translation is invalid.", MEC_Failed);
-    }
-    if (extents.size() != 3) {
-        throw MujinException("The length of extents is invalid.", MEC_Failed);
-    }
-    if (rotationmatrix2d.size() != 3 || rotationmatrix2d[0].size() != 3 || rotationmatrix2d[1].size() != 3 || rotationmatrix2d[2].size() != 3) {
-        throw MujinException("The row number of rotationmat is invalid.", MEC_Failed);
-    }
-
-    rotationmat.resize(9);
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            rotationmat[i*3+j] = rotationmatrix2d[i][j];
-        }
-    }
-
     LoadJsonValueByKey(v, "quaternion", quaternion);
 }
 

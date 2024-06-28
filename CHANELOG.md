@@ -1,9 +1,13 @@
 # Changelog
 
-## 0.73.0 (2024-05-02)
+## 0.74.0 (2024-06-28)
 
 - Add `EdgeValidationInfos` to `PickPlaceHistoryItem` for the size validation feature.
 - Add `waitForCaptureTrigger` to `TriggerDetectionCaptureInfo` to use capturing with wait-for-trigger enabled.
+
+## 0.73.0 (2024-06-08)
+
+- Remove `rotationmat` from `ResultOBB`. Use fixed size array on `ResultOBB`.
 
 ## 0.72.0 (2024-04-27)
 

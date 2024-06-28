@@ -773,7 +773,6 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, rapidjson::Value&
     }
     if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
         std::string error_message = GetJsonValueByKey<std::string>(rResponse, "error_message");
-        std::string traceback = GetJsonValueByKey<std::string>(rResponse, "traceback");
         throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s: %s", desturi%http_code%error_message, MEC_HTTPServer);
     }
     return http_code;
@@ -807,7 +806,6 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, std::string& outp
             rapidjson::Document d;
             ParseJson(d, _buffer.str());
             std::string error_message = GetJsonValueByKey<std::string>(d, "error_message");
-            std::string traceback = GetJsonValueByKey<std::string>(d, "traceback");
             throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s: %s", desturi%http_code%error_message, MEC_HTTPServer);
         }
         throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s", desturi%http_code, MEC_HTTPServer);
@@ -872,7 +870,6 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, std::vector<unsig
             ss.write((const char*)&outputdata[0], outputdata.size());
             ParseJson(d, ss.str());
             std::string error_message = GetJsonValueByKey<std::string>(d, "error_message");
-            std::string traceback = GetJsonValueByKey<std::string>(d, "traceback");
             throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s: %s", desturi%http_code%error_message, MEC_HTTPServer);
         }
         throw MUJIN_EXCEPTION_FORMAT("HTTP GET to '%s' returned HTTP status %s", desturi%http_code, MEC_HTTPServer);
@@ -893,7 +890,7 @@ int ControllerClientImpl::CallPost(const std::string& relativeuri, const std::st
 /// \brief expectedhttpcode is not 0, then will check with the returned http code and if not equal will throw an exception
 int ControllerClientImpl::_CallPost(const std::string& desturi, const std::string& data, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& alloc, int expectedhttpcode, double timeout)
 {
-    MUJIN_LOG_VERBOSE(str(boost::format("POST %s")%desturi));
+    MUJIN_LOG_VERBOSE(str(boost::format("POST(json) %s")%desturi));
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_TIMEOUT_MS, 0L, (long)(timeout * 1000L));
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPHEADER, NULL, _httpheadersjson);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, desturi.c_str());
@@ -914,10 +911,34 @@ int ControllerClientImpl::_CallPost(const std::string& desturi, const std::strin
     }
     if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
         std::string error_message = GetJsonValueByKey<std::string>(rResult, "error_message");
-        std::string traceback = GetJsonValueByKey<std::string>(rResult, "traceback");
         throw MUJIN_EXCEPTION_FORMAT("HTTP POST to '%s' returned HTTP status %s: %s", desturi%http_code%error_message, MEC_HTTPServer);
     }
     return http_code;
+}
+
+int ControllerClientImpl::_CallPost(const std::string& desturi, const curl_httppost* data, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& alloc, int expectedhttpcode, double timeout)
+{
+    MUJIN_LOG_VERBOSE(str(boost::format("POST(form) %s")%desturi));
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_TIMEOUT_MS, 0L, static_cast<long>(timeout * 1000L));
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, nullptr, desturi.data());
+    _buffer.clear();
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEFUNCTION, nullptr, _WriteStringStreamCallback);
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEDATA, nullptr, &_buffer);
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPPOST, nullptr, data);
+    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPHEADER, nullptr, _httpheadersmultipartformdata);
+    CURL_PERFORM(_curl);
+    long http_code = 0;
+    CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
+    if( _buffer.rdbuf()->in_avail() > 0 ) {
+        ParseJson(rResult, alloc, _buffer);
+    } else {
+        rResult.SetObject();
+    }
+    if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
+        const std::string error_message = GetJsonValueByKey<std::string>(rResult, "error_message");
+        throw MUJIN_EXCEPTION_FORMAT("HTTP POST to '%s' returned HTTP status %s: %s", desturi%http_code%error_message, MEC_HTTPServer);
+    }
+    return static_cast<int>(http_code);
 }
 
 int ControllerClientImpl::CallPost_UTF8(const std::string& relativeuri, const std::string& data, rapidjson::Document& pt, int expectedhttpcode, double timeout)
@@ -956,7 +977,6 @@ int ControllerClientImpl::_CallPut(const std::string& relativeuri, const void* p
     }
     if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
         std::string error_message = GetJsonValueByKey<std::string>(pt, "error_message");
-        std::string traceback = GetJsonValueByKey<std::string>(pt, "traceback");
         throw MUJIN_EXCEPTION_FORMAT("HTTP PUT to '%s' returned HTTP status %s: %s", relativeuri%http_code%error_message, MEC_HTTPServer);
     }
     return http_code;
@@ -993,7 +1013,6 @@ void ControllerClientImpl::CallDelete(const std::string& relativeuri, int expect
         rapidjson::Document d;
         ParseJson(d, _buffer.str());
         std::string error_message = GetJsonValueByKey<std::string>(d, "error_message");
-        std::string traceback = GetJsonValueByKey<std::string>(d, "traceback");
         throw MUJIN_EXCEPTION_FORMAT("HTTP DELETE to '%s' returned HTTP status %s: %s", relativeuri%http_code%error_message, MEC_HTTPServer);
     }
 }
@@ -1892,14 +1911,6 @@ void ControllerClientImpl::_UploadFileToController_UTF16(const std::wstring& fil
 
 void ControllerClientImpl::_UploadFileToControllerViaForm(std::istream& inputStream, const std::string& filename, const std::string& endpoint, double timeout)
 {
-    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, endpoint.c_str());
-    _buffer.clear();
-    _buffer.str("");
-    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEFUNCTION, NULL, _WriteStringStreamCallback);
-    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEDATA, NULL, &_buffer);
-    //timeout is default to 0 (never)
-    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_TIMEOUT_MS, 0L, (long)(timeout * 1000L));
-
     std::streampos originalPos = inputStream.tellg();
     inputStream.seekg(0, std::ios::end);
     if(inputStream.fail()) {
@@ -1916,8 +1927,8 @@ void ControllerClientImpl::_UploadFileToControllerViaForm(std::istream& inputStr
 
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_READFUNCTION, NULL, _ReadIStreamCallback);
     // prepare form
-    struct curl_httppost *formpost = NULL;
-    struct curl_httppost *lastptr = NULL;
+    struct curl_httppost *formpost = nullptr;
+    struct curl_httppost *lastptr = nullptr;
     CURLFormReleaser curlFormReleaser{formpost};
     curl_formadd(&formpost, &lastptr,
                  CURLFORM_COPYNAME, "files[]",
@@ -1940,32 +1951,17 @@ void ControllerClientImpl::_UploadFileToControllerViaForm(std::istream& inputStr
                      CURLFORM_COPYCONTENTS, filename.c_str(),
                      CURLFORM_END);
     }
-    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPPOST, NULL, formpost);
-    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPHEADER, NULL, _httpheadersmultipartformdata);
-    CURL_PERFORM(_curl);
-    // get http status
-    long http_code = 0;
-    CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
 
+    rapidjson::Document ignored;
     // 204 is when it overwrites the file?
-    if( http_code != 200 ) {
-        throw MUJIN_EXCEPTION_FORMAT("upload of %s to %s failed with HTTP status %s", filename%endpoint%http_code, MEC_HTTPServer);
-    }
+    _CallPost(endpoint, formpost, ignored, ignored.GetAllocator(), 200, timeout);
 }
 
 void ControllerClientImpl::_UploadDataToControllerViaForm(const void* data, size_t size, const std::string& filename, const std::string& endpoint, double timeout)
 {
-    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, endpoint.c_str());
-    _buffer.clear();
-    _buffer.str("");
-    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEFUNCTION, NULL, _WriteStringStreamCallback);
-    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEDATA, NULL, &_buffer);
-    //timeout is default to 0 (never)
-    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_TIMEOUT_MS, 0L, (long)(timeout * 1000L));
-
     // prepare form
-    struct curl_httppost *formpost = NULL;
-    struct curl_httppost *lastptr = NULL;
+    struct curl_httppost *formpost = nullptr;
+    struct curl_httppost *lastptr = nullptr;
     CURLFormReleaser curlFormReleaser{formpost};
     curl_formadd(&formpost, &lastptr,
                  CURLFORM_PTRNAME, "files[]",
@@ -1978,17 +1974,10 @@ void ControllerClientImpl::_UploadDataToControllerViaForm(const void* data, size
                      CURLFORM_PTRCONTENTS, filename.c_str(),
                      CURLFORM_END);
     }
-    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPPOST, NULL, formpost);
-    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPHEADER, NULL, _httpheadersmultipartformdata);
-    CURL_PERFORM(_curl);
-    // get http status
-    long http_code = 0;
-    CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
 
+    rapidjson::Document ignored;
     // 204 is when it overwrites the file?
-    if( http_code != 200 ) {
-        throw MUJIN_EXCEPTION_FORMAT("upload of %s to %s failed with HTTP status %s", filename%endpoint%http_code, MEC_HTTPServer);
-    }
+    _CallPost(endpoint, formpost, ignored, ignored.GetAllocator(), 200, timeout);
 }
 
 void ControllerClientImpl::_DeleteFileOnController(const std::string& desturi)
@@ -2086,19 +2075,9 @@ void ControllerClientImpl::CreateLogEntries(const std::vector<LogEntry>& logEntr
 
     boost::mutex::scoped_lock lock(_mutex);
 
-    // prepare the cURL options
-    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_TIMEOUT_MS, 0L, (long)(timeout * 1000L));
-    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPHEADER, NULL, _httpheadersmultipartformdata);
-    _uri = _baseuri + "api/v2/logEntry";
-    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, _uri.c_str());
-    _buffer.clear();
-    _buffer.str("");
-    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEFUNCTION, NULL, _WriteStringStreamCallback);
-    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEDATA, NULL, &_buffer);
-
     // prepare the form
-    struct curl_httppost *formpost = NULL;
-    struct curl_httppost *lastptr = NULL;
+    struct curl_httppost *formpost = nullptr;
+    struct curl_httppost *lastptr = nullptr;
     CURLFormReleaser curlFormReleaser{formpost};
 
     rapidjson::StringBuffer& rRequestStringBuffer = _rRequestStringBufferCache;
@@ -2127,24 +2106,11 @@ void ControllerClientImpl::CreateLogEntries(const std::vector<LogEntry>& logEntr
         }
     }
 
-    CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPPOST, NULL, formpost);
-
     // perform the call
-    CURL_PERFORM(_curl);
-
-    // get http status
-    long http_code = 0;
-    CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
-    if (http_code != 201) {
-        throw MUJIN_EXCEPTION_FORMAT("upload failed with HTTP status %d", http_code, MEC_HTTPServer);
-    }
-
-    // parse the result
-    if (_buffer.rdbuf()->in_avail() <= 0) {
-        return;
-    }
     rapidjson::Document rResultDoc;
-    mujinjson::ParseJson(rResultDoc, _buffer);
+    _uri = _baseuri + "api/v2/logEntry";
+    _CallPost(_uri, formpost, rResultDoc, rResultDoc.GetAllocator(), 201, timeout);
+
     if (!rResultDoc.IsObject() || !rResultDoc.HasMember("logEntryIds") || !rResultDoc["logEntryIds"].IsArray()) {
         throw MUJIN_EXCEPTION_FORMAT("invalid response received while uploading log entries: %s", mujinjson::DumpJson(rResultDoc), MEC_HTTPServer);
     }
@@ -2153,7 +2119,7 @@ void ControllerClientImpl::CreateLogEntries(const std::vector<LogEntry>& logEntr
     const rapidjson::Value& logEntryIdsArray = rResultDoc["logEntryIds"];
     for (rapidjson::Value::ConstValueIterator itLogEntryId = logEntryIdsArray.Begin(); itLogEntryId != logEntryIdsArray.End(); ++itLogEntryId) {
         if (itLogEntryId->IsString()) {
-            createdLogEntryIds.push_back(itLogEntryId->GetString());
+            createdLogEntryIds.emplace_back(itLogEntryId->GetString());
         }
     }
 }
