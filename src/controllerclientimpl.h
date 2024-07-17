@@ -172,7 +172,7 @@ public:
     /// \param logEntries a vector of log entries to upload
     /// \param createdLogEntryIds an optional vector for storing the created log entry ids
     /// \param timeout timeout of uploading log entries in seconds
-    void CreateLogEntries(const std::vector<LogEntryPtr>& logEntries, std::vector<std::string>& createdLogEntryIds, double timeout = 5) override;
+    void CreateLogEntries(const std::vector<LogEntry>& logEntries, std::vector<std::string>& createdLogEntryIds, double timeout = 5) override;
 
     inline std::string GetBaseUri() const
     {
@@ -236,6 +236,7 @@ protected:
     int _CallGet(const std::string& desturi, std::vector<unsigned char>& outputdata, int expectedhttpcode=200, double timeout = 5.0);
     int _CallGet(const std::string& desturi, std::ostream& outputStream, int expectedhttpcode=200, double timeout = 5.0);
     int _CallPost(const std::string& desturi, const std::string& data, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& alloc, int expectedhttpcode=201, double timeout = 5.0);
+    int _CallPost(const std::string& desturi, const curl_httppost* data, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& alloc, int expectedhttpcode=201, double timeout = 5.0);
 
     /// \brief desturi is URL-encoded. Also assume _mutex is locked.
     virtual void _UploadFileToController_UTF8(const std::string& filename, const std::string& desturi);
