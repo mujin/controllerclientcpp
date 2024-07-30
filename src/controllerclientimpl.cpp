@@ -922,6 +922,7 @@ int ControllerClientImpl::_CallPost(const std::string& desturi, const curl_httpp
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_TIMEOUT_MS, 0L, static_cast<long>(timeout * 1000L));
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, nullptr, desturi.data());
     _buffer.clear();
+    _buffer.str("");
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEFUNCTION, nullptr, _WriteStringStreamCallback);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEDATA, nullptr, &_buffer);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPPOST, nullptr, data);
