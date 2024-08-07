@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.73.4 (2024-08-07)
+
+- Fix the logging error with 'No error', ensured that the curl function is executed only once in the CHECKCURLCODE macro.
+
 ## 0.73.3 (2024-07-30)
 
 - Fix missing buffer reset in post helper function.
