@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.73.3 (2024-07-30)
+
+- Fix missing buffer reset in post helper function.
+
 ## 0.73.2 (2024-06-26)
 
 - Fix invalid JSON string construction.
