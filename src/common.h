@@ -196,12 +196,18 @@ inline static unsigned long long GetNanoPerformanceTime()
         } \
 }
 #if CURL_AT_LEAST_VERSION(7,80,0)
-#define CHECKCURLUCODE(code, msg) if (code != CURLUE_OK) { \
-        throw MujinException(boost::str(boost::format("[%s:%d] curl function %s with error '%s': %s")%(__PRETTY_FUNCTION__)%(__LINE__)%(msg)%curl_url_strerror(code)%_errormessage), MEC_HTTPClient); \
+#define CHECKCURLUCODE(code, msg) { \
+    CURLUcode returnCode = code; \
+    if (returnCode != CURLUE_OK) { \
+        throw MujinException(boost::str(boost::format("[%s:%d] curl function %s with error '%s': %s")%(__PRETTY_FUNCTION__)%(__LINE__)%(msg)%curl_url_strerror(returnCode)%_errormessage), MEC_HTTPClient); \
+    } \
 }
 #else
-#define CHECKCURLUCODE(code, msg) if (code != CURLUE_OK) { \
-        throw MujinException(boost::str(boost::format("[%s:%d] curl function %s with error %d: %s")%(__PRETTY_FUNCTION__)%(__LINE__)%(msg)%(code)%_errormessage), MEC_HTTPClient); \
+#define CHECKCURLUCODE(code, msg) { \
+    CURLUcode returnCode = code; \
+    if (returnCode != CURLUE_OK) { \
+        throw MujinException(boost::str(boost::format("[%s:%d] curl function %s with error %d: %s")%(__PRETTY_FUNCTION__)%(__LINE__)%(msg)%(returnCode)%_errormessage), MEC_HTTPClient); \
+    } \
 }
 #endif
 
