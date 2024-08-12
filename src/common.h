@@ -190,21 +190,21 @@ inline static unsigned long long GetNanoPerformanceTime()
 #define CHECKCURLCODE(code, msg) { \
         /* The parameter 'code' (which is a curl function) here will be evaluated twice if it is used in the if condition check and passed in the curl_easy_strerror \
            Therefore, we use returnCode to store the CURLcode returned by the parameter 'code', and pass the returnCode to the curl_easy_strerror function */ \
-        CURLcode returnCode = code; \
+        const CURLcode returnCode = code; \
         if (returnCode != CURLE_OK) { \
             throw MujinException(boost::str(boost::format("[%s:%d] curl function %s with error '%s': %s")%(__PRETTY_FUNCTION__)%(__LINE__)%(msg)%curl_easy_strerror(returnCode)%_errormessage), MEC_HTTPClient); \
         } \
 }
 #if CURL_AT_LEAST_VERSION(7,80,0)
 #define CHECKCURLUCODE(code, msg) { \
-    CURLUcode returnCode = code; \
+    const CURLUcode returnCode = code; \
     if (returnCode != CURLUE_OK) { \
         throw MujinException(boost::str(boost::format("[%s:%d] curl function %s with error '%s': %s")%(__PRETTY_FUNCTION__)%(__LINE__)%(msg)%curl_url_strerror(returnCode)%_errormessage), MEC_HTTPClient); \
     } \
 }
 #else
 #define CHECKCURLUCODE(code, msg) { \
-    CURLUcode returnCode = code; \
+    const CURLUcode returnCode = code; \
     if (returnCode != CURLUE_OK) { \
         throw MujinException(boost::str(boost::format("[%s:%d] curl function %s with error %d: %s")%(__PRETTY_FUNCTION__)%(__LINE__)%(msg)%(returnCode)%_errormessage), MEC_HTTPClient); \
     } \

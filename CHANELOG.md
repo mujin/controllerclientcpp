@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.73.5 (2024-08-12)
+
+- Made the variable 'returnCode' that stores the CURLcode or CURLUcode a const variable.
+
 ## 0.73.4 (2024-08-07)
 
 - Fix the logging error with 'No error', ensured that the curl function is executed only once in the CHECKCURLCODE macro.
