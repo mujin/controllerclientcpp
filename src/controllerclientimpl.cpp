@@ -16,6 +16,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/scope_exit.hpp>
+#include <boost/beast/core/detail/base64.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <strstream>
 
@@ -341,6 +342,14 @@ const ControllerClientInfo& ControllerClientImpl::GetClientInfo() const
     return _clientInfo;
 }
 
+std::string ControllerClientImpl::GetEncodeBase64String(const std::string& data) 
+{
+    std::string encoded;
+    encoded.resize(boost::beast::detail::base64::encoded_size(data.size()));
+    boost::beast::detail::base64::encode(&encoded[0], data.data(), data.size());
+    return encoded;
+}
+
 void ControllerClientImpl::SetCharacterEncoding(const std::string& newencoding)
 {
     boost::mutex::scoped_lock lock(_mutex);
@@ -473,6 +482,38 @@ void ControllerClientImpl::ExecuteGraphQuery(const char* operationName, const ch
 void ControllerClientImpl::ExecuteGraphQueryRaw(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout)
 {
     _ExecuteGraphQuery(operationName, query, rVariables, rResult, rAlloc, timeout, false, true);
+}
+
+void ControllerClientImpl::ExecuteGraphSubscription(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Document::AllocatorType& rAlloc) 
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    if (!_pWebsocketStream->is_open()) {
+        CreateWebSocketStream();
+    }
+    rapidjson::StringBuffer& rRequestStringBuffer = _rRequestStringBufferCache;
+    rRequestStringBuffer.Clear();
+
+    rapidjson::Value rRequest, rPayLoad, rValue;
+    rRequest.SetObject();
+    rPayLoad.SetObject();
+    rValue.SetString(operationName, rAlloc);
+    rPayLoad.AddMember(rapidjson::Document::StringRefType("operationName"), rValue, rAlloc);
+    rValue.SetString(query, rAlloc);
+    rPayLoad.AddMember(rapidjson::Document::StringRefType("query"), rValue, rAlloc);
+    rValue.CopyFrom(rVariables, rAlloc);
+    rPayLoad.AddMember(rapidjson::Document::StringRefType("variables"), rValue, rAlloc);
+    rValue.SetString("start", rAlloc);
+    rRequest.AddMember(rapidjson::Document::StringRefType("type"), rValue, rAlloc);
+    rRequest.AddMember(rapidjson::Document::StringRefType("payload"), rPayLoad, rAlloc);
+
+    rapidjson::Writer<rapidjson::StringBuffer> writer(rRequestStringBuffer);
+    rRequest.Accept(writer);
+    _pWebsocketStream->write(rRequestStringBuffer.GetString());
+    rRequestStringBuffer.Clear();
+}
+
+std::string ControllerClientImpl::SpinOnce(){
+    return _pWebsocketStream->read();
 }
 
 void ControllerClientImpl::RestartServer(double timeout)
@@ -2004,6 +2045,56 @@ void ControllerClientImpl::_DeleteDirectoryOnController(const std::string& destu
     long http_code = 0;
     CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
     MUJIN_LOG_INFO("response code: " << http_code);
+}
+
+void ControllerClientImpl::_SendConnectionInitMessage() 
+{
+    boost::mutex::scoped_lock lock(_mutex);
+    rapidjson::StringBuffer& rRequestStringBuffer = _rRequestStringBufferCache;
+    rRequestStringBuffer.Clear();
+
+    rapidjson::Document rConnectionInitMessage(rapidjson::kObjectType);
+    rapidjson::Document::AllocatorType& rAlloc = rConnectionInitMessage.GetAllocator();
+
+    rapidjson::Value rPayLoad(rapidjson::kObjectType);
+    mujinjson::SetJsonValueByKey(rConnectionInitMessage, "type", "connection_init", rAlloc);
+    mujinjson::SetJsonValueByKey(rPayLoad, "X-CSRFToken", _csrfmiddlewaretoken, rAlloc);
+    mujinjson::SetJsonValueByKey(rConnectionInitMessage, "payload", rPayLoad, rAlloc);
+    rapidjson::Writer<rapidjson::StringBuffer> writer(rRequestStringBuffer);
+    rConnectionInitMessage.Accept(writer);
+    _pWebsocketStream->write(rRequestStringBuffer.GetString());
+    rRequestStringBuffer.Clear();
+}
+
+void ControllerClientImpl::CreateWebSocketStream() 
+{
+    boost::asio::io_context io_context;
+    MUJIN_LOG_INFO(_clientInfo.host);
+    MUJIN_LOG_INFO(_clientInfo.unixEndpoint);
+    MUJIN_LOG_INFO(_csrfmiddlewaretoken);
+    if (_clientInfo.unixEndpoint.empty()) {
+        MUJIN_LOG_INFO(boost::format("Create TCP socket connected to host %s") % _clientInfo.host);
+        boost::asio::ip::tcp::socket socket(io_context);
+        boost::asio::ip::address address = boost::asio::ip::address::from_string(_clientInfo.host);
+        boost::asio::ip::tcp::endpoint endpoint(address, 80);
+        socket.connect(endpoint);
+        _pWebsocketStream = std::make_unique<TCPWebSocketStream>(std::move(socket));
+    } else {
+        MUJIN_LOG_INFO(boost::format("Create unix domain socket connected to endpoint %s") % _clientInfo.unixEndpoint);
+        boost::asio::local::stream_protocol::socket socket(io_context);
+        boost::asio::local::stream_protocol::endpoint endpoint(_clientInfo.unixEndpoint);
+        socket.connect(endpoint);
+        _pWebsocketStream = std::make_unique<UnixWebSocketStream>(std::move(socket));
+    }
+    std::string usernamepassword = _clientInfo.username + ":" + _clientInfo.password;
+    std::string encodedusernamepassword = GetEncodeBase64String(usernamepassword);
+    _pWebsocketStream->set_option(usernamepassword, encodedusernamepassword);
+    _pWebsocketStream->handshake(_clientInfo.host, "/api/v2/graphql");
+    _SendConnectionInitMessage();
+    std::string connectionResponse = _pWebsocketStream->read();
+    if (connectionResponse.find("connection_ack") == std::string::npos) {
+        throw MUJIN_EXCEPTION_FORMAT("Failed to initialize websocket connection, Expected 'connection_ack' in response, but got: %s", connectionResponse, MEC_HTTPServer);
+    }
 }
 
 size_t ControllerClientImpl::_ReadUploadCallback(void *ptr, size_t size, size_t nmemb, void *stream)
