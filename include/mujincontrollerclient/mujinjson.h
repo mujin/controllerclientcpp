@@ -30,10 +30,8 @@
 #include <boost/assert.hpp>
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/optional.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
-#include <boost/variant.hpp>
 
 #include <rapidjson/error/en.h>
 #include <rapidjson/istreamwrapper.h>
@@ -309,9 +307,6 @@ public:
     }
 };  // class CopyableRapidJsonDocument
 
-// Forward-declaration: template lookups need this to understand std::vector<boost::optional<std::string>>.
-template <typename T>
-inline void LoadJsonValue(const rapidjson::Value& v, boost::optional<T>& t);
 // Forward-declaration so that template-lookup can find std::tuple<std::tuple<Ts...>, ...>
 template <typename... Ts>
 inline void LoadJsonValue(const rapidjson::Value& v, std::tuple<Ts...>& t);
@@ -613,58 +608,6 @@ template<class U> inline void LoadJsonValue(const rapidjson::Value& v, std::unor
     }
 }
 
-template <typename T>
-inline void LoadJsonValue(const rapidjson::Value& v, boost::optional<T>& t) {
-    if (v.IsNull()) {
-        t = boost::none;
-    } else if (t) {
-        // Optimization: we don't have to allocate if the optional already has a valid pointer.
-        LoadJsonValue(v, t.get());
-    } else {
-        T foundT;
-        LoadJsonValue(v, foundT);
-        t = foundT;
-    }
-}
-
-namespace {
-
-template <typename Head>
-bool TryLoadOneTypeInsideVariant(const rapidjson::Value& v, boost::variant<Head>& tVariant) {
-    try {
-        Head tHead;
-        LoadJsonValue(v, tHead);
-        tVariant = tHead;
-        return true;
-    } catch (const MujinJSONException& mje) {
-        return false;
-    }
-}
-
-template <typename Head, typename... Ts>
-bool TryLoadOneTypeInsideVariant(const rapidjson::Value& v, boost::variant<Head, Ts...>& tVariant) {
-    try {
-        Head tHead;
-        LoadJsonValue(v, tHead);
-        tVariant = tHead;
-        return true;
-    } catch (const MujinJSONException& mje) {
-        boost::variant<Ts...> tInner;
-        bool innerVal = TryLoadOneTypeInsideVariant<Ts...>(v, tInner);
-        tVariant = tInner;
-        return innerVal;
-    }
-}
-
-}  // namespace
-
-template <typename... Ts>
-inline void LoadJsonValue(const rapidjson::Value& v, boost::variant<Ts...>& t) {
-    if (!TryLoadOneTypeInsideVariant<Ts...>(v, t)) {
-        throw MujinJSONException("Cannot load variant value: '" + GetJsonString(v) + "' is none of the provided types.");
-    }
-}
-
 namespace {
 
 // See https://stackoverflow.com/questions/5688355/partial-specialisation-of-member-function-with-non-type-parameter
@@ -701,9 +644,6 @@ inline void LoadJsonValue(const rapidjson::Value& v, std::tuple<Ts...>& t) {
 /*JsonWrapper<T>::SaveToJson(v, t, alloc);*/
 /*}*/
 
-// Forward-declaration so that template-lookup can find std::vector<boost::optional<std::string>>
-template <typename T>
-inline void SaveJsonValue(rapidjson::Value& v, const boost::optional<T>& t, rapidjson::Document::AllocatorType& alloc);
 // Forward-declaration so that template-lookup can find std::tuple<std::tuple<Ts...>, ...>
 template <typename... Ts>
 inline void SaveJsonValue(rapidjson::Value & v, const std::tuple<Ts...>& t, rapidjson::Document::AllocatorType& alloc);
@@ -876,38 +816,6 @@ template <class T, class AllocT> inline void SaveJsonValue(rapidjson::Value& v, 
     }
 }
 
-template <typename T>
-inline void SaveJsonValue(rapidjson::Value& v, const boost::optional<T>& t, rapidjson::Document::AllocatorType& alloc) {
-    if (!t) {
-        v.SetNull();
-        return;
-    }
-    SaveJsonValue(v, *t, alloc);
-}
-
-namespace {
-// Cannot be inside the function -- https://stackoverflow.com/questions/4299314/member-template-in-local-class
-struct JsonSavingVisitor : public boost::static_visitor<void> {
-    JsonSavingVisitor(rapidjson::Value& cvArg, rapidjson::Document::AllocatorType& callocArg)
-        : cv(cvArg), calloc(callocArg) {}
-
-    rapidjson::Value& cv;
-    rapidjson::Document::AllocatorType& calloc;
-
-    template <typename T>
-    void operator()(const T& ct) {
-        SaveJsonValue(cv, ct, calloc);
-    }
-};
-}  // namespace
-
-template <typename... Ts>
-inline void SaveJsonValue(rapidjson::Value& v, const boost::variant<Ts...>& t, rapidjson::Document::AllocatorType& alloc) {
-    JsonSavingVisitor visitor(v, alloc);
-    boost::apply_visitor(visitor, t);
-}
-
-
 template<class T> inline void SaveJsonValue(rapidjson::Document& v, const T& t) {
     // rapidjson::Value::CopyFrom also doesn't free up memory, need to clear memory
     // see note in: void ParseJson(rapidjson::Document& d, const std::string& str)
@@ -951,50 +859,11 @@ inline void SaveJsonValue(rapidjson::Value & v, const std::tuple<Ts...>& t, rapi
 
 template<class T, class U> inline void SetJsonValueByKey(rapidjson::Value& v, const U& key, const T& t, rapidjson::Document::AllocatorType& alloc);
 
-namespace {
-
-template <typename T>
-bool HandleNullInLoading(T& t) {
-  return false;
-}
-
-template <typename T>
-bool HandleNullInLoading(boost::optional<T>& t) {
-  t = boost::none;
-  return true;
-}
-
-}  // namespace
 
 // Get one json value by key, and store it in local data structures
-// Return true if key is present. Will return false if the key is not present or both the member is Null and T is not a boost::optional.
-// If T is a boost::optional, returns true if the member is present and sets the optional to boost::none if the value is null.
-template<class T> bool inline LoadJsonValueByKey(const rapidjson::Value& v, const char* key, T& t) {
-    if (!v.IsObject()) {
-        throw MujinJSONException("Cannot load value of non-object.");
-    }
-    rapidjson::Value::ConstMemberIterator itMember = v.FindMember(key);
-    if( itMember != v.MemberEnd() ) {
-        const rapidjson::Value& rMember = itMember->value;
-        if( !rMember.IsNull() ) {
-            try {
-                LoadJsonValue(rMember, t);
-                return true;
-            }
-            catch (const MujinJSONException& ex) {
-                throw MujinJSONException("Got \"" + ex.message() + "\" while parsing the value of \"" + key + "\"");
-            }
-        } else {
-            return HandleNullInLoading(t);
-        }
-    }
-    // Return false if member is null or non-existent
-    return false;
-}
+// Return true if key is present. Will return false if the key is not present or the member is Null.
 
 // Get one JSON value by key, using the default if the key is absent or null.
-// Note: unlike the above, boost::optionals have the same semantics, so for a boost::optional, this is equivalent to:
-//     LoadJsonValueByKey(v, key, t); val = val.get_value_or(d);
 template<class T, class U> inline void LoadJsonValueByKey(const rapidjson::Value& v, const char* key, T& t, const U& d) {
     if (!v.IsObject()) {
         throw MujinJSONException("Cannot load value of non-object.");
