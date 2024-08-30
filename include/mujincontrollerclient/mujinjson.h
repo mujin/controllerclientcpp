@@ -861,7 +861,30 @@ template<class T, class U> inline void SetJsonValueByKey(rapidjson::Value& v, co
 
 
 // Get one json value by key, and store it in local data structures
-// Return true if key is present. Will return false if the key is not present or the member is Null.
+// Return true if key is present. Will return false if the key is not present or both the member is Null and T is not a boost::optional.
+// If T is a boost::optional, returns true if the member is present and sets the optional to boost::none if the value is null.
+template<class T> bool inline LoadJsonValueByKey(const rapidjson::Value& v, const char* key, T& t) {
+    if (!v.IsObject()) {
+        throw MujinJSONException("Cannot load value of non-object.");
+    }
+    rapidjson::Value::ConstMemberIterator itMember = v.FindMember(key);
+    if( itMember != v.MemberEnd() ) {
+        const rapidjson::Value& rMember = itMember->value;
+        if( !rMember.IsNull() ) {
+            try {
+                LoadJsonValue(rMember, t);
+                return true;
+            }
+            catch (const MujinJSONException& ex) {
+                throw MujinJSONException("Got \"" + ex.message() + "\" while parsing the value of \"" + key + "\"");
+            }
+        } else {
+            return HandleNullInLoading(t);
+        }
+    }
+    // Return false if member is null or non-existent
+    return false;
+}
 
 // Get one JSON value by key, using the default if the key is absent or null.
 template<class T, class U> inline void LoadJsonValueByKey(const rapidjson::Value& v, const char* key, T& t, const U& d) {
