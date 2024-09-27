@@ -247,6 +247,7 @@ public:
     virtual void SaveToJson(rapidjson::Document& d) const {
         SaveToJson(d, d.GetAllocator());
     }
+    virtual ~JsonSerializable() {}
 };
 
 template<class T, class S> inline T LexicalCast(const S& v, const std::string& typeName) {

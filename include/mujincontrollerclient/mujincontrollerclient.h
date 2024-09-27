@@ -225,6 +225,8 @@ public:
     ITLPlanningTaskParameters() {
         SetDefaults();
     }
+    virtual ~ITLPlanningTaskParameters() {}
+
     virtual void SetDefaults() {
         startfromcurrent = 0;
         returnmode = "start";

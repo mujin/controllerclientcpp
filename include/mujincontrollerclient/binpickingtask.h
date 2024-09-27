@@ -78,6 +78,7 @@ public:
 
     struct MUJINCLIENT_API ResultBase
     {
+        virtual ~ResultBase() {}
         virtual void Parse(const rapidjson::Value& pt) = 0;
     };
     typedef boost::shared_ptr<ResultBase> ResultBasePtr;
