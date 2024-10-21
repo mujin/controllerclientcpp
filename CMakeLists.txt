@@ -55,6 +55,11 @@ set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib${LIB_SUFFIX}")
 # which point to directories outside the build tree to the install RPATH
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
+set(COMPILER_IS_CLANG FALSE)
+if( CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
+  set(COMPILER_IS_CLANG TRUE)
+endif()
+
 include(CheckIncludeFile)
 include(CheckIncludeFileCXX)
 include(CheckLibraryExists)
