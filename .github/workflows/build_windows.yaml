@@ -1,0 +1,48 @@
+name: Build Windows
+  
+on:
+  push:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-2022]
+        architecture: ["x64"]
+
+    steps:
+    - uses: actions/checkout@v3
+    - uses: microsoft/setup-msbuild@v1.1
+    - name: Set up Boost
+      run: |
+        choco install boost-msvc-14.3 -f -y
+    - name: Set up curl
+      run: |
+        curl -O -L https://curl.se/windows/dl-8.5.0_1/curl-8.5.0_1-win64-mingw.zip
+        7z x -y curl-8.5.0_1-win64-mingw.zip
+    - name: Install RapidJSON
+      run: |
+        git clone https://github.com/Tencent/rapidjson.git && mkdir rapidjson\build
+        cd rapidjson\build
+        # there are no stable version available
+        # but take the last version without -targets.cmake
+        git checkout 516d0473949fdcf0a6dc9fbb40fa92b3b85db184
+        cmake .. -G 'Visual Studio 17 2022' -A x64 -DRAPIDJSON_HAS_STDSTRING=ON -DRAPIDJSON_BUILD_DOC=OFF -DRAPIDJSON_BUILD_EXAMPLES=OFF -DRAPIDJSON_BUILD_TESTS=OFF
+        msbuild ALL_BUILD.vcxproj /p:Configuration=Release
+        cd ..\..
+    - name: Install libzmq
+      run: |
+        git clone https://github.com/zeromq/libzmq.git && mkdir libzmq\build
+        cd libzmq\build
+        git checkout v4.3.5
+        cmake .. -G 'Visual Studio 17 2022' -A x64 -DBUILD_TESTS=OFF
+        msbuild ALL_BUILD.vcxproj /p:Configuration=Release
+        cd ..\..
+    - name: Install
+      run: |
+        mkdir -p build
+        cd build
+        cmake .. -G 'Visual Studio 17 2022' -A x64 -DCMAKE_CXX_STANDARD=11 "-DZeroMQ_DIR=${PWD}\..\libzmq\build" "-DCURL_INCLUDE_DIR=${PWD}\..\curl-8.5.0_1-win64-mingw\include" "-DCURL_LIBRARY=${PWD}\..\curl-8.5.0_1-win64-mingw\lib\libcurl.dll.a" -DCMAKE_CONFIGURATION_TYPES=Release -DOPT_SAMPLES=OFF -DOPT_BUILD_TESTS=OFF
+        msbuild ALL_BUILD.vcxproj /p:Configuration=Release
+        cd ..
