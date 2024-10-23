@@ -155,11 +155,11 @@ inline std::string DumpJson(const rapidjson::Value& value, const unsigned int in
     rapidjson::StringBuffer stringbuffer;
     if (indent == 0) {
         MujinRapidJsonWriter<rapidjson::StringBuffer> writer(stringbuffer);
-        value.Accept(writer);
+        BOOST_ASSERT(value.Accept(writer));
     } else {
         MujinRapidJsonPrettyWriter<rapidjson::StringBuffer> writer(stringbuffer);
         writer.SetIndent(' ', indent);
-        value.Accept(writer);
+        BOOST_ASSERT(value.Accept(writer));
     }
     return std::string(stringbuffer.GetString(), stringbuffer.GetSize());
 }
@@ -168,11 +168,11 @@ inline void DumpJson(const rapidjson::Value& value, std::ostream& os, const unsi
     rapidjson::OStreamWrapper osw(os);
     if (indent == 0) {
         MujinRapidJsonWriter<rapidjson::OStreamWrapper> writer(osw);
-        value.Accept(writer);
+        BOOST_ASSERT(value.Accept(writer));
     } else {
         MujinRapidJsonPrettyWriter<rapidjson::OStreamWrapper> writer(osw);
         writer.SetIndent(' ', indent);
-        value.Accept(writer);
+        BOOST_ASSERT(value.Accept(writer));
     }
 }
 
