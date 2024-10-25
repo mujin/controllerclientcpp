@@ -140,15 +140,26 @@ inline std::string GetJsonTypeName(const rapidjson::Value& v) {
 
 template<class T> inline std::string GetJsonString(const T& t);
 
+static constexpr const int MUJIN_RAPIDJSON_PARSE_FLAGS = rapidjson::kParseDefaultFlags |
+                                                         rapidjson::kParseFullPrecisionFlag | // parse floats in full-precision mode
+                                                         rapidjson::kParseNanAndInfFlag; // Don't error out if we encounter NaN/Inf values
+static constexpr const int MUJIN_RAPIDJSON_WRITE_FLAGS = rapidjson::kWriteDefaultFlags |
+                                                         rapidjson::kWriteNanAndInfFlag; // Allow serialization of Nan/Inf values. Without this, rapidjson will just truncate the stream if it encounters one.
+
+template <typename BufferT>
+using MujinRapidJsonWriter = rapidjson::Writer<BufferT, rapidjson::UTF8<>, rapidjson::UTF8<>, rapidjson::CrtAllocator, MUJIN_RAPIDJSON_WRITE_FLAGS>;
+template <typename BufferT>
+using MujinRapidJsonPrettyWriter = rapidjson::PrettyWriter<BufferT, rapidjson::UTF8<>, rapidjson::UTF8<>, rapidjson::CrtAllocator, MUJIN_RAPIDJSON_WRITE_FLAGS>;
+
 inline std::string DumpJson(const rapidjson::Value& value, const unsigned int indent=0) {
     rapidjson::StringBuffer stringbuffer;
     if (indent == 0) {
-        rapidjson::Writer<rapidjson::StringBuffer> writer(stringbuffer);
-        value.Accept(writer);
+        MujinRapidJsonWriter<rapidjson::StringBuffer> writer(stringbuffer);
+        BOOST_ASSERT(value.Accept(writer));
     } else {
-        rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(stringbuffer);
+        MujinRapidJsonPrettyWriter<rapidjson::StringBuffer> writer(stringbuffer);
         writer.SetIndent(' ', indent);
-        value.Accept(writer);
+        BOOST_ASSERT(value.Accept(writer));
     }
     return std::string(stringbuffer.GetString(), stringbuffer.GetSize());
 }
@@ -156,12 +167,12 @@ inline std::string DumpJson(const rapidjson::Value& value, const unsigned int in
 inline void DumpJson(const rapidjson::Value& value, std::ostream& os, const unsigned int indent=0) {
     rapidjson::OStreamWrapper osw(os);
     if (indent == 0) {
-        rapidjson::Writer<rapidjson::OStreamWrapper> writer(osw);
-        value.Accept(writer);
+        MujinRapidJsonWriter<rapidjson::OStreamWrapper> writer(osw);
+        BOOST_ASSERT(value.Accept(writer));
     } else {
-        rapidjson::PrettyWriter<rapidjson::OStreamWrapper> writer(osw);
+        MujinRapidJsonPrettyWriter<rapidjson::OStreamWrapper> writer(osw);
         writer.SetIndent(' ', indent);
-        value.Accept(writer);
+        BOOST_ASSERT(value.Accept(writer));
     }
 }
 
@@ -170,7 +181,7 @@ inline void ParseJson(rapidjson::Document& d, const char* str, size_t length)
 {
     d.SetNull();
     d.GetAllocator().Clear(); // dangerous if used by other existing objects
-    d.Parse<rapidjson::kParseFullPrecisionFlag>(str, length); // parse float in full precision mode
+    d.Parse<MUJIN_RAPIDJSON_PARSE_FLAGS>(str, length);
     if (d.HasParseError()) {
         const std::string substr(str, length < 200 ? length : 200);
 
@@ -189,7 +200,7 @@ inline void ParseJson(rapidjson::Document& d, std::istream& is) {
     // see note in: void ParseJson(rapidjson::Document& d, const std::string& str)
     d.SetNull();
     d.GetAllocator().Clear();
-    d.ParseStream<rapidjson::kParseFullPrecisionFlag>(isw); // parse float in full precision mode
+    d.ParseStream<MUJIN_RAPIDJSON_PARSE_FLAGS>(isw);
     if (d.HasParseError()) {
         throw MujinJSONException(boost::str(boost::format("Json stream is invalid (offset %u) %s")%((unsigned)d.GetErrorOffset())%GetParseError_En(d.GetParseError())));
     }
@@ -203,13 +214,13 @@ inline void ParseJson(rapidjson::Value& r, rapidjson::Document::AllocatorType& a
 
     size_t kDefaultStackCapacity = 1024;
     rapidjson::Document rTemp(&alloc, kDefaultStackCapacity); // needed by Parse to be a document
-    rTemp.ParseStream<rapidjson::kParseFullPrecisionFlag>(isw); // parse float in full precision mode
+    rTemp.ParseStream<MUJIN_RAPIDJSON_PARSE_FLAGS>(isw);
     if (rTemp.HasParseError()) {
         throw MujinJSONException(boost::str(boost::format("Json stream is invalid (offset %u) %s")%((unsigned)rTemp.GetErrorOffset())%GetParseError_En(rTemp.GetParseError())));
     }
     r.Swap(rTemp);
 
-//    rapidjson::ParseResult parseResult = reader.template Parse<rapidjson::kParseFullPrecisionFlag>(isw, rTemp);
+//    rapidjson::ParseResult parseResult = reader.template Parse<MUJIN_RAPIDJSON_PARSE_FLAGS>(isw, rTemp);
 //    if( parseResult.IsError() ) {
 //        *stack_.template Pop<ValueType>(1)
 //        throw MujinJSONException(boost::str(boost::format("Json stream is invalid (offset %u) %s")%((unsigned)parseResult.Offset())%GetParseError_En(parseResult.Code())));

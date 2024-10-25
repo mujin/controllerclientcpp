@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.74.1 (2024-10-25)
+
+- Handle serialization of NaN/Inf values in JSON
+
+## 0.74.0 (2024-09-27)
+
+- Enable non-virtual-dtor error detection and implement missing virtual destructors
+
 ## 0.73.4 (2024-08-07)
 
 - Fix the logging error with 'No error', ensured that the curl function is executed only once in the CHECKCURLCODE macro.
