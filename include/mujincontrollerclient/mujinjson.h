@@ -155,11 +155,15 @@ inline std::string DumpJson(const rapidjson::Value& value, const unsigned int in
     rapidjson::StringBuffer stringbuffer;
     if (indent == 0) {
         MujinRapidJsonWriter<rapidjson::StringBuffer> writer(stringbuffer);
-        BOOST_ASSERT(value.Accept(writer));
+        if( !value.Accept(writer) ) {
+            throw MujinJSONException("Failed to write json writer");
+        }
     } else {
         MujinRapidJsonPrettyWriter<rapidjson::StringBuffer> writer(stringbuffer);
         writer.SetIndent(' ', indent);
-        BOOST_ASSERT(value.Accept(writer));
+        if( !value.Accept(writer) ) {
+            throw MujinJSONException("Failed to write json writer");
+        }
     }
     return std::string(stringbuffer.GetString(), stringbuffer.GetSize());
 }
@@ -168,11 +172,15 @@ inline void DumpJson(const rapidjson::Value& value, std::ostream& os, const unsi
     rapidjson::OStreamWrapper osw(os);
     if (indent == 0) {
         MujinRapidJsonWriter<rapidjson::OStreamWrapper> writer(osw);
-        BOOST_ASSERT(value.Accept(writer));
+        if( !value.Accept(writer) ) {
+            throw MujinJSONException("Failed to write json writer");
+        }
     } else {
         MujinRapidJsonPrettyWriter<rapidjson::OStreamWrapper> writer(osw);
         writer.SetIndent(' ', indent);
-        BOOST_ASSERT(value.Accept(writer));
+        if( !value.Accept(writer) ) {
+            throw MujinJSONException("Failed to write json writer");
+        }
     }
 }
 

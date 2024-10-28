@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.74.2 (2024-10-28)
+
+- Move important code out of the ASSERT blocks in mujinjson
+
 ## 0.74.1 (2024-10-25)
 
 - Handle serialization of NaN/Inf values in JSON
