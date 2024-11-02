@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.75.0 (2024-11-02)
+
+- mujinjson uses rapidjson::GenericValue with templates to allow for other allocators.
+
 ## 0.74.2 (2024-10-28)
 
 - Move important code out of the ASSERT blocks in mujinjson
