@@ -1062,6 +1062,23 @@ inline void SetJsonValueByPath(rapidjson::GenericDocument<Encoding, Allocator>& 
     SetJsonValueByPath(d, path, t, d.GetAllocator());
 }
 
+template<typename T, typename U, typename Encoding, typename Allocator, typename Encoding2, typename Allocator2>
+inline void SetJsonValueByKey(rapidjson::GenericValue<Encoding, Allocator>& v, const U& key, const rapidjson::GenericValue<Encoding2, Allocator2>& t, Allocator& alloc)
+{
+    if (!v.IsObject()) {
+        throw MujinJSONException("Cannot set value for non-object.");
+    }
+    if (v.HasMember(key)) {
+        SaveJsonValue(v[key], t, alloc);
+    }
+    else {
+        rapidjson::GenericValue<Encoding, Allocator> value, name;
+        SaveJsonValue(name, key, alloc);
+        SaveJsonValue(value, t, alloc);
+        v.AddMember(name, value, alloc);
+    }
+}
+
 template<typename T, typename U, typename Encoding, typename Allocator, typename Allocator2>
 inline void SetJsonValueByKey(rapidjson::GenericValue<Encoding, Allocator>& v, const U& key, const T& t, Allocator2& alloc)
 {
