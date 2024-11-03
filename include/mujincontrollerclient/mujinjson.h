@@ -511,18 +511,21 @@ inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v,
     }
 }
 
-template<typename T, class AllocT = std::allocator<T>, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> > inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::vector<T, AllocT>& t);
+template<typename T, class AllocT = std::allocator<T>, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> >
+inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::vector<T, AllocT>& t);
 
+template<typename T, size_t N, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> >
+inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::array<T, N>& t);
 
-template<typename T, size_t N, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> > inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::array<T, N>& t);
-
-template<typename T, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> > inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, boost::shared_ptr<T>& ptr) {
+template<typename T, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> >
+inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, boost::shared_ptr<T>& ptr) {
     static_assert(std::is_default_constructible<T>::value, "Shared pointer of type must be default-constructible.");
     ptr = boost::make_shared<T>();
     LoadJsonValue(v, *ptr);
 }
 
-template<typename T, typename U, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> > inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::pair<T, U>& t) {
+template<typename T, typename U, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> >
+inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::pair<T, U>& t) {
     if (v.IsArray()) {
         if (v.GetArray().Size() == 2) {
             LoadJsonValue(v[0], t.first);
@@ -535,7 +538,8 @@ template<typename T, typename U, typename Encoding=rapidjson::UTF8<>, typename A
     }
 }
 
-template<typename T, size_t N, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> > inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, T (&p)[N]) {
+template<typename T, size_t N, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> >
+inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, T (&p)[N]) {
     if (v.IsArray()) {
         if (v.GetArray().Size() != N) {
             throw MujinJSONException("Json array size doesn't match");
@@ -550,7 +554,8 @@ template<typename T, size_t N, typename Encoding=rapidjson::UTF8<>, typename All
     }
 }
 
-template<typename T, class AllocT, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> > inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::vector<T, AllocT>& t) {
+template<typename T, class AllocT, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> >
+inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::vector<T, AllocT>& t) {
     if (v.IsArray()) {
         t.clear();
         t.resize(v.GetArray().Size());
@@ -564,7 +569,8 @@ template<typename T, class AllocT, typename Encoding=rapidjson::UTF8<>, typename
     }
 }
 
-template<typename T, size_t N, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> > inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::array<T, N>& t) {
+template<typename T, size_t N, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> >
+inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::array<T, N>& t) {
     if (v.IsArray()) {
         if (v.GetArray().Size() != N) {
             throw MujinJSONException(
@@ -581,7 +587,8 @@ template<typename T, size_t N, typename Encoding=rapidjson::UTF8<>, typename All
     }
 }
 
-template<typename U, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> > inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::map<std::string, U>& t) {
+template<typename U, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> >
+inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::map<std::string, U>& t) {
     if (v.IsArray()) {
         // list based map
         // TODO: is it dangerous?
@@ -627,7 +634,8 @@ inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v,
     }
 }
 
-template<typename U, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> > inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::unordered_map<std::string, U>& t) {
+template<typename U, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> >
+inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::unordered_map<std::string, U>& t) {
     // It doesn't make sense to construct an unordered map from anything other
     // than a full JSON object
     if (!v.IsObject()) {
