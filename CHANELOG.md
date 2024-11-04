@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.76.0 (2024-11-03)
+
+- fix mujinjson.h SaveJsonValue char[] variation.
+
 ## 0.75.0 (2024-11-02)
 
 - mujinjson uses rapidjson::GenericValue with templates to allow for other allocators.
