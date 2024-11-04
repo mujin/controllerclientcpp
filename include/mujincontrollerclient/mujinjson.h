@@ -554,7 +554,8 @@ inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v,
     }
 }
 
-template<typename T, class AllocT, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> >
+// default template arguments provided in forward declaration
+template<typename T, class AllocT, typename Encoding, typename Allocator>
 inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::vector<T, AllocT>& t) {
     if (v.IsArray()) {
         t.clear();
@@ -569,7 +570,8 @@ inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v,
     }
 }
 
-template<typename T, size_t N, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> >
+// default template arguments provided in forward declaration
+template<typename T, size_t N, typename Encoding, typename Allocator>
 inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::array<T, N>& t) {
     if (v.IsArray()) {
         if (v.GetArray().Size() != N) {
@@ -775,7 +777,8 @@ inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const
     v.PushBack(rSecond, alloc);
 }
 
-template<typename T, class AllocT=std::allocator<T>, typename Encoding, typename Allocator, typename Allocator2 >
+// default template arguments provided in forward declaration
+template<typename T, class AllocT, typename Encoding, typename Allocator, typename Allocator2 >
 inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const std::vector<T, AllocT>& t, Allocator2& alloc) {
     v.SetArray();
     v.Reserve(t.size(), alloc);
@@ -1121,7 +1124,8 @@ inline void ValidateJsonString(const std::string& str) {
     }
 }
 
-template<typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> >
+// default template arguments provided in forward declaration
+template<typename Encoding, typename Allocator>
 inline std::string GetJsonString(const rapidjson::GenericValue<Encoding, Allocator>& t) {
     rapidjson::GenericDocument<Encoding, Allocator> d;
     SaveJsonValue(d, t, d.GetAllocator());
