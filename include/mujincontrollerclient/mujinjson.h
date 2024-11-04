@@ -743,8 +743,9 @@ inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const
     v.CopyFrom(t, alloc);
 }
 
-template <typename Encoding, typename Allocator, typename Encoding2, typename Allocator2>
-inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const rapidjson::GenericDocument<Encoding2, Allocator2>& t, Allocator& alloc) {
+template <typename Encoding, typename Allocator, typename Encoding2, typename Allocator2, typename Allocator3 = rapidjson::MemoryPoolAllocator<>>
+inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const rapidjson::GenericDocument<Encoding2, Allocator2>& t, Allocator3& alloc)
+{
     v.CopyFrom(t, alloc);
 }
 
