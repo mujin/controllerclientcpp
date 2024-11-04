@@ -679,7 +679,7 @@ inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const
 
 template <size_t N, typename Encoding, typename Allocator, typename Allocator2>
 inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const char (&t)[N], Allocator2& alloc) {
-    v.SetString(t, N, alloc);
+    v.SetString(t, alloc); // do not pass in the length N since do not know where the nul terminator is
 }
 
 inline void SaveJsonValue(rapidjson::Value& v, const char* t, rapidjson::Value::AllocatorType& alloc) {
