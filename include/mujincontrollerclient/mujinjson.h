@@ -678,7 +678,7 @@ inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const
 //}
 
 template <size_t N, typename Encoding, typename Allocator, typename Allocator2>
-inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const char t[N], Allocator2& alloc) {
+inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const char (&t)[N], Allocator2& alloc) {
     v.SetString(t, N, alloc);
 }
 
@@ -738,17 +738,12 @@ inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, float
     v.SetDouble(t);
 }
 
-template <typename Encoding, typename Allocator, typename Encoding2, typename Allocator2, typename Allocator3 = rapidjson::MemoryPoolAllocator<>>
+template <typename Encoding, typename Allocator, typename Encoding2, typename Allocator2, typename Allocator3>
 inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const rapidjson::GenericValue<Encoding2, Allocator2>& t, Allocator3& alloc)
 {
     v.CopyFrom(t, alloc);
 }
 
-template <typename Encoding, typename Allocator, typename Encoding2, typename Allocator2, typename Allocator3 = rapidjson::MemoryPoolAllocator<>>
-inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const rapidjson::GenericDocument<Encoding2, Allocator2>& t, Allocator3& alloc)
-{
-    v.CopyFrom(t, alloc);
-}
 
 template <typename Encoding, typename Allocator>
 inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const CopyableRapidJsonDocument& t, Allocator& alloc) {
@@ -1072,8 +1067,8 @@ inline void SetJsonValueByPath(rapidjson::GenericDocument<Encoding, Allocator>& 
     SetJsonValueByPath(d, path, t, d.GetAllocator());
 }
 
-template<typename T, typename U, typename Encoding, typename Allocator, typename Encoding2, typename Allocator2>
-inline void SetJsonValueByKey(rapidjson::GenericValue<Encoding, Allocator>& v, const U& key, const rapidjson::GenericValue<Encoding2, Allocator2>& t, Allocator& alloc)
+template<typename T, typename U, typename Encoding, typename Allocator, typename Encoding2, typename Allocator2, typename Allocator3>
+inline void SetJsonValueByKey(rapidjson::GenericValue<Encoding, Allocator>& v, const U& key, const rapidjson::GenericValue<Encoding2, Allocator2>& t, Allocator3& alloc)
 {
     if (!v.IsObject()) {
         throw MujinJSONException("Cannot set value for non-object.");
