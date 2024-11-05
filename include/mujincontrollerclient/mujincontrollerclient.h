@@ -63,6 +63,34 @@
 
 namespace mujinclient {
 
+/// \brief connecting to a controller's webstack
+class MUJINCLIENT_API ControllerClientInfo : public mujinjson::JsonSerializable
+{
+public:
+    virtual void Reset();
+
+    void LoadFromJson(const rapidjson::Value& rClientInfo) override;
+    void SaveToJson(rapidjson::Value& rClientInfo, rapidjson::Document::AllocatorType& alloc) const override;
+    void SaveToJson(rapidjson::Document& rClientInfo) const override;
+
+    bool operator==(const ControllerClientInfo &rhs) const;
+    bool operator!=(const ControllerClientInfo &rhs) const {
+        return !operator==(rhs);
+    }
+    std::string GetURL(bool bIncludeNamePassword) const;
+
+    inline bool IsEnabled() const {
+        return !host.empty();
+    }
+
+    std::string host;
+    uint16_t httpPort = 0; ///< Post to communicate with the webstack. If 0, then use the default port
+    std::string username;
+    std::string password;
+    std::vector<std::string> additionalHeaders; ///< expect each value to be in the format of "Header-Name: header-value"
+    std::string unixEndpoint; ///< unix socket endpoint for communicating with HTTP server over unix socket
+};
+
 typedef mujin::Transform Transform;
 
 enum TaskResourceOptions
@@ -85,8 +113,8 @@ class DebugResource;
 struct FileEntry
 {
     std::string filename;
-    double modified; // in epoch seconds
-    size_t size; // file size in bytes
+    double modified = 0; // in epoch seconds
+    size_t size = 0; // file size in bytes
 };
 
 typedef boost::shared_ptr<ControllerClient> ControllerClientPtr;
@@ -110,6 +138,34 @@ typedef boost::weak_ptr<BinPickingResultResource> BinPickingResultResourceWeakPt
 typedef boost::shared_ptr<DebugResource> DebugResourcePtr;
 typedef boost::weak_ptr<DebugResource> DebugResourceWeakPtr;
 typedef double Real;
+
+/// \brief an attachment to a log entry
+struct LogEntryAttachment
+{
+    std::string filename; // filename
+    std::vector<unsigned char> data; // data for the attachment
+
+    // default constructor
+    LogEntryAttachment() = default;
+
+    // move constructor (delete copy constructor)
+    LogEntryAttachment(LogEntryAttachment&& other) = default;
+    LogEntryAttachment& operator=(LogEntryAttachment&& other) = default;
+};
+
+typedef boost::shared_ptr<LogEntryAttachment> LogEntryAttachmentPtr;
+typedef boost::weak_ptr<LogEntryAttachment> LogEntryAttachmentWeakPtr;
+
+/// \brief a log entry in mujin controller
+struct LogEntry
+{
+    rapidjson::Value rEntry; // log entry data in JSON format
+    std::string logType; // log type
+    std::vector<LogEntryAttachment> attachments; // a list of related attachments
+};
+
+typedef boost::shared_ptr<LogEntry> LogEntryPtr;
+typedef boost::weak_ptr<LogEntry> LogEntryWeakPtr;
 
 /// \brief status code for a job
 ///
@@ -137,7 +193,7 @@ JobStatusCode GetStatusCode(const std::string& str);
 
 struct JobStatus
 {
-    JobStatus() : code(JSC_Unknown) {
+    JobStatus() : code(JSC_Unknown), elapsedtime(0.0) {
     }
     JobStatusCode code; ///< status code on whether the job is active
     std::string type; ///< the type of job running
@@ -169,6 +225,8 @@ public:
     ITLPlanningTaskParameters() {
         SetDefaults();
     }
+    virtual ~ITLPlanningTaskParameters() {}
+
     virtual void SetDefaults() {
         startfromcurrent = 0;
         returnmode = "start";
@@ -339,6 +397,12 @@ public:
 
     /// \brief returns the URI used to setup the connection
     virtual const std::string& GetBaseURI() const = 0;
+
+    /// \brief full connection URI with username and password. http://username@password:path
+    virtual std::string GetURIWithUsernamePassword() const = 0;
+
+    /// \brief returns the client info used to construct this client
+    virtual const ControllerClientInfo& GetClientInfo() const = 0;
 
     /// \brief If necessary, changes the proxy to communicate to the controller server. Setting proxy disables previously set unix endpoint.
     ///
@@ -664,6 +728,12 @@ public:
 
     /// \brief get debug infos
     virtual void GetDebugInfos(std::vector<DebugResourcePtr>& debuginfos, double timeout = 5) = 0;
+
+    /// \brief create log entries and attachments such as images, additional files, etc.
+    /// \param logEntries a vector of log entries to upload
+    /// \param createdLogEntryIds an optional vector for storing the created log entry ids
+    /// \param timeout timeout of uploading log entries in seconds
+    virtual void CreateLogEntries(const std::vector<LogEntry>& logEntries, std::vector<std::string>& createdLogEntryIds, double timeout = 5) = 0;
 };
 
 class MUJINCLIENT_API WebResource
@@ -723,14 +793,16 @@ public:
         std::string objectpk;
         std::string linkpk;
         std::string geomtype;
-        Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-        Real translate[3];
-        bool visible;
-        Real diffusecolor[4];
-        Real transparency;
-        Real half_extents[3];
-        Real height;
-        Real radius;
+        Real quaternion[4] = {1, 0, 0, 0}; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        Real translate[3] = {0, 0, 0};
+        bool visible = true;
+        Real diffusecolor[4] = {0, 0, 0, 0};
+        Real transparency = 0;
+        Real half_extents[3] = {0, 0, 0};
+        Real height = 0;
+        Real radius = 0;
+        Real topRadius = 0;
+        Real bottomRadius = 0;
 
         virtual void GetMesh(std::string& primitive, std::vector<std::vector<int> >& indices, std::vector<std::vector<Real> >& vertices);
         virtual void SetGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& unit, double timeout = 5.0);
@@ -748,10 +820,10 @@ public:
         std::string name;
         std::string pk;
         std::string iktype;
-        Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-        Real translation[3];
-        Real direction[3];
-        Real angle;
+        Real quaternion[4] = {1, 0, 0, 0}; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        Real translation[3] = {0, 0, 0};
+        Real direction[3] = {0, 0, 0};
+        Real angle = 0;
     };
     typedef boost::shared_ptr<IkParamResource> IkParamResourcePtr;
 
@@ -782,9 +854,9 @@ public:
         std::string pk;
         std::string objectpk;
         std::string parentlinkpk;
-        Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-        Real translate[3];
-        bool collision;
+        Real quaternion[4] = {1, 0, 0, 0}; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        Real translate[3] = {0, 0, 0};
+        bool collision = true;
     };
     typedef boost::shared_ptr<LinkResource> LinkResourcePtr;
 
@@ -807,17 +879,17 @@ public:
     virtual int GetVisible();
 
     std::string name;
-    int nundof;
+    int nundof = 0;
     std::string datemodified;
     std::string geometry;
-    bool isrobot;
+    bool isrobot = false;
     std::string pk;
     std::string resource_uri;
     std::string scenepk;
     std::string unit;
     std::string uri;
-    Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-    Real translate[3];
+    Real quaternion[4] = {1, 0, 0, 0}; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+    Real translate[3] = {0, 0, 0};
 
 protected:
     ObjectResource(ControllerClientPtr controller, const std::string& resource, const std::string& pk);
@@ -837,9 +909,9 @@ public:
         std::string frame_origin;
         std::string frame_tip;
         std::string pk;
-        Real direction[3];
-        Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-        Real translate[3];
+        std::array<Real,3> direction = {0, 0, 0};
+        std::array<Real,4> quaternion = {1, 0, 0, 0}; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        std::array<Real,3> translate = {0, 0, 0};
     };
     typedef boost::shared_ptr<ToolResource> ToolResourcePtr;
 
@@ -853,8 +925,8 @@ public:
         std::string frame_origin;
         std::string pk;
         //Real direction[3];
-        Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-        Real translate[3];
+        std::array<Real,4> quaternion = {1, 0, 0, 0}; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        std::array<Real,3> translate = {0, 0, 0};
         std::string sensortype;
 
         struct SensorData {
@@ -871,12 +943,12 @@ public:
             bool operator==(const SensorData& other) const {
                 return !operator!=(other);
             }
-            Real distortion_coeffs[5];
+            Real distortion_coeffs[5] = {0, 0, 0, 0, 0};
             std::string distortion_model;
-            Real focal_length;
-            int image_dimensions[3];
-            Real intrinsic[6];
-            Real measurement_time;
+            Real focal_length = 0;
+            int image_dimensions[3] = {0, 0, 0};
+            Real intrinsic[6] = {0, 0, 0, 0, 0, 0};
+            Real measurement_time = 0;
             std::vector<Real> extra_parameters;
         };
         SensorData sensordata;
@@ -894,7 +966,7 @@ public:
     // attachments
     // ikparams
     // images
-    int numdof;
+    int numdof = 0;
     std::string simulation_file;
 };
 
@@ -914,16 +986,16 @@ public:
         class MUJINCLIENT_API Link {
 public:
             std::string name;
-            Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-            Real translate[3];
+            Real quaternion[4] = {1, 0, 0, 0}; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+            Real translate[3] = {0, 0, 0};
         };
 
         class MUJINCLIENT_API Tool {
 public:
             std::string name;
-            Real direction[3];
-            Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-            Real translate[3];
+            Real direction[3] = {0, 0, 0};
+            Real quaternion[4] = {1, 0, 0, 0}; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+            Real translate[3] = {0, 0, 0};
         };
 
         class MUJINCLIENT_API Grab {
@@ -949,8 +1021,8 @@ public:
         class MUJINCLIENT_API AttachedSensor {
 public:
             std::string name;
-            Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-            Real translate[3];
+            Real quaternion[4] = {1, 0, 0, 0}; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+            Real translate[3] = {0, 0, 0};
         };
 
         void SetTransform(const Transform& t);
@@ -965,8 +1037,8 @@ public:
         std::string object_pk;
         std::string reference_object_pk;
         std::string reference_uri;
-        Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-        Real translate[3];
+        Real quaternion[4] = {1, 0, 0, 0}; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        Real translate[3] = {0, 0, 0};
         std::vector<Grab> grabs;
         std::vector<Link> links;
         std::vector<Tool> tools;
@@ -1187,7 +1259,7 @@ public:
     std::string name;
     std::string pk;
     std::string resource_uri;
-    size_t size;
+    size_t size = 0;
 
 protected:
     DebugResource(ControllerClientPtr controller, const std::string& resource, const std::string& pk);

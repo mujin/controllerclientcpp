@@ -25,8 +25,11 @@ int main(int argc, char ** argv)
         else if( argc == 4 ) {
             controller = CreateControllerClient(argv[1], argv[2], argv[3]);
         }
-        else {
+        else if( argc == 3 ) {
             controller = CreateControllerClient(argv[1], argv[2]);
+        }
+        else {
+            BOOST_ASSERT(0);
         }
         std::cout << "connected to controller v" << controller->GetVersion() << std::endl;
 
