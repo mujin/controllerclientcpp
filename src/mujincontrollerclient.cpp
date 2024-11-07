@@ -751,7 +751,9 @@ TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& t
         return TaskResourcePtr();
     }
 
-    if( tasktype_internal == "binpicking" || tasktype_internal == "realtimeitlplanning3") {
+    // NOTE: the packing task inherits some functionality its common base with binpicking (see the Python planning client).
+    // TODO(hemangandhi): resemble the Python class heirarchy?
+    if( tasktype_internal == "binpicking" || tasktype_internal == "realtimeitlplanning3" || tasktype_internal == "packing") {
         BinPickingTaskResourcePtr task;
         if( options & 1 ) {
 #ifdef MUJIN_USEZMQ
