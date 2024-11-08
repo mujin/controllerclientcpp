@@ -1076,6 +1076,12 @@ inline void SetJsonValueByKey(rapidjson::GenericValue<Encoding, Allocator>& v, c
     }
 }
 
+template<typename T, typename Encoding, typename Allocator, typename Encoding2, typename Allocator2, typename Allocator3>
+inline void SetJsonValueByKey(rapidjson::GenericValue<Encoding, Allocator>& v, const std::string& key, const rapidjson::GenericValue<Encoding2, Allocator2>& t, Allocator3& alloc)
+{
+    SetJsonValueByKey(v, key.c_str(), t, alloc);
+}
+
 template<typename T, typename Encoding, typename Allocator, typename Allocator2>
 inline void SetJsonValueByKey(rapidjson::GenericValue<Encoding, Allocator>& v, const char* key, const T& t, Allocator2& alloc)
 {
@@ -1091,6 +1097,12 @@ inline void SetJsonValueByKey(rapidjson::GenericValue<Encoding, Allocator>& v, c
         SaveJsonValue(value, t, alloc);
         v.AddMember(name, value, alloc);
     }
+}
+
+template<typename T, typename Encoding, typename Allocator, typename Allocator2>
+inline void SetJsonValueByKey(rapidjson::GenericValue<Encoding, Allocator>& v, const std::string& key, const T& t, Allocator2& alloc)
+{
+    SetJsonValueByKey(v, key.c_str(), t, alloc);
 }
 
 template<typename T, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> >
