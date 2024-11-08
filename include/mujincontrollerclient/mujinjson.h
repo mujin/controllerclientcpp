@@ -673,18 +673,8 @@ inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const
     v.SetString(t.c_str(), alloc);
 }
 
-// for some reason this makes calls ambiguous...
-//template <typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<>>
-//inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const char* t, Allocator& alloc) {
-//    v.SetString(t, alloc);
-//}
-
-template <size_t N, typename Encoding, typename Allocator, typename Allocator2>
-inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const char (&t)[N], Allocator2& alloc) {
-    v.SetString(t, alloc); // do not pass in the length N since do not know where the nul terminator is
-}
-
-inline void SaveJsonValue(rapidjson::Value& v, const char* t, rapidjson::Value::AllocatorType& alloc) {
+template <typename Encoding, typename Allocator, typename Allocator2>
+inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const char* t, Allocator2& alloc) {
     v.SetString(t, alloc);
 }
 
@@ -809,8 +799,10 @@ inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const
     }
 }
 
-template<typename T, size_t N, typename Encoding, typename Allocator, typename Allocator2>
-void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const T (&t)[N], Allocator2& alloc) {
+template <typename T, size_t N, typename Encoding, typename Allocator, typename Allocator2,
+          typename = std::enable_if<!std::is_same<char, T>::type>> // Disable instantiation for char[], since we want to handle those as strings
+void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const T (&t)[N], Allocator2& alloc)
+{
     v.SetArray();
     v.Reserve(N, alloc);
     for (size_t i = 0; i < N; ++i) {
