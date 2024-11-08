@@ -1070,8 +1070,8 @@ inline void SetJsonValueByPath(rapidjson::GenericDocument<Encoding, Allocator>& 
     SetJsonValueByPath(d, path, t, d.GetAllocator());
 }
 
-template<typename T, typename U, typename Encoding, typename Allocator, typename Encoding2, typename Allocator2, typename Allocator3>
-inline void SetJsonValueByKey(rapidjson::GenericValue<Encoding, Allocator>& v, const U& key, const rapidjson::GenericValue<Encoding2, Allocator2>& t, Allocator3& alloc)
+template<typename T, typename Encoding, typename Allocator, typename Encoding2, typename Allocator2, typename Allocator3>
+inline void SetJsonValueByKey(rapidjson::GenericValue<Encoding, Allocator>& v, const char* key, const rapidjson::GenericValue<Encoding2, Allocator2>& t, Allocator3& alloc)
 {
     if (!v.IsObject()) {
         throw MujinJSONException("Cannot set value for non-object.");
@@ -1087,8 +1087,8 @@ inline void SetJsonValueByKey(rapidjson::GenericValue<Encoding, Allocator>& v, c
     }
 }
 
-template<typename T, typename U, typename Encoding, typename Allocator, typename Allocator2>
-inline void SetJsonValueByKey(rapidjson::GenericValue<Encoding, Allocator>& v, const U& key, const T& t, Allocator2& alloc)
+template<typename T, typename Encoding, typename Allocator, typename Allocator2>
+inline void SetJsonValueByKey(rapidjson::GenericValue<Encoding, Allocator>& v, const char* key, const T& t, Allocator2& alloc)
 {
     if (!v.IsObject()) {
         throw MujinJSONException("Cannot set value for non-object.");
