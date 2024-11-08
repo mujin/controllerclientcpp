@@ -872,9 +872,6 @@ inline void SaveJsonValue(rapidjson::GenericDocument<Encoding, Allocator>& v, co
     SaveJsonValue(v, t, v.GetAllocator());
 }
 
-template<typename T, typename U, typename Encoding, typename Allocator, typename Allocator2>
-inline void SetJsonValueByKey(rapidjson::GenericValue<Encoding, Allocator>& v, const U& key, const T& t, Allocator2& alloc);
-
 //get one json value by key, and store it in local data structures
 //return true if key is present. Will return false if the key is not present or the member is Null
 template<typename T, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> >
