@@ -800,7 +800,7 @@ inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const
 }
 
 template <typename T, size_t N, typename Encoding, typename Allocator, typename Allocator2,
-          typename = std::enable_if<!std::is_same<char, T>::type>> // Disable instantiation for char[], since we want to handle those as strings
+          typename = typename std::enable_if<!std::is_same<char, T>::value>::type> // Disable instantiation for char[], since we want to handle those as strings
 void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const T (&t)[N], Allocator2& alloc)
 {
     v.SetArray();
