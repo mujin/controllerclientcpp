@@ -58,6 +58,6 @@ int main(int argc, char ** argv)
     binpickingzmq->Initialize("", binpickingTaskZmqPort, binpickingTaskHeartbeatPort, zmqcontext);
 
     Transform t;
-    binpickingzmq->GetTransform(testobjectname,t);
+    binpickingzmq->GetTransform(testobjectname,t,"mm");
     std::cout  << "testobject " << testobjectname << " pose: [" << t.quaternion[0] << ", " << t.quaternion[1] << ", " << t.quaternion[2] << ", " << t.quaternion[3] << ", " << t.translate[0] << ", " << t.translate[1] << ", " << t.translate[2] << "]";
 }
