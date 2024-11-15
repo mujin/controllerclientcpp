@@ -30,6 +30,7 @@ void ParseJsonFile(rapidjson::Document& d, const char* filename, Container& buff
         size_t nBufferSize = nChunkSize;
         char* pbuffer = (char*)::malloc(nBufferSize);
         if( !pbuffer ) {
+            ::close(fd);
             throw MujinJSONException("Could not allocate memory");
         }
         size_t nFileSize = 0;
