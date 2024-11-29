@@ -15,6 +15,8 @@
 #include "controllerclientimpl.h"
 #include <boost/thread.hpp> // for sleep
 #include <boost/algorithm/string.hpp>
+#include <netdb.h>
+#include <arpa/inet.h>
 
 #include <mujincontrollerclient/binpickingtask.h>
 
@@ -89,7 +91,45 @@ bool ControllerClientInfo::operator==(const ControllerClientInfo &rhs) const
            unixEndpoint == rhs.unixEndpoint;
 }
 
-std::string ControllerClientInfo::GetURL(bool bIncludeNamePassword) const
+std::string ResolveIpFromHostIfUnique(const std::string& host)
+{
+    struct addrinfo hints = {}, *addrs;
+
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;  // IPv4 only
+    hints.ai_socktype = SOCK_STREAM;
+
+    int status = getaddrinfo(host.c_str(), nullptr, &hints, &addrs);
+    if (status != 0) {
+        std::stringstream ss;
+        ss << "host resolution failed for host " << host << ": " << gai_strerror(status);
+        MUJIN_LOG_ERROR(ss.str());
+        return "";
+    }
+
+    std::set<std::string> uniqueIps;
+
+    for (struct addrinfo* addr = addrs; addr != nullptr; addr = addr->ai_next) {
+        char ipstr[INET_ADDRSTRLEN];
+        auto* sockaddr = reinterpret_cast<struct sockaddr_in*>(addr->ai_addr);
+        inet_ntop(AF_INET, &(sockaddr->sin_addr), ipstr, sizeof(ipstr));
+
+        uniqueIps.insert(ipstr);
+    }
+
+    freeaddrinfo(addrs);
+
+    if (uniqueIps.size() == 1) {
+        return *uniqueIps.begin();
+    }
+
+    std::stringstream ss;
+    ss << "Couldn't find unique IP addresses for host " << host;
+    MUJIN_LOG_WARN(ss.str());
+    return "";
+}
+
+std::string ControllerClientInfo::GetURL(bool bIncludeNamePassword, bool bResolveIpFromHostIfUnique) const
 {
     std::string url;
     if( host.empty() ) {
@@ -103,7 +143,13 @@ std::string ControllerClientInfo::GetURL(bool bIncludeNamePassword) const
         url += "@";
     }
 
-    url += host;
+    if (bResolveIpFromHostIfUnique) {
+        const std::string ip = ResolveIpFromHostIfUnique(host);
+        url += ip.empty() ? host : ip;
+    } else {
+        url += host;
+    }
+
     if( httpPort != 0 ) {
         url += ":";
         url += std::to_string(httpPort);
