@@ -113,6 +113,7 @@ const char* GetExecutionVerificationModeString(ExecutionVerificationMode mode)
     case EVM_PointCloudOnChangeWithDuration: return "pointCloudOnChangeWithDuration";
     case EVM_PointCloudOnChangeFirstCycleOnly: return "pointCloudOnChangeFirstCycleOnly";
     case EVM_PointCloudOnChangeAfterGrab: return "pointCloudOnChangeAfterGrab";
+    case EVM_PointCloudWaitForTrigger: return "pointCloudWaitForTrigger";
     }
     return "(unknown)";
 }
@@ -142,6 +143,9 @@ ExecutionVerificationMode GetExecutionVerificationModeFromString(const char* pMo
     }
     else if( strcmp(pModeStr, "pointCloudOnChangeAfterGrab") == 0 ) {
         return EVM_PointCloudOnChangeAfterGrab;
+    }
+    else if( strcmp(pModeStr, "pointCloudWaitForTrigger") == 0 ) {
+        return EVM_PointCloudWaitForTrigger;
     }
     throw mujinclient::MujinException(str(boost::format("Failed to parse '%s' as ExecutionVerificationMode")%pModeStr), mujinclient::MEC_InvalidArguments);
 }
