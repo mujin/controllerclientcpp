@@ -26,6 +26,8 @@ set(SOURCE_FILES
   common.h
   controllerclientimpl.cpp
   controllerclientimpl.h
+  websocketstream.h
+  websocketstream.cpp
   mujincontrollerclient.cpp
   mujindefinitions.cpp
   mujinjson.cpp
