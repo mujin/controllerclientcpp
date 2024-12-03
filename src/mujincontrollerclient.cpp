@@ -109,7 +109,7 @@ std::string ResolveIpFromHostIfUnique(const std::string& host)
 
     for (struct addrinfo* addr = addrs; addr != nullptr; addr = addr->ai_next) {
         char ipstr[INET_ADDRSTRLEN];
-        auto* sockaddr = reinterpret_cast<struct sockaddr_in*>(addr->ai_addr);
+        struct sockaddr_in* sockaddr = reinterpret_cast<struct sockaddr_in*>(addr->ai_addr);
         inet_ntop(AF_INET, &(sockaddr->sin_addr), ipstr, sizeof(ipstr));
 
         uniqueIps.insert(ipstr);
