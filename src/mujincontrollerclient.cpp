@@ -101,9 +101,7 @@ std::string ResolveIpFromHostIfUnique(const std::string& host)
 
     int status = getaddrinfo(host.c_str(), nullptr, &hints, &addrs);
     if (status != 0) {
-        std::stringstream ss;
-        ss << "host resolution failed for host " << host << ": " << gai_strerror(status);
-        MUJIN_LOG_ERROR(ss.str());
+        MUJIN_LOG_ERROR("host resolution failed for host " << host << ": " << gai_strerror(status));
         return "";
     }
 
@@ -123,9 +121,7 @@ std::string ResolveIpFromHostIfUnique(const std::string& host)
         return *uniqueIps.begin();
     }
 
-    std::stringstream ss;
-    ss << "Couldn't find unique IP addresses for host " << host;
-    MUJIN_LOG_WARN(ss.str());
+    MUJIN_LOG_WARN("Couldn't find unique IP addresses for host " << host);
     return "";
 }
 
