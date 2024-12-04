@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.77.0 (2024-11-14)
+
+fix mujinjson.h SaveJsonValue specializing stacked array values to bool
+
+## 0.76.1 (2024-11-08)
+
+fix mujinjson.h SaveJsonValue const char* variation.
+
 ## 0.76.0 (2024-11-03)
 
 - fix mujinjson.h SaveJsonValue char[] variation.

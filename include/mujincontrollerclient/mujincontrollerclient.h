@@ -77,7 +77,7 @@ public:
     bool operator!=(const ControllerClientInfo &rhs) const {
         return !operator==(rhs);
     }
-    std::string GetURL(bool bIncludeNamePassword) const;
+    std::string GetURL(bool bIncludeNamePassword, bool bResolveIpFromHostIfUnique = false) const;
 
     inline bool IsEnabled() const {
         return !host.empty();

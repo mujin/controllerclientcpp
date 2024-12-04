@@ -673,70 +673,60 @@ inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const
     v.SetString(t.c_str(), alloc);
 }
 
-// for some reason this makes calls ambiguous...
-//template <typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<>>
-//inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const char* t, Allocator& alloc) {
-//    v.SetString(t, alloc);
-//}
-
-template <size_t N, typename Encoding, typename Allocator, typename Allocator2>
-inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const char (&t)[N], Allocator2& alloc) {
-    v.SetString(t, alloc); // do not pass in the length N since do not know where the nul terminator is
-}
-
-inline void SaveJsonValue(rapidjson::Value& v, const char* t, rapidjson::Value::AllocatorType& alloc) {
+template <typename Encoding, typename Allocator, typename Allocator2>
+inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const char* t, Allocator2& alloc) {
     v.SetString(t, alloc);
 }
 
 template <typename Encoding, typename Allocator, typename Allocator2>
-inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, int t, Allocator2& alloc) {
+inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const int& t, Allocator2& alloc) {
     v.SetInt(t);
 }
 
 template <typename Encoding, typename Allocator, typename Allocator2>
-inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, unsigned int t, Allocator2& alloc) {
+inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const unsigned int& t, Allocator2& alloc) {
     v.SetUint(t);
 }
 
 template <typename Encoding, typename Allocator, typename Allocator2>
-inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, long long t, Allocator2& alloc) {
+inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const long long& t, Allocator2& alloc) {
     v.SetInt64(t);
 }
 
 template <typename Encoding, typename Allocator, typename Allocator2>
-inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, int64_t t, Allocator2& alloc) {
+inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const int64_t& t, Allocator2& alloc) {
     v.SetInt64(t);
 }
 
 template <typename Encoding, typename Allocator, typename Allocator2>
-inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, unsigned long long t, Allocator2& alloc) {
+inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const unsigned long long& t, Allocator2& alloc) {
     v.SetUint64(t);
 }
 
 #ifndef _MSC_VER
 template <typename Encoding, typename Allocator, typename Allocator2>
-inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, uint64_t t, Allocator2& alloc) {
+inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const uint64_t& t, Allocator2& alloc) {
     v.SetUint64(t);
 }
 #endif
 
 template <typename Encoding, typename Allocator, typename Allocator2>
-inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, bool t, Allocator2& alloc) {
+inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const bool& t, Allocator2& alloc) {
     v.SetBool(t);
 }
 
 template <typename Encoding, typename Allocator, typename Allocator2>
-inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, int8_t t, Allocator2& alloc) {
+inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const int8_t& t, Allocator2& alloc) {
     v.SetInt(t);
 }
 
 template <typename Encoding, typename Allocator, typename Allocator2>
-inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, double t, Allocator2& alloc) {
+inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const double& t, Allocator2& alloc) {
     v.SetDouble(t);
 }
 
 template <typename Encoding, typename Allocator, typename Allocator2>
-inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, float t, Allocator2& alloc) {
+inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const float& t, Allocator2& alloc) {
     v.SetDouble(t);
 }
 
@@ -809,8 +799,10 @@ inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const
     }
 }
 
-template<typename T, size_t N, typename Encoding, typename Allocator, typename Allocator2>
-void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const T (&t)[N], Allocator2& alloc) {
+template <typename T, size_t N, typename Encoding, typename Allocator, typename Allocator2,
+          typename = typename std::enable_if<!std::is_same<char, T>::value>::type> // Disable instantiation for char[], since we want to handle those as strings
+void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const T (&t)[N], Allocator2& alloc)
+{
     v.SetArray();
     v.Reserve(N, alloc);
     for (size_t i = 0; i < N; ++i) {
@@ -879,9 +871,6 @@ inline void SaveJsonValue(rapidjson::GenericDocument<Encoding, Allocator>& v, co
     v.GetAllocator().Clear();
     SaveJsonValue(v, t, v.GetAllocator());
 }
-
-template<typename T, typename U, typename Encoding, typename Allocator, typename Allocator2>
-inline void SetJsonValueByKey(rapidjson::GenericValue<Encoding, Allocator>& v, const U& key, const T& t, Allocator2& alloc);
 
 //get one json value by key, and store it in local data structures
 //return true if key is present. Will return false if the key is not present or the member is Null
@@ -1070,8 +1059,8 @@ inline void SetJsonValueByPath(rapidjson::GenericDocument<Encoding, Allocator>& 
     SetJsonValueByPath(d, path, t, d.GetAllocator());
 }
 
-template<typename T, typename U, typename Encoding, typename Allocator, typename Encoding2, typename Allocator2, typename Allocator3>
-inline void SetJsonValueByKey(rapidjson::GenericValue<Encoding, Allocator>& v, const U& key, const rapidjson::GenericValue<Encoding2, Allocator2>& t, Allocator3& alloc)
+template<typename T, typename Encoding, typename Allocator, typename Encoding2, typename Allocator2, typename Allocator3>
+inline void SetJsonValueByKey(rapidjson::GenericValue<Encoding, Allocator>& v, const char* key, const rapidjson::GenericValue<Encoding2, Allocator2>& t, Allocator3& alloc)
 {
     if (!v.IsObject()) {
         throw MujinJSONException("Cannot set value for non-object.");
@@ -1087,8 +1076,14 @@ inline void SetJsonValueByKey(rapidjson::GenericValue<Encoding, Allocator>& v, c
     }
 }
 
-template<typename T, typename U, typename Encoding, typename Allocator, typename Allocator2>
-inline void SetJsonValueByKey(rapidjson::GenericValue<Encoding, Allocator>& v, const U& key, const T& t, Allocator2& alloc)
+template<typename T, typename Encoding, typename Allocator, typename Encoding2, typename Allocator2, typename Allocator3>
+inline void SetJsonValueByKey(rapidjson::GenericValue<Encoding, Allocator>& v, const std::string& key, const rapidjson::GenericValue<Encoding2, Allocator2>& t, Allocator3& alloc)
+{
+    SetJsonValueByKey(v, key.c_str(), t, alloc);
+}
+
+template<typename T, typename Encoding, typename Allocator, typename Allocator2>
+inline void SetJsonValueByKey(rapidjson::GenericValue<Encoding, Allocator>& v, const char* key, const T& t, Allocator2& alloc)
 {
     if (!v.IsObject()) {
         throw MujinJSONException("Cannot set value for non-object.");
@@ -1102,6 +1097,12 @@ inline void SetJsonValueByKey(rapidjson::GenericValue<Encoding, Allocator>& v, c
         SaveJsonValue(value, t, alloc);
         v.AddMember(name, value, alloc);
     }
+}
+
+template<typename T, typename Encoding, typename Allocator, typename Allocator2>
+inline void SetJsonValueByKey(rapidjson::GenericValue<Encoding, Allocator>& v, const std::string& key, const T& t, Allocator2& alloc)
+{
+    SetJsonValueByKey(v, key.c_str(), t, alloc);
 }
 
 template<typename T, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> >
