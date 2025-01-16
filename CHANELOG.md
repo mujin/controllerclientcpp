@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.78.1 (2025-01-16)
+
+add pointCloudWaitForTrigger into ExecutionVerificationMode enum.
+
+## 0.78.0 (2024-12-03)
+
+add option to resolve IP from host if unique in GetURL().
+
 ## 0.77.0 (2024-11-14)
 
 fix mujinjson.h SaveJsonValue specializing stacked array values to bool
