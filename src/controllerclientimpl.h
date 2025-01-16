@@ -18,11 +18,11 @@
 #define MUJIN_CONTROLLERCLIENT_IMPL_H
 
 #include <mujincontrollerclient/mujincontrollerclient.h>
-
 #include <boost/enable_shared_from_this.hpp>
+#include "websocketstream.h"
 
 namespace mujinclient {
-
+    
 class ControllerClientImpl : public ControllerClient, public boost::enable_shared_from_this<ControllerClientImpl>
 {
 public:
@@ -48,6 +48,7 @@ public:
     virtual void RestartServer(double timeout);
     virtual void _ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout, bool checkForErrors, bool returnRawResponse);
     virtual void ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout);
+    virtual void ExecuteGraphSubscription(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Document::AllocatorType& rAlloc);
     virtual void ExecuteGraphQueryRaw(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout);
     virtual void CancelAllJobs();
     virtual void GetRunTimeStatuses(std::vector<JobStatus>& statuses, int options);
@@ -168,6 +169,9 @@ public:
 
     void GetDebugInfos(std::vector<DebugResourcePtr>& debuginfos, double timeout = 5);
 
+     /// \brief create a websocket stream 
+    void CreateWebSocketStream();
+
     /// \brief create log entries and attachments such as images, additional files, etc.
     /// \param logEntries a vector of log entries to upload
     /// \param createdLogEntryIds an optional vector for storing the created log entry ids
@@ -194,6 +198,11 @@ public:
         return std::string(pstr.get(), outlength);
     }
 
+    /// \brief return a base64 encoded string of the input data
+    std::string GetEncodeBase64String(const std::string& data);
+
+    /// \brief get one socket message 
+    std::string SpinOnce();
 
 protected:
 
@@ -212,6 +221,12 @@ protected:
 
     /// \brief sets up http header for doing http operation with multipart/form-data data
     void _SetupHTTPHeadersMultipartFormData();
+
+    /// \brief send connection init message to the websocket after handshake
+    void _SendConnectionInitMessage();
+
+    /// \brief get one message from the websocket
+    std::string _GetWebSocketMessage();
 
     /// \brief given a raw uri with "mujin:/", return the real network uri
     ///
@@ -279,6 +294,7 @@ protected:
     static size_t _ReadInMemoryUploadCallback(void *ptr, size_t size, size_t nmemb, void *stream);
 
     int _lastmode;
+    std::unique_ptr<BaseWebSocketStream> _pWebsocketStream;
     CURL *_curl;
     boost::mutex _mutex;
     std::stringstream _buffer;
@@ -297,7 +313,6 @@ protected:
     std::string _errormessage; ///< set when an error occurs in libcurl
 
     std::string _defaultscenetype, _defaulttasktype;
-
     rapidjson::StringBuffer _rRequestStringBufferCache; ///< cache for request string, protected by _mutex
 };
 
