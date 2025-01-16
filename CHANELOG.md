@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.77.1 (2025-01-16)
+
+add pointCloudWaitForTrigger into ExecutionVerificationMode enum.
+
 ## 0.77.0 (2024-11-14)
 
 fix mujinjson.h SaveJsonValue specializing stacked array values to bool
