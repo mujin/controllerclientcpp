@@ -187,17 +187,29 @@ inline static unsigned long long GetNanoPerformanceTime()
 #endif
 
 #define GETCONTROLLERIMPL() ControllerClientImplPtr controller = boost::dynamic_pointer_cast<ControllerClientImpl>(GetController());
-#define CHECKCURLCODE(code, msg) if (code != CURLE_OK) { \
-        throw MujinException(boost::str(boost::format("[%s:%d] curl function %s with error '%s': %s")%(__PRETTY_FUNCTION__)%(__LINE__)%(msg)%curl_easy_strerror(code)%_errormessage), MEC_HTTPClient); \
-}
+
+// the parameter 'code' (which is a curl function) here will be evaluated twice if it is used in the if condition check and passed in the curl_easy_strerror
+// we use returnCode to store the CURLcode returned by the parameter 'code', and pass the returnCode to the curl_easy_strerror function
+#define CHECKCURLCODE(code, msg) do { \
+        const CURLcode returnCode = code; \
+        if (returnCode != CURLE_OK) { \
+            throw MujinException(boost::str(boost::format("[%s:%d] curl function %s with error '%s': %s")%(__PRETTY_FUNCTION__)%(__LINE__)%(msg)%curl_easy_strerror(returnCode)%_errormessage), MEC_HTTPClient); \
+        } \
+} while (false)
 #if CURL_AT_LEAST_VERSION(7,80,0)
-#define CHECKCURLUCODE(code, msg) if (code != CURLUE_OK) { \
-        throw MujinException(boost::str(boost::format("[%s:%d] curl function %s with error '%s': %s")%(__PRETTY_FUNCTION__)%(__LINE__)%(msg)%curl_url_strerror(code)%_errormessage), MEC_HTTPClient); \
-}
+#define CHECKCURLUCODE(code, msg) do { \
+    const CURLUcode returnCode = code; \
+    if (returnCode != CURLUE_OK) { \
+        throw MujinException(boost::str(boost::format("[%s:%d] curl function %s with error '%s': %s")%(__PRETTY_FUNCTION__)%(__LINE__)%(msg)%curl_url_strerror(returnCode)%_errormessage), MEC_HTTPClient); \
+    } \
+} while (false)
 #else
-#define CHECKCURLUCODE(code, msg) if (code != CURLUE_OK) { \
-        throw MujinException(boost::str(boost::format("[%s:%d] curl function %s with error %d: %s")%(__PRETTY_FUNCTION__)%(__LINE__)%(msg)%(code)%_errormessage), MEC_HTTPClient); \
-}
+#define CHECKCURLUCODE(code, msg) do { \
+    const CURLUcode returnCode = code; \
+    if (returnCode != CURLUE_OK) { \
+        throw MujinException(boost::str(boost::format("[%s:%d] curl function %s with error %d: %s")%(__PRETTY_FUNCTION__)%(__LINE__)%(msg)%(returnCode)%_errormessage), MEC_HTTPClient); \
+    } \
+} while (false)
 #endif
 
 #define MUJIN_EXCEPTION_FORMAT0(s, errorcode) mujinclient::MujinException(boost::str(boost::format("[%s:%d] " s)%(__PRETTY_FUNCTION__)%(__LINE__)),errorcode)
