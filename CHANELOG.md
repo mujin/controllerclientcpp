@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.79.0 (2025-02-04)
+
+- Support octagonalCaseClassificationInfo in RegisterMinViableRegionInfo.
+
 ## 0.78.1 (2025-01-16)
 
 add pointCloudWaitForTrigger into ExecutionVerificationMode enum.
