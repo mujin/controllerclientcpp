@@ -432,6 +432,11 @@ public:
     /// \param rResult The entire result field of the query. Should have keys "data" and "errors". Each error should have keys: "message", "locations", "path", "extensions". And "extensions" has keys "errorCode".
     virtual void ExecuteGraphQueryRaw(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout = 60.0) = 0;
 
+    /// \brief Execute GraphQL subscription query against Mujin Controller.
+    ///
+    /// Throws an exception if there are any errors
+    virtual void ExecuteGraphSubscription(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Document::AllocatorType& rAlloc) = 0;
+
     /// \brief returns the mujin controller version
     virtual std::string GetVersion() = 0;
 

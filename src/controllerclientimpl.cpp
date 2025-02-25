@@ -475,6 +475,12 @@ void ControllerClientImpl::ExecuteGraphQueryRaw(const char* operationName, const
     _ExecuteGraphQuery(operationName, query, rVariables, rResult, rAlloc, timeout, false, true);
 }
 
+
+void ControllerClientImpl::ExecuteGraphSubscription(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Document::AllocatorType& rAlloc) 
+{
+    
+}
+
 void ControllerClientImpl::RestartServer(double timeout)
 {
     boost::mutex::scoped_lock lock(_mutex);
