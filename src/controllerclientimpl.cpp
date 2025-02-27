@@ -476,7 +476,7 @@ void ControllerClientImpl::ExecuteGraphQueryRaw(const char* operationName, const
 }
 
 
-GraphSubscriptionHandlerPtr ControllerClientImpl::ExecuteGraphSubscription(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Document::AllocatorType& rAlloc) 
+GraphSubscriptionHandlerPtr ControllerClientImpl::ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, rapidjson::Document::AllocatorType& rAlloc) 
 {
     
 }
