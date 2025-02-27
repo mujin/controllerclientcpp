@@ -476,7 +476,7 @@ void ControllerClientImpl::ExecuteGraphQueryRaw(const char* operationName, const
 }
 
 
-GraphSubscriptionHandlerPtr ControllerClientImpl::ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, rapidjson::Document::AllocatorType& rAlloc) 
+GraphSubscriptionClientPtr ControllerClientImpl::ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, rapidjson::Document::AllocatorType& rAlloc) 
 {
     
 }
@@ -2129,6 +2129,21 @@ void ControllerClientImpl::CreateLogEntries(const std::vector<LogEntry>& logEntr
             createdLogEntryIds.emplace_back(itLogEntryId->GetString());
         }
     }
+}
+
+GraphSubscriptionClientImpl::GraphSubscriptionClientImpl()
+{
+
+}
+
+GraphSubscriptionClientImpl::~GraphSubscriptionClientImpl()
+{
+
+}
+
+std::string GraphSubscriptionClientImpl::SpinOnce()
+{
+
 }
 
 } // end namespace mujinclient
