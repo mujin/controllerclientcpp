@@ -750,7 +750,6 @@ public:
 class MUJINCLIENT_API GraphSubscriptionClient
 {
 public:
-    GraphSubscriptionClient();
     virtual ~GraphSubscriptionClient() {
     }
     virtual std::string SpinOnce() = 0;

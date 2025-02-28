@@ -17,6 +17,10 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/scope_exit.hpp>
 #include <boost/property_tree/xml_parser.hpp>
+#include <boost/asio.hpp>
+#include <boost/beast.hpp>
+#include <boost/beast/websocket.hpp>
+#include <boost/beast/core/detail/base64.hpp>
 #include <strstream>
 
 #define SKIP_PEER_VERIFICATION // temporary
@@ -475,11 +479,90 @@ void ControllerClientImpl::ExecuteGraphQueryRaw(const char* operationName, const
     _ExecuteGraphQuery(operationName, query, rVariables, rResult, rAlloc, timeout, false, true);
 }
 
+template <typename Socket>
+void _InitializeSubscription(boost::beast::websocket::stream<Socket>& stream, const ControllerClientInfo& clientInfo, const std::string& csrfMiddlewareToken)
+{
+    // encode username and password
+    std::string usernamePassword = clientInfo.username + ":" + clientInfo.password;
+    std::string encodedUsernamePassword;
+    encodedUsernamePassword.resize(boost::beast::detail::base64::encoded_size(usernamePassword.size()));
+    boost::beast::detail::base64::encode(&usernamePassword[0], usernamePassword.data(), usernamePassword.size());
+
+    // add authorization header and csrf token
+    stream.set_option(boost::beast::websocket::stream_base::decorator([&csrfMiddlewareToken, &encodedUsernamePassword](boost::beast::websocket::request_type& request){
+        request.set(boost::beast::http::field::cookie, "csrftoken=" + csrfMiddlewareToken);
+        request.set(boost::beast::http::field::authorization, "Basic " + encodedUsernamePassword);
+    }));
+
+    // upgrade the connection to websocket
+    stream.handshake(clientInfo.host, "/api/v2/graphql");
+
+    // initialize the websocket
+    stream.write(boost::asio::buffer("{\"type\":\"connection_init\"}"));
+
+    boost::beast::flat_buffer streamBuffer;
+    stream.read(streamBuffer);
+    std::string message = boost::beast::buffers_to_string(streamBuffer.data());
+    MUJIN_LOG_INFO(boost::format("raliao Response %s") % message);
+    if (message.find("connection_ack") == std::string::npos) {
+        throw MUJIN_EXCEPTION_FORMAT("Failed to initialize websocket connection, Expected 'connection_ack' in response, but got: %s", message, MEC_HTTPServer);
+    }
+}
 
 GraphSubscriptionClientPtr ControllerClientImpl::ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, rapidjson::Document::AllocatorType& rAlloc) 
 {
+    // build the query
+    rapidjson::Value rPayLoad;
+    rPayLoad.SetObject();
+    rPayLoad.AddMember(rapidjson::Document::StringRefType("operationName"), rapidjson::Value(operationName.c_str(), rAlloc), rAlloc);
+    rPayLoad.AddMember(rapidjson::Document::StringRefType("query"), rapidjson::Value(query.c_str(), rAlloc), rAlloc);
+    rPayLoad.AddMember(rapidjson::Document::StringRefType("variables"), rapidjson::Value(rVariables, rAlloc), rAlloc);
+
+    rapidjson::Value rRequest;
+    rRequest.SetObject();
+    rRequest.AddMember(rapidjson::Document::StringRefType("type"), "subscribe", rAlloc);
+    rRequest.AddMember(rapidjson::Document::StringRefType("payload"), rPayLoad, rAlloc);
+    
+    _rRequestStringBufferCache.Clear();
+    rapidjson::Writer<rapidjson::StringBuffer> writer(_rRequestStringBufferCache);
+    rRequest.Accept(writer);
+    _rRequestStringBufferCache.Clear();
+
+    // create a websocket connection
+    boost::asio::io_context io_context;
+    // boost::asio::basic_socket socket;
+    if (_clientInfo.unixEndpoint.empty()) {
+        // access public webstack
+        MUJIN_LOG_INFO(boost::format("Create TCP socket connected to host %s") % _clientInfo.host);
+        boost::asio::ip::tcp::socket socket(io_context);
+        boost::asio::ip::address address = boost::asio::ip::address::from_string(_clientInfo.host);
+        boost::asio::ip::tcp::endpoint endpoint(address, _clientInfo.httpPort == 0 ? 80 : _clientInfo.httpPort);
+        socket.connect(endpoint);
+        boost::beast::websocket::stream<boost::asio::ip::tcp::socket> stream(std::move(socket));
+
+        _InitializeSubscription(stream, _clientInfo, _csrfmiddlewaretoken);
+    } else {
+        // access private webstack
+        MUJIN_LOG_INFO(boost::format("Create unix domain socket connected to endpoint %s") % _clientInfo.unixEndpoint);
+        boost::asio::local::stream_protocol::socket socket(io_context);
+        boost::asio::local::stream_protocol::endpoint endpoint(_clientInfo.unixEndpoint);
+        socket.connect(endpoint);
+        boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket> stream(std::move(socket));
+
+        _InitializeSubscription(stream, _clientInfo, _csrfmiddlewaretoken);
+    }
+
+
+    // todo :raliao
+    _rRequestStringBufferCache.GetString();
+
+    // if (!_pWebsocketStream->is_open()) {
+    //     CreateWebSocketStream();
+    // }
+    // _pWebsocketStream->write(rRequestStringBuffer.GetString());
+
+
     GraphSubscriptionClientPtr graphSubscriptionClientPtr = boost::make_shared<GraphSubscriptionClientImpl>(operationName, query);
-    graphSubscriptionClientPtr->SpinOnce();
     return graphSubscriptionClientPtr;
 }
 
