@@ -478,7 +478,7 @@ void ControllerClientImpl::ExecuteGraphQueryRaw(const char* operationName, const
 
 GraphSubscriptionClientPtr ControllerClientImpl::ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, rapidjson::Document::AllocatorType& rAlloc) 
 {
-    GraphSubscriptionClientPtr graphSubscriptionClientPtr = boost::make_shared<GraphSubscriptionClientImpl>();
+    GraphSubscriptionClientPtr graphSubscriptionClientPtr = boost::make_shared<GraphSubscriptionClientImpl>(operationName, query);
     graphSubscriptionClientPtr->SpinOnce();
     return graphSubscriptionClientPtr;
 }
@@ -2133,7 +2133,8 @@ void ControllerClientImpl::CreateLogEntries(const std::vector<LogEntry>& logEntr
     }
 }
 
-GraphSubscriptionClientImpl::GraphSubscriptionClientImpl()
+GraphSubscriptionClientImpl::GraphSubscriptionClientImpl(const std::string& operationName, const std::string& query)
+: _operationName(operationName), _query(query)
 {
 
 }

@@ -307,10 +307,15 @@ typedef boost::shared_ptr<ControllerClientImpl> ControllerClientImplPtr;
 class GraphSubscriptionClientImpl : public GraphSubscriptionClient, public boost::enable_shared_from_this<GraphSubscriptionClientImpl>
 {
 public:
-    GraphSubscriptionClientImpl();
+    GraphSubscriptionClientImpl(const std::string& operationName, const std::string& query);
     virtual ~GraphSubscriptionClientImpl();
 
     std::string SpinOnce() override;
+
+private:
+
+    const std::string& _operationName;
+    const std::string& _query;
 };
 
 typedef boost::shared_ptr<GraphSubscriptionClientImpl> GraphSubscriptionClientImplPtr;
