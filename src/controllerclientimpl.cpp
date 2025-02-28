@@ -478,7 +478,9 @@ void ControllerClientImpl::ExecuteGraphQueryRaw(const char* operationName, const
 
 GraphSubscriptionClientPtr ControllerClientImpl::ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, rapidjson::Document::AllocatorType& rAlloc) 
 {
-    
+    GraphSubscriptionClientPtr graphSubscriptionClientPtr = boost::make_shared<GraphSubscriptionClientImpl>();
+    graphSubscriptionClientPtr->SpinOnce();
+    return graphSubscriptionClientPtr;
 }
 
 void ControllerClientImpl::RestartServer(double timeout)
