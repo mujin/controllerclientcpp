@@ -480,10 +480,10 @@ void ControllerClientImpl::ExecuteGraphQueryRaw(const char* operationName, const
 }
 
 template <typename Socket>
-void _InitializeSubscription(boost::beast::websocket::stream<Socket>& stream, const ControllerClientInfo& clientInfo, const std::string& csrfMiddlewareToken)
+void _InitializeSubscription(boost::beast::websocket::stream<Socket>& stream, const std::string& host, const std::string& username, const std::string& password, const std::string& csrfMiddlewareToken)
 {
     // encode username and password
-    std::string usernamePassword = clientInfo.username + ":" + clientInfo.password;
+    std::string usernamePassword = username + ":" + password;
     std::string encodedUsernamePassword;
     encodedUsernamePassword.resize(boost::beast::detail::base64::encoded_size(usernamePassword.size()));
     boost::beast::detail::base64::encode(&usernamePassword[0], usernamePassword.data(), usernamePassword.size());
@@ -495,10 +495,11 @@ void _InitializeSubscription(boost::beast::websocket::stream<Socket>& stream, co
     }));
 
     // upgrade the connection to websocket
-    stream.handshake(clientInfo.host, "/api/v2/graphql");
+    stream.handshake(host, "/api/v2/graphql");
 
     // initialize the websocket
-    stream.write(boost::asio::buffer("{\"type\":\"connection_init\"}"));
+    std::string connectionInitMessage = R"({"type":"connection_init"})";
+    stream.write(boost::asio::buffer(connectionInitMessage));
 
     boost::beast::flat_buffer streamBuffer;
     stream.read(streamBuffer);
@@ -540,7 +541,7 @@ GraphSubscriptionClientPtr ControllerClientImpl::ExecuteGraphSubscription(const 
         socket.connect(endpoint);
         boost::beast::websocket::stream<boost::asio::ip::tcp::socket> stream(std::move(socket));
 
-        _InitializeSubscription(stream, _clientInfo, _csrfmiddlewaretoken);
+        _InitializeSubscription(stream, _clientInfo.host, _clientInfo.username,  _clientInfo.password, _csrfmiddlewaretoken);
     } else {
         // access private webstack
         MUJIN_LOG_INFO(boost::format("Create unix domain socket connected to endpoint %s") % _clientInfo.unixEndpoint);
@@ -549,7 +550,7 @@ GraphSubscriptionClientPtr ControllerClientImpl::ExecuteGraphSubscription(const 
         socket.connect(endpoint);
         boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket> stream(std::move(socket));
 
-        _InitializeSubscription(stream, _clientInfo, _csrfmiddlewaretoken);
+        _InitializeSubscription(stream, "localhost:80", _clientInfo.username,  _clientInfo.password, _csrfmiddlewaretoken);
     }
 
 
