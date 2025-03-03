@@ -480,10 +480,10 @@ void ControllerClientImpl::ExecuteGraphQueryRaw(const char* operationName, const
 }
 
 template <typename Socket>
-void _InitializeSubscription(boost::beast::websocket::stream<Socket>& stream, const std::string& host, const std::string& encodedUsernamePassword)
+void _InitializeSubscription(boost::beast::websocket::stream<Socket>& stream, const std::string& host, uint16_t port, const std::string& encodedUsernamePassword, const std::string& query)
 {
     // upgrade the connection to websocket
-    stream.handshake(host, "/api/v2/graphql");
+    stream.handshake(host + ":" + std::to_string(port), "/api/v2/graphql");
 
     // initialize the websocket
     std::string connectionInitMessage = R"({"type":"connection_init"})";
@@ -518,6 +518,7 @@ GraphSubscriptionClientPtr ControllerClientImpl::ExecuteGraphSubscription(const 
     _rRequestStringBufferCache.Clear();
     rapidjson::Writer<rapidjson::StringBuffer> writer(_rRequestStringBufferCache);
     rRequest.Accept(writer);
+    std::string subscriptionMessage = _rRequestStringBufferCache.GetString();
     _rRequestStringBufferCache.Clear();
 
     // create a websocket connection
@@ -536,7 +537,7 @@ GraphSubscriptionClientPtr ControllerClientImpl::ExecuteGraphSubscription(const 
         std::string encodedUsernamePassword;
         encodedUsernamePassword.resize(boost::beast::detail::base64::encoded_size(usernamePassword.size()));
         boost::beast::detail::base64::encode(&encodedUsernamePassword[0], usernamePassword.data(), usernamePassword.size());
-        _InitializeSubscription(stream, _clientInfo.host, encodedUsernamePassword);
+        _InitializeSubscription(stream, _clientInfo.host, _clientInfo.httpPort == 0 ? 80 : _clientInfo.httpPort, encodedUsernamePassword, subscriptionMessage);
     } else {
         // access private webstack
         MUJIN_LOG_INFO(boost::format("Create unix domain socket connected to endpoint %s") % _clientInfo.unixEndpoint);
@@ -546,12 +547,11 @@ GraphSubscriptionClientPtr ControllerClientImpl::ExecuteGraphSubscription(const 
         socket.connect(endpoint);
         boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket> stream(std::move(socket));
 
-        _InitializeSubscription(stream, "localhost:80", "");
+        _InitializeSubscription(stream, "localhost", 80, "", subscriptionMessage);
     }
 
 
     // todo :raliao
-    _rRequestStringBufferCache.GetString();
 
     // if (!_pWebsocketStream->is_open()) {
     //     CreateWebSocketStream();
