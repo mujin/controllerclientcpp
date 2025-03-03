@@ -593,7 +593,7 @@ GraphSubscriptionHandlerPtr ControllerClientImpl::ExecuteGraphSubscription(const
     // }
     // _pWebsocketStream->write(rRequestStringBuffer.GetString());
 
-    return boost::make_shared<GraphSubscriptionHandlerImpl>(tcpStream, unixSocketStream);
+    return boost::make_shared<GraphSubscriptionHandlerImpl>(tcpStream, unixSocketStream, subscriptionBuffer);
 }
 
 void ControllerClientImpl::RestartServer(double timeout)
@@ -2246,8 +2246,8 @@ void ControllerClientImpl::CreateLogEntries(const std::vector<LogEntry>& logEntr
     }
 }
 
-GraphSubscriptionHandlerImpl::GraphSubscriptionHandlerImpl(boost::shared_ptr<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>> tcpStream, boost::shared_ptr<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>> unixSocketStream)
-: _tcpStream(tcpStream), _unixSocketStream(unixSocketStream)
+GraphSubscriptionHandlerImpl::GraphSubscriptionHandlerImpl(boost::shared_ptr<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>> tcpStream, boost::shared_ptr<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>> unixSocketStream, boost::shared_ptr<boost::beast::flat_buffer> subscriptionBuffer)
+: _tcpStream(tcpStream), _unixSocketStream(unixSocketStream), _subscriptionBuffer(subscriptionBuffer)
 {
 
 }
