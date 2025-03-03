@@ -480,31 +480,22 @@ void ControllerClientImpl::ExecuteGraphQueryRaw(const char* operationName, const
 }
 
 template <typename Socket>
-void _InitializeSubscription(boost::beast::websocket::stream<Socket>& stream, const std::string& host, const std::string& username, const std::string& password, const std::string& csrfMiddlewareToken)
+void _InitializeSubscription(boost::beast::websocket::stream<Socket>& stream, const std::string& host, const std::string& encodedUsernamePassword)
 {
-    // encode username and password
-    std::string usernamePassword = username + ":" + password;
-    std::string encodedUsernamePassword;
-    encodedUsernamePassword.resize(boost::beast::detail::base64::encoded_size(usernamePassword.size()));
-    boost::beast::detail::base64::encode(&usernamePassword[0], usernamePassword.data(), usernamePassword.size());
-
-    // add authorization header and csrf token
-    stream.set_option(boost::beast::websocket::stream_base::decorator([&csrfMiddlewareToken, &encodedUsernamePassword](boost::beast::websocket::request_type& request){
-        request.set(boost::beast::http::field::cookie, "csrftoken=" + csrfMiddlewareToken);
-        request.set(boost::beast::http::field::authorization, "Basic " + encodedUsernamePassword);
-    }));
-
     // upgrade the connection to websocket
     stream.handshake(host, "/api/v2/graphql");
 
     // initialize the websocket
     std::string connectionInitMessage = R"({"type":"connection_init"})";
+    if (!encodedUsernamePassword.empty()) {
+        // add basic authorization header
+        connectionInitMessage = boost::str(boost::format(R"({"type":"connection_init","payload":{"Authorization":"Basic %s"}})") % encodedUsernamePassword);
+    }
     stream.write(boost::asio::buffer(connectionInitMessage));
 
     boost::beast::flat_buffer streamBuffer;
     stream.read(streamBuffer);
     std::string message = boost::beast::buffers_to_string(streamBuffer.data());
-    MUJIN_LOG_INFO(boost::format("raliao Response %s") % message);
     if (message.find("connection_ack") == std::string::npos) {
         throw MUJIN_EXCEPTION_FORMAT("Failed to initialize websocket connection, Expected 'connection_ack' in response, but got: %s", message, MEC_HTTPServer);
     }
@@ -531,7 +522,6 @@ GraphSubscriptionClientPtr ControllerClientImpl::ExecuteGraphSubscription(const 
 
     // create a websocket connection
     boost::asio::io_context io_context;
-    // boost::asio::basic_socket socket;
     if (_clientInfo.unixEndpoint.empty()) {
         // access public webstack
         MUJIN_LOG_INFO(boost::format("Create TCP socket connected to host %s") % _clientInfo.host);
@@ -541,16 +531,22 @@ GraphSubscriptionClientPtr ControllerClientImpl::ExecuteGraphSubscription(const 
         socket.connect(endpoint);
         boost::beast::websocket::stream<boost::asio::ip::tcp::socket> stream(std::move(socket));
 
-        _InitializeSubscription(stream, _clientInfo.host, _clientInfo.username,  _clientInfo.password, _csrfmiddlewaretoken);
+        // encode username and password
+        std::string usernamePassword = _clientInfo.username + ":" + _clientInfo.password;
+        std::string encodedUsernamePassword;
+        encodedUsernamePassword.resize(boost::beast::detail::base64::encoded_size(usernamePassword.size()));
+        boost::beast::detail::base64::encode(&encodedUsernamePassword[0], usernamePassword.data(), usernamePassword.size());
+        _InitializeSubscription(stream, _clientInfo.host, encodedUsernamePassword);
     } else {
         // access private webstack
         MUJIN_LOG_INFO(boost::format("Create unix domain socket connected to endpoint %s") % _clientInfo.unixEndpoint);
+
         boost::asio::local::stream_protocol::socket socket(io_context);
         boost::asio::local::stream_protocol::endpoint endpoint(_clientInfo.unixEndpoint);
         socket.connect(endpoint);
         boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket> stream(std::move(socket));
 
-        _InitializeSubscription(stream, "localhost:80", _clientInfo.username,  _clientInfo.password, _csrfmiddlewaretoken);
+        _InitializeSubscription(stream, "localhost:80", "");
     }
 
 
