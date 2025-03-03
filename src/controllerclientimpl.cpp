@@ -501,7 +501,7 @@ void _InitializeSubscription(boost::shared_ptr<boost::beast::websocket::stream<S
 }
 
 template <typename Socket>
-void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stream<Socket>> stream, boost::shared_ptr<boost::beast::flat_buffer> subscriptionBuffer, void (*onReadHandler)(const boost::system::error_code&, rapidjson::Value&&), rapidjson::Document::AllocatorType& rAlloc)
+void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stream<Socket>> stream, boost::shared_ptr<boost::beast::flat_buffer> subscriptionBuffer, std::function<void(const boost::system::error_code&, rapidjson::Value&&)> onReadHandler, rapidjson::Document::AllocatorType& rAlloc)
 {
     stream->async_read(*subscriptionBuffer, [stream, subscriptionBuffer, onReadHandler, &rAlloc](const boost::system::error_code& errorCode, std::size_t bytesTransferred){
         if (errorCode) {
@@ -531,7 +531,7 @@ void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stre
     });
 }
 
-GraphSubscriptionHandlerPtr ControllerClientImpl::ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, rapidjson::Document::AllocatorType& rAlloc, void (*onReadHandler)(const boost::system::error_code&, rapidjson::Value&&))
+GraphSubscriptionHandlerPtr ControllerClientImpl::ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, rapidjson::Document::AllocatorType& rAlloc, std::function<void(const boost::system::error_code&, rapidjson::Value&&)> onReadHandler)
 {
     // build the query
     rapidjson::Value rPayLoad;
