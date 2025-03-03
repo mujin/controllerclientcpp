@@ -55,10 +55,7 @@
 #include <boost/weak_ptr.hpp>
 #include <boost/format.hpp>
 #include <boost/array.hpp>
-#include <boost/beast.hpp>
-#include <boost/beast/websocket.hpp>
-#include <boost/beast/core/detail/base64.hpp>
-#include <boost/asio.hpp>
+#include <boost/system/error_code.hpp>
 #include <mujincontrollerclient/config.h>
 #include <mujincontrollerclient/mujinexceptions.h>
 #include <mujincontrollerclient/mujinjson.h>

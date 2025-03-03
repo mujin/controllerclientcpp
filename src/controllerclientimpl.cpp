@@ -17,6 +17,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/scope_exit.hpp>
 #include <boost/property_tree/xml_parser.hpp>
+#include <boost/beast/core/detail/base64.hpp>
 #include <strstream>
 
 #define SKIP_PEER_VERIFICATION // temporary

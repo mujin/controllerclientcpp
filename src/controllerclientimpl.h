@@ -20,6 +20,8 @@
 #include <mujincontrollerclient/mujincontrollerclient.h>
 
 #include <boost/enable_shared_from_this.hpp>
+#include <boost/beast.hpp>
+#include <boost/asio.hpp>
 
 namespace mujinclient {
 
