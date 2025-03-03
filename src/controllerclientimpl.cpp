@@ -509,7 +509,7 @@ void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stre
 {
     stream->async_read(*subscriptionBuffer, [](const boost::system::error_code& errorCode, std::size_t bytesTransferred){
         if(errorCode) {
-            return fail(ec, "read");
+            return;
         }
     });
 }
