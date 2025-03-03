@@ -99,6 +99,7 @@ enum TaskResourceOptions
 };
 
 class ControllerClient;
+class GraphSubscriptionClient;
 class ObjectResource;
 class RobotResource;
 class SceneResource;
@@ -119,6 +120,8 @@ struct FileEntry
 
 typedef boost::shared_ptr<ControllerClient> ControllerClientPtr;
 typedef boost::weak_ptr<ControllerClient> ControllerClientWeakPtr;
+typedef boost::shared_ptr<GraphSubscriptionClient> GraphSubscriptionClientPtr;
+typedef boost::weak_ptr<GraphSubscriptionClient> GraphSubscriptionClientWeakPtr;
 typedef boost::shared_ptr<ObjectResource> ObjectResourcePtr;
 typedef boost::weak_ptr<ObjectResource> ObjectResourceWeakPtr;
 typedef boost::shared_ptr<RobotResource> RobotResourcePtr;
@@ -436,7 +439,7 @@ public:
     ///
     /// Throws an exception if there are any errors
     /// \param rResult A handler used to interact with graphql subscription channel
-    virtual void ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, rapidjson::Document::AllocatorType& rAlloc) = 0;
+    virtual GraphSubscriptionClientPtr ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, rapidjson::Document::AllocatorType& rAlloc) = 0;
 
     /// \brief returns the mujin controller version
     virtual std::string GetVersion() = 0;
@@ -741,6 +744,17 @@ public:
     /// \param timeout timeout of uploading log entries in seconds
     virtual void CreateLogEntries(const std::vector<LogEntry>& logEntries, std::vector<std::string>& createdLogEntryIds, double timeout = 5) = 0;
 };
+
+
+/// \brief A handler used to interact with graphql subscription channel
+class MUJINCLIENT_API GraphSubscriptionClient
+{
+public:
+    virtual ~GraphSubscriptionClient() {
+    }
+    virtual std::string SpinOnce() = 0;
+};
+
 
 class MUJINCLIENT_API WebResource
 {
