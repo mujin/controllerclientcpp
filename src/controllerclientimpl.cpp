@@ -480,18 +480,18 @@ void ControllerClientImpl::ExecuteGraphQueryRaw(const char* operationName, const
 }
 
 template <typename Socket>
-void _InitializeSubscription(boost::beast::websocket::stream<Socket>& stream, const std::string& host, uint16_t port, const std::string& encodedUsernamePassword, const std::string& query)
+void _InitializeSubscription(boost::beast::websocket::stream<Socket>& stream, const std::string& host, uint16_t port, const std::string& encodedUsernamePassword, const std::string& subscriptionMessage)
 {
     // upgrade the connection to websocket
     stream.handshake(host + ":" + std::to_string(port), "/api/v2/graphql");
 
     // initialize the websocket
-    std::string connectionInitMessage = R"({"type":"connection_init"})";
+    std::string connectionInitializationMessage = R"({"type":"connection_init"})";
     if (!encodedUsernamePassword.empty()) {
         // add basic authorization header
-        connectionInitMessage = boost::str(boost::format(R"({"type":"connection_init","payload":{"Authorization":"Basic %s"}})") % encodedUsernamePassword);
+        connectionInitializationMessage = boost::str(boost::format(R"({"type":"connection_init","payload":{"Authorization":"Basic %s"}})") % encodedUsernamePassword);
     }
-    stream.write(boost::asio::buffer(connectionInitMessage));
+    stream.write(boost::asio::buffer(connectionInitializationMessage));
 
     boost::beast::flat_buffer streamBuffer;
     stream.read(streamBuffer);
@@ -499,6 +499,9 @@ void _InitializeSubscription(boost::beast::websocket::stream<Socket>& stream, co
     if (message.find("connection_ack") == std::string::npos) {
         throw MUJIN_EXCEPTION_FORMAT("Failed to initialize websocket connection, Expected 'connection_ack' in response, but got: %s", message, MEC_HTTPServer);
     }
+
+    // start subscription
+    stream.write(boost::asio::buffer(subscriptionMessage));
 }
 
 GraphSubscriptionClientPtr ControllerClientImpl::ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, rapidjson::Document::AllocatorType& rAlloc) 
