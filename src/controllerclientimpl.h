@@ -49,7 +49,7 @@ public:
     virtual void _ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout, bool checkForErrors, bool returnRawResponse);
     virtual void ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout);
     virtual void ExecuteGraphQueryRaw(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout);
-    virtual GraphSubscriptionClientPtr ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, rapidjson::Document::AllocatorType& rAlloc);
+    virtual GraphSubscriptionHandlerPtr ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, rapidjson::Document::AllocatorType& rAlloc);
     virtual void CancelAllJobs();
     virtual void GetRunTimeStatuses(std::vector<JobStatus>& statuses, int options);
     virtual void GetScenePrimaryKeys(std::vector<std::string>& scenekeys);
@@ -304,21 +304,19 @@ protected:
 
 typedef boost::shared_ptr<ControllerClientImpl> ControllerClientImplPtr;
 
-class GraphSubscriptionClientImpl : public GraphSubscriptionClient, public boost::enable_shared_from_this<GraphSubscriptionClientImpl>
+class GraphSubscriptionHandlerImpl : public GraphSubscriptionHandler, public boost::enable_shared_from_this<GraphSubscriptionHandlerImpl>
 {
 public:
-    GraphSubscriptionClientImpl(const std::string& operationName, const std::string& query);
-    virtual ~GraphSubscriptionClientImpl();
-
-    std::string SpinOnce() override;
+    GraphSubscriptionHandlerImpl(boost::shared_ptr<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>> tcpStream, boost::shared_ptr<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>> unixSocketStream);
+    virtual ~GraphSubscriptionHandlerImpl();
 
 private:
 
-    const std::string& _operationName;
-    const std::string& _query;
+    boost::shared_ptr<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>> _tcpStream;
+    boost::shared_ptr<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>> _unixSocketStream;
 };
 
-typedef boost::shared_ptr<GraphSubscriptionClientImpl> GraphSubscriptionClientImplPtr;
+typedef boost::shared_ptr<GraphSubscriptionHandlerImpl> GraphSubscriptionHandlerImplPtr;
 
 
 } // end namespace mujinclient

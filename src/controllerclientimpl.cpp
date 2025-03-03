@@ -17,10 +17,6 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/scope_exit.hpp>
 #include <boost/property_tree/xml_parser.hpp>
-#include <boost/asio.hpp>
-#include <boost/beast.hpp>
-#include <boost/beast/websocket.hpp>
-#include <boost/beast/core/detail/base64.hpp>
 #include <strstream>
 
 #define SKIP_PEER_VERIFICATION // temporary
@@ -514,7 +510,7 @@ void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stre
     });
 }
 
-GraphSubscriptionClientPtr ControllerClientImpl::ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, rapidjson::Document::AllocatorType& rAlloc) 
+GraphSubscriptionHandlerPtr ControllerClientImpl::ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, rapidjson::Document::AllocatorType& rAlloc) 
 {
     // build the query
     rapidjson::Value rPayLoad;
@@ -576,9 +572,7 @@ GraphSubscriptionClientPtr ControllerClientImpl::ExecuteGraphSubscription(const 
     // }
     // _pWebsocketStream->write(rRequestStringBuffer.GetString());
 
-
-    GraphSubscriptionClientPtr graphSubscriptionClientPtr = boost::make_shared<GraphSubscriptionClientImpl>(operationName, query);
-    return graphSubscriptionClientPtr;
+    return boost::make_shared<GraphSubscriptionHandlerImpl>(tcpStream, unixSocketStream);
 }
 
 void ControllerClientImpl::RestartServer(double timeout)
@@ -2231,18 +2225,13 @@ void ControllerClientImpl::CreateLogEntries(const std::vector<LogEntry>& logEntr
     }
 }
 
-GraphSubscriptionClientImpl::GraphSubscriptionClientImpl(const std::string& operationName, const std::string& query)
-: _operationName(operationName), _query(query)
+GraphSubscriptionHandlerImpl::GraphSubscriptionHandlerImpl(boost::shared_ptr<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>> tcpStream, boost::shared_ptr<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>> unixSocketStream)
+: _tcpStream(tcpStream), _unixSocketStream(unixSocketStream)
 {
 
 }
 
-GraphSubscriptionClientImpl::~GraphSubscriptionClientImpl()
-{
-
-}
-
-std::string GraphSubscriptionClientImpl::SpinOnce()
+GraphSubscriptionHandlerImpl::~GraphSubscriptionHandlerImpl()
 {
 
 }

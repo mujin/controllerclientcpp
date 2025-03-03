@@ -55,6 +55,10 @@
 #include <boost/weak_ptr.hpp>
 #include <boost/format.hpp>
 #include <boost/array.hpp>
+#include <boost/beast.hpp>
+#include <boost/beast/websocket.hpp>
+#include <boost/beast/core/detail/base64.hpp>
+#include <boost/asio.hpp>
 #include <mujincontrollerclient/config.h>
 #include <mujincontrollerclient/mujinexceptions.h>
 #include <mujincontrollerclient/mujinjson.h>
@@ -99,7 +103,7 @@ enum TaskResourceOptions
 };
 
 class ControllerClient;
-class GraphSubscriptionClient;
+class GraphSubscriptionHandler;
 class ObjectResource;
 class RobotResource;
 class SceneResource;
@@ -120,8 +124,8 @@ struct FileEntry
 
 typedef boost::shared_ptr<ControllerClient> ControllerClientPtr;
 typedef boost::weak_ptr<ControllerClient> ControllerClientWeakPtr;
-typedef boost::shared_ptr<GraphSubscriptionClient> GraphSubscriptionClientPtr;
-typedef boost::weak_ptr<GraphSubscriptionClient> GraphSubscriptionClientWeakPtr;
+typedef boost::shared_ptr<GraphSubscriptionHandler> GraphSubscriptionHandlerPtr;
+typedef boost::weak_ptr<GraphSubscriptionHandler> GraphSubscriptionHandlerWeakPtr;
 typedef boost::shared_ptr<ObjectResource> ObjectResourcePtr;
 typedef boost::weak_ptr<ObjectResource> ObjectResourceWeakPtr;
 typedef boost::shared_ptr<RobotResource> RobotResourcePtr;
@@ -439,7 +443,7 @@ public:
     ///
     /// Throws an exception if there are any errors
     /// \param rResult A handler used to interact with graphql subscription channel
-    virtual GraphSubscriptionClientPtr ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, rapidjson::Document::AllocatorType& rAlloc) = 0;
+    virtual GraphSubscriptionHandlerPtr ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, rapidjson::Document::AllocatorType& rAlloc) = 0;
 
     /// \brief returns the mujin controller version
     virtual std::string GetVersion() = 0;
@@ -746,13 +750,12 @@ public:
 };
 
 
-/// \brief A handler used to interact with graphql subscription channel
-class MUJINCLIENT_API GraphSubscriptionClient
+/// \brief A handler represents a graphql subscription
+class MUJINCLIENT_API GraphSubscriptionHandler
 {
 public:
-    virtual ~GraphSubscriptionClient() {
+    virtual ~GraphSubscriptionHandler() {
     }
-    virtual std::string SpinOnce() = 0;
 };
 
 
