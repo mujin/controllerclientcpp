@@ -585,14 +585,6 @@ GraphSubscriptionHandlerPtr ControllerClientImpl::ExecuteGraphSubscription(const
         _ReadFromSubscriptionStream(unixSocketStream, subscriptionBuffer, onReadHandler, rAlloc);
     }
 
-
-    // todo :raliao
-
-    // if (!_pWebsocketStream->is_open()) {
-    //     CreateWebSocketStream();
-    // }
-    // _pWebsocketStream->write(rRequestStringBuffer.GetString());
-
     return boost::make_shared<GraphSubscriptionHandlerImpl>(tcpStream, unixSocketStream, subscriptionBuffer);
 }
 

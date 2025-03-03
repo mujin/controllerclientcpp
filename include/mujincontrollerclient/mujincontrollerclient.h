@@ -441,8 +441,12 @@ public:
 
     /// \brief Execute GraphQL subscription query against Mujin Controller.
     ///
-    /// Throws an exception if there are any errors
-    /// \param rResult A handler used to interact with graphql subscription channel
+    /// Throws an exception if failed to start subscription, return a handler represents the graphql subscription
+    /// \param operationName The name of the subscription query
+    /// \param query The subscription query
+    /// \param rVariables The subscription query variables
+    /// \param rAlloc The rapid json value memory allocator
+    /// \param onReadHandler The callback function invoked when receiving subscription result 
     virtual GraphSubscriptionHandlerPtr ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, rapidjson::Document::AllocatorType& rAlloc, void (*onReadHandler)(const boost::system::error_code&, const rapidjson::Value&)) = 0;
 
     /// \brief returns the mujin controller version
@@ -750,7 +754,7 @@ public:
 };
 
 
-/// \brief A handler represents a graphql subscription
+/// \brief A handler represents the graphql subscription
 class MUJINCLIENT_API GraphSubscriptionHandler
 {
 public:
