@@ -504,7 +504,7 @@ void _InitializeSubscription(boost::beast::websocket::stream<Socket>& stream, co
     stream.write(boost::asio::buffer(subscriptionMessage));
 }
 
-GraphSubscriptionClientPtr ControllerClientImpl::ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, rapidjson::Document::AllocatorType& rAlloc) 
+void ControllerClientImpl::ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, rapidjson::Document::AllocatorType& rAlloc) 
 {
     // build the query
     rapidjson::Value rPayLoad;
@@ -561,9 +561,6 @@ GraphSubscriptionClientPtr ControllerClientImpl::ExecuteGraphSubscription(const 
     // }
     // _pWebsocketStream->write(rRequestStringBuffer.GetString());
 
-
-    GraphSubscriptionClientPtr graphSubscriptionClientPtr = boost::make_shared<GraphSubscriptionClientImpl>(operationName, query);
-    return graphSubscriptionClientPtr;
 }
 
 void ControllerClientImpl::RestartServer(double timeout)
@@ -2214,22 +2211,6 @@ void ControllerClientImpl::CreateLogEntries(const std::vector<LogEntry>& logEntr
             createdLogEntryIds.emplace_back(itLogEntryId->GetString());
         }
     }
-}
-
-GraphSubscriptionClientImpl::GraphSubscriptionClientImpl(const std::string& operationName, const std::string& query)
-: _operationName(operationName), _query(query)
-{
-
-}
-
-GraphSubscriptionClientImpl::~GraphSubscriptionClientImpl()
-{
-
-}
-
-std::string GraphSubscriptionClientImpl::SpinOnce()
-{
-
 }
 
 } // end namespace mujinclient
