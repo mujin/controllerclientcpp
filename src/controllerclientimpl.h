@@ -307,7 +307,7 @@ typedef boost::shared_ptr<ControllerClientImpl> ControllerClientImplPtr;
 class GraphSubscriptionHandlerImpl : public GraphSubscriptionHandler, public boost::enable_shared_from_this<GraphSubscriptionHandlerImpl>
 {
 public:
-    GraphSubscriptionHandlerImpl(boost::shared_ptr<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>> tcpStream, boost::shared_ptr<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>> unixSocketStream, boost::shared_ptr<boost::beast::flat_buffer> subscriptionBuffer);
+    GraphSubscriptionHandlerImpl(boost::shared_ptr<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>> tcpStream, boost::shared_ptr<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>> unixSocketStream, boost::shared_ptr<boost::beast::flat_buffer> subscriptionBuffer, boost::shared_ptr<std::thread>);
     virtual ~GraphSubscriptionHandlerImpl();
 
 private:
@@ -315,6 +315,7 @@ private:
     boost::shared_ptr<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>> _tcpStream;
     boost::shared_ptr<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>> _unixSocketStream;
     boost::shared_ptr<boost::beast::flat_buffer> _subscriptionBuffer;
+    boost::shared_ptr<std::thread> _thread;
 };
 
 typedef boost::shared_ptr<GraphSubscriptionHandlerImpl> GraphSubscriptionHandlerImplPtr;

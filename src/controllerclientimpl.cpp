@@ -511,22 +511,30 @@ void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stre
             return;
         }
 
+        std::string message = boost::beast::buffers_to_string(subscriptionBuffer->data());
+
+        // ignore pong message
+        if (message.substr(0, 15) == std::string(R"({"type":"pong"})")) {
+            // start the next asynchronous read
+            subscriptionBuffer->clear();
+            _ReadFromSubscriptionStream(stream, subscriptionBuffer, onReadHandler, rAlloc);
+            return;
+        }
+
         // parse the result
         rapidjson::Value rResult;
-        std::stringstream stringStream(boost::asio::buffer_cast<const char*>(subscriptionBuffer->data()));
-        if( subscriptionBuffer->size() > 0 ) {
+        if ( subscriptionBuffer->size() > 0 ) {
+            std::stringstream stringStream(message);
             ParseJson(rResult, rAlloc, stringStream);
-        } else {
-            rResult.SetObject();
         }
+
+        // invoke callback function if there are payloads
+        if (onReadHandler && rResult.IsObject() && rResult.HasMember("payload")) {
+            onReadHandler(errorCode, std::move(rResult["payload"]));
+        }
+
+        // start the next asynchronous read
         subscriptionBuffer->clear();
-
-        // invoke callback function
-        if (onReadHandler) {
-            onReadHandler(errorCode, std::move(rResult));
-        }
-
-        // read again
         _ReadFromSubscriptionStream(stream, subscriptionBuffer, onReadHandler, rAlloc);
     });
 }
@@ -552,14 +560,14 @@ GraphSubscriptionHandlerPtr ControllerClientImpl::ExecuteGraphSubscription(const
     _rRequestStringBufferCache.Clear();
 
     // create a websocket connection
-    boost::asio::io_context io_context;
+    boost::shared_ptr<boost::asio::io_context> ioContext = boost::make_shared<boost::asio::io_context>();
     boost::shared_ptr<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>> tcpStream;
     boost::shared_ptr<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>> unixSocketStream;
     boost::shared_ptr<boost::beast::flat_buffer> subscriptionBuffer = boost::make_shared<boost::beast::flat_buffer>();
     if (_clientInfo.unixEndpoint.empty()) {
         // access public webstack
         MUJIN_LOG_INFO(boost::format("Create TCP socket connected to host %s") % _clientInfo.host);
-        boost::asio::ip::tcp::socket socket(io_context);
+        boost::asio::ip::tcp::socket socket(*ioContext);
         boost::asio::ip::address address = boost::asio::ip::address::from_string(_clientInfo.host);
         boost::asio::ip::tcp::endpoint endpoint(address, _clientInfo.httpPort == 0 ? 80 : _clientInfo.httpPort);
         socket.connect(endpoint);
@@ -576,7 +584,7 @@ GraphSubscriptionHandlerPtr ControllerClientImpl::ExecuteGraphSubscription(const
         // access private webstack
         MUJIN_LOG_INFO(boost::format("Create unix domain socket connected to endpoint %s") % _clientInfo.unixEndpoint);
 
-        boost::asio::local::stream_protocol::socket socket(io_context);
+        boost::asio::local::stream_protocol::socket socket(*ioContext);
         boost::asio::local::stream_protocol::endpoint endpoint(_clientInfo.unixEndpoint);
         socket.connect(endpoint);
         unixSocketStream = boost::make_shared<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>>(std::move(socket));
@@ -585,7 +593,12 @@ GraphSubscriptionHandlerPtr ControllerClientImpl::ExecuteGraphSubscription(const
         _ReadFromSubscriptionStream(unixSocketStream, subscriptionBuffer, onReadHandler, rAlloc);
     }
 
-    return boost::make_shared<GraphSubscriptionHandlerImpl>(tcpStream, unixSocketStream, subscriptionBuffer);
+    // start a new thread running I/O service until the socket is closed
+    boost::shared_ptr<std::thread> thread = boost::make_shared<std::thread>([ioContext] {
+        ioContext->run();
+    });
+
+    return boost::make_shared<GraphSubscriptionHandlerImpl>(tcpStream, unixSocketStream, subscriptionBuffer, thread);
 }
 
 void ControllerClientImpl::RestartServer(double timeout)
@@ -2238,8 +2251,8 @@ void ControllerClientImpl::CreateLogEntries(const std::vector<LogEntry>& logEntr
     }
 }
 
-GraphSubscriptionHandlerImpl::GraphSubscriptionHandlerImpl(boost::shared_ptr<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>> tcpStream, boost::shared_ptr<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>> unixSocketStream, boost::shared_ptr<boost::beast::flat_buffer> subscriptionBuffer)
-: _tcpStream(tcpStream), _unixSocketStream(unixSocketStream), _subscriptionBuffer(subscriptionBuffer)
+GraphSubscriptionHandlerImpl::GraphSubscriptionHandlerImpl(boost::shared_ptr<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>> tcpStream, boost::shared_ptr<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>> unixSocketStream, boost::shared_ptr<boost::beast::flat_buffer> subscriptionBuffer, boost::shared_ptr<std::thread> thread)
+: _tcpStream(tcpStream), _unixSocketStream(unixSocketStream), _subscriptionBuffer(subscriptionBuffer), _thread(thread)
 {
 
 }
@@ -2253,6 +2266,8 @@ GraphSubscriptionHandlerImpl::~GraphSubscriptionHandlerImpl()
     if (_unixSocketStream) {
         _unixSocketStream->close(boost::beast::websocket::close_code::normal);
     }
+
+    _thread->join();
 }
 
 } // end namespace mujinclient
