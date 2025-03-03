@@ -504,6 +504,16 @@ void _InitializeSubscription(boost::shared_ptr<boost::beast::websocket::stream<S
     stream->write(boost::asio::buffer(subscriptionMessage));
 }
 
+template <typename Socket>
+void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stream<Socket>> stream, boost::shared_ptr<boost::beast::flat_buffer> subscriptionBuffer)
+{
+    stream->async_read(*subscriptionBuffer, [](const boost::system::error_code& errorCode, std::size_t bytesTransferred){
+        if(errorCode) {
+            return fail(ec, "read");
+        }
+    });
+}
+
 void ControllerClientImpl::ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, rapidjson::Document::AllocatorType& rAlloc) 
 {
     // build the query
@@ -528,6 +538,7 @@ void ControllerClientImpl::ExecuteGraphSubscription(const std::string& operation
     boost::asio::io_context io_context;
     boost::shared_ptr<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>> tcpStream;
     boost::shared_ptr<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>> unixSocketStream;
+    boost::shared_ptr<boost::beast::flat_buffer> subscriptionBuffer = boost::make_shared<boost::beast::flat_buffer>();
     if (_clientInfo.unixEndpoint.empty()) {
         // access public webstack
         MUJIN_LOG_INFO(boost::format("Create TCP socket connected to host %s") % _clientInfo.host);
@@ -543,6 +554,7 @@ void ControllerClientImpl::ExecuteGraphSubscription(const std::string& operation
         encodedUsernamePassword.resize(boost::beast::detail::base64::encoded_size(usernamePassword.size()));
         boost::beast::detail::base64::encode(&encodedUsernamePassword[0], usernamePassword.data(), usernamePassword.size());
         _InitializeSubscription(tcpStream, _clientInfo.host, _clientInfo.httpPort == 0 ? 80 : _clientInfo.httpPort, encodedUsernamePassword, subscriptionMessage);
+        _ReadFromSubscriptionStream(tcpStream, subscriptionBuffer);
     } else {
         // access private webstack
         MUJIN_LOG_INFO(boost::format("Create unix domain socket connected to endpoint %s") % _clientInfo.unixEndpoint);
@@ -553,6 +565,7 @@ void ControllerClientImpl::ExecuteGraphSubscription(const std::string& operation
         unixSocketStream = boost::make_shared<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>>(std::move(socket));
 
         _InitializeSubscription(unixSocketStream, "localhost", 80, "", subscriptionMessage);
+        _ReadFromSubscriptionStream(tcpStream, subscriptionBuffer);
     }
 
 
