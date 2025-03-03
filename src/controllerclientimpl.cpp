@@ -2233,7 +2233,13 @@ GraphSubscriptionHandlerImpl::GraphSubscriptionHandlerImpl(boost::shared_ptr<boo
 
 GraphSubscriptionHandlerImpl::~GraphSubscriptionHandlerImpl()
 {
-
+    // gracefully close the stream
+    if (_tcpStream) {
+        _tcpStream->close(boost::beast::websocket::close_code::normal);
+    }
+    if (_unixSocketStream) {
+        _unixSocketStream->close(boost::beast::websocket::close_code::normal);
+    }
 }
 
 } // end namespace mujinclient
