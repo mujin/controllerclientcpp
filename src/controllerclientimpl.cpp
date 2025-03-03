@@ -501,12 +501,33 @@ void _InitializeSubscription(boost::shared_ptr<boost::beast::websocket::stream<S
 }
 
 template <typename Socket>
-void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stream<Socket>> stream, boost::shared_ptr<boost::beast::flat_buffer> subscriptionBuffer)
+void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stream<Socket>> stream, boost::shared_ptr<boost::beast::flat_buffer> subscriptionBuffer, void (*onReadHandler)(const boost::system::error_code&, const rapidjson::Value&), rapidjson::Document::AllocatorType& rAlloc)
 {
-    stream->async_read(*subscriptionBuffer, [](const boost::system::error_code& errorCode, std::size_t bytesTransferred){
-        if(errorCode) {
+    stream->async_read(*subscriptionBuffer, [stream, subscriptionBuffer, onReadHandler, &rAlloc](const boost::system::error_code& errorCode, std::size_t bytesTransferred){
+        if (errorCode) {
+            if (onReadHandler) {
+                onReadHandler(errorCode, rapidjson::Value());
+            }
             return;
         }
+
+        // parse the result
+        rapidjson::Value rResult;
+        std::stringstream stringStream(boost::asio::buffer_cast<const char*>(subscriptionBuffer->data()));
+        if( subscriptionBuffer->size() > 0 ) {
+            ParseJson(rResult, rAlloc, stringStream);
+        } else {
+            rResult.SetObject();
+        }
+        subscriptionBuffer->clear();
+
+        // invoke callback function
+        if (onReadHandler) {
+            onReadHandler(errorCode, rResult);
+        }
+
+        // read again
+        _ReadFromSubscriptionStream(stream, subscriptionBuffer, onReadHandler, rAlloc);
     });
 }
 
@@ -550,7 +571,7 @@ GraphSubscriptionHandlerPtr ControllerClientImpl::ExecuteGraphSubscription(const
         encodedUsernamePassword.resize(boost::beast::detail::base64::encoded_size(usernamePassword.size()));
         boost::beast::detail::base64::encode(&encodedUsernamePassword[0], usernamePassword.data(), usernamePassword.size());
         _InitializeSubscription(tcpStream, _clientInfo.host, _clientInfo.httpPort == 0 ? 80 : _clientInfo.httpPort, encodedUsernamePassword, subscriptionMessage);
-        _ReadFromSubscriptionStream(tcpStream, subscriptionBuffer);
+        _ReadFromSubscriptionStream(tcpStream, subscriptionBuffer, onReadHandler, rAlloc);
     } else {
         // access private webstack
         MUJIN_LOG_INFO(boost::format("Create unix domain socket connected to endpoint %s") % _clientInfo.unixEndpoint);
@@ -561,7 +582,7 @@ GraphSubscriptionHandlerPtr ControllerClientImpl::ExecuteGraphSubscription(const
         unixSocketStream = boost::make_shared<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>>(std::move(socket));
 
         _InitializeSubscription(unixSocketStream, "localhost", 80, "", subscriptionMessage);
-        _ReadFromSubscriptionStream(unixSocketStream, subscriptionBuffer);
+        _ReadFromSubscriptionStream(unixSocketStream, subscriptionBuffer, onReadHandler, rAlloc);
     }
 
 
