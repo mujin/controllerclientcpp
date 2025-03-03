@@ -443,7 +443,7 @@ public:
     ///
     /// Throws an exception if there are any errors
     /// \param rResult A handler used to interact with graphql subscription channel
-    virtual GraphSubscriptionHandlerPtr ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, rapidjson::Document::AllocatorType& rAlloc) = 0;
+    virtual GraphSubscriptionHandlerPtr ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, rapidjson::Document::AllocatorType& rAlloc, void (*onReadHandler)(const boost::system::error_code&, const rapidjson::Value&)) = 0;
 
     /// \brief returns the mujin controller version
     virtual std::string GetVersion() = 0;

@@ -510,7 +510,7 @@ void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stre
     });
 }
 
-GraphSubscriptionHandlerPtr ControllerClientImpl::ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, rapidjson::Document::AllocatorType& rAlloc) 
+GraphSubscriptionHandlerPtr ControllerClientImpl::ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, rapidjson::Document::AllocatorType& rAlloc, void (*onReadHandler)(const boost::system::error_code&, const rapidjson::Value&))
 {
     // build the query
     rapidjson::Value rPayLoad;
@@ -561,7 +561,7 @@ GraphSubscriptionHandlerPtr ControllerClientImpl::ExecuteGraphSubscription(const
         unixSocketStream = boost::make_shared<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>>(std::move(socket));
 
         _InitializeSubscription(unixSocketStream, "localhost", 80, "", subscriptionMessage);
-        _ReadFromSubscriptionStream(tcpStream, subscriptionBuffer);
+        _ReadFromSubscriptionStream(unixSocketStream, subscriptionBuffer);
     }
 
 
