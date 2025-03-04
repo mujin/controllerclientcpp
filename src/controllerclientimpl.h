@@ -329,7 +329,7 @@ typedef boost::shared_ptr<GraphSubscriptionHandlerImpl> GraphSubscriptionHandler
 class GraphSubscriptionWebSocketHandler : public boost::enable_shared_from_this<GraphSubscriptionWebSocketHandler>
 {
 public:
-    GraphSubscriptionWebSocketHandler(boost::shared_ptr<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>> tcpStream, boost::shared_ptr<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>> unixSocketStream, boost::shared_ptr<boost::asio::io_context> ioContext);
+    GraphSubscriptionWebSocketHandler(const ControllerClientInfo& clientInfo);
     ~GraphSubscriptionWebSocketHandler();
 
     bool IsStreamOpen() const;
