@@ -565,7 +565,7 @@ GraphSubscriptionHandlerPtr ControllerClientImpl::ExecuteGraphSubscription(const
     boost::shared_ptr<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>> unixSocketStream;
     boost::shared_ptr<boost::beast::flat_buffer> subscriptionBuffer = boost::make_shared<boost::beast::flat_buffer>();
     if (_clientInfo.unixEndpoint.empty()) {
-        // access public webstack
+        // use tcp socket
         MUJIN_LOG_INFO(boost::format("Create TCP socket connected to host %s") % _clientInfo.host);
         boost::asio::ip::tcp::socket socket(*ioContext);
         boost::asio::ip::address address = boost::asio::ip::address::from_string(_clientInfo.host);
@@ -581,7 +581,7 @@ GraphSubscriptionHandlerPtr ControllerClientImpl::ExecuteGraphSubscription(const
         _InitializeSubscription(tcpStream, _clientInfo.host, _clientInfo.httpPort == 0 ? 80 : _clientInfo.httpPort, encodedUsernamePassword, subscriptionMessage);
         _ReadFromSubscriptionStream(tcpStream, subscriptionBuffer, onReadHandler, rAlloc);
     } else {
-        // access private webstack
+        // use unix domain socket
         MUJIN_LOG_INFO(boost::format("Create unix domain socket connected to endpoint %s") % _clientInfo.unixEndpoint);
 
         boost::asio::local::stream_protocol::socket socket(*ioContext);
