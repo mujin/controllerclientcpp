@@ -332,7 +332,7 @@ public:
     GraphSubscriptionWebSocketHandler(const ControllerClientInfo& clientInfo);
     ~GraphSubscriptionWebSocketHandler();
 
-    bool IsStreamOpen() const;
+    bool IsStreamOpen(); ///> protected by _mutex
     std::string StartSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, std::function<void(const boost::system::error_code&, rapidjson::Value&&)> onReadHandler); ///> protected by _mutex
     void CompleteSubscription(const std::string& subscriptionId); ///> protected by _mutex
 

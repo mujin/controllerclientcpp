@@ -2283,8 +2283,9 @@ GraphSubscriptionWebSocketHandler::GraphSubscriptionWebSocketHandler(const Contr
     });
 }
 
-bool GraphSubscriptionWebSocketHandler::IsStreamOpen() const
-{
+bool GraphSubscriptionWebSocketHandler::IsStreamOpen()
+{   
+    boost::mutex::scoped_lock lock(_mutex);
     if (_tcpStream) {
         return _tcpStream->is_open();
     }
