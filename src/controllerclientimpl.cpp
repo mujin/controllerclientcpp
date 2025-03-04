@@ -513,18 +513,18 @@ void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stre
         }
 
         std::string message = boost::beast::buffers_to_string(subscriptionBuffer->data());
+        subscriptionBuffer->clear();
 
         // ignore pong message
         if (message.substr(0, 15) == std::string(R"({"type":"pong"})")) {
             // start the next asynchronous read
-            subscriptionBuffer->clear();
             _ReadFromSubscriptionStream(stream, subscriptionBuffer, onReadHandler, rAlloc);
             return;
         }
 
         // parse the result
         rapidjson::Value rResult;
-        if ( subscriptionBuffer->size() > 0 ) {
+        if ( message.length() > 0 ) {
             std::stringstream stringStream(message);
             ParseJson(rResult, rAlloc, stringStream);
         }
@@ -535,7 +535,6 @@ void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stre
         }
 
         // start the next asynchronous read
-        subscriptionBuffer->clear();
         _ReadFromSubscriptionStream(stream, subscriptionBuffer, onReadHandler, rAlloc);
     });
 }
