@@ -501,7 +501,7 @@ void _InitializeWebsocket(boost::shared_ptr<boost::beast::websocket::stream<Sock
 
 
 template <typename Socket>
-void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stream<Socket>> stream, boost::shared_ptr<boost::beast::flat_buffer> subscriptionBuffer, const std::unordered_map<std::string, std::function<void(const boost::system::error_code&, rapidjson::Value&&)>>& onReadHandlers, boost::mutex* mutex, rapidjson::Document::AllocatorType& allocator)
+void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stream<Socket>> stream, boost::beast::flat_buffer* subscriptionBuffer, const std::unordered_map<std::string, std::function<void(const boost::system::error_code&, rapidjson::Value&&)>>& onReadHandlers, boost::mutex* mutex, rapidjson::Document::AllocatorType& allocator)
 {
     stream->async_read(*subscriptionBuffer, [stream, subscriptionBuffer, &onReadHandlers, mutex, &allocator](const boost::system::error_code& errorCode, std::size_t bytesTransferred){
         boost::mutex::scoped_lock lock(*mutex);
@@ -559,7 +559,6 @@ GraphSubscriptionHandlerPtr ControllerClientImpl::ExecuteGraphSubscription(const
         boost::shared_ptr<boost::asio::io_context> ioContext = boost::make_shared<boost::asio::io_context>();
         boost::shared_ptr<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>> tcpStream;
         boost::shared_ptr<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>> unixSocketStream;
-        boost::shared_ptr<boost::beast::flat_buffer> subscriptionBuffer = boost::make_shared<boost::beast::flat_buffer>();
         if (_clientInfo.unixEndpoint.empty()) {
             // use tcp socket
             MUJIN_LOG_INFO(boost::format("Create TCP socket connected to host %s") % _clientInfo.host);
@@ -592,7 +591,7 @@ GraphSubscriptionHandlerPtr ControllerClientImpl::ExecuteGraphSubscription(const
             ioContext->run();
         });
 
-        graphSubscriptionWebSocketHandler = boost::make_shared<GraphSubscriptionWebSocketHandler>(tcpStream, unixSocketStream, subscriptionBuffer, thread);
+        graphSubscriptionWebSocketHandler = boost::make_shared<GraphSubscriptionWebSocketHandler>(tcpStream, unixSocketStream, thread);
     }
 
     std::string subscriptionId = graphSubscriptionWebSocketHandler->StartSubscription(operationName, query, rVariables, onReadHandler);
@@ -2263,14 +2262,14 @@ GraphSubscriptionHandlerImpl::~GraphSubscriptionHandlerImpl()
     _graphSubscriptionWebSocketHandler->CompleteSubscription(_subscriptionId);
 }
 
-GraphSubscriptionWebSocketHandler::GraphSubscriptionWebSocketHandler(boost::shared_ptr<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>> tcpStream, boost::shared_ptr<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>> unixSocketStream, boost::shared_ptr<boost::beast::flat_buffer> subscriptionBuffer, boost::shared_ptr<std::thread> thread)
-: _tcpStream(tcpStream), _unixSocketStream(unixSocketStream), _subscriptionBuffer(subscriptionBuffer), _thread(thread), _allocator(_allocatorBuffer, sizeof(_allocatorBuffer))
+GraphSubscriptionWebSocketHandler::GraphSubscriptionWebSocketHandler(boost::shared_ptr<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>> tcpStream, boost::shared_ptr<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>> unixSocketStream, boost::shared_ptr<std::thread> thread)
+: _tcpStream(tcpStream), _unixSocketStream(unixSocketStream), _thread(thread), _allocator(_allocatorBuffer, sizeof(_allocatorBuffer))
 {
     if (_tcpStream) {
-        _ReadFromSubscriptionStream(_tcpStream, subscriptionBuffer, _onReadHandlers, &_mutex, _allocator);
+        _ReadFromSubscriptionStream(_tcpStream, &_subscriptionBuffer, _onReadHandlers, &_mutex, _allocator);
     }
     if (_unixSocketStream) {
-        _ReadFromSubscriptionStream(_unixSocketStream, subscriptionBuffer, _onReadHandlers, &_mutex, _allocator);
+        _ReadFromSubscriptionStream(_unixSocketStream, &_subscriptionBuffer, _onReadHandlers, &_mutex, _allocator);
     }
 }
 

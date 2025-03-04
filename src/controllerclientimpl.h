@@ -329,7 +329,7 @@ typedef boost::shared_ptr<GraphSubscriptionHandlerImpl> GraphSubscriptionHandler
 class GraphSubscriptionWebSocketHandler : public boost::enable_shared_from_this<GraphSubscriptionWebSocketHandler>
 {
 public:
-    GraphSubscriptionWebSocketHandler(boost::shared_ptr<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>> tcpStream, boost::shared_ptr<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>> unixSocketStream, boost::shared_ptr<boost::beast::flat_buffer> subscriptionBuffer, boost::shared_ptr<std::thread>);
+    GraphSubscriptionWebSocketHandler(boost::shared_ptr<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>> tcpStream, boost::shared_ptr<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>> unixSocketStream, boost::shared_ptr<std::thread>);
     ~GraphSubscriptionWebSocketHandler();
 
     bool IsStreamOpen() const;
@@ -342,8 +342,9 @@ protected:
 
     boost::shared_ptr<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>> _tcpStream;
     boost::shared_ptr<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>> _unixSocketStream;
-    boost::shared_ptr<boost::beast::flat_buffer> _subscriptionBuffer;
     boost::shared_ptr<std::thread> _thread;
+    
+    boost::beast::flat_buffer _subscriptionBuffer;
 
     boost::uuids::random_generator _randomGenerator;
     rapidjson::MemoryPoolAllocator<> _allocator;
