@@ -18,6 +18,7 @@
 #include <boost/scope_exit.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/beast/core/detail/base64.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <strstream>
 
 #define SKIP_PEER_VERIFICATION // temporary
@@ -477,7 +478,7 @@ void ControllerClientImpl::ExecuteGraphQueryRaw(const char* operationName, const
 }
 
 template <typename Socket>
-void _InitializeSubscription(boost::shared_ptr<boost::beast::websocket::stream<Socket>> stream, const std::string& host, uint16_t port, const std::string& encodedUsernamePassword, const std::string& subscriptionMessage)
+void _InitializeWebsocket(boost::shared_ptr<boost::beast::websocket::stream<Socket>> stream, const std::string& host, uint16_t port, const std::string& encodedUsernamePassword)
 {
     // upgrade the connection to websocket
     stream->handshake(host + ":" + std::to_string(port), "/api/v2/graphql");
@@ -496,18 +497,20 @@ void _InitializeSubscription(boost::shared_ptr<boost::beast::websocket::stream<S
     if (message.find("connection_ack") == std::string::npos) {
         throw MUJIN_EXCEPTION_FORMAT("Failed to initialize websocket connection, Expected 'connection_ack' in response, but got: %s", message, MEC_HTTPServer);
     }
-
-    // start subscription
-    stream->write(boost::asio::buffer(subscriptionMessage));
 }
 
+
 template <typename Socket>
-void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stream<Socket>> stream, boost::shared_ptr<boost::beast::flat_buffer> subscriptionBuffer, std::function<void(const boost::system::error_code&, rapidjson::Value&&)> onReadHandler, rapidjson::Document::AllocatorType& rAlloc)
+void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stream<Socket>> stream, boost::shared_ptr<boost::beast::flat_buffer> subscriptionBuffer, const std::unordered_map<std::string, std::function<void(const boost::system::error_code&, rapidjson::Value&&)>>& onReadHandlers, boost::mutex* mutex, rapidjson::Document::AllocatorType& allocator)
 {
-    stream->async_read(*subscriptionBuffer, [stream, subscriptionBuffer, onReadHandler, &rAlloc](const boost::system::error_code& errorCode, std::size_t bytesTransferred){
+    stream->async_read(*subscriptionBuffer, [stream, subscriptionBuffer, &onReadHandlers, mutex, &allocator](const boost::system::error_code& errorCode, std::size_t bytesTransferred){
+        boost::mutex::scoped_lock lock(*mutex);
+        
         if (errorCode) {
-            if (onReadHandler) {
-                onReadHandler(errorCode, rapidjson::Value());
+            for (std::unordered_map<std::string, std::function<void(const boost::system::error_code&, rapidjson::Value&&)>>::const_iterator it = onReadHandlers.cbegin(); it != onReadHandlers.cend(); ++it) {
+                if (it->second) {
+                    (it->second)(errorCode, rapidjson::Value());
+                }
             }
             return;
         }
@@ -518,87 +521,84 @@ void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stre
         // ignore pong message
         if (message.substr(0, 15) == std::string(R"({"type":"pong"})")) {
             // start the next asynchronous read
-            _ReadFromSubscriptionStream(stream, subscriptionBuffer, onReadHandler, rAlloc);
+            _ReadFromSubscriptionStream(stream, subscriptionBuffer, onReadHandlers, mutex, allocator);
             return;
         }
 
         // parse the result
-        rapidjson::Value rResult;
+        rapidjson::Value result;
         if ( message.length() > 0 ) {
             std::stringstream stringStream(message);
-            ParseJson(rResult, rAlloc, stringStream);
+            ParseJson(result, allocator, stringStream);
         }
 
-        // invoke callback function if there are payloads
-        if (onReadHandler && rResult.IsObject() && rResult.HasMember("payload")) {
-            onReadHandler(errorCode, std::move(rResult["payload"]));
+        // find the callback function according to subscription id
+        if (result.IsObject() && result.HasMember("id") && result["id"].IsString()) {
+            std::string subscriptionId = result["id"].GetString();
+
+            std::unordered_map<std::string, std::function<void(const boost::system::error_code&, rapidjson::Value&&)>>::const_iterator it = onReadHandlers.find(subscriptionId);
+            if (it != onReadHandlers.end() && it->second) {
+                // invoke callback function if there are payloads
+                if (result.HasMember("payload")) {
+                    (it->second)(errorCode, std::move(result["payload"]));
+                }
+            }
         }
 
         // start the next asynchronous read
-        _ReadFromSubscriptionStream(stream, subscriptionBuffer, onReadHandler, rAlloc);
+        _ReadFromSubscriptionStream(stream, subscriptionBuffer, onReadHandlers, mutex, allocator);
     });
 }
 
-GraphSubscriptionHandlerPtr ControllerClientImpl::ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, rapidjson::Document::AllocatorType& rAlloc, std::function<void(const boost::system::error_code&, rapidjson::Value&&)> onReadHandler)
+GraphSubscriptionHandlerPtr ControllerClientImpl::ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, std::function<void(const boost::system::error_code&, rapidjson::Value&&)> onReadHandler)
 {
-    // build the query
-    rapidjson::Value rPayLoad;
-    rPayLoad.SetObject();
-    rPayLoad.AddMember(rapidjson::Document::StringRefType("operationName"), rapidjson::Value(operationName.c_str(), rAlloc), rAlloc);
-    rPayLoad.AddMember(rapidjson::Document::StringRefType("query"), rapidjson::Value(query.c_str(), rAlloc), rAlloc);
-    rPayLoad.AddMember(rapidjson::Document::StringRefType("variables"), rapidjson::Value(rVariables, rAlloc), rAlloc);
+    boost::mutex::scoped_lock lock(_mutex);
+    GraphSubscriptionWebSocketHandlerPtr graphSubscriptionWebSocketHandler = _graphSubscriptionWebSocketHandler.lock();
+    if (!graphSubscriptionWebSocketHandler || !graphSubscriptionWebSocketHandler->IsStreamOpen()) {
+        // create a websocket connection
+        boost::shared_ptr<boost::asio::io_context> ioContext = boost::make_shared<boost::asio::io_context>();
+        boost::shared_ptr<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>> tcpStream;
+        boost::shared_ptr<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>> unixSocketStream;
+        boost::shared_ptr<boost::beast::flat_buffer> subscriptionBuffer = boost::make_shared<boost::beast::flat_buffer>();
+        if (_clientInfo.unixEndpoint.empty()) {
+            // use tcp socket
+            MUJIN_LOG_INFO(boost::format("Create TCP socket connected to host %s") % _clientInfo.host);
+            boost::asio::ip::tcp::socket socket(*ioContext);
+            boost::asio::ip::address address = boost::asio::ip::address::from_string(_clientInfo.host);
+            boost::asio::ip::tcp::endpoint endpoint(address, _clientInfo.httpPort == 0 ? 80 : _clientInfo.httpPort);
+            socket.connect(endpoint);
+            tcpStream = boost::make_shared<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>>(std::move(socket));
 
-    rapidjson::Value rRequest;
-    rRequest.SetObject();
-    rRequest.AddMember(rapidjson::Document::StringRefType("type"), "subscribe", rAlloc);
-    rRequest.AddMember(rapidjson::Document::StringRefType("payload"), rPayLoad, rAlloc);
-    
-    _rRequestStringBufferCache.Clear();
-    rapidjson::Writer<rapidjson::StringBuffer> writer(_rRequestStringBufferCache);
-    rRequest.Accept(writer);
-    std::string subscriptionMessage = _rRequestStringBufferCache.GetString();
-    _rRequestStringBufferCache.Clear();
+            // encode username and password
+            std::string usernamePassword = _clientInfo.username + ":" + _clientInfo.password;
+            std::string encodedUsernamePassword;
+            encodedUsernamePassword.resize(boost::beast::detail::base64::encoded_size(usernamePassword.size()));
+            boost::beast::detail::base64::encode(&encodedUsernamePassword[0], usernamePassword.data(), usernamePassword.size());
+            _InitializeWebsocket(tcpStream, _clientInfo.host, _clientInfo.httpPort == 0 ? 80 : _clientInfo.httpPort, encodedUsernamePassword);
+        } else {
+            // use unix domain socket
+            MUJIN_LOG_INFO(boost::format("Create unix domain socket connected to endpoint %s") % _clientInfo.unixEndpoint);
 
-    // create a websocket connection
-    boost::shared_ptr<boost::asio::io_context> ioContext = boost::make_shared<boost::asio::io_context>();
-    boost::shared_ptr<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>> tcpStream;
-    boost::shared_ptr<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>> unixSocketStream;
-    boost::shared_ptr<boost::beast::flat_buffer> subscriptionBuffer = boost::make_shared<boost::beast::flat_buffer>();
-    if (_clientInfo.unixEndpoint.empty()) {
-        // use tcp socket
-        MUJIN_LOG_INFO(boost::format("Create TCP socket connected to host %s") % _clientInfo.host);
-        boost::asio::ip::tcp::socket socket(*ioContext);
-        boost::asio::ip::address address = boost::asio::ip::address::from_string(_clientInfo.host);
-        boost::asio::ip::tcp::endpoint endpoint(address, _clientInfo.httpPort == 0 ? 80 : _clientInfo.httpPort);
-        socket.connect(endpoint);
-        tcpStream = boost::make_shared<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>>(std::move(socket));
+            boost::asio::local::stream_protocol::socket socket(*ioContext);
+            boost::asio::local::stream_protocol::endpoint endpoint(_clientInfo.unixEndpoint);
+            socket.connect(endpoint);
+            unixSocketStream = boost::make_shared<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>>(std::move(socket));
+            _InitializeWebsocket(unixSocketStream, "localhost", 80, "");
+        }
 
-        // encode username and password
-        std::string usernamePassword = _clientInfo.username + ":" + _clientInfo.password;
-        std::string encodedUsernamePassword;
-        encodedUsernamePassword.resize(boost::beast::detail::base64::encoded_size(usernamePassword.size()));
-        boost::beast::detail::base64::encode(&encodedUsernamePassword[0], usernamePassword.data(), usernamePassword.size());
-        _InitializeSubscription(tcpStream, _clientInfo.host, _clientInfo.httpPort == 0 ? 80 : _clientInfo.httpPort, encodedUsernamePassword, subscriptionMessage);
-        _ReadFromSubscriptionStream(tcpStream, subscriptionBuffer, onReadHandler, rAlloc);
-    } else {
-        // use unix domain socket
-        MUJIN_LOG_INFO(boost::format("Create unix domain socket connected to endpoint %s") % _clientInfo.unixEndpoint);
 
-        boost::asio::local::stream_protocol::socket socket(*ioContext);
-        boost::asio::local::stream_protocol::endpoint endpoint(_clientInfo.unixEndpoint);
-        socket.connect(endpoint);
-        unixSocketStream = boost::make_shared<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>>(std::move(socket));
+        // start a new thread running I/O service until the socket is closed
+        boost::shared_ptr<std::thread> thread = boost::make_shared<std::thread>([ioContext] {
+            ioContext->run();
+        });
 
-        _InitializeSubscription(unixSocketStream, "localhost", 80, "", subscriptionMessage);
-        _ReadFromSubscriptionStream(unixSocketStream, subscriptionBuffer, onReadHandler, rAlloc);
+        graphSubscriptionWebSocketHandler = boost::make_shared<GraphSubscriptionWebSocketHandler>(tcpStream, unixSocketStream, subscriptionBuffer, thread);
     }
 
-    // start a new thread running I/O service until the socket is closed
-    boost::shared_ptr<std::thread> thread = boost::make_shared<std::thread>([ioContext] {
-        ioContext->run();
-    });
+    std::string subscriptionId = graphSubscriptionWebSocketHandler->StartSubscription(operationName, query, rVariables, onReadHandler);
+    _graphSubscriptionWebSocketHandler = GraphSubscriptionWebSocketHandlerWeakPtr(graphSubscriptionWebSocketHandler);
 
-    return boost::make_shared<GraphSubscriptionHandlerImpl>(tcpStream, unixSocketStream, subscriptionBuffer, thread);
+    return boost::make_shared<GraphSubscriptionHandlerImpl>(graphSubscriptionWebSocketHandler, subscriptionId);
 }
 
 void ControllerClientImpl::RestartServer(double timeout)
@@ -2251,13 +2251,103 @@ void ControllerClientImpl::CreateLogEntries(const std::vector<LogEntry>& logEntr
     }
 }
 
-GraphSubscriptionHandlerImpl::GraphSubscriptionHandlerImpl(boost::shared_ptr<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>> tcpStream, boost::shared_ptr<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>> unixSocketStream, boost::shared_ptr<boost::beast::flat_buffer> subscriptionBuffer, boost::shared_ptr<std::thread> thread)
-: _tcpStream(tcpStream), _unixSocketStream(unixSocketStream), _subscriptionBuffer(subscriptionBuffer), _thread(thread)
+GraphSubscriptionHandlerImpl::GraphSubscriptionHandlerImpl(GraphSubscriptionWebSocketHandlerPtr graphSubscriptionWebSocketHandler, std::string subscriptionId)
+: _graphSubscriptionWebSocketHandler(graphSubscriptionWebSocketHandler), _subscriptionId(subscriptionId)
 {
 
 }
 
 GraphSubscriptionHandlerImpl::~GraphSubscriptionHandlerImpl()
+{
+    // gracefully complete the subscription
+    _graphSubscriptionWebSocketHandler->CompleteSubscription(_subscriptionId);
+}
+
+GraphSubscriptionWebSocketHandler::GraphSubscriptionWebSocketHandler(boost::shared_ptr<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>> tcpStream, boost::shared_ptr<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>> unixSocketStream, boost::shared_ptr<boost::beast::flat_buffer> subscriptionBuffer, boost::shared_ptr<std::thread> thread)
+: _tcpStream(tcpStream), _unixSocketStream(unixSocketStream), _subscriptionBuffer(subscriptionBuffer), _thread(thread), _allocator(_allocatorBuffer, sizeof(_allocatorBuffer))
+{
+    if (_tcpStream) {
+        _ReadFromSubscriptionStream(_tcpStream, subscriptionBuffer, _onReadHandlers, &_mutex, _allocator);
+    }
+    if (_unixSocketStream) {
+        _ReadFromSubscriptionStream(_unixSocketStream, subscriptionBuffer, _onReadHandlers, &_mutex, _allocator);
+    }
+}
+
+bool GraphSubscriptionWebSocketHandler::IsStreamOpen() const
+{
+    if (_tcpStream) {
+        return _tcpStream->is_open();
+    }
+    if (_unixSocketStream) {
+        return _unixSocketStream->is_open();
+    }
+}
+
+std::string GraphSubscriptionWebSocketHandler::StartSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, std::function<void(const boost::system::error_code&, rapidjson::Value&&)> onReadHandler)
+{
+    std::string subscriptionId = boost::uuids::to_string(_randomGenerator());
+
+    // build the query
+    rapidjson::Value payload;
+    payload.SetObject();
+    payload.AddMember(rapidjson::Document::StringRefType("operationName"), rapidjson::Value(operationName.c_str(), _allocator), _allocator);
+    payload.AddMember(rapidjson::Document::StringRefType("query"), rapidjson::Value(query.c_str(), _allocator), _allocator);
+    payload.AddMember(rapidjson::Document::StringRefType("variables"), rapidjson::Value(rVariables, _allocator), _allocator);
+
+    rapidjson::Value request;
+    request.SetObject();
+    request.AddMember(rapidjson::Document::StringRefType("type"), "subscribe", _allocator);
+    request.AddMember(rapidjson::Document::StringRefType("payload"), payload, _allocator);
+    request.AddMember(rapidjson::Document::StringRefType("id"), rapidjson::Value(subscriptionId.c_str(), _allocator), _allocator);
+    
+    _subscriptionStringBufferCache.Clear();
+    rapidjson::Writer<rapidjson::StringBuffer> writer(_subscriptionStringBufferCache);
+    request.Accept(writer);
+    std::string subscriptionMessage = _subscriptionStringBufferCache.GetString();
+    _subscriptionStringBufferCache.Clear();
+
+    boost::mutex::scoped_lock lock(_mutex);
+    _onReadHandlers[subscriptionId] = onReadHandler;
+
+    // start subscription
+    this->_SendMessage(subscriptionMessage);
+
+    return subscriptionId;
+}
+
+void GraphSubscriptionWebSocketHandler::CompleteSubscription(const std::string& subscriptionId)
+{
+    boost::mutex::scoped_lock lock(_mutex);
+
+    // remove callback function
+    std::unordered_map<std::string, std::function<void(const boost::system::error_code&, rapidjson::Value&&)>>::const_iterator it = _onReadHandlers.find(subscriptionId);
+    if (it == _onReadHandlers.end()) {
+        return;
+    }
+    _onReadHandlers.erase(it);
+
+    // send subsciption completion message
+    std::string completeMessage = boost::str(boost::format(R"({"id":"%s","type":"complete"})") % subscriptionId);
+    this->_SendMessage(completeMessage);
+}
+
+GraphSubscriptionWebSocketHandler::~GraphSubscriptionWebSocketHandler()
+{
+    this->_Close();
+}
+
+void GraphSubscriptionWebSocketHandler::_SendMessage(const std::string& message)
+{
+    if (_tcpStream) {
+        _tcpStream->write(boost::asio::buffer(message));
+    }
+    if (_unixSocketStream) {
+        _unixSocketStream->write(boost::asio::buffer(message));
+    }
+}
+
+void GraphSubscriptionWebSocketHandler::_Close()
 {
     // gracefully close the stream
     if (_tcpStream) {

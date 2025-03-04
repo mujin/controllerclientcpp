@@ -442,9 +442,8 @@ public:
     /// \param operationName The name of the subscription query
     /// \param query The subscription query
     /// \param rVariables The subscription query variables
-    /// \param rAlloc The rapid json value memory allocator
     /// \param onReadHandler The callback function invoked when receiving subscription result 
-    virtual GraphSubscriptionHandlerPtr ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, rapidjson::Document::AllocatorType& rAlloc, std::function<void(const boost::system::error_code&, rapidjson::Value&&)> onReadHandler) = 0;
+    virtual GraphSubscriptionHandlerPtr ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, std::function<void(const boost::system::error_code&, rapidjson::Value&&)> onReadHandler) = 0;
 
     /// \brief returns the mujin controller version
     virtual std::string GetVersion() = 0;
