@@ -308,7 +308,7 @@ protected:
 
     rapidjson::StringBuffer _rRequestStringBufferCache; ///< cache for request string, protected by _mutex
 
-    GraphSubscriptionWebSocketHandlerWeakPtr _graphSubscriptionWebSocketHandler; ///< a weak pointer represents an opening subscription socket
+    GraphSubscriptionWebSocketHandlerWeakPtr _graphSubscriptionWebSocketHandler; ///< a weak pointer represents an opened subscription socket
 };
 
 typedef boost::shared_ptr<ControllerClientImpl> ControllerClientImplPtr;
