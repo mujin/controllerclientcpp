@@ -585,13 +585,7 @@ GraphSubscriptionHandlerPtr ControllerClientImpl::ExecuteGraphSubscription(const
             _InitializeWebsocket(unixSocketStream, "localhost", 80, "");
         }
 
-
-        // start a new thread running I/O service until the socket is closed
-        boost::shared_ptr<std::thread> thread = boost::make_shared<std::thread>([ioContext] {
-            ioContext->run();
-        });
-
-        graphSubscriptionWebSocketHandler = boost::make_shared<GraphSubscriptionWebSocketHandler>(tcpStream, unixSocketStream, thread);
+        graphSubscriptionWebSocketHandler = boost::make_shared<GraphSubscriptionWebSocketHandler>(tcpStream, unixSocketStream, ioContext);
     }
 
     std::string subscriptionId = graphSubscriptionWebSocketHandler->StartSubscription(operationName, query, rVariables, onReadHandler);
@@ -2262,15 +2256,21 @@ GraphSubscriptionHandlerImpl::~GraphSubscriptionHandlerImpl()
     _graphSubscriptionWebSocketHandler->CompleteSubscription(_subscriptionId);
 }
 
-GraphSubscriptionWebSocketHandler::GraphSubscriptionWebSocketHandler(boost::shared_ptr<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>> tcpStream, boost::shared_ptr<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>> unixSocketStream, boost::shared_ptr<std::thread> thread)
-: _tcpStream(tcpStream), _unixSocketStream(unixSocketStream), _thread(thread), _allocator(_allocatorBuffer, sizeof(_allocatorBuffer))
-{
+GraphSubscriptionWebSocketHandler::GraphSubscriptionWebSocketHandler(boost::shared_ptr<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>> tcpStream, boost::shared_ptr<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>> unixSocketStream, boost::shared_ptr<boost::asio::io_context> ioContext)
+: _tcpStream(tcpStream), _unixSocketStream(unixSocketStream), _allocator(_allocatorBuffer, sizeof(_allocatorBuffer))
+{   
+    // start the asynchronous read
     if (_tcpStream) {
         _ReadFromSubscriptionStream(_tcpStream, &_subscriptionBuffer, _onReadHandlers, &_mutex, _allocator);
     }
     if (_unixSocketStream) {
         _ReadFromSubscriptionStream(_unixSocketStream, &_subscriptionBuffer, _onReadHandlers, &_mutex, _allocator);
     }
+
+    // start a new thread running I/O service until the socket is closed
+    _thread = boost::make_shared<std::thread>([ioContext] {
+        ioContext->run();
+    });
 }
 
 bool GraphSubscriptionWebSocketHandler::IsStreamOpen() const
@@ -2333,7 +2333,15 @@ void GraphSubscriptionWebSocketHandler::CompleteSubscription(const std::string& 
 
 GraphSubscriptionWebSocketHandler::~GraphSubscriptionWebSocketHandler()
 {
-    this->_Close();
+    // gracefully close the stream
+    if (_tcpStream) {
+        _tcpStream->close(boost::beast::websocket::close_code::normal);
+    }
+    if (_unixSocketStream) {
+        _unixSocketStream->close(boost::beast::websocket::close_code::normal);
+    }
+
+    _thread->join();
 }
 
 void GraphSubscriptionWebSocketHandler::_SendMessage(const std::string& message)
@@ -2344,19 +2352,6 @@ void GraphSubscriptionWebSocketHandler::_SendMessage(const std::string& message)
     if (_unixSocketStream) {
         _unixSocketStream->write(boost::asio::buffer(message));
     }
-}
-
-void GraphSubscriptionWebSocketHandler::_Close()
-{
-    // gracefully close the stream
-    if (_tcpStream) {
-        _tcpStream->close(boost::beast::websocket::close_code::normal);
-    }
-    if (_unixSocketStream) {
-        _unixSocketStream->close(boost::beast::websocket::close_code::normal);
-    }
-
-    _thread->join();
 }
 
 } // end namespace mujinclient
