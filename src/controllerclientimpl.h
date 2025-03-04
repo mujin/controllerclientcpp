@@ -345,12 +345,13 @@ protected:
 
     boost::beast::flat_buffer _subscriptionBuffer;
     boost::uuids::random_generator _randomGenerator;
+
     rapidjson::MemoryPoolAllocator<> _allocator;
     uint8_t _allocatorBuffer[64 * 1024]; ///< 64KB
-    rapidjson::StringBuffer _subscriptionStringBufferCache;
 
     boost::mutex _mutex;
     std::unordered_map<std::string, std::function<void(const boost::system::error_code&, rapidjson::Value&&)>> _onReadHandlers; ///< protected by _mutex
+    rapidjson::StringBuffer _subscriptionStringBufferCache; ///< protected by _mutex
 };
 
 } // end namespace mujinclient
