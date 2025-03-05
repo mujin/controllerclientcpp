@@ -2161,6 +2161,7 @@ void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stre
         boost::mutex::scoped_lock lock(*mutex);
         
         if (errorCode) {
+            // invoke all callback functions with the error code
             for (std::unordered_map<std::string, std::function<void(const boost::system::error_code&, rapidjson::Value&&)>>::const_iterator it = onReadHandlers.cbegin(); it != onReadHandlers.cend(); ++it) {
                 if (it->second) {
                     (it->second)(errorCode, rapidjson::Value());
@@ -2214,11 +2215,10 @@ GraphSubscriptionWebSocketHandler::GraphSubscriptionWebSocketHandler(const Contr
         // use tcp socket
         host = clientInfo.host;
         port = clientInfo.httpPort == 0 ? 80 : clientInfo.httpPort;
-        MUJIN_LOG_INFO(boost::format("Create TCP socket connected to host %s") % clientInfo.host);
+        MUJIN_LOG_INFO(boost::format("Create TCP socket connected to host %s") % host);
         
         boost::asio::ip::tcp::socket socket(*ioContext);
-        boost::asio::ip::address address = boost::asio::ip::address::from_string(clientInfo.host);
-        boost::asio::ip::tcp::endpoint endpoint(address, port);
+        boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string(host), port);
         socket.connect(endpoint);
         _tcpStream = boost::make_shared<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>>(std::move(socket));
     } else {
