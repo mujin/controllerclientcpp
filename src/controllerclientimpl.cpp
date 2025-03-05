@@ -2208,8 +2208,8 @@ GraphSubscriptionWebSocketHandler::GraphSubscriptionWebSocketHandler(const Contr
 : _allocator(_allocatorBuffer, sizeof(_allocatorBuffer))
 {
     boost::shared_ptr<boost::asio::io_context> ioContext = boost::make_shared<boost::asio::io_context>();
-    std::string host;
-    uint16_t port;
+    std::string host = "localhost";
+    uint16_t port = 80;
     if (clientInfo.unixEndpoint.empty()) {
         // use tcp socket
         host = clientInfo.host;
@@ -2223,8 +2223,6 @@ GraphSubscriptionWebSocketHandler::GraphSubscriptionWebSocketHandler(const Contr
         _tcpStream = boost::make_shared<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>>(std::move(socket));
     } else {
         // use unix domain socket
-        host = "localhost";
-        port = 80;
         MUJIN_LOG_INFO(boost::format("Create unix domain socket connected to endpoint %s") % clientInfo.unixEndpoint);
 
         boost::asio::local::stream_protocol::socket socket(*ioContext);
@@ -2241,33 +2239,31 @@ GraphSubscriptionWebSocketHandler::GraphSubscriptionWebSocketHandler(const Contr
         _unixSocketStream->handshake(host + ":" + std::to_string(port), "/api/v2/graphql");
     }
 
-    std::string connectionInitializationMessage = R"({"type":"connection_init"})";
+    // encode username and password
+    std::string usernamePassword = clientInfo.username + ":" + clientInfo.password;
+    std::string encodedUsernamePassword;
+    encodedUsernamePassword.resize(boost::beast::detail::base64::encoded_size(usernamePassword.size()));
+    boost::beast::detail::base64::encode(&encodedUsernamePassword[0], usernamePassword.data(), usernamePassword.size());
+    
     // add basic authorization header
-    if (clientInfo.unixEndpoint.empty()) {
-        // encode username and password
-        std::string usernamePassword = clientInfo.username + ":" + clientInfo.password;
-        std::string encodedUsernamePassword;
-        encodedUsernamePassword.resize(boost::beast::detail::base64::encoded_size(usernamePassword.size()));
-        boost::beast::detail::base64::encode(&encodedUsernamePassword[0], usernamePassword.data(), usernamePassword.size());
-        
-        connectionInitializationMessage = boost::str(boost::format(R"({"type":"connection_init","payload":{"Authorization":"Basic %s"}})") % encodedUsernamePassword);
-    }
+    std::string connectionInitializationMessage = boost::str(boost::format(R"({"type":"connection_init","payload":{"Authorization":"Basic %s"}})") % encodedUsernamePassword);
+    
     // initialize the websocket
     this->_SendMessage(connectionInitializationMessage);
 
     // read connection_ack from server
-    boost::beast::flat_buffer streamBuffer;
     if (_tcpStream) {
-        _tcpStream->read(streamBuffer);
+        _tcpStream->read(_subscriptionBuffer);
     }
     if (_unixSocketStream) {
-        _unixSocketStream->read(streamBuffer);
+        _unixSocketStream->read(_subscriptionBuffer);
     }
 
-    std::string message = boost::beast::buffers_to_string(streamBuffer.data());
+    std::string message = boost::beast::buffers_to_string(_subscriptionBuffer.data());
     if (message.find("connection_ack") == std::string::npos) {
         throw MUJIN_EXCEPTION_FORMAT("Failed to initialize websocket connection, Expected 'connection_ack' in response, but got: %s", message, MEC_HTTPServer);
     }
+    _subscriptionBuffer.clear();
 
     // start the asynchronous read
     if (_tcpStream) {
