@@ -2150,7 +2150,7 @@ GraphSubscriptionHandlerImpl::GraphSubscriptionHandlerImpl(GraphSubscriptionWebS
 
 GraphSubscriptionHandlerImpl::~GraphSubscriptionHandlerImpl()
 {
-    // gracefully complete the subscription
+    // gracefully stop the subscription
     _graphSubscriptionWebSocketHandler->StopSubscription(_subscriptionId);
 }
 
