@@ -2382,7 +2382,7 @@ GraphSubscriptionWebSocketHandler::~GraphSubscriptionWebSocketHandler()
         _unixSocketStream->close(boost::beast::websocket::close_code::normal, errorCode);
     }
 
-    if (errorCode) {
+    if (errorCode && errorCode != boost::asio::error::eof) {
         MUJIN_LOG_INFO(boost::format("failed to close the stream: %s") % errorCode.message());
     }
 
