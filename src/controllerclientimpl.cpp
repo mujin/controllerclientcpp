@@ -360,6 +360,14 @@ void ControllerClientImpl::SetProxy(const std::string& serverport, const std::st
     CURL_OPTION_SETTER(_curl, CURLOPT_PROXY, serverport.c_str());
     CURL_OPTION_SETTER(_curl, CURLOPT_PROXYUSERPWD, userpw.c_str());
     _clientInfo.unixEndpoint.clear();
+
+    // stop all existing subscriptions
+    boost::mutex::scoped_lock lock(_mutex);
+    GraphSubscriptionWebSocketHandlerPtr graphSubscriptionWebSocketHandler = _graphSubscriptionWebSocketHandler.lock();
+    if (graphSubscriptionWebSocketHandler && graphSubscriptionWebSocketHandler->IsStreamOpen()) {
+        graphSubscriptionWebSocketHandler->StopAllSubscriptions();
+        _graphSubscriptionWebSocketHandler.reset();
+    }
 }
 
 void ControllerClientImpl::SetUnixEndpoint(const std::string& unixendpoint)
@@ -369,6 +377,14 @@ void ControllerClientImpl::SetUnixEndpoint(const std::string& unixendpoint)
     CURL_OPTION_SETTER(_curl, CURLOPT_PROXYUSERPWD, NULL);
     CURL_OPTION_SETTER(_curl, CURLOPT_UNIX_SOCKET_PATH, unixendpoint.c_str());
     _clientInfo.unixEndpoint = unixendpoint;
+
+    // stop all existing subscriptions
+    boost::mutex::scoped_lock lock(_mutex);
+    GraphSubscriptionWebSocketHandlerPtr graphSubscriptionWebSocketHandler = _graphSubscriptionWebSocketHandler.lock();
+    if (graphSubscriptionWebSocketHandler && graphSubscriptionWebSocketHandler->IsStreamOpen()) {
+        graphSubscriptionWebSocketHandler->StopAllSubscriptions();
+        _graphSubscriptionWebSocketHandler.reset();
+    }
 }
 
 void ControllerClientImpl::SetLanguage(const std::string& language)
@@ -2366,8 +2382,10 @@ void GraphSubscriptionWebSocketHandler::StopSubscription(const std::string& subs
     }
 }
 
-GraphSubscriptionWebSocketHandler::~GraphSubscriptionWebSocketHandler()
+void GraphSubscriptionWebSocketHandler::StopAllSubscriptions()
 {
+    MUJIN_LOG_INFO("stop all subscriptions");
+
     // prevent accessing the socket concurrently with the background thread
     boost::mutex::scoped_lock lock(_mutex);
 
@@ -2386,6 +2404,17 @@ GraphSubscriptionWebSocketHandler::~GraphSubscriptionWebSocketHandler()
         MUJIN_LOG_INFO(boost::format("failed to close the stream: %s") % errorCode.message());
     }
 
+    // invoke all callback functions with the "closed" error code
+    for (std::unordered_map<std::string, std::function<void(const boost::system::error_code&, rapidjson::Value&&)>>::const_iterator it = _onReadHandlers.cbegin(); it != _onReadHandlers.cend(); ++it) {
+        if (it->second) {
+            (it->second)(boost::beast::websocket::error::closed, rapidjson::Value());
+        }
+    }
+}
+
+GraphSubscriptionWebSocketHandler::~GraphSubscriptionWebSocketHandler()
+{
+    this->StopAllSubscriptions();
     _thread->join();
 }
 
