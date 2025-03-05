@@ -2296,6 +2296,7 @@ std::string GraphSubscriptionWebSocketHandler::StartSubscription(const std::stri
 
     // generate a random id for the subsctiption
     std::string subscriptionId = boost::uuids::to_string(_randomGenerator());
+    MUJIN_LOG_INFO(boost::format("subscription %s started") % subscriptionId);
 
     // build the query
     rapidjson::Value payload;
@@ -2327,6 +2328,7 @@ std::string GraphSubscriptionWebSocketHandler::StartSubscription(const std::stri
 
 void GraphSubscriptionWebSocketHandler::CompleteSubscription(const std::string& subscriptionId)
 {
+    MUJIN_LOG_INFO(boost::format("subscription %s stopped") % subscriptionId);
     boost::mutex::scoped_lock lock(_mutex);
 
     // remove callback function
