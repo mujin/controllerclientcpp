@@ -2151,7 +2151,7 @@ GraphSubscriptionHandlerImpl::GraphSubscriptionHandlerImpl(GraphSubscriptionWebS
 GraphSubscriptionHandlerImpl::~GraphSubscriptionHandlerImpl()
 {
     // gracefully complete the subscription
-    _graphSubscriptionWebSocketHandler->CompleteSubscription(_subscriptionId);
+    _graphSubscriptionWebSocketHandler->StopSubscription(_subscriptionId);
 }
 
 template <typename Socket>
@@ -2307,7 +2307,7 @@ std::string GraphSubscriptionWebSocketHandler::StartSubscription(const std::stri
 
     rapidjson::Value request;
     request.SetObject();
-    request.AddMember(rapidjson::Document::StringRefType("type"), "subscribe", _allocator);
+    request.AddMember(rapidjson::Document::StringRefType("type"), "start", _allocator);
     request.AddMember(rapidjson::Document::StringRefType("payload"), payload, _allocator);
     request.AddMember(rapidjson::Document::StringRefType("id"), rapidjson::Value(subscriptionId.c_str(), _allocator), _allocator);
     
@@ -2326,7 +2326,7 @@ std::string GraphSubscriptionWebSocketHandler::StartSubscription(const std::stri
     return subscriptionId;
 }
 
-void GraphSubscriptionWebSocketHandler::CompleteSubscription(const std::string& subscriptionId)
+void GraphSubscriptionWebSocketHandler::StopSubscription(const std::string& subscriptionId)
 {
     MUJIN_LOG_INFO(boost::format("subscription %s stopped") % subscriptionId);
     boost::mutex::scoped_lock lock(_mutex);
@@ -2340,7 +2340,7 @@ void GraphSubscriptionWebSocketHandler::CompleteSubscription(const std::string& 
 
     try {
         // send subsciption completion message
-        std::string completeMessage = boost::str(boost::format(R"({"id":"%s","type":"complete"})") % subscriptionId);
+        std::string completeMessage = boost::str(boost::format(R"({"id":"%s","type":"stop"})") % subscriptionId);
         this->_SendMessage(completeMessage);
     } catch (const std::exception& ex) {
         MUJIN_LOG_INFO(boost::format("failed to complete the subscription: %s") % ex.what());
