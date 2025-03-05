@@ -2368,16 +2368,19 @@ void GraphSubscriptionWebSocketHandler::StopSubscription(const std::string& subs
 
 GraphSubscriptionWebSocketHandler::~GraphSubscriptionWebSocketHandler()
 {
-    try {
-        // gracefully close the stream
-        if (_tcpStream) {
-            _tcpStream->close(boost::beast::websocket::close_code::normal);
-        }
-        if (_unixSocketStream) {
-            _unixSocketStream->close(boost::beast::websocket::close_code::normal);
-        }
-    } catch (const std::exception& ex) {
-        MUJIN_LOG_INFO(boost::format("failed to close the stream: %s") % ex.what());
+    // gracefully close the stream
+    boost::system::error_code errorCode;
+    if (_tcpStream) {
+        MUJIN_LOG_INFO("TCP socket closed");
+        _tcpStream->close(boost::beast::websocket::close_code::normal, errorCode);
+    }
+    if (_unixSocketStream) {
+        MUJIN_LOG_INFO("Unix domain socket closed");
+        _unixSocketStream->close(boost::beast::websocket::close_code::normal, errorCode);
+    }
+
+    if (errorCode) {
+        MUJIN_LOG_INFO(boost::format("failed to close the stream: %s") % errorCode.message());
     }
 
     _thread->join();
