@@ -2292,6 +2292,8 @@ bool GraphSubscriptionWebSocketHandler::IsStreamOpen()
 
 std::string GraphSubscriptionWebSocketHandler::StartSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, std::function<void(const boost::system::error_code&, rapidjson::Value&&)> onReadHandler)
 {
+    boost::mutex::scoped_lock lock(_mutex);
+
     // generate a random id for the subsctiption
     std::string subscriptionId = boost::uuids::to_string(_randomGenerator());
 
@@ -2315,7 +2317,6 @@ std::string GraphSubscriptionWebSocketHandler::StartSubscription(const std::stri
     _subscriptionStringBufferCache.Clear();
 
     // save the callback function
-    boost::mutex::scoped_lock lock(_mutex);
     _onReadHandlers[subscriptionId] = onReadHandler;
 
     // start subscription
