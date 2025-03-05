@@ -2368,6 +2368,9 @@ void GraphSubscriptionWebSocketHandler::StopSubscription(const std::string& subs
 
 GraphSubscriptionWebSocketHandler::~GraphSubscriptionWebSocketHandler()
 {
+    // prevent accessing the socket concurrently with the background thread
+    boost::mutex::scoped_lock lock(_mutex);
+
     // gracefully close the stream
     boost::system::error_code errorCode;
     if (_tcpStream) {
