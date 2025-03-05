@@ -2198,7 +2198,7 @@ void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stre
 
         // parse message type
         if (!result.IsObject() || !result.HasMember("type") || !result["type"].IsString()) {
-            MUJIN_LOG_INFO("revceive unexpected websocket message without type field");
+            MUJIN_LOG_INFO("receive unexpected websocket message without type field");
             // start the next asynchronous read
             _ReadFromSubscriptionStream(stream, subscriptionBuffer, onReadHandlers, mutex, allocator);
             return;
@@ -2214,7 +2214,7 @@ void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stre
 
         // parse message id
         if (!result.HasMember("id") || !result["id"].IsString()) {
-            MUJIN_LOG_INFO(boost::format("revceive unexpected websocket message without id field of type %s") % messageType);
+            MUJIN_LOG_INFO(boost::format("receive unexpected websocket message without id field of type %s") % messageType);
             // start the next asynchronous read
             _ReadFromSubscriptionStream(stream, subscriptionBuffer, onReadHandlers, mutex, allocator);
             return;
@@ -2228,7 +2228,7 @@ void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stre
             if (result.HasMember("payload")) {
                 (it->second)(errorCode, std::move(result["payload"]));
             } else {
-                MUJIN_LOG_INFO(boost::format("revceive unexpected websocket message without payload field from subsciption %s of type %s") % subscriptionId % messageType);
+                MUJIN_LOG_INFO(boost::format("receive unexpected websocket message without payload field from subsciption %s of type %s") % subscriptionId % messageType);
             }
         } else {
             MUJIN_LOG_INFO(boost::format("failed to find callback function for subscription %s of type %s") % subscriptionId % messageType);
