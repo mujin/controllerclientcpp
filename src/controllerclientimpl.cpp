@@ -2336,19 +2336,27 @@ void GraphSubscriptionWebSocketHandler::CompleteSubscription(const std::string& 
     }
     _onReadHandlers.erase(it);
 
-    // send subsciption completion message
-    std::string completeMessage = boost::str(boost::format(R"({"id":"%s","type":"complete"})") % subscriptionId);
-    this->_SendMessage(completeMessage);
+    try {
+        // send subsciption completion message
+        std::string completeMessage = boost::str(boost::format(R"({"id":"%s","type":"complete"})") % subscriptionId);
+        this->_SendMessage(completeMessage);
+    } catch (const std::exception& ex) {
+        MUJIN_LOG_INFO(boost::format("failed to complete the subscription: %s") % ex.what());
+    }
 }
 
 GraphSubscriptionWebSocketHandler::~GraphSubscriptionWebSocketHandler()
 {
-    // gracefully close the stream
-    if (_tcpStream) {
-        _tcpStream->close(boost::beast::websocket::close_code::normal);
-    }
-    if (_unixSocketStream) {
-        _unixSocketStream->close(boost::beast::websocket::close_code::normal);
+    try {
+        // gracefully close the stream
+        if (_tcpStream) {
+            _tcpStream->close(boost::beast::websocket::close_code::normal);
+        }
+        if (_unixSocketStream) {
+            _unixSocketStream->close(boost::beast::websocket::close_code::normal);
+        }
+    } catch (const std::exception& ex) {
+        MUJIN_LOG_INFO(boost::format("failed to close the stream: %s") % ex.what());
     }
 
     _thread->join();
