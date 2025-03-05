@@ -2173,35 +2173,54 @@ void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stre
         std::string message = boost::beast::buffers_to_string(subscriptionBuffer->data());
         subscriptionBuffer->clear();
 
-        // ignore pong message
-        if (message.substr(0, 15) == std::string(R"({"type":"pong"})")) {
+        // parse the result
+        rapidjson::Value result;
+        if (message.length() > 0) {
+            std::stringstream stringStream(message);
+            mujinjson::ParseJson(result, allocator, stringStream);
+        }
+
+        // parse message type
+        if (!result.IsObject() || !result.HasMember("type") || !result["type"].IsString()) {
+            MUJIN_LOG_INFO("revceive unexpected websocket message without type field");
+            // start the next asynchronous read
+            _ReadFromSubscriptionStream(stream, subscriptionBuffer, onReadHandlers, mutex, allocator);
+            return;
+        }
+        std::string messageType = result["type"].GetString();
+
+        // ignore pong/ka message
+        if (messageType == "pong" || messageType == "ka") {
             // start the next asynchronous read
             _ReadFromSubscriptionStream(stream, subscriptionBuffer, onReadHandlers, mutex, allocator);
             return;
         }
 
-        // parse the result
-        rapidjson::Value result;
-        if ( message.length() > 0 ) {
-            std::stringstream stringStream(message);
-            ParseJson(result, allocator, stringStream);
+        // parse message id
+        if (!result.HasMember("id") || !result["id"].IsString()) {
+            MUJIN_LOG_INFO(boost::format("revceive unexpected websocket message without id field of type %s") % messageType);
+            // start the next asynchronous read
+            _ReadFromSubscriptionStream(stream, subscriptionBuffer, onReadHandlers, mutex, allocator);
+            return;
         }
+        std::string subscriptionId = result["id"].GetString();
 
         // find the callback function according to subscription id
-        if (result.IsObject() && result.HasMember("id") && result["id"].IsString()) {
-            std::string subscriptionId = result["id"].GetString();
-
-            std::unordered_map<std::string, std::function<void(const boost::system::error_code&, rapidjson::Value&&)>>::const_iterator it = onReadHandlers.find(subscriptionId);
-            if (it != onReadHandlers.end() && it->second) {
-                // invoke callback function if there are payloads
-                if (result.HasMember("payload")) {
-                    (it->second)(errorCode, std::move(result["payload"]));
-                }
+        std::unordered_map<std::string, std::function<void(const boost::system::error_code&, rapidjson::Value&&)>>::const_iterator it = onReadHandlers.find(subscriptionId);
+        if (it != onReadHandlers.end() && it->second) {
+            // invoke callback function if there are payloads
+            if (result.HasMember("payload")) {
+                (it->second)(errorCode, std::move(result["payload"]));
+            } else {
+                MUJIN_LOG_INFO(boost::format("revceive unexpected websocket message without payload field from subsciption %s of type %s") % subscriptionId % messageType);
             }
+        } else {
+            MUJIN_LOG_INFO(boost::format("failed to find callback function for subscription %s of type %s") % subscriptionId % messageType);
         }
 
         // start the next asynchronous read
         _ReadFromSubscriptionStream(stream, subscriptionBuffer, onReadHandlers, mutex, allocator);
+        return;
     });
 }
 
