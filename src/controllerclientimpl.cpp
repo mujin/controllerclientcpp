@@ -2193,7 +2193,14 @@ void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stre
         rapidjson::Value result;
         if (message.length() > 0) {
             std::stringstream stringStream(message);
-            mujinjson::ParseJson(result, allocator, stringStream);
+            try {
+                mujinjson::ParseJson(result, allocator, stringStream);
+            } catch (const std::exception& ex) {
+                MUJIN_LOG_INFO(boost::format("failed to parse websocket message: %s") % ex.what());
+                // start the next asynchronous read
+                _ReadFromSubscriptionStream(stream, subscriptionBuffer, onReadHandlers, mutex, allocator);
+                return;
+            }
         }
 
         // parse message type
@@ -2415,6 +2422,9 @@ void GraphSubscriptionWebSocketHandler::StopAllSubscriptions()
 GraphSubscriptionWebSocketHandler::~GraphSubscriptionWebSocketHandler()
 {
     this->StopAllSubscriptions();
+
+    // the background thread can access member variables
+    // need to wait it finished before destorying member variables
     _thread->join();
 }
 
