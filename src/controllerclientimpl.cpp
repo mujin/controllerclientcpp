@@ -2180,7 +2180,11 @@ void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stre
             // invoke all callback functions with the error code
             for (std::unordered_map<std::string, std::function<void(const boost::system::error_code&, rapidjson::Value&&)>>::const_iterator it = onReadHandlers.cbegin(); it != onReadHandlers.cend(); ++it) {
                 if (it->second) {
-                    (it->second)(errorCode, rapidjson::Value());
+                    try {
+                        (it->second)(errorCode, rapidjson::Value());
+                    } catch (const std::exception& ex) {
+                        MUJIN_LOG_WARN(boost::format("failed to execute callback function for subscription %s: %s") % it->first % ex.what());
+                    }
                 }
             }
             return;
@@ -2233,7 +2237,11 @@ void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stre
         if (it != onReadHandlers.end() && it->second) {
             // invoke callback function if there are payloads
             if (result.HasMember("payload")) {
-                (it->second)(errorCode, std::move(result["payload"]));
+                try {
+                    (it->second)(errorCode, std::move(result["payload"]));
+                } catch (const std::exception& ex) {
+                    MUJIN_LOG_WARN(boost::format("failed to execute callback function for subscription %s: %s") % it->first % ex.what());
+                }
             } else {
                 MUJIN_LOG_INFO(boost::format("receive unexpected websocket message without payload field from subsciption %s of type %s") % subscriptionId % messageType);
             }
