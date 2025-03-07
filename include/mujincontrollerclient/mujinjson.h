@@ -28,6 +28,7 @@
 #include <stdexcept>
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 #include <map>
 #include <deque>
 #include <iostream>
@@ -636,6 +637,23 @@ inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v,
     }
 }
 
+template <typename U, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> >
+inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::unordered_set<U>& t)
+{
+    // to construct an unordered set from an array
+    if (!v.IsArray()) {
+        throw MujinJSONException("Cannot convert json type " + GetJsonTypeName(v) + " to unordered_set");
+    }
+
+    // Ensure our output is a blank slate
+    t.clear();
+    for (typename rapidjson::GenericValue<Encoding, Allocator>::ConstValueIterator it = v.Begin(); it != v.End(); ++it) {
+        U value;
+        LoadJsonValue(*it, value);
+        t.insert(value);
+    }
+}
+
 template<typename U, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> >
 inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::unordered_map<std::string, U>& t) {
     // It doesn't make sense to construct an unordered map from anything other
@@ -1194,6 +1212,7 @@ inline bool UpdateJsonRecursively(rapidjson::GenericValue<Encoding, Allocator>& 
     }
     return hasChanged;
 }
+
 
 } // namespace mujinjson
 
