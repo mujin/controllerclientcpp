@@ -175,6 +175,7 @@ enum ExecutionVerificationMode : uint8_t
     EVM_PointCloudOnChangeWithDuration = 4, ///< Used for objects like cylinders that can continue to move inside the container for some time before getting into a stable state. Same as pointCloudOnChange, it does verification only when container is known to have changed its contents (ie robot went inside), but it continues to take verification and snapshots until "afterChangeDuration" has expired. For example, if afterChangeDuration is 15s, then will continue capturing the point clouds up to 15s after the robot went inside. When robot goes into container and leaves, that counts as a change.
     EVM_PointCloudOnChangeFirstCycleOnly = 5, ///< Only check the point cloud verification on the first execution cycle. This prevents problems if different unexpected containers coming to robot when cycle first starts.
     EVM_PointCloudOnChangeAfterGrab = 6, ///< For dest containers only. Do verification on the real-time point cloud data only when container is known to have changed and after robot has grabbed the part. When robot goes into dest container and leaves, that counts as a change. Enabling this option means the robot will stop more while grabbing object.
+    EVM_PointCloudWaitForTrigger = 7, ///< For eye-in-hand systems. Do verification every time it is triggered through binpicking TriggerDetectionCaptureInfo.
 };
 
 MUJINCLIENT_API const char* GetExecutionVerificationModeString(ExecutionVerificationMode mode);

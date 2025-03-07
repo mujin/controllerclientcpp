@@ -18,8 +18,8 @@ set( CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS TRUE )
 # Define here the needed parameters
 # make sure to change the version in docs/Makefile
 set (MUJINCLIENT_VERSION_MAJOR 0)
-set (MUJINCLIENT_VERSION_MINOR 70)
-set (MUJINCLIENT_VERSION_PATCH 3)
+set (MUJINCLIENT_VERSION_MINOR 79)
+set (MUJINCLIENT_VERSION_PATCH 0)
 set (MUJINCLIENT_VERSION ${MUJINCLIENT_VERSION_MAJOR}.${MUJINCLIENT_VERSION_MINOR}.${MUJINCLIENT_VERSION_PATCH})
 set (MUJINCLIENT_SOVERSION ${MUJINCLIENT_VERSION_MAJOR}.${MUJINCLIENT_VERSION_MINOR})
 set (CLIENT_SOVERSION ${MUJINCLIENT_VERSION_MAJOR}.${MUJINCLIENT_VERSION_MINOR})
@@ -55,6 +55,11 @@ set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib${LIB_SUFFIX}")
 # which point to directories outside the build tree to the install RPATH
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
+set(COMPILER_IS_CLANG FALSE)
+if( CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
+  set(COMPILER_IS_CLANG TRUE)
+endif()
+
 include(CheckIncludeFile)
 include(CheckIncludeFileCXX)
 include(CheckLibraryExists)
@@ -73,7 +78,7 @@ include_directories(${MUJINCLIENT_INCLUDE_LOCAL_DIRS})
 if( MSVC )
   add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_DEPRECATE)
   add_definitions(-D_SCL_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_DEPRECATE)
-  
+
   #gives linking problems
   #string(REGEX REPLACE "/MDd" "/MD" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
   #string(REGEX REPLACE "/MDd" "/MD" CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
@@ -253,7 +258,7 @@ endif()
 
 
 if( CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX )
-  add_definitions("-fno-strict-aliasing -Wall -Werror=shadow")
+  add_definitions("-fno-strict-aliasing -Wall -Werror=shadow -Werror=non-virtual-dtor")
 endif( CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX )
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/mujincontrollerclient/config.h IMMEDIATE @ONLY)

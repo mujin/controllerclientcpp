@@ -17,6 +17,7 @@
 #define MUJIN_LOG_VERBOSE(msg) LOG4CXX_TRACE(logger, msg);
 #define MUJIN_LOG_DEBUG(msg) LOG4CXX_DEBUG(logger, msg);
 #define MUJIN_LOG_INFO(msg) LOG4CXX_INFO(logger, msg);
+#define MUJIN_LOG_WARN(msg) LOG4CXX_WARN(logger, msg);
 #define MUJIN_LOG_ERROR(msg) LOG4CXX_ERROR(logger, msg);
 
 #else
@@ -25,6 +26,7 @@
 #define MUJIN_LOG_VERBOSE(msg) // empty
 #define MUJIN_LOG_DEBUG(msg) // empty
 #define MUJIN_LOG_INFO(msg) std::cout << msg << std::endl;
+#define MUJIN_LOG_WARN(msg) std::cout << msg << std::endl;
 #define MUJIN_LOG_ERROR(msg) std::cerr << msg << std::endl;
 
 #endif // logging
