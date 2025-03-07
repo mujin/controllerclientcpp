@@ -442,7 +442,7 @@ public:
     /// \param operationName The name of the subscription query
     /// \param query The subscription query
     /// \param rVariables The subscription query variables
-    /// \param onReadHandler The callback function invoked when receiving subscription result 
+    /// \param onReadHandler The callback function invoked when receiving subscription result. The callback function should NOT destroy the handler, otherwise deadlock can happen. In case of an error, the callback function can be called more than once with the same or different error code.
     virtual GraphSubscriptionHandlerPtr ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, std::function<void(const boost::system::error_code&, rapidjson::Value&&)> onReadHandler) = 0;
 
     /// \brief returns the mujin controller version
