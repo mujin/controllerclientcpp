@@ -352,7 +352,7 @@ protected:
 
     boost::mutex _mutex;
     std::unordered_map<std::string, std::function<void(const boost::system::error_code&, rapidjson::Value&&)>> _onReadHandlers; ///< protected by _mutex
-    rapidjson::StringBuffer _subscriptionStringBufferCache; ///< protected by _mutex
+    rapidjson::StringBuffer _rSubscriptionStringBufferCache; ///< protected by _mutex
 };
 
 } // end namespace mujinclient

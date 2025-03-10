@@ -2361,11 +2361,11 @@ std::string GraphSubscriptionWebSocketHandler::StartSubscription(const std::stri
     request.AddMember(rapidjson::Document::StringRefType("payload"), payload, _rQueryAlloc);
     request.AddMember(rapidjson::Document::StringRefType("id"), rapidjson::Value(subscriptionId.c_str(), _rQueryAlloc), _rQueryAlloc);
     
-    _subscriptionStringBufferCache.Clear();
-    rapidjson::Writer<rapidjson::StringBuffer> writer(_subscriptionStringBufferCache);
+    _rSubscriptionStringBufferCache.Clear();
+    rapidjson::Writer<rapidjson::StringBuffer> writer(_rSubscriptionStringBufferCache);
     request.Accept(writer);
-    std::string subscriptionMessage = _subscriptionStringBufferCache.GetString();
-    _subscriptionStringBufferCache.Clear();
+    std::string subscriptionMessage = _rSubscriptionStringBufferCache.GetString();
+    _rSubscriptionStringBufferCache.Clear();
 
     // save the callback function
     _onReadHandlers[subscriptionId] = onReadHandler;
