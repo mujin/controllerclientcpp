@@ -2198,6 +2198,7 @@ void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stre
         if (message.length() > 0) {
             std::stringstream stringStream(message);
             try {
+                allocator.Clear();
                 mujinjson::ParseJson(result, allocator, stringStream);
             } catch (const std::exception& ex) {
                 MUJIN_LOG_INFO(boost::format("failed to parse websocket message: %s") % ex.what());
@@ -2349,6 +2350,7 @@ std::string GraphSubscriptionWebSocketHandler::StartSubscription(const std::stri
     MUJIN_LOG_INFO(boost::format("subscription %s started") % subscriptionId);
 
     // build the query
+    _rQueryAlloc.Clear();
     rapidjson::Value payload;
     payload.SetObject();
     payload.AddMember(rapidjson::Document::StringRefType("operationName"), rapidjson::Value(operationName.c_str(), _rQueryAlloc), _rQueryAlloc);
