@@ -2285,8 +2285,7 @@ GraphSubscriptionWebSocketHandler::GraphSubscriptionWebSocketHandler(const Contr
     // upgrade the connection to websocket
     if (_tcpStream) {
         _tcpStream->handshake(host + ":" + std::to_string(port), "/api/v2/graphql");
-    }
-    if (_unixSocketStream) {
+    } else if (_unixSocketStream) {
         _unixSocketStream->handshake(host + ":" + std::to_string(port), "/api/v2/graphql");
     }
 
@@ -2305,8 +2304,7 @@ GraphSubscriptionWebSocketHandler::GraphSubscriptionWebSocketHandler(const Contr
     // read connection_ack from server
     if (_tcpStream) {
         _tcpStream->read(_subscriptionBuffer);
-    }
-    if (_unixSocketStream) {
+    } else if (_unixSocketStream) {
         _unixSocketStream->read(_subscriptionBuffer);
     }
 
@@ -2319,8 +2317,7 @@ GraphSubscriptionWebSocketHandler::GraphSubscriptionWebSocketHandler(const Contr
     // start the asynchronous read
     if (_tcpStream) {
         _ReadFromSubscriptionStream(_tcpStream, &_subscriptionBuffer, _onReadHandlers, &_mutex, _rQueryAlloc);
-    }
-    if (_unixSocketStream) {
+    } else if (_unixSocketStream) {
         _ReadFromSubscriptionStream(_unixSocketStream, &_subscriptionBuffer, _onReadHandlers, &_mutex, _rQueryAlloc);
     }
 
@@ -2335,8 +2332,7 @@ bool GraphSubscriptionWebSocketHandler::IsStreamOpen()
     boost::mutex::scoped_lock lock(_mutex);
     if (_tcpStream) {
         return _tcpStream->is_open();
-    }
-    if (_unixSocketStream) {
+    } else if (_unixSocketStream) {
         return _unixSocketStream->is_open();
     }
 }
@@ -2411,8 +2407,7 @@ void GraphSubscriptionWebSocketHandler::StopAllSubscriptions()
     if (_tcpStream) {
         MUJIN_LOG_INFO("TCP socket closed");
         _tcpStream->close(boost::beast::websocket::close_code::normal, errorCode);
-    }
-    if (_unixSocketStream) {
+    } else if (_unixSocketStream) {
         MUJIN_LOG_INFO("Unix domain socket closed");
         _unixSocketStream->close(boost::beast::websocket::close_code::normal, errorCode);
     }
@@ -2444,8 +2439,7 @@ void GraphSubscriptionWebSocketHandler::_SendMessage(const std::string& message)
 {
     if (_tcpStream) {
         _tcpStream->write(boost::asio::buffer(message));
-    }
-    if (_unixSocketStream) {
+    } else if (_unixSocketStream) {
         _unixSocketStream->write(boost::asio::buffer(message));
     }
 }
