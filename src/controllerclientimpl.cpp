@@ -2171,9 +2171,9 @@ GraphSubscriptionHandlerImpl::~GraphSubscriptionHandlerImpl()
 }
 
 template <typename Socket>
-void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stream<Socket>> stream, boost::beast::flat_buffer* subscriptionBuffer, const std::unordered_map<std::string, std::function<void(const boost::system::error_code&, rapidjson::Value&&)>>& onReadHandlers, boost::mutex* mutex, rapidjson::Document::AllocatorType& allocator)
+void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stream<Socket>> stream, boost::beast::flat_buffer* pSubscriptionBuffer, const std::unordered_map<std::string, std::function<void(const boost::system::error_code&, rapidjson::Value&&)>>& onReadHandlers, boost::mutex* mutex, rapidjson::Document::AllocatorType& rAllocator)
 {
-    stream->async_read(*subscriptionBuffer, [stream, subscriptionBuffer, &onReadHandlers, mutex, &allocator](const boost::system::error_code& errorCode, std::size_t bytesTransferred){
+    stream->async_read(*pSubscriptionBuffer, [stream, pSubscriptionBuffer, &onReadHandlers, mutex, &rAllocator](const boost::system::error_code& errorCode, std::size_t bytesTransferred){
         boost::mutex::scoped_lock lock(*mutex);
         
         if (errorCode) {
@@ -2190,56 +2190,56 @@ void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stre
             return;
         }
 
-        std::string message = boost::beast::buffers_to_string(subscriptionBuffer->data());
-        subscriptionBuffer->clear();
+        std::string message = boost::beast::buffers_to_string(pSubscriptionBuffer->data());
+        pSubscriptionBuffer->clear();
 
         // parse the result
-        rapidjson::Value result;
+        rapidjson::Value rResult;
         if (message.length() > 0) {
             std::stringstream stringStream(message);
             try {
-                allocator.Clear();
-                mujinjson::ParseJson(result, allocator, stringStream);
+                rAllocator.Clear();
+                mujinjson::ParseJson(rResult, rAllocator, stringStream);
             } catch (const std::exception& ex) {
                 MUJIN_LOG_INFO(boost::format("failed to parse websocket message: %s") % ex.what());
                 // start the next asynchronous read
-                _ReadFromSubscriptionStream(stream, subscriptionBuffer, onReadHandlers, mutex, allocator);
+                _ReadFromSubscriptionStream(stream, pSubscriptionBuffer, onReadHandlers, mutex, rAllocator);
                 return;
             }
         }
 
         // parse message type
-        if (!result.IsObject() || !result.HasMember("type") || !result["type"].IsString()) {
+        if (!rResult.IsObject() || !rResult.HasMember("type") || !rResult["type"].IsString()) {
             MUJIN_LOG_INFO("receive unexpected websocket message without type field");
             // start the next asynchronous read
-            _ReadFromSubscriptionStream(stream, subscriptionBuffer, onReadHandlers, mutex, allocator);
+            _ReadFromSubscriptionStream(stream, pSubscriptionBuffer, onReadHandlers, mutex, rAllocator);
             return;
         }
-        std::string messageType = result["type"].GetString();
+        std::string messageType = rResult["type"].GetString();
 
         // ignore pong/ka message
         if (messageType == "pong" || messageType == "ka") {
             // start the next asynchronous read
-            _ReadFromSubscriptionStream(stream, subscriptionBuffer, onReadHandlers, mutex, allocator);
+            _ReadFromSubscriptionStream(stream, pSubscriptionBuffer, onReadHandlers, mutex, rAllocator);
             return;
         }
 
         // parse message id
-        if (!result.HasMember("id") || !result["id"].IsString()) {
+        if (!rResult.HasMember("id") || !rResult["id"].IsString()) {
             MUJIN_LOG_INFO(boost::format("receive unexpected websocket message without id field of type %s") % messageType);
             // start the next asynchronous read
-            _ReadFromSubscriptionStream(stream, subscriptionBuffer, onReadHandlers, mutex, allocator);
+            _ReadFromSubscriptionStream(stream, pSubscriptionBuffer, onReadHandlers, mutex, rAllocator);
             return;
         }
-        std::string subscriptionId = result["id"].GetString();
+        std::string subscriptionId = rResult["id"].GetString();
 
         // find the callback function according to subscription id
         std::unordered_map<std::string, std::function<void(const boost::system::error_code&, rapidjson::Value&&)>>::const_iterator it = onReadHandlers.find(subscriptionId);
         if (it != onReadHandlers.end() && it->second) {
             // invoke callback function if there are payloads
-            if (result.HasMember("payload")) {
+            if (rResult.HasMember("payload")) {
                 try {
-                    (it->second)(errorCode, std::move(result["payload"]));
+                    (it->second)(errorCode, std::move(rResult["payload"]));
                 } catch (const std::exception& ex) {
                     MUJIN_LOG_WARN(boost::format("failed to execute callback function for subscription %s: %s") % it->first % ex.what());
                 }
@@ -2251,7 +2251,7 @@ void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stre
         }
 
         // start the next asynchronous read
-        _ReadFromSubscriptionStream(stream, subscriptionBuffer, onReadHandlers, mutex, allocator);
+        _ReadFromSubscriptionStream(stream, pSubscriptionBuffer, onReadHandlers, mutex, rAllocator);
         return;
     });
 }
@@ -2347,21 +2347,21 @@ std::string GraphSubscriptionWebSocketHandler::StartSubscription(const std::stri
 
     // build the query
     _rQueryAlloc.Clear();
-    rapidjson::Value payload;
-    payload.SetObject();
-    payload.AddMember(rapidjson::Document::StringRefType("operationName"), rapidjson::Value(operationName.c_str(), _rQueryAlloc), _rQueryAlloc);
-    payload.AddMember(rapidjson::Document::StringRefType("query"), rapidjson::Value(query.c_str(), _rQueryAlloc), _rQueryAlloc);
-    payload.AddMember(rapidjson::Document::StringRefType("variables"), rapidjson::Value(rVariables, _rQueryAlloc), _rQueryAlloc);
+    rapidjson::Value rPayload;
+    rPayload.SetObject();
+    rPayload.AddMember(rapidjson::Document::StringRefType("operationName"), rapidjson::Value(operationName.c_str(), _rQueryAlloc), _rQueryAlloc);
+    rPayload.AddMember(rapidjson::Document::StringRefType("query"), rapidjson::Value(query.c_str(), _rQueryAlloc), _rQueryAlloc);
+    rPayload.AddMember(rapidjson::Document::StringRefType("variables"), rapidjson::Value(rVariables, _rQueryAlloc), _rQueryAlloc);
 
-    rapidjson::Value request;
-    request.SetObject();
-    request.AddMember(rapidjson::Document::StringRefType("type"), "start", _rQueryAlloc);
-    request.AddMember(rapidjson::Document::StringRefType("payload"), payload, _rQueryAlloc);
-    request.AddMember(rapidjson::Document::StringRefType("id"), rapidjson::Value(subscriptionId.c_str(), _rQueryAlloc), _rQueryAlloc);
+    rapidjson::Value rRequest;
+    rRequest.SetObject();
+    rRequest.AddMember(rapidjson::Document::StringRefType("type"), "start", _rQueryAlloc);
+    rRequest.AddMember(rapidjson::Document::StringRefType("payload"), rPayload, _rQueryAlloc);
+    rRequest.AddMember(rapidjson::Document::StringRefType("id"), rapidjson::Value(subscriptionId.c_str(), _rQueryAlloc), _rQueryAlloc);
     
     _rSubscriptionStringBufferCache.Clear();
     rapidjson::Writer<rapidjson::StringBuffer> writer(_rSubscriptionStringBufferCache);
-    request.Accept(writer);
+    rRequest.Accept(writer);
     std::string subscriptionMessage = _rSubscriptionStringBufferCache.GetString();
     _rSubscriptionStringBufferCache.Clear();
 
