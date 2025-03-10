@@ -2256,7 +2256,7 @@ void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stre
 }
 
 GraphSubscriptionWebSocketHandler::GraphSubscriptionWebSocketHandler(const ControllerClientInfo& clientInfo)
-: _allocator(_allocatorBuffer, sizeof(_allocatorBuffer))
+: _vQueryBuffer(16*1024, 0), _rQueryAlloc(&_vQueryBuffer[0], _vQueryBuffer.size())
 {
     boost::shared_ptr<boost::asio::io_context> ioContext = boost::make_shared<boost::asio::io_context>();
     std::string host = "localhost";
@@ -2317,10 +2317,10 @@ GraphSubscriptionWebSocketHandler::GraphSubscriptionWebSocketHandler(const Contr
 
     // start the asynchronous read
     if (_tcpStream) {
-        _ReadFromSubscriptionStream(_tcpStream, &_subscriptionBuffer, _onReadHandlers, &_mutex, _allocator);
+        _ReadFromSubscriptionStream(_tcpStream, &_subscriptionBuffer, _onReadHandlers, &_mutex, _rQueryAlloc);
     }
     if (_unixSocketStream) {
-        _ReadFromSubscriptionStream(_unixSocketStream, &_subscriptionBuffer, _onReadHandlers, &_mutex, _allocator);
+        _ReadFromSubscriptionStream(_unixSocketStream, &_subscriptionBuffer, _onReadHandlers, &_mutex, _rQueryAlloc);
     }
 
     // start a new thread running I/O service until the socket is closed
@@ -2351,15 +2351,15 @@ std::string GraphSubscriptionWebSocketHandler::StartSubscription(const std::stri
     // build the query
     rapidjson::Value payload;
     payload.SetObject();
-    payload.AddMember(rapidjson::Document::StringRefType("operationName"), rapidjson::Value(operationName.c_str(), _allocator), _allocator);
-    payload.AddMember(rapidjson::Document::StringRefType("query"), rapidjson::Value(query.c_str(), _allocator), _allocator);
-    payload.AddMember(rapidjson::Document::StringRefType("variables"), rapidjson::Value(rVariables, _allocator), _allocator);
+    payload.AddMember(rapidjson::Document::StringRefType("operationName"), rapidjson::Value(operationName.c_str(), _rQueryAlloc), _rQueryAlloc);
+    payload.AddMember(rapidjson::Document::StringRefType("query"), rapidjson::Value(query.c_str(), _rQueryAlloc), _rQueryAlloc);
+    payload.AddMember(rapidjson::Document::StringRefType("variables"), rapidjson::Value(rVariables, _rQueryAlloc), _rQueryAlloc);
 
     rapidjson::Value request;
     request.SetObject();
-    request.AddMember(rapidjson::Document::StringRefType("type"), "start", _allocator);
-    request.AddMember(rapidjson::Document::StringRefType("payload"), payload, _allocator);
-    request.AddMember(rapidjson::Document::StringRefType("id"), rapidjson::Value(subscriptionId.c_str(), _allocator), _allocator);
+    request.AddMember(rapidjson::Document::StringRefType("type"), "start", _rQueryAlloc);
+    request.AddMember(rapidjson::Document::StringRefType("payload"), payload, _rQueryAlloc);
+    request.AddMember(rapidjson::Document::StringRefType("id"), rapidjson::Value(subscriptionId.c_str(), _rQueryAlloc), _rQueryAlloc);
     
     _subscriptionStringBufferCache.Clear();
     rapidjson::Writer<rapidjson::StringBuffer> writer(_subscriptionStringBufferCache);

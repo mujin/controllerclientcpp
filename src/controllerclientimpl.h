@@ -347,8 +347,8 @@ protected:
     boost::beast::flat_buffer _subscriptionBuffer;
     boost::uuids::random_generator _randomGenerator;
 
-    rapidjson::MemoryPoolAllocator<> _allocator;
-    uint8_t _allocatorBuffer[64 * 1024]; ///< 64KB
+    std::vector<uint8_t> _vQueryBuffer; ///< buffer used for rapidjson allocator
+    rapidjson::MemoryPoolAllocator<> _rQueryAlloc; ///< rapidjson allocator, for cache
 
     boost::mutex _mutex;
     std::unordered_map<std::string, std::function<void(const boost::system::error_code&, rapidjson::Value&&)>> _onReadHandlers; ///< protected by _mutex
