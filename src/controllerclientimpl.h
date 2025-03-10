@@ -340,6 +340,7 @@ public:
 protected:
     void _SendMessage(const std::string& message);
 
+    boost::shared_ptr<boost::asio::io_context> _ioContext;
     boost::shared_ptr<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>> _tcpStream;
     boost::shared_ptr<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>> _unixSocketStream;
     boost::shared_ptr<std::thread> _thread;

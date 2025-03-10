@@ -2257,9 +2257,12 @@ void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stre
 }
 
 GraphSubscriptionWebSocketHandler::GraphSubscriptionWebSocketHandler(const ControllerClientInfo& clientInfo)
-: _vQueryBuffer(16*1024, 0), _rQueryAlloc(&_vQueryBuffer[0], _vQueryBuffer.size())
+:
+    _vQueryBuffer(16*1024, 0),
+    _rQueryAlloc(&_vQueryBuffer[0], _vQueryBuffer.size()), 
+    _ioContext(boost::make_shared<boost::asio::io_context>())
 {
-    boost::shared_ptr<boost::asio::io_context> ioContext = boost::make_shared<boost::asio::io_context>();
+    boost::shared_ptr<boost::asio::io_context> ioContext = _ioContext;
     std::string host = "localhost";
     uint16_t port = 80;
     if (clientInfo.unixEndpoint.empty()) {
@@ -2433,6 +2436,17 @@ GraphSubscriptionWebSocketHandler::~GraphSubscriptionWebSocketHandler()
     // need to wait it finished before destorying member variables
     if (_thread && _thread->joinable()) {
         _thread->join();
+    }
+
+    if (_tcpStream) {
+        _tcpStream.reset();
+    } else if (_unixSocketStream) {
+        _unixSocketStream.reset();
+    }
+
+    // context need to be destroyed after stream
+    if (_ioContext) {
+        _ioContext.reset();
     }
 }
 
