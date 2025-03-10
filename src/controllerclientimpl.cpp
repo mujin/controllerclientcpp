@@ -2405,10 +2405,10 @@ void GraphSubscriptionWebSocketHandler::StopAllSubscriptions()
 
     // gracefully close the stream
     boost::system::error_code errorCode;
-    if (_tcpStream) {
+    if (_tcpStream && _tcpStream->is_open()) {
         MUJIN_LOG_INFO("TCP socket closed");
         _tcpStream->close(boost::beast::websocket::close_code::normal, errorCode);
-    } else if (_unixSocketStream) {
+    } else if (_unixSocketStream && _unixSocketStream->is_open()) {
         MUJIN_LOG_INFO("Unix domain socket closed");
         _unixSocketStream->close(boost::beast::websocket::close_code::normal, errorCode);
     }
@@ -2438,9 +2438,9 @@ GraphSubscriptionWebSocketHandler::~GraphSubscriptionWebSocketHandler()
 
 void GraphSubscriptionWebSocketHandler::_SendMessage(const std::string& message)
 {
-    if (_tcpStream) {
+    if (_tcpStream && _tcpStream->is_open()) {
         _tcpStream->write(boost::asio::buffer(message));
-    } else if (_unixSocketStream) {
+    } else if (_unixSocketStream &&  _unixSocketStream->is_open()) {
         _unixSocketStream->write(boost::asio::buffer(message));
     }
 }
