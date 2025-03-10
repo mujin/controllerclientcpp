@@ -2435,7 +2435,9 @@ GraphSubscriptionWebSocketHandler::~GraphSubscriptionWebSocketHandler()
 
     // the background thread can access member variables
     // need to wait it finished before destorying member variables
-    _thread->join();
+    if (_thread && _thread->joinable()) {
+        _thread->join();
+    }
 }
 
 void GraphSubscriptionWebSocketHandler::_SendMessage(const std::string& message)
