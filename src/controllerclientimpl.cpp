@@ -2335,6 +2335,7 @@ bool GraphSubscriptionWebSocketHandler::IsStreamOpen()
     } else if (_unixSocketStream) {
         return _unixSocketStream->is_open();
     }
+    return false;
 }
 
 std::string GraphSubscriptionWebSocketHandler::StartSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, std::function<void(const boost::system::error_code&, rapidjson::Value&&)> onReadHandler)
