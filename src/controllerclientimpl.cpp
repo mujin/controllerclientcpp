@@ -2177,7 +2177,7 @@ rapidjson::Value _ConstructErrorsFromErrorCode(const boost::system::error_code& 
     rapidjson::Value rErrors;
     rErrors.SetArray();
     rErrors.PushBack(rError, rAllocator);
-    return rError;
+    return rErrors;
 }
 
 template <typename Socket>
