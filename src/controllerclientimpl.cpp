@@ -2367,17 +2367,21 @@ std::string GraphSubscriptionWebSocketHandler::StartSubscription(const std::stri
 
     // build the query
     _rQueryAlloc.Clear();
-    rapidjson::Value rPayload;
+    rapidjson::Value rPayload, rValue;
     rPayload.SetObject();
-    rPayload.AddMember(rapidjson::Document::StringRefType("operationName"), rapidjson::Value(operationName.c_str(), _rQueryAlloc), _rQueryAlloc);
-    rPayload.AddMember(rapidjson::Document::StringRefType("query"), rapidjson::Value(query.c_str(), _rQueryAlloc), _rQueryAlloc);
-    rPayload.AddMember(rapidjson::Document::StringRefType("variables"), rapidjson::Value(rVariables, _rQueryAlloc), _rQueryAlloc);
+    rValue.SetString(operationName.c_str(), _rQueryAlloc);
+    rPayload.AddMember(rapidjson::Document::StringRefType("operationName"), rValue, _rQueryAlloc);
+    rValue.SetString(query.c_str(), _rQueryAlloc);
+    rPayload.AddMember(rapidjson::Document::StringRefType("query"), rValue, _rQueryAlloc);
+    rValue.CopyFrom(rVariables, _rQueryAlloc);
+    rPayload.AddMember(rapidjson::Document::StringRefType("variables"), rValue, _rQueryAlloc);
 
     rapidjson::Value rRequest;
     rRequest.SetObject();
     rRequest.AddMember(rapidjson::Document::StringRefType("type"), "start", _rQueryAlloc);
     rRequest.AddMember(rapidjson::Document::StringRefType("payload"), rPayload, _rQueryAlloc);
-    rRequest.AddMember(rapidjson::Document::StringRefType("id"), rapidjson::Value(subscriptionId.c_str(), _rQueryAlloc), _rQueryAlloc);
+    rValue.SetString(subscriptionId.c_str(), _rQueryAlloc);
+    rRequest.AddMember(rapidjson::Document::StringRefType("id"), rValue, _rQueryAlloc);
     
     _rSubscriptionStringBufferCache.Clear();
     rapidjson::Writer<rapidjson::StringBuffer> writer(_rSubscriptionStringBufferCache);
