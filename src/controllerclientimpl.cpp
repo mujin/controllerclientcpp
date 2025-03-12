@@ -493,7 +493,7 @@ void ControllerClientImpl::ExecuteGraphQueryRaw(const char* operationName, const
     _ExecuteGraphQuery(operationName, query, rVariables, rResult, rAlloc, timeout, false, true);
 }
 
-GraphSubscriptionHandlerPtr ControllerClientImpl::ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, std::function<void(const boost::system::error_code&, rapidjson::Value&&)> onReadHandler)
+GraphSubscriptionHandlerPtr ControllerClientImpl::ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, std::function<void(rapidjson::Value&&, rapidjson::Value&&)> onReadHandler)
 {
     boost::mutex::scoped_lock lock(_mutex);
     GraphSubscriptionWebSocketHandlerPtr graphSubscriptionWebSocketHandler = _graphSubscriptionWebSocketHandler.lock();
@@ -2170,18 +2170,29 @@ GraphSubscriptionHandlerImpl::~GraphSubscriptionHandlerImpl()
     _graphSubscriptionWebSocketHandler->StopSubscription(_subscriptionId);
 }
 
+rapidjson::Value _ConstructErrorsFromErrorCode(const boost::system::error_code& errorCode, rapidjson::Document::AllocatorType& rAllocator) {
+    rapidjson::Value rError;
+    rError.SetObject();
+    rError.AddMember(rapidjson::Document::StringRefType("message"), rapidjson::Value(errorCode.message().c_str(), rAllocator), rAllocator);
+    rapidjson::Value rErrors;
+    rErrors.SetArray();
+    rErrors.PushBack(rError, rAllocator);
+    return rError;
+}
+
 template <typename Socket>
-void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stream<Socket>> stream, boost::beast::flat_buffer* pSubscriptionBuffer, const std::unordered_map<std::string, std::function<void(const boost::system::error_code&, rapidjson::Value&&)>>& onReadHandlers, boost::mutex* mutex, rapidjson::Document::AllocatorType& rAllocator)
+void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stream<Socket>> stream, boost::beast::flat_buffer* pSubscriptionBuffer, const std::unordered_map<std::string, std::function<void(rapidjson::Value&&, rapidjson::Value&&)>>& onReadHandlers, boost::mutex* mutex, rapidjson::Document::AllocatorType& rAllocator)
 {
     stream->async_read(*pSubscriptionBuffer, [stream, pSubscriptionBuffer, &onReadHandlers, mutex, &rAllocator](const boost::system::error_code& errorCode, std::size_t bytesTransferred){
         boost::mutex::scoped_lock lock(*mutex);
         
         if (errorCode) {
+            rAllocator.Clear();
             // invoke all callback functions with the error code
-            for (std::unordered_map<std::string, std::function<void(const boost::system::error_code&, rapidjson::Value&&)>>::const_iterator it = onReadHandlers.cbegin(); it != onReadHandlers.cend(); ++it) {
+            for (std::unordered_map<std::string, std::function<void(rapidjson::Value&&, rapidjson::Value&&)>>::const_iterator it = onReadHandlers.cbegin(); it != onReadHandlers.cend(); ++it) {
                 if (it->second) {
                     try {
-                        (it->second)(errorCode, rapidjson::Value());
+                        (it->second)(_ConstructErrorsFromErrorCode(errorCode, rAllocator), rapidjson::Value());
                     } catch (const std::exception& ex) {
                         MUJIN_LOG_WARN(boost::format("failed to execute callback function for subscription %s: %s") % it->first % ex.what());
                     }
@@ -2234,12 +2245,17 @@ void _ReadFromSubscriptionStream(boost::shared_ptr<boost::beast::websocket::stre
         std::string subscriptionId = rResult["id"].GetString();
 
         // find the callback function according to subscription id
-        std::unordered_map<std::string, std::function<void(const boost::system::error_code&, rapidjson::Value&&)>>::const_iterator it = onReadHandlers.find(subscriptionId);
+        std::unordered_map<std::string, std::function<void(rapidjson::Value&&, rapidjson::Value&&)>>::const_iterator it = onReadHandlers.find(subscriptionId);
         if (it != onReadHandlers.end() && it->second) {
             // invoke callback function if there are payloads
-            if (rResult.HasMember("payload")) {
+            if (rResult.HasMember("payload") && rResult["payload"].IsObject()) {
+                rapidjson::Value& rPayload = rResult["payload"];
                 try {
-                    (it->second)(errorCode, std::move(rResult["payload"]));
+                    if (rPayload.HasMember("errors") && rPayload["errors"].IsArray()) {
+                        (it->second)(std::move(rPayload["errors"]), rapidjson::Value());
+                    } else if (rPayload.HasMember("data") && rPayload["data"].IsObject()) {
+                        (it->second)(rapidjson::Value(), std::move(rPayload["data"]));
+                    }
                 } catch (const std::exception& ex) {
                     MUJIN_LOG_WARN(boost::format("failed to execute callback function for subscription %s: %s") % it->first % ex.what());
                 }
@@ -2341,7 +2357,7 @@ bool GraphSubscriptionWebSocketHandler::IsStreamOpen()
     return false;
 }
 
-std::string GraphSubscriptionWebSocketHandler::StartSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, std::function<void(const boost::system::error_code&, rapidjson::Value&&)> onReadHandler)
+std::string GraphSubscriptionWebSocketHandler::StartSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, std::function<void(rapidjson::Value&&, rapidjson::Value&&)> onReadHandler)
 {
     boost::mutex::scoped_lock lock(_mutex);
 
@@ -2384,7 +2400,7 @@ void GraphSubscriptionWebSocketHandler::StopSubscription(const std::string& subs
     boost::mutex::scoped_lock lock(_mutex);
 
     // remove callback function
-    std::unordered_map<std::string, std::function<void(const boost::system::error_code&, rapidjson::Value&&)>>::const_iterator it = _onReadHandlers.find(subscriptionId);
+    std::unordered_map<std::string, std::function<void(rapidjson::Value&&, rapidjson::Value&&)>>::const_iterator it = _onReadHandlers.find(subscriptionId);
     if (it == _onReadHandlers.end()) {
         return;
     }
@@ -2421,9 +2437,10 @@ void GraphSubscriptionWebSocketHandler::StopAllSubscriptions()
     }
 
     // invoke all callback functions with the "closed" error code
-    for (std::unordered_map<std::string, std::function<void(const boost::system::error_code&, rapidjson::Value&&)>>::const_iterator it = _onReadHandlers.cbegin(); it != _onReadHandlers.cend(); ++it) {
+    _rQueryAlloc.Clear();
+    for (std::unordered_map<std::string, std::function<void(rapidjson::Value&&, rapidjson::Value&&)>>::const_iterator it = _onReadHandlers.cbegin(); it != _onReadHandlers.cend(); ++it) {
         if (it->second) {
-            (it->second)(boost::beast::websocket::error::closed, rapidjson::Value());
+            (it->second)(_ConstructErrorsFromErrorCode(boost::beast::websocket::error::closed, _rQueryAlloc), rapidjson::Value());
         }
     }
 }

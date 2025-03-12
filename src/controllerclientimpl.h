@@ -56,7 +56,7 @@ public:
     virtual void _ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout, bool checkForErrors, bool returnRawResponse);
     virtual void ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout);
     virtual void ExecuteGraphQueryRaw(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout);
-    virtual GraphSubscriptionHandlerPtr ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, std::function<void(const boost::system::error_code&, rapidjson::Value&&)> onReadHandler);
+    virtual GraphSubscriptionHandlerPtr ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, std::function<void(rapidjson::Value&&, rapidjson::Value&&)> onReadHandler);
     virtual void CancelAllJobs();
     virtual void GetRunTimeStatuses(std::vector<JobStatus>& statuses, int options);
     virtual void GetScenePrimaryKeys(std::vector<std::string>& scenekeys);
@@ -333,7 +333,7 @@ public:
     ~GraphSubscriptionWebSocketHandler();
 
     bool IsStreamOpen(); ///> protected by _mutex
-    std::string StartSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, std::function<void(const boost::system::error_code&, rapidjson::Value&&)> onReadHandler); ///> protected by _mutex
+    std::string StartSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, std::function<void(rapidjson::Value&&, rapidjson::Value&&)> onReadHandler); ///> protected by _mutex
     void StopSubscription(const std::string& subscriptionId); ///> protected by _mutex
     void StopAllSubscriptions(); ///> protected by _mutex
 
@@ -352,7 +352,7 @@ protected:
     rapidjson::MemoryPoolAllocator<> _rQueryAlloc; ///< rapidjson allocator, for cache, protected by _mutex
 
     boost::mutex _mutex;
-    std::unordered_map<std::string, std::function<void(const boost::system::error_code&, rapidjson::Value&&)>> _onReadHandlers; ///< protected by _mutex
+    std::unordered_map<std::string, std::function<void(rapidjson::Value&&, rapidjson::Value&&)>> _onReadHandlers; ///< protected by _mutex
     rapidjson::StringBuffer _rSubscriptionStringBufferCache; ///< protected by _mutex
 };
 

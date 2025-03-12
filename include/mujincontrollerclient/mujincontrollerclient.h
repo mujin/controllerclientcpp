@@ -55,7 +55,6 @@
 #include <boost/weak_ptr.hpp>
 #include <boost/format.hpp>
 #include <boost/array.hpp>
-#include <boost/system/error_code.hpp>
 #include <mujincontrollerclient/config.h>
 #include <mujincontrollerclient/mujinexceptions.h>
 #include <mujincontrollerclient/mujinjson.h>
@@ -442,8 +441,8 @@ public:
     /// \param operationName The name of the subscription query
     /// \param query The subscription query
     /// \param rVariables The subscription query variables
-    /// \param onReadHandler The callback function invoked when receiving subscription result. The callback function should NOT destroy the handler, otherwise deadlock can happen. In case of an error, the callback function can be called more than once with the same or different error code.
-    virtual GraphSubscriptionHandlerPtr ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, std::function<void(const boost::system::error_code&, rapidjson::Value&&)> onReadHandler) = 0;
+    /// \param onReadHandler The callback function invoked when receiving subscription result. The callback function should NOT destroy the handler, otherwise deadlock can happen. In case of an error, the callback function can be called more than once with the same or different error code. The callback function accepts errors and data in json format as parameter.
+    virtual GraphSubscriptionHandlerPtr ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, std::function<void(rapidjson::Value&&, rapidjson::Value&&)> onReadHandler) = 0;
 
     /// \brief returns the mujin controller version
     virtual std::string GetVersion() = 0;
