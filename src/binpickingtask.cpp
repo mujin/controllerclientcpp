@@ -99,6 +99,10 @@ BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionInfo& B
     octagonalCaseClassificationInfo.GetAllocator().Clear();
     octagonalCaseClassificationInfo.CopyFrom(rhs.octagonalCaseClassificationInfo, octagonalCaseClassificationInfo.GetAllocator());
 
+    adjustOrientationUsingCareMarksInfo.SetNull();
+    adjustOrientationUsingCareMarksInfo.GetAllocator().Clear();
+    adjustOrientationUsingCareMarksInfo.CopyFrom(rhs.adjustOrientationUsingCareMarksInfo, adjustOrientationUsingCareMarksInfo.GetAllocator());
+
     minCornerVisibleDist = rhs.minCornerVisibleDist;
     minCornerVisibleInsideDist = rhs.minCornerVisibleInsideDist;
     maxCornerAngleDeviation = rhs.maxCornerAngleDeviation;
@@ -147,6 +151,11 @@ void BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionIn
         rapidjson::Value rTemp;
         rTemp.CopyFrom(octagonalCaseClassificationInfo, alloc);
         rInfo.AddMember("octagonalCaseClassificationInfo", rTemp, alloc);
+    }
+    if( !adjustOrientationUsingCareMarksInfo.IsNull() ) {
+        rapidjson::Value rTemp;
+        rTemp.CopyFrom(adjustOrientationUsingCareMarksInfo, alloc);
+        rInfo.AddMember("adjustOrientationUsingCareMarksInfo", rTemp, alloc);
     }
     SetJsonValueByKey(rInfo, "minCornerVisibleDist", minCornerVisibleDist, alloc);
     SetJsonValueByKey(rInfo, "minCornerVisibleInsideDist", minCornerVisibleInsideDist, alloc);
@@ -205,6 +214,14 @@ void BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionIn
         rapidjson::Value::ConstMemberIterator itOctagonalCaseClassificationInfo = rInfo.FindMember("octagonalCaseClassificationInfo");
         if( itOctagonalCaseClassificationInfo != rInfo.MemberEnd() ) {
             octagonalCaseClassificationInfo.CopyFrom(itOctagonalCaseClassificationInfo->value, octagonalCaseClassificationInfo.GetAllocator());
+        }
+    }
+    {
+        adjustOrientationUsingCareMarksInfo.SetNull();
+        adjustOrientationUsingCareMarksInfo.GetAllocator().Clear();
+        rapidjson::Value::ConstMemberIterator itAdjustOrientationUsingCareMarksInfo = rInfo.FindMember("adjustOrientationUsingCareMarksInfo");
+        if( itAdjustOrientationUsingCareMarksInfo != rInfo.MemberEnd() ) {
+            adjustOrientationUsingCareMarksInfo.CopyFrom(itAdjustOrientationUsingCareMarksInfo->value, adjustOrientationUsingCareMarksInfo.GetAllocator());
         }
     }
     minCornerVisibleDist = GetJsonValueByKey<double>(rInfo, "minCornerVisibleDist", 30);
