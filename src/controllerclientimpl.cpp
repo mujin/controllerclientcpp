@@ -402,6 +402,7 @@ void ControllerClientImpl::SetLanguage(const std::string& language)
 void ControllerClientImpl::SetUserAgent(const std::string& userAgent)
 {
     CURL_OPTION_SETTER(_curl, CURLOPT_USERAGENT, userAgent.c_str());
+    _clientInfo.userAgent = userAgent;
 }
 
 void ControllerClientImpl::SetAdditionalHeaders(const std::vector<std::string>& additionalHeaders)
@@ -2299,6 +2300,21 @@ GraphSubscriptionWebSocketHandler::GraphSubscriptionWebSocketHandler(const Contr
         boost::asio::local::stream_protocol::endpoint endpoint(clientInfo.unixEndpoint);
         socket.connect(endpoint);
         _unixSocketStream = boost::make_shared<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>>(std::move(socket));
+    }
+
+    // set user agent
+    if (!clientInfo.userAgent.empty()) {
+        const std::string& userAgaint = clientInfo.userAgent;
+        boost::beast::websocket::stream_base::decorator userAgaintDecorator(
+            [userAgaint](boost::beast::websocket::request_type& request) {
+                request.set(boost::beast::http::field::user_agent, userAgaint);
+            }
+        );
+        if (_tcpStream) {
+            _tcpStream->set_option(std::move(userAgaintDecorator));
+        } else if (_unixSocketStream) {
+            _unixSocketStream->set_option(std::move(userAgaintDecorator));
+        }
     }
 
     // upgrade the connection to websocket

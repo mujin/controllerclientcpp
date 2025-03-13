@@ -89,6 +89,7 @@ public:
     std::string password;
     std::vector<std::string> additionalHeaders; ///< expect each value to be in the format of "Header-Name: header-value"
     std::string unixEndpoint; ///< unix socket endpoint for communicating with HTTP server over unix socket
+    std::string userAgent;
 };
 
 typedef mujin::Transform Transform;
