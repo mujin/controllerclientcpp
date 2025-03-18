@@ -2304,10 +2304,10 @@ GraphSubscriptionWebSocketHandler::GraphSubscriptionWebSocketHandler(const Contr
 
     // set user agent
     if (!clientInfo.userAgent.empty()) {
-        const std::string& userAgaint = clientInfo.userAgent;
+        const std::string& userAgent = clientInfo.userAgent;
         boost::beast::websocket::stream_base::decorator userAgentDecorator(
-            [userAgaint](boost::beast::websocket::request_type& request) {
-                request.set(boost::beast::http::field::user_agent, userAgaint);
+            [userAgent](boost::beast::websocket::request_type& request) {
+                request.set(boost::beast::http::field::user_agent, userAgent);
             }
         );
         if (_tcpStream) {
