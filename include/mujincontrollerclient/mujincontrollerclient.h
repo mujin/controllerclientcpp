@@ -750,7 +750,7 @@ public:
 };
 
 
-/// \brief A handler represents the graphql subscription
+/// \brief A handler represents the graphql subscription, destroying the handler will automatically stop the subscription.
 class MUJINCLIENT_API GraphSubscriptionHandler
 {
 public:

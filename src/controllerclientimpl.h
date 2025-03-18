@@ -313,6 +313,7 @@ protected:
 
 typedef boost::shared_ptr<ControllerClientImpl> ControllerClientImplPtr;
 
+/// \brief A handler represents the graphql subscription, destroying the handler will automatically stop the subscription.
 class GraphSubscriptionHandlerImpl : public GraphSubscriptionHandler, public boost::enable_shared_from_this<GraphSubscriptionHandlerImpl>
 {
 public:
