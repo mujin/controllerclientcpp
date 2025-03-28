@@ -226,7 +226,7 @@ public:
             std::array<double, 3> minCandidateSize = {0, 0, 0}; ///< the min candidate size expecting
             double transferSpeedPostMult = 0; ///< transfer speed multiplication factor
             rapidjson::Document graspModelInfo; ///< Parameters used for grasping model generation for the object
-            rapidjson::Document octagonalCaseClassificationInfo; ///< Parameters used for octagonal case classification for the object
+            rapidjson::Document registrationVisionInfo; ///< Parameters used for registration vision for the object
             double minCornerVisibleDist = 0; ///< how much distance along with uncertain edge from uncertain corner robot exposes to camera
             double minCornerVisibleInsideDist = 0; ///< how much distance inside MVR robot exposes to camera
             double maxCornerAngleDeviation = 0; ///< how much angle deviation around uncertain corner is considered to expose to camera
