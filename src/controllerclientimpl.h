@@ -20,8 +20,15 @@
 #include <mujincontrollerclient/mujincontrollerclient.h>
 
 #include <boost/enable_shared_from_this.hpp>
+#include <boost/beast.hpp>
+#include <boost/asio.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 
 namespace mujinclient {
+
+class GraphSubscriptionWebSocketHandler;
+typedef boost::shared_ptr<GraphSubscriptionWebSocketHandler> GraphSubscriptionWebSocketHandlerPtr;
+typedef boost::weak_ptr<GraphSubscriptionWebSocketHandler> GraphSubscriptionWebSocketHandlerWeakPtr;
 
 class ControllerClientImpl : public ControllerClient, public boost::enable_shared_from_this<ControllerClientImpl>
 {
@@ -49,6 +56,7 @@ public:
     virtual void _ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout, bool checkForErrors, bool returnRawResponse);
     virtual void ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout);
     virtual void ExecuteGraphQueryRaw(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout);
+    virtual GraphSubscriptionHandlerPtr ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, std::function<void(rapidjson::Value&&, rapidjson::Value&&)> onReadHandler);
     virtual void CancelAllJobs();
     virtual void GetRunTimeStatuses(std::vector<JobStatus>& statuses, int options);
     virtual void GetScenePrimaryKeys(std::vector<std::string>& scenekeys);
@@ -299,9 +307,55 @@ protected:
     std::string _defaultscenetype, _defaulttasktype;
 
     rapidjson::StringBuffer _rRequestStringBufferCache; ///< cache for request string, protected by _mutex
+
+    GraphSubscriptionWebSocketHandlerWeakPtr _graphSubscriptionWebSocketHandler; ///< a weak pointer represents an opened subscription socket
 };
 
 typedef boost::shared_ptr<ControllerClientImpl> ControllerClientImplPtr;
+
+/// \brief A handler represents the graphql subscription, destroying the handler will automatically stop the subscription.
+class GraphSubscriptionHandlerImpl : public GraphSubscriptionHandler, public boost::enable_shared_from_this<GraphSubscriptionHandlerImpl>
+{
+public:
+    GraphSubscriptionHandlerImpl(GraphSubscriptionWebSocketHandlerPtr graphSubscriptionWebSocketHandler, const std::string subscriptionId);
+    virtual ~GraphSubscriptionHandlerImpl();
+
+protected:
+    GraphSubscriptionWebSocketHandlerPtr _graphSubscriptionWebSocketHandler;
+    const std::string _subscriptionId;
+};
+
+typedef boost::shared_ptr<GraphSubscriptionHandlerImpl> GraphSubscriptionHandlerImplPtr;
+
+class GraphSubscriptionWebSocketHandler : public boost::enable_shared_from_this<GraphSubscriptionWebSocketHandler>
+{
+public:
+    GraphSubscriptionWebSocketHandler(const ControllerClientInfo& clientInfo);
+    ~GraphSubscriptionWebSocketHandler();
+
+    bool IsStreamOpen(); ///> protected by _mutex
+    std::string StartSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, std::function<void(rapidjson::Value&&, rapidjson::Value&&)> onReadHandler); ///> protected by _mutex
+    void StopSubscription(const std::string& subscriptionId); ///> protected by _mutex
+    void StopAllSubscriptions(); ///> protected by _mutex
+
+protected:
+    void _SendMessage(const std::string& message);
+
+    boost::shared_ptr<boost::asio::io_context> _ioContext;
+    boost::shared_ptr<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>> _tcpStream;
+    boost::shared_ptr<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>> _unixSocketStream;
+    boost::shared_ptr<std::thread> _thread;
+
+    boost::beast::flat_buffer _subscriptionBuffer;
+    boost::uuids::random_generator _randomGenerator;
+
+    std::vector<uint8_t> _vQueryBuffer; ///< buffer used for rapidjson allocator
+    rapidjson::MemoryPoolAllocator<> _rQueryAlloc; ///< rapidjson allocator, for cache, protected by _mutex
+
+    boost::mutex _mutex;
+    std::unordered_map<std::string, std::function<void(rapidjson::Value&&, rapidjson::Value&&)>> _onReadHandlers; ///< protected by _mutex
+    rapidjson::StringBuffer _rSubscriptionStringBufferCache; ///< protected by _mutex
+};
 
 } // end namespace mujinclient
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.80.0 (2025-03-28)
+
+- Add support for GraphQL subscriptions.
+
 ## 0.79.0 (2025-02-04)
 
 - Support octagonalCaseClassificationInfo in RegisterMinViableRegionInfo.
