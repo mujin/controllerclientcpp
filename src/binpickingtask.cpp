@@ -95,9 +95,9 @@ BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionInfo& B
     graspModelInfo.GetAllocator().Clear();
     graspModelInfo.CopyFrom(rhs.graspModelInfo, graspModelInfo.GetAllocator());
 
-    octagonalCaseClassificationInfo.SetNull();
-    octagonalCaseClassificationInfo.GetAllocator().Clear();
-    octagonalCaseClassificationInfo.CopyFrom(rhs.octagonalCaseClassificationInfo, octagonalCaseClassificationInfo.GetAllocator());
+    registrationVisionInfo.SetNull();
+    registrationVisionInfo.GetAllocator().Clear();
+    registrationVisionInfo.CopyFrom(rhs.registrationVisionInfo, registrationVisionInfo.GetAllocator());
 
     minCornerVisibleDist = rhs.minCornerVisibleDist;
     minCornerVisibleInsideDist = rhs.minCornerVisibleInsideDist;
@@ -143,10 +143,10 @@ void BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionIn
         rTemp.CopyFrom(graspModelInfo, alloc);
         rInfo.AddMember("graspModelInfo", rTemp, alloc);
     }
-    if( !octagonalCaseClassificationInfo.IsNull() ) {
+    if( !registrationVisionInfo.IsNull() ) {
         rapidjson::Value rTemp;
-        rTemp.CopyFrom(octagonalCaseClassificationInfo, alloc);
-        rInfo.AddMember("octagonalCaseClassificationInfo", rTemp, alloc);
+        rTemp.CopyFrom(registrationVisionInfo, alloc);
+        rInfo.AddMember("registrationVisionInfo", rTemp, alloc);
     }
     SetJsonValueByKey(rInfo, "minCornerVisibleDist", minCornerVisibleDist, alloc);
     SetJsonValueByKey(rInfo, "minCornerVisibleInsideDist", minCornerVisibleInsideDist, alloc);
@@ -200,11 +200,11 @@ void BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionIn
         }
     }
     {
-        octagonalCaseClassificationInfo.SetNull();
-        octagonalCaseClassificationInfo.GetAllocator().Clear();
-        rapidjson::Value::ConstMemberIterator itOctagonalCaseClassificationInfo = rInfo.FindMember("octagonalCaseClassificationInfo");
-        if( itOctagonalCaseClassificationInfo != rInfo.MemberEnd() ) {
-            octagonalCaseClassificationInfo.CopyFrom(itOctagonalCaseClassificationInfo->value, octagonalCaseClassificationInfo.GetAllocator());
+        registrationVisionInfo.SetNull();
+        registrationVisionInfo.GetAllocator().Clear();
+        rapidjson::Value::ConstMemberIterator itRegistrationVisionInfo = rInfo.FindMember("registrationVisionInfo");
+        if( itRegistrationVisionInfo != rInfo.MemberEnd() ) {
+            registrationVisionInfo.CopyFrom(itRegistrationVisionInfo->value, registrationVisionInfo.GetAllocator());
         }
     }
     minCornerVisibleDist = GetJsonValueByKey<double>(rInfo, "minCornerVisibleDist", 30);
