@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.81.0 (2025-03-31)
+
+- Rename octagonalCaseClassificationInfo to registrationVisionInfo to hold general vision related info.
+
 ## 0.80.0 (2025-03-28)
 
 - Add support for GraphQL subscriptions.
