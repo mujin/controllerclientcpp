@@ -511,11 +511,23 @@ inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v,
     }
 }
 
-template<typename T, class AllocT = std::allocator<T>, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> >
+// These prototypes are necessary to allow recursive container types to be deserialized (e.g, std::vector<std::unordered_map<...>>)
+// Without declaring these up-front, specializations for value types implemented after the containing type will fail to deduce, causing headaches.
+
+template <typename T, class AllocT = std::allocator<T>, typename Encoding = rapidjson::UTF8<>, typename Allocator = rapidjson::MemoryPoolAllocator<>>
 inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::vector<T, AllocT>& t);
 
-template<typename T, size_t N, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> >
+template <typename T, size_t N, typename Encoding = rapidjson::UTF8<>, typename Allocator = rapidjson::MemoryPoolAllocator<>>
 inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::array<T, N>& t);
+
+template <typename U, typename Encoding = rapidjson::UTF8<>, typename Allocator = rapidjson::MemoryPoolAllocator<>>
+inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::map<std::string, U>& t);
+
+template <typename U, typename Encoding = rapidjson::UTF8<>, typename Allocator = rapidjson::MemoryPoolAllocator<>>
+inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::deque<U>& t);
+
+template <typename U, typename Encoding = rapidjson::UTF8<>, typename Allocator = rapidjson::MemoryPoolAllocator<>>
+inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::unordered_map<std::string, U>& t);
 
 template<typename T, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> >
 inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, boost::shared_ptr<T>& ptr) {
@@ -742,11 +754,23 @@ inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const
     v.CopyFrom(t, alloc);
 }
 
-template<typename T, class AllocT = std::allocator<T>, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<>, typename Allocator2=rapidjson::MemoryPoolAllocator<> >
+// These prototypes are necessary to allow recursive container types to be serialized (e.g, std::vector<std::unordered_map<...>>)
+// Without declaring these up-front, specializations for value types implemented after the containing type will fail to deduce, causing headaches.
+
+template <typename T, class AllocT = std::allocator<T>, typename Encoding = rapidjson::UTF8<>, typename Allocator = rapidjson::MemoryPoolAllocator<>, typename Allocator2 = rapidjson::MemoryPoolAllocator<>>
 inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const std::vector<T, AllocT>& t, Allocator2& alloc);
 
-template<typename T, size_t N, typename Encoding, typename Allocator, typename Allocator2>
+template <typename T, size_t N, typename Encoding, typename Allocator, typename Allocator2>
 inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const std::array<T, N>& t, Allocator2& alloc);
+
+template <typename U, typename Encoding, typename Allocator, typename Allocator2>
+inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const std::map<std::string, U>& t, Allocator2& alloc);
+
+template <typename U, typename Encoding, typename Allocator, typename Allocator2>
+inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const std::unordered_map<std::string, U>& t, Allocator2& alloc);
+
+template <typename T, class AllocT, typename Encoding, typename Allocator, typename Allocator2>
+inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const std::deque<T, AllocT>& t, Allocator2& alloc);
 
 /** do not remove: otherwise boost::shared_ptr could be treated as bool
  */
