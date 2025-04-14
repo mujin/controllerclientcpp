@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.81.1 (2025-04-14)
+
+- Let visionmanager talk to planning slaves using ZMQ without webstack.
+
 ## 0.81.0 (2025-03-31)
 
 - Rename octagonalCaseClassificationInfo to registrationVisionInfo to hold general vision related info.
