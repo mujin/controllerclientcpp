@@ -2,7 +2,7 @@
 
 ## 0.81.1 (2025-04-14)
 
-- Let visionmanager talk to planning slaves using ZMQ without webstack.
+- Use only ZMQ for BinPickingTask when compiled with ZMQ.
 
 ## 0.81.0 (2025-03-31)
 
