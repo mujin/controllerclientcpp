@@ -771,7 +771,7 @@ TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& t
     }
 
     if( options & 1 ) {
-        std::string pk = taskname;
+        std::string pk = "";
         if( tasktype_internal == "binpicking" || tasktype_internal == "realtimeitlplanning3" || tasktype_internal == "packing") {
             BinPickingTaskResourcePtr task;
 #ifdef MUJIN_USEZMQ
