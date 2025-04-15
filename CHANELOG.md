@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.81.1 (2025-04-14)
+
+- Use only ZMQ for BinPickingTask when compiled with ZMQ.
+
 ## 0.81.0 (2025-03-31)
 
 - Rename octagonalCaseClassificationInfo to registrationVisionInfo to hold general vision related info.

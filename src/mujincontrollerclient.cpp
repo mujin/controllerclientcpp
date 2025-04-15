@@ -765,67 +765,75 @@ SceneResource::SceneResource(ControllerClientPtr controller, const std::string& 
 TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& taskname, const std::string& tasktype, int options)
 {
     GETCONTROLLERIMPL();
-    rapidjson::Document pt(rapidjson::kObjectType);
-    controller->CallGet(str(boost::format("scene/%s/task/?format=json&limit=1&name=%s&fields=pk,tasktype")%GetPrimaryKey()%controller->EscapeString(taskname)), pt);
-    // task exists
-    std::string pk;
-
     std::string tasktype_internal = tasktype;
     if( tasktype == "realtimeitlplanning" ) {
         tasktype_internal = "realtimeitlplanning3";
     }
 
-    if (pt.IsObject() && pt.HasMember("objects") && pt["objects"].IsArray() && pt["objects"].Size() > 0) {
-        rapidjson::Value& objects = pt["objects"];
-        pk = GetJsonValueByKey<std::string>(objects[0], "pk");
-        std::string currenttasktype = GetJsonValueByKey<std::string>(objects[0], "tasktype");
-        if( currenttasktype != tasktype_internal && (currenttasktype != "realtimeitlplanning" || tasktype_internal != "realtimeitlplanning3")) {
-            throw MUJIN_EXCEPTION_FORMAT("task pk %s exists and has type %s, expected is %s", pk%currenttasktype%tasktype_internal, MEC_InvalidState);
-        }
-    }
-    else {
-        pt.SetObject();
-        controller->CallPost(str(boost::format("scene/%s/task/?format=json&fields=pk")%GetPrimaryKey()), str(boost::format("{\"name\":\"%s\", \"tasktype\":\"%s\", \"scenepk\":\"%s\"}")%taskname%tasktype_internal%GetPrimaryKey()), pt);
-        LoadJsonValueByKey(pt, "pk", pk);
-    }
-
-    if( pk.size() == 0 ) {
-        return TaskResourcePtr();
-    }
-
-    // NOTE: the packing task inherits some functionality its common base with binpicking (see the Python planning client).
-    // TODO(hemangandhi): resemble the Python class heirarchy?
-    if( tasktype_internal == "binpicking" || tasktype_internal == "realtimeitlplanning3" || tasktype_internal == "packing") {
-        BinPickingTaskResourcePtr task;
-        if( options & 1 ) {
+    if( options & 1 ) {
+        if( tasktype_internal == "binpicking" || tasktype_internal == "realtimeitlplanning3" || tasktype_internal == "packing") {
+            BinPickingTaskResourcePtr task;
 #ifdef MUJIN_USEZMQ
-            task.reset(new BinPickingTaskZmqResource(GetController(), pk, GetPrimaryKey(), tasktype_internal));
+            task.reset(new BinPickingTaskZmqResource(GetController(), GetPrimaryKey(), GetPrimaryKey(), tasktype_internal));
 #else
             throw MujinException("cannot create binpicking zmq task since not compiled with zeromq library", MEC_Failed);
 #endif
+            return task;
         }
-        else {
-            task.reset(new BinPickingTaskResource(GetController(), pk, GetPrimaryKey()));
-        }
-        return task;
-    }
-    else if( tasktype_internal == "cablepicking" ) { // TODO create CablePickingTaskResource
-        BinPickingTaskResourcePtr task;
-        if( options & 1 ) {
+        else if( tasktype_internal == "cablepicking" ) {
+            BinPickingTaskResourcePtr task;
 #ifdef MUJIN_USEZMQ
-            task.reset(new BinPickingTaskZmqResource(GetController(), pk, GetPrimaryKey()));
+            task.reset(new BinPickingTaskZmqResource(GetController(), GetPrimaryKey(), GetPrimaryKey()));
 #else
             throw MujinException("cannot create binpicking zmq task since not compiled with zeromq library", MEC_Failed);
 #endif
+            return task;
         }
         else {
-            task.reset(new BinPickingTaskResource(GetController(), pk, GetPrimaryKey()));
+            TaskResourcePtr task(new TaskResource(GetController(), GetPrimaryKey()));
+            return task;
         }
-        return task;
     }
     else {
-        TaskResourcePtr task(new TaskResource(GetController(), pk));
-        return task;
+        rapidjson::Document pt(rapidjson::kObjectType);
+        controller->CallGet(str(boost::format("scene/%s/task/?format=json&limit=1&name=%s&fields=pk,tasktype")%GetPrimaryKey()%controller->EscapeString(taskname)), pt);
+        // task exists
+        std::string pk;
+
+        if (pt.IsObject() && pt.HasMember("objects") && pt["objects"].IsArray() && pt["objects"].Size() > 0) {
+            rapidjson::Value& objects = pt["objects"];
+            pk = GetJsonValueByKey<std::string>(objects[0], "pk");
+            std::string currenttasktype = GetJsonValueByKey<std::string>(objects[0], "tasktype");
+            if( currenttasktype != tasktype_internal && (currenttasktype != "realtimeitlplanning" || tasktype_internal != "realtimeitlplanning3")) {
+                throw MUJIN_EXCEPTION_FORMAT("task pk %s exists and has type %s, expected is %s", pk%currenttasktype%tasktype_internal, MEC_InvalidState);
+            }
+        }
+        else {
+            pt.SetObject();
+            controller->CallPost(str(boost::format("scene/%s/task/?format=json&fields=pk")%GetPrimaryKey()), str(boost::format("{\"name\":\"%s\", \"tasktype\":\"%s\", \"scenepk\":\"%s\"}")%taskname%tasktype_internal%GetPrimaryKey()), pt);
+            LoadJsonValueByKey(pt, "pk", pk);
+        }
+
+        if( pk.size() == 0 ) {
+            return TaskResourcePtr();
+        }
+
+        // NOTE: the packing task inherits some functionality its common base with binpicking (see the Python planning client).
+        // TODO(hemangandhi): resemble the Python class heirarchy?
+        if( tasktype_internal == "binpicking" || tasktype_internal == "realtimeitlplanning3" || tasktype_internal == "packing") {
+            BinPickingTaskResourcePtr task;
+            task.reset(new BinPickingTaskResource(GetController(), pk, GetPrimaryKey()));
+            return task;
+        }
+        else if( tasktype_internal == "cablepicking" ) { // TODO create CablePickingTaskResource
+            BinPickingTaskResourcePtr task;
+            task.reset(new BinPickingTaskResource(GetController(), pk, GetPrimaryKey()));
+            return task;
+        }
+        else {
+            TaskResourcePtr task(new TaskResource(GetController(), pk));
+            return task;
+        }
     }
 }
 
