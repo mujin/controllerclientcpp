@@ -175,9 +175,10 @@ void ZmqSubscriber::_DestroySocket()
     }
 }
 
-ZmqPublisher::ZmqPublisher(const unsigned int port)
+ZmqPublisher::ZmqPublisher(const unsigned int port, const std::string& host)
 {
     _port = port;
+    _InitializeSocket(nullptr, host);
 }
 
 ZmqPublisher::~ZmqPublisher()
@@ -192,7 +193,7 @@ bool ZmqPublisher::Publish(const std::string& messagestr)
     return _socket->send(message);
 }
 
-void ZmqPublisher::_InitializeSocket(boost::shared_ptr<zmq::context_t> context)
+void ZmqPublisher::_InitializeSocket(boost::shared_ptr<zmq::context_t> context, const std::string& host)
 {
     if (!!context) {
         _context = context;
@@ -211,7 +212,7 @@ void ZmqPublisher::_InitializeSocket(boost::shared_ptr<zmq::context_t> context)
     _socket->setsockopt(ZMQ_LINGER, 100); // ms
     std::ostringstream port_stream;
     port_stream << _port;
-    _socket->bind (("tcp://*:" + port_stream.str()).c_str());
+    _socket->bind (("tcp://" + (host.empty() ? "*" : host) + ":" + port_stream.str()).c_str());
 }
 
 void ZmqPublisher::_DestroySocket()
