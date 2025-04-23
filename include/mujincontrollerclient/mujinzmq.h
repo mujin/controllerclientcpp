@@ -52,7 +52,7 @@ protected:
 class MUJINCLIENT_API ZmqPublisher
 {
 public:
-    ZmqPublisher(const unsigned int port);
+    ZmqPublisher(const unsigned int port, const std::string& host = std::string());
     virtual ~ZmqPublisher();
 
     bool Publish(const std::string& messagestr);
@@ -62,7 +62,7 @@ public:
     }
 
 protected:
-    void _InitializeSocket(boost::shared_ptr<zmq::context_t> context);
+    void _InitializeSocket(boost::shared_ptr<zmq::context_t> context, const std::string& host);
     void _DestroySocket();
 
     boost::shared_ptr<zmq::context_t> _context;
