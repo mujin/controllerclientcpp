@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.82.0 (2025-04-23)
+
+- Initialize sockets in ZMQPulisher and add host name argument.
+
 ## 0.81.1 (2025-04-14)
 
 - Use only ZMQ for BinPickingTask when compiled with ZMQ.
