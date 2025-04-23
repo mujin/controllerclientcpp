@@ -178,6 +178,7 @@ void ZmqSubscriber::_DestroySocket()
 ZmqPublisher::ZmqPublisher(const unsigned int port)
 {
     _port = port;
+    _InitializeSocket(nullptr);
 }
 
 ZmqPublisher::~ZmqPublisher()
