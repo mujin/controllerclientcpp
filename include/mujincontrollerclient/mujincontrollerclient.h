@@ -89,6 +89,7 @@ public:
     std::string password;
     std::vector<std::string> additionalHeaders; ///< expect each value to be in the format of "Header-Name: header-value"
     std::string unixEndpoint; ///< unix socket endpoint for communicating with HTTP server over unix socket
+    std::string userAgent;
 };
 
 typedef mujin::Transform Transform;
@@ -99,6 +100,7 @@ enum TaskResourceOptions
 };
 
 class ControllerClient;
+class GraphSubscriptionHandler;
 class ObjectResource;
 class RobotResource;
 class SceneResource;
@@ -119,6 +121,8 @@ struct FileEntry
 
 typedef boost::shared_ptr<ControllerClient> ControllerClientPtr;
 typedef boost::weak_ptr<ControllerClient> ControllerClientWeakPtr;
+typedef boost::shared_ptr<GraphSubscriptionHandler> GraphSubscriptionHandlerPtr;
+typedef boost::weak_ptr<GraphSubscriptionHandler> GraphSubscriptionHandlerWeakPtr;
 typedef boost::shared_ptr<ObjectResource> ObjectResourcePtr;
 typedef boost::weak_ptr<ObjectResource> ObjectResourceWeakPtr;
 typedef boost::shared_ptr<RobotResource> RobotResourcePtr;
@@ -432,6 +436,15 @@ public:
     /// \param rResult The entire result field of the query. Should have keys "data" and "errors". Each error should have keys: "message", "locations", "path", "extensions". And "extensions" has keys "errorCode".
     virtual void ExecuteGraphQueryRaw(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout = 60.0) = 0;
 
+    /// \brief Execute GraphQL subscription query against Mujin Controller.
+    ///
+    /// Throws an exception if failed to start subscription, return a handler represents the graphql subscription
+    /// \param operationName The name of the subscription query
+    /// \param query The subscription query
+    /// \param rVariables The subscription query variables
+    /// \param onReadHandler The callback function invoked when receiving subscription result. The callback function should NOT destroy the handler, otherwise deadlock can happen. In case of an error, the callback function can be called more than once with the same or different error code. The callback function accepts errors and data in json format as parameter.
+    virtual GraphSubscriptionHandlerPtr ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, std::function<void(rapidjson::Value&&, rapidjson::Value&&)> onReadHandler) = 0;
+
     /// \brief returns the mujin controller version
     virtual std::string GetVersion() = 0;
 
@@ -735,6 +748,16 @@ public:
     /// \param timeout timeout of uploading log entries in seconds
     virtual void CreateLogEntries(const std::vector<LogEntry>& logEntries, std::vector<std::string>& createdLogEntryIds, double timeout = 5) = 0;
 };
+
+
+/// \brief A handler represents the graphql subscription, destroying the handler will automatically stop the subscription.
+class MUJINCLIENT_API GraphSubscriptionHandler
+{
+public:
+    virtual ~GraphSubscriptionHandler() {
+    }
+};
+
 
 class MUJINCLIENT_API WebResource
 {
