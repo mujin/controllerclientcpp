@@ -859,6 +859,17 @@ inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const
     }
 }
 
+template <typename U, typename Encoding, typename Allocator, typename Allocator2>
+inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const std::unordered_set<U>& t, Allocator2& alloc) {
+    v.SetArray();
+    v.Reserve(t.size(), alloc);
+    for (typename std::unordered_set<U>::const_iterator it = t.begin(); it != t.end(); ++it) {
+        rapidjson::GenericValue<Encoding, Allocator> value;
+        SaveJsonValue(value, *it, alloc);
+        v.PushBack(value, alloc);
+    }
+}
+
 template<typename U, typename Encoding, typename Allocator, typename Allocator2 >
 inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const std::unordered_map<std::string, U>& t, Allocator2& alloc) {
     v.SetObject();
