@@ -224,7 +224,7 @@ public:
             std::array<double, 3> liftedWorldOffset = {0, 0, 0}; ///< [dx, dy, dz], mm in world frame
             std::array<double, 3> maxCandidateSize = {0, 0, 0}; ///< the max candidate size expecting
             std::array<double, 3> minCandidateSize = {0, 0, 0}; ///< the min candidate size expecting
-            double transferSpeedPostMult = -1; ///< transfer speed multiplication factor
+            double transferSpeedPostMult = 0; ///< transfer speed multiplication factor
             rapidjson::Document targetTemplateSceneData; ///< targetTemplateSceneData (a openrave scene that is used as a template for the target object)
             rapidjson::Document graspModelInfo; ///< Parameters used for grasping model generation for the object
             rapidjson::Document registrationVisionInfo; ///< Parameters used for registration vision for the object
