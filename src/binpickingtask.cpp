@@ -49,7 +49,7 @@ BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionInfo::R
     objectWeight(0.0),
     sensorTimeStampMS(0),
     robotDepartStopTimestamp(0),
-    transferSpeedPostMult(1.0),
+    transferSpeedPostMult(-1),
     minCornerVisibleDist(30),
     minCornerVisibleInsideDist(0),
     occlusionFreeCornerMask(0),
@@ -198,7 +198,7 @@ void BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionIn
     LoadJsonValueByKey(rInfo, "liftedWorldOffset", liftedWorldOffset);
     LoadJsonValueByKey(rInfo, "minCandidateSize", minCandidateSize);
     LoadJsonValueByKey(rInfo, "maxCandidateSize", maxCandidateSize);
-    transferSpeedPostMult = GetJsonValueByKey<double>(rInfo, "transferSpeedPostMult", 1.0);
+    transferSpeedPostMult = GetJsonValueByKey<double>(rInfo, "transferSpeedPostMult", -1);
 
     {
         targetTemplateSceneData.SetNull();
