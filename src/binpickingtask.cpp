@@ -91,6 +91,10 @@ BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionInfo& B
     minCandidateSize = rhs.minCandidateSize;
     transferSpeedPostMult = rhs.transferSpeedPostMult;
 
+    targetTemplateSceneData.SetNull();
+    targetTemplateSceneData.GetAllocator().Clear();
+    targetTemplateSceneData.CopyFrom(rhs.targetTemplateSceneData, targetTemplateSceneData.GetAllocator());
+
     graspModelInfo.SetNull();
     graspModelInfo.GetAllocator().Clear();
     graspModelInfo.CopyFrom(rhs.graspModelInfo, graspModelInfo.GetAllocator());
@@ -138,6 +142,11 @@ void BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionIn
     SetJsonValueByKey(rInfo, "maxCandidateSize", maxCandidateSize, alloc);
     SetJsonValueByKey(rInfo, "transferSpeedPostMult", transferSpeedPostMult, alloc);
 
+    if( !targetTemplateSceneData.IsNull() ) {
+        rapidjson::Value rTemp;
+        rTemp.CopyFrom(targetTemplateSceneData, alloc);
+        rInfo.AddMember("targetTemplateSceneData", rTemp, alloc);
+    }
     {
         rapidjson::Value rTemp;
         rTemp.CopyFrom(graspModelInfo, alloc);
@@ -191,6 +200,14 @@ void BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionIn
     LoadJsonValueByKey(rInfo, "maxCandidateSize", maxCandidateSize);
     transferSpeedPostMult = GetJsonValueByKey<double>(rInfo, "transferSpeedPostMult", 1.0);
 
+    {
+        targetTemplateSceneData.SetNull();
+        targetTemplateSceneData.GetAllocator().Clear();
+        rapidjson::Value::ConstMemberIterator itTargetTemplateSceneData = rInfo.FindMember("targetTemplateSceneData");
+        if( itTargetTemplateSceneData != rInfo.MemberEnd() ) {
+            targetTemplateSceneData.CopyFrom(itTargetTemplateSceneData->value, targetTemplateSceneData.GetAllocator());
+        }
+    }
     {
         graspModelInfo.SetNull();
         graspModelInfo.GetAllocator().Clear();
