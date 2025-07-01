@@ -605,8 +605,9 @@ inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v,
     }
 }
 
-template<typename U, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> >
-inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::map<std::string, U>& t) {
+template <typename U, typename Encoding, typename Allocator>
+inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::map<std::string, U>& t)
+{
     if (v.IsArray()) {
         // list based map
         // TODO: is it dangerous?
@@ -631,8 +632,9 @@ inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v,
     }
 }
 
-template<typename U, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> >
-inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::deque<U>& t) {
+template <typename U, typename Encoding, typename Allocator>
+inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::deque<U>& t)
+{
     // It doesn't make sense to construct a deque from anything other than a JSON array
     if (!v.IsArray()) {
         throw MujinJSONException("Cannot convert json type " + GetJsonTypeName(v) + " to deque");
@@ -652,8 +654,9 @@ inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v,
     }
 }
 
-template<typename U, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> >
-inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::unordered_map<std::string, U>& t) {
+template <typename U, typename Encoding, typename Allocator>
+inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::unordered_map<std::string, U>& t)
+{
     // It doesn't make sense to construct an unordered map from anything other
     // than a full JSON object
     if (!v.IsObject()) {
@@ -673,7 +676,7 @@ inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v,
     }
 }
 
-template <typename T, typename Encoding = rapidjson::UTF8<>, typename Allocator = rapidjson::MemoryPoolAllocator<>>
+template <typename T, typename Encoding, typename Allocator>
 inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, boost::optional<T>& t)
 {
     // If the value is null, treat that as an empty optional
