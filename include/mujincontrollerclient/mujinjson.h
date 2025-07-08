@@ -29,7 +29,9 @@
 #include <stdexcept>
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 #include <map>
+#include <set>
 #include <deque>
 #include <iostream>
 
@@ -528,6 +530,12 @@ template <typename U, typename Encoding = rapidjson::UTF8<>, typename Allocator 
 inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::deque<U>& t);
 
 template <typename U, typename Encoding = rapidjson::UTF8<>, typename Allocator = rapidjson::MemoryPoolAllocator<>>
+inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::unordered_set<U>& t);
+
+template <typename U, typename Encoding = rapidjson::UTF8<>, typename Allocator = rapidjson::MemoryPoolAllocator<>>
+inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::set<U>& t);
+
+template <typename U, typename Encoding = rapidjson::UTF8<>, typename Allocator = rapidjson::MemoryPoolAllocator<>>
 inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::unordered_map<std::string, U>& t);
 
 template <typename T, typename Encoding = rapidjson::UTF8<>, typename Allocator = rapidjson::MemoryPoolAllocator<>>
@@ -651,6 +659,45 @@ inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v,
     for (typename rapidjson::GenericValue<Encoding, Allocator>::ConstValueIterator it = v.Begin(); it != v.End(); ++it) {
         // Deserialize directly into the map to avoid copying temporaries.
         LoadJsonValue(*it, t[emplaceIndex++]);
+    }
+}
+
+template <typename U, typename Encoding, typename Allocator>
+inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::set<U>& t)
+{
+    // It doesn't make sense to construct a set from anything other than a JSON array
+    if (!v.IsArray()) {
+        throw MujinJSONException("Cannot convert json type " + GetJsonTypeName(v) + " to set");
+    }
+
+    // Ensure our output is a blank slate
+    t.clear();
+
+    // Iterate each array entry and attempt to deserialize it directly as a member type
+    for (typename rapidjson::GenericValue<Encoding, Allocator>::ConstValueIterator it = v.Begin(); it != v.End(); ++it) {
+        U u;
+        LoadJsonValue(*it, u);
+        t.emplace(std::move(u));
+    }
+}
+
+template <typename U, typename Encoding, typename Allocator>
+inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::unordered_set<U>& t)
+{
+    // It doesn't make sense to construct a set from anything other than a JSON array
+    if (!v.IsArray()) {
+        throw MujinJSONException("Cannot convert json type " + GetJsonTypeName(v) + " to set");
+    }
+
+    // Ensure our output is a blank slate
+    t.clear();
+    t.reserve(v.Size());
+
+    // Iterate each array entry and attempt to deserialize it directly as a member type
+    for (typename rapidjson::GenericValue<Encoding, Allocator>::ConstValueIterator it = v.Begin(); it != v.End(); ++it) {
+        U u;
+        LoadJsonValue(*it, u);
+        t.emplace(std::move(u));
     }
 }
 
@@ -793,6 +840,12 @@ inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const
 template <typename T, class AllocT, typename Encoding, typename Allocator, typename Allocator2>
 inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const std::deque<T, AllocT>& t, Allocator2& alloc);
 
+template <typename T, class AllocT, typename Encoding, typename Allocator, typename Allocator2>
+inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const std::set<T, AllocT>& t, Allocator2& alloc);
+
+template <typename T, class AllocT, typename Encoding, typename Allocator, typename Allocator2>
+inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const std::unordered_set<T, AllocT>& t, Allocator2& alloc);
+
 template <typename T, typename Encoding, typename Allocator, typename Allocator2>
 inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const boost::optional<T>& t, Allocator2& alloc);
 
@@ -905,6 +958,28 @@ inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const
     v.SetArray();
     v.Reserve(t.size(), alloc);
     for (typename std::deque<T, AllocT>::const_iterator it = t.begin(); it != t.end(); ++it) {
+        rapidjson::GenericValue<Encoding, Allocator> value;
+        SaveJsonValue(value, *it, alloc);
+        v.PushBack(value, alloc);
+    }
+}
+
+template <typename T, class AllocT, typename Encoding, typename Allocator, typename Allocator2>
+inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const std::set<T, AllocT>& t, Allocator2& alloc) {
+    v.SetArray();
+    v.Reserve(t.size(), alloc);
+    for (typename std::set<T, AllocT>::const_iterator it = t.begin(); it != t.end(); ++it) {
+        rapidjson::GenericValue<Encoding, Allocator> value;
+        SaveJsonValue(value, *it, alloc);
+        v.PushBack(value, alloc);
+    }
+}
+
+template <typename T, class AllocT, typename Encoding, typename Allocator, typename Allocator2>
+inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const std::unordered_set<T, AllocT>& t, Allocator2& alloc) {
+    v.SetArray();
+    v.Reserve(t.size(), alloc);
+    for (typename std::unordered_set<T, AllocT>::const_iterator it = t.begin(); it != t.end(); ++it) {
         rapidjson::GenericValue<Encoding, Allocator> value;
         SaveJsonValue(value, *it, alloc);
         v.PushBack(value, alloc);
