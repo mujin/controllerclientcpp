@@ -511,6 +511,17 @@ inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v,
     }
 }
 
+template <typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> >
+inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::vector<bool>::reference t) {
+    if (v.IsInt()) t = v.GetInt();
+    else if (v.IsBool()) t = v.GetBool();
+    else if (v.IsString())  {
+        t = LexicalCast<bool>(v.GetString(), "Bool");
+    } else {
+        throw MujinJSONException("Cannot convert json type " + GetJsonString(v) + " to Bool");
+    }
+}
+
 template<typename T, class AllocT = std::allocator<T>, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> >
 inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::vector<T, AllocT>& t);
 
@@ -712,6 +723,11 @@ inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const
 
 template <typename Encoding, typename Allocator, typename Allocator2>
 inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const bool& t, Allocator2& alloc) {
+    v.SetBool(t);
+}
+
+template <typename Encoding, typename Allocator, typename Allocator2>
+inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const std::vector<bool>::reference t, Allocator2& alloc) {
     v.SetBool(t);
 }
 
