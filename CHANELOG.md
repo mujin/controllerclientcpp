@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.82.1 (2025-07-10)
+
+- Add support for serialization and deserialization of std::vector<bool> for mujinjson.
+
 ## 0.82.0 (2025-06-27)
 
 - Add targetTemplateSceneData in RegisterMinViableRegionInfo.
