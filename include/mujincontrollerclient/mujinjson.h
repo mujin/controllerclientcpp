@@ -729,6 +729,7 @@ inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v,
     // If the value is null, treat that as an empty optional
     if (v.IsNull()) {
         t.reset();
+        return;
     }
 
     // Otherwise, deserialize as the boxed type
@@ -1000,6 +1001,7 @@ inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const
     // If the optional has no value, count that as null
     if (!t.has_value()) {
         v.SetNull();
+        return;
     }
 
     // Otherwise, serialize as the boxed type
