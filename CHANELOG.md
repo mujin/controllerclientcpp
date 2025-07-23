@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.82.1 (2025-07-23)
+
+- Fix template resolution for nested container types in mujinjson
+
 ## 0.82.0 (2025-06-27)
 
 - Add targetTemplateSceneData in RegisterMinViableRegionInfo.
