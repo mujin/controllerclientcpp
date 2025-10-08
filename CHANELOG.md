@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.82.2 (2025-10-08)
+
+- Add support for std::optional
+
 ## 0.82.1 (2025-07-23)
 
 - Fix template resolution for nested container types in mujinjson
