@@ -35,6 +35,12 @@
 #include <deque>
 #include <iostream>
 
+// For backward compatibility
+#if __has_include(<optional>) && defined(__cplusplus) && __cplusplus >= 201703L
+#include <optional>
+#define HAS_STD_OPTIONAL_SUPPORT
+#endif
+
 #include <rapidjson/pointer.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/ostreamwrapper.h>
@@ -541,6 +547,11 @@ inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v,
 template <typename T, typename Encoding = rapidjson::UTF8<>, typename Allocator = rapidjson::MemoryPoolAllocator<>>
 inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, boost::optional<T>& t);
 
+#ifdef HAS_STD_OPTIONAL_SUPPORT
+template <typename T, typename Encoding = rapidjson::UTF8<>, typename Allocator = rapidjson::MemoryPoolAllocator<>>
+inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::optional<T>& t);
+#endif
+
 template<typename T, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> >
 inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, boost::shared_ptr<T>& ptr) {
     static_assert(std::is_default_constructible<T>::value, "Shared pointer of type must be default-constructible.");
@@ -738,6 +749,23 @@ inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v,
     t = std::move(temporary);
 }
 
+#ifdef HAS_STD_OPTIONAL_SUPPORT
+template <typename T, typename Encoding, typename Allocator>
+inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, std::optional<T>& t)
+{
+    // If the value is null, treat that as an empty optional
+    if (v.IsNull()) {
+        t.reset();
+        return;
+    }
+
+    // Otherwise, deserialize as the boxed type
+    T temporary;
+    LoadJsonValue(v, temporary);
+    t = std::move(temporary);
+}
+#endif
+
 //Save a data structure to rapidjson::GenericValue<Encoding, Allocator> format
 
 /*template<typename T> inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const T& t, rapidjson::GenericDocument<Encoding, Allocator>::AllocatorType& alloc) {*/
@@ -849,6 +877,11 @@ inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const
 
 template <typename T, typename Encoding, typename Allocator, typename Allocator2>
 inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const boost::optional<T>& t, Allocator2& alloc);
+
+#ifdef HAS_STD_OPTIONAL_SUPPORT
+template <typename T, typename Encoding, typename Allocator, typename Allocator2>
+inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const std::optional<T>& t, Allocator2& alloc);
+#endif
 
 /** do not remove: otherwise boost::shared_ptr could be treated as bool
  */
@@ -1007,6 +1040,19 @@ inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const
     // Otherwise, serialize as the boxed type
     SaveJsonValue(v, *t, alloc);
 }
+
+#ifdef HAS_STD_OPTIONAL_SUPPORT
+template <typename T, typename Encoding, typename Allocator, typename Allocator2>
+inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const std::optional<T>& t, Allocator2& alloc) {
+    // If the optional has no value, count that as null
+    if (!t.has_value()) {
+        v.SetNull();
+        return;
+    }
+
+    SaveJsonValue(v, t.value(), alloc);
+}
+#endif
 
 //get one json value by key, and store it in local data structures
 //return true if key is present. Will return false if the key is not present or the member is Null
