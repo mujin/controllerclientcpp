@@ -38,7 +38,6 @@ public:
     void ExecuteCommand(const std::string& taskparameters, rapidjson::Document &pt, const double timeout /* [sec] */=0.0, const bool getresult=true) override;
 
     virtual void ExecuteCommand(rapidjson::Value& rTaskParameters, rapidjson::Document& rOutput, const double timeout /* second */=5.0) override;
-    void _ExecuteCommandZMQ(const std::string& command, rapidjson::Document& rOutput, const double timeout /* second */=5.0, const bool getresult=true);
 
     void Initialize(const std::string& defaultTaskParameters, const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq=false, const double reinitializetimeout=10, const double timeout=0, const std::string& userinfo="{}", const std::string& slaverequestid="") override;
 
@@ -46,7 +45,7 @@ public:
     void _HeartbeatMonitorThread(const double reinitializetimeout, const double commandtimeout);
 
 private:
-    ZmqMujinControllerClientPtr _zmqmujincontrollerclient;
+    std::unique_ptr<ZmqMujinControllerClient> _zmqmujincontrollerclient;
 };
 
 } // namespace mujinclient
