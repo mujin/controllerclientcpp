@@ -1803,6 +1803,29 @@ void BinPickingTaskResource::Release(const std::string& targetname, const std::s
     ExecuteCommand(_ss.str(), d, timeout);
 }
 
+void BinPickingTaskResource::EnableObject(const std::string& objectName, bool state, const double timeout)
+{
+    SetMapTaskParameters(_ss, _mapTaskParameters);
+    _ss << GetJsonString("command", "EnableObject");
+    _ss << ", " << GetJsonString("objectName", objectName);
+    _ss << ", " << GetJsonString("state", state);
+    _ss << "}";
+    rapidjson::Document d;
+    ExecuteCommand(_ss.str(), d, timeout);
+}
+
+void BinPickingTaskResource::EnableLink(const std::string& objectName, const std::string& linkName, bool state, const double timeout)
+{
+    SetMapTaskParameters(_ss, _mapTaskParameters);
+    _ss << GetJsonString("command", "EnableLink");
+    _ss << ", " << GetJsonString("objectName", objectName);
+    _ss << ", " << GetJsonString("linkName", linkName);
+    _ss << ", " << GetJsonString("state", state);
+    _ss << "}";
+    rapidjson::Document d;
+    ExecuteCommand(_ss.str(), d, timeout);
+}
+
 void BinPickingTaskResource::GetRobotBridgeIOVariableString(const std::vector<std::string>& ionames, std::vector<std::string>& iovalues, const double timeout)
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
