@@ -15,6 +15,7 @@
 #include "common.h"
 #include "controllerclientimpl.h"
 #include "binpickingtaskzmq.h"
+#include "mujinmsgpack.h"
 #include "mujincontrollerclient/mujinzmq.h"
 
 #include <algorithm> // find
@@ -260,8 +261,7 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
                 std::string replystring((char *)reply.data (), (size_t)reply.size());
                 rapidjson::Document pt(rapidjson::kObjectType);
                 try{
-                    std::stringstream replystring_ss(replystring);
-                    ParseJson(pt, replystring_ss.str());
+                    mujinmsgpack::ParseMsgPack(pt, replystring);
                     heartbeat.Parse(pt);
                     {
                         boost::mutex::scoped_lock lock(_mutexTaskState);
