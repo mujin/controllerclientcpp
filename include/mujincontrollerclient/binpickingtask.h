@@ -255,9 +255,12 @@ public:
         struct TriggerDetectionCaptureInfo {
             TriggerDetectionCaptureInfo();
             double timestamp = 0; ///< timestamp this request was sent. If non-zero, then valid.
-            std::string triggerType; ///< The type of trigger this is. For now can be: "phase1Detection", "phase2Detection"
+            std::string triggerType; ///< The type of this. Valid values are: "detection", "runDetectionOnce", "phase1Detection", "phase2Detection", "pointCloudObstacle", "executionVerification"
+            std::string triggerTiming; ///< The planning trigger timing. Indicates the timing (within a binpicking cycle) of this trigger.
             std::string locationName; ///< The name of the location for this detection trigger.
             std::string targetUpdateNamePrefix; ///< if not empty, use this new targetUpdateNamePrefix for the triggering, otherwise do not change the original targetUpdateNamePrefix
+            int currentTriggerIndex = 0; ///< The index of the current trigger for this detection task
+            int numTotalTriggers = 1; ///< The number of total triggers expected for this detection task
         } triggerDetectionCaptureInfo;
 
         std::vector<mujin::PickPlaceHistoryItem> pickPlaceHistoryItems; ///< history of pick/place actions that occurred in planning. Events should be sorted in the order they happen, ie event [0] happens before event [1], meaning event[0].eventTimeStampUS is before event[1].eventTimeStampUS
