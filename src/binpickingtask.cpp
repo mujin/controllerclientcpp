@@ -828,8 +828,11 @@ void BinPickingTaskResource::ResultGetBinpickingState::Parse(const rapidjson::Va
 
     triggerDetectionCaptureInfo.timestamp = GetJsonValueByPath<double>(v, "/triggerDetectionCaptureInfo/timestamp", 0);
     triggerDetectionCaptureInfo.triggerType = GetJsonValueByPath<std::string>(v, "/triggerDetectionCaptureInfo/triggerType", "");
+    triggerDetectionCaptureInfo.triggerTiming = GetJsonValueByPath<std::string>(v, "/triggerDetectionCaptureInfo/triggerTiming", "");
     triggerDetectionCaptureInfo.locationName = GetJsonValueByPath<std::string>(v, "/triggerDetectionCaptureInfo/locationName", "");
     triggerDetectionCaptureInfo.targetUpdateNamePrefix = GetJsonValueByPath<std::string>(v, "/triggerDetectionCaptureInfo/targetUpdateNamePrefix", "");
+    triggerDetectionCaptureInfo.currentTriggerIndex = GetJsonValueByPath<int>(v, "/triggerDetectionCaptureInfo/currentTriggerIndex", 0);
+    triggerDetectionCaptureInfo.numTotalTriggers = GetJsonValueByPath<int>(v, "/triggerDetectionCaptureInfo/numTotalTriggers", 1);
 
     activeLocationTrackingInfos.clear();
     if( v.HasMember("activeLocationTrackingInfos") && v["activeLocationTrackingInfos"].IsArray()) {
