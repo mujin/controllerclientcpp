@@ -15,8 +15,6 @@
 #include "controllerclientimpl.h"
 #include <boost/thread.hpp> // for sleep
 #include <boost/algorithm/string.hpp>
-#include <netdb.h>
-#include <arpa/inet.h>
 
 #include <mujincontrollerclient/binpickingtask.h>
 
