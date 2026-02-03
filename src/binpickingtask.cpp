@@ -91,9 +91,17 @@ BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionInfo& B
     minCandidateSize = rhs.minCandidateSize;
     transferSpeedPostMult = rhs.transferSpeedPostMult;
 
+    targetTemplateSceneData.SetNull();
+    targetTemplateSceneData.GetAllocator().Clear();
+    targetTemplateSceneData.CopyFrom(rhs.targetTemplateSceneData, targetTemplateSceneData.GetAllocator());
+
     graspModelInfo.SetNull();
     graspModelInfo.GetAllocator().Clear();
     graspModelInfo.CopyFrom(rhs.graspModelInfo, graspModelInfo.GetAllocator());
+
+    registrationVisionInfo.SetNull();
+    registrationVisionInfo.GetAllocator().Clear();
+    registrationVisionInfo.CopyFrom(rhs.registrationVisionInfo, registrationVisionInfo.GetAllocator());
 
     minCornerVisibleDist = rhs.minCornerVisibleDist;
     minCornerVisibleInsideDist = rhs.minCornerVisibleInsideDist;
@@ -134,10 +142,20 @@ void BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionIn
     SetJsonValueByKey(rInfo, "maxCandidateSize", maxCandidateSize, alloc);
     SetJsonValueByKey(rInfo, "transferSpeedPostMult", transferSpeedPostMult, alloc);
 
+    if( !targetTemplateSceneData.IsNull() ) {
+        rapidjson::Value rTemp;
+        rTemp.CopyFrom(targetTemplateSceneData, alloc);
+        rInfo.AddMember("targetTemplateSceneData", rTemp, alloc);
+    }
     {
         rapidjson::Value rTemp;
         rTemp.CopyFrom(graspModelInfo, alloc);
         rInfo.AddMember("graspModelInfo", rTemp, alloc);
+    }
+    if( !registrationVisionInfo.IsNull() ) {
+        rapidjson::Value rTemp;
+        rTemp.CopyFrom(registrationVisionInfo, alloc);
+        rInfo.AddMember("registrationVisionInfo", rTemp, alloc);
     }
     SetJsonValueByKey(rInfo, "minCornerVisibleDist", minCornerVisibleDist, alloc);
     SetJsonValueByKey(rInfo, "minCornerVisibleInsideDist", minCornerVisibleInsideDist, alloc);
@@ -183,11 +201,27 @@ void BinPickingTaskResource::ResultGetBinpickingState::RegisterMinViableRegionIn
     transferSpeedPostMult = GetJsonValueByKey<double>(rInfo, "transferSpeedPostMult", 1.0);
 
     {
+        targetTemplateSceneData.SetNull();
+        targetTemplateSceneData.GetAllocator().Clear();
+        rapidjson::Value::ConstMemberIterator itTargetTemplateSceneData = rInfo.FindMember("targetTemplateSceneData");
+        if( itTargetTemplateSceneData != rInfo.MemberEnd() ) {
+            targetTemplateSceneData.CopyFrom(itTargetTemplateSceneData->value, targetTemplateSceneData.GetAllocator());
+        }
+    }
+    {
         graspModelInfo.SetNull();
         graspModelInfo.GetAllocator().Clear();
         rapidjson::Value::ConstMemberIterator itGraspModelInfo = rInfo.FindMember("graspModelInfo");
         if( itGraspModelInfo != rInfo.MemberEnd() ) {
             graspModelInfo.CopyFrom(itGraspModelInfo->value, graspModelInfo.GetAllocator());
+        }
+    }
+    {
+        registrationVisionInfo.SetNull();
+        registrationVisionInfo.GetAllocator().Clear();
+        rapidjson::Value::ConstMemberIterator itRegistrationVisionInfo = rInfo.FindMember("registrationVisionInfo");
+        if( itRegistrationVisionInfo != rInfo.MemberEnd() ) {
+            registrationVisionInfo.CopyFrom(itRegistrationVisionInfo->value, registrationVisionInfo.GetAllocator());
         }
     }
     minCornerVisibleDist = GetJsonValueByKey<double>(rInfo, "minCornerVisibleDist", 30);
@@ -896,25 +930,6 @@ void BinPickingTaskResource::ResultOBB::Parse(const rapidjson::Value& pt)
 
     LoadJsonValueByKey(v, "translation", translation);
     LoadJsonValueByKey(v, "extents", extents);
-    std::vector<std::vector<Real> > rotationmatrix2d;
-    LoadJsonValueByKey(v, "rotationmat", rotationmatrix2d);
-    if (translation.size() != 3) {
-        throw MujinException("The length of translation is invalid.", MEC_Failed);
-    }
-    if (extents.size() != 3) {
-        throw MujinException("The length of extents is invalid.", MEC_Failed);
-    }
-    if (rotationmatrix2d.size() != 3 || rotationmatrix2d[0].size() != 3 || rotationmatrix2d[1].size() != 3 || rotationmatrix2d[2].size() != 3) {
-        throw MujinException("The row number of rotationmat is invalid.", MEC_Failed);
-    }
-
-    rotationmat.resize(9);
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            rotationmat[i*3+j] = rotationmatrix2d[i][j];
-        }
-    }
-
     LoadJsonValueByKey(v, "quaternion", quaternion);
 }
 
@@ -1193,7 +1208,7 @@ void BinPickingTaskResource::SendMVRRegistrationResult(
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
     _ss << GetJsonString("command", "SendMVRRegistrationResult") << ", ";
-    _ss << GetJsonString("mvrResultInfo", DumpJson(mvrResultInfo)) << ", ";
+    _ss << GetJsonString("mvrResultInfo", DumpJson(mvrResultInfo));
     _ss << "}";
     rapidjson::Document pt(rapidjson::kObjectType);
     ExecuteCommand(_ss.str(), pt, timeout);
@@ -1215,7 +1230,7 @@ void BinPickingTaskResource::SendRemoveObjectsFromObjectListResult(
         }
     }
     _ss << "], ";
-    _ss << GetJsonString("success", success) << ", ";
+    _ss << GetJsonString("success", success);
     _ss << "}";
     rapidjson::Document pt(rapidjson::kObjectType);
     ExecuteCommand(_ss.str(), pt, timeout);
@@ -1227,7 +1242,7 @@ void BinPickingTaskResource::SendTriggerDetectionCaptureResult(const std::string
     SetMapTaskParameters(_ss, _mapTaskParameters);
     _ss << GetJsonString("command", "SendTriggerDetectionCaptureResult") << ", ";
     _ss << GetJsonString("triggerType", triggerType) << ", ";
-    _ss << GetJsonString("returnCode", returnCode) << ", ";
+    _ss << GetJsonString("returnCode", returnCode);
     _ss << "}";
     rapidjson::Document pt(rapidjson::kObjectType);
     ExecuteCommand(_ss.str(), pt, timeout);
@@ -1482,7 +1497,7 @@ void BinPickingTaskResource::ClearVisualization(const double timeout)
     SetMapTaskParameters(_ss, _mapTaskParameters);
     std::string command = "ClearVisualization";
     _ss << GetJsonString("command", command) << ", ";
-    _ss << GetJsonString("tasktype", _tasktype) << ", ";
+    _ss << GetJsonString("tasktype", _tasktype);
     _ss << "}";
     rapidjson::Document d;
     ExecuteCommand(_ss.str(), d, timeout); // need to check return code
@@ -1760,12 +1775,12 @@ void BinPickingTaskResource::Grab(const std::string& targetname, const std::stri
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
     _ss << GetJsonString("command", "Grab") << ", ";
-    _ss << GetJsonString("targetname", targetname) << ", ";
+    _ss << GetJsonString("targetname", targetname);
     if (!robotname.empty()) {
-        _ss << GetJsonString("robotname", robotname) << ", ";
+        _ss << ", " << GetJsonString("robotname", robotname);
     }
     if (!toolname.empty()) {
-        _ss << GetJsonString("toolname", toolname) << ", ";
+        _ss << ", " << GetJsonString("toolname", toolname);
     }
     _ss << "}";
     rapidjson::Document d;
@@ -1776,12 +1791,12 @@ void BinPickingTaskResource::Release(const std::string& targetname, const std::s
 {
     SetMapTaskParameters(_ss, _mapTaskParameters);
     _ss << GetJsonString("command", "Release") << ", ";
-    _ss << GetJsonString("targetname", targetname) << ", ";
+    _ss << GetJsonString("targetname", targetname);
     if (!robotname.empty()) {
-        _ss << GetJsonString("robotname", robotname) << ", ";
+        _ss << ", " << GetJsonString("robotname", robotname);
     }
     if (!toolname.empty()) {
-        _ss << GetJsonString("toolname", toolname) << ", ";
+        _ss << ", " << GetJsonString("toolname", toolname);
     }
     _ss << "}";
     rapidjson::Document d;

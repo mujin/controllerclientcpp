@@ -77,7 +77,7 @@ public:
     bool operator!=(const ControllerClientInfo &rhs) const {
         return !operator==(rhs);
     }
-    std::string GetURL(bool bIncludeNamePassword) const;
+    std::string GetURL(bool bIncludeNamePassword, bool bResolveIpFromHostIfUnique = false) const;
 
     inline bool IsEnabled() const {
         return !host.empty();
@@ -89,6 +89,7 @@ public:
     std::string password;
     std::vector<std::string> additionalHeaders; ///< expect each value to be in the format of "Header-Name: header-value"
     std::string unixEndpoint; ///< unix socket endpoint for communicating with HTTP server over unix socket
+    std::string userAgent;
 };
 
 typedef mujin::Transform Transform;
@@ -99,6 +100,7 @@ enum TaskResourceOptions
 };
 
 class ControllerClient;
+class GraphSubscriptionHandler;
 class ObjectResource;
 class RobotResource;
 class SceneResource;
@@ -113,12 +115,14 @@ class DebugResource;
 struct FileEntry
 {
     std::string filename;
-    double modified; // in epoch seconds
-    size_t size; // file size in bytes
+    double modified = 0; // in epoch seconds
+    size_t size = 0; // file size in bytes
 };
 
 typedef boost::shared_ptr<ControllerClient> ControllerClientPtr;
 typedef boost::weak_ptr<ControllerClient> ControllerClientWeakPtr;
+typedef boost::shared_ptr<GraphSubscriptionHandler> GraphSubscriptionHandlerPtr;
+typedef boost::weak_ptr<GraphSubscriptionHandler> GraphSubscriptionHandlerWeakPtr;
 typedef boost::shared_ptr<ObjectResource> ObjectResourcePtr;
 typedef boost::weak_ptr<ObjectResource> ObjectResourceWeakPtr;
 typedef boost::shared_ptr<RobotResource> RobotResourcePtr;
@@ -193,7 +197,7 @@ JobStatusCode GetStatusCode(const std::string& str);
 
 struct JobStatus
 {
-    JobStatus() : code(JSC_Unknown) {
+    JobStatus() : code(JSC_Unknown), elapsedtime(0.0) {
     }
     JobStatusCode code; ///< status code on whether the job is active
     std::string type; ///< the type of job running
@@ -225,6 +229,8 @@ public:
     ITLPlanningTaskParameters() {
         SetDefaults();
     }
+    virtual ~ITLPlanningTaskParameters() {}
+
     virtual void SetDefaults() {
         startfromcurrent = 0;
         returnmode = "start";
@@ -429,6 +435,15 @@ public:
     ///
     /// \param rResult The entire result field of the query. Should have keys "data" and "errors". Each error should have keys: "message", "locations", "path", "extensions". And "extensions" has keys "errorCode".
     virtual void ExecuteGraphQueryRaw(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout = 60.0) = 0;
+
+    /// \brief Execute GraphQL subscription query against Mujin Controller.
+    ///
+    /// Throws an exception if failed to start subscription, return a handler represents the graphql subscription
+    /// \param operationName The name of the subscription query
+    /// \param query The subscription query
+    /// \param rVariables The subscription query variables
+    /// \param onReadHandler The callback function invoked when receiving subscription result. The callback function should NOT destroy the handler, otherwise deadlock can happen. In case of an error, the callback function can be called more than once with the same or different error code. The callback function accepts errors and data in json format as parameter.
+    virtual GraphSubscriptionHandlerPtr ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, std::function<void(rapidjson::Value&&, rapidjson::Value&&)> onReadHandler) = 0;
 
     /// \brief returns the mujin controller version
     virtual std::string GetVersion() = 0;
@@ -734,6 +749,16 @@ public:
     virtual void CreateLogEntries(const std::vector<LogEntry>& logEntries, std::vector<std::string>& createdLogEntryIds, double timeout = 5) = 0;
 };
 
+
+/// \brief A handler represents the graphql subscription, destroying the handler will automatically stop the subscription.
+class MUJINCLIENT_API GraphSubscriptionHandler
+{
+public:
+    virtual ~GraphSubscriptionHandler() {
+    }
+};
+
+
 class MUJINCLIENT_API WebResource
 {
 public:
@@ -791,16 +816,16 @@ public:
         std::string objectpk;
         std::string linkpk;
         std::string geomtype;
-        Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-        Real translate[3];
-        bool visible;
-        Real diffusecolor[4];
-        Real transparency;
-        Real half_extents[3];
-        Real height;
-        Real radius;
-        Real topRadius;
-        Real bottomRadius;
+        Real quaternion[4] = {1, 0, 0, 0}; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        Real translate[3] = {0, 0, 0};
+        bool visible = true;
+        Real diffusecolor[4] = {0, 0, 0, 0};
+        Real transparency = 0;
+        Real half_extents[3] = {0, 0, 0};
+        Real height = 0;
+        Real radius = 0;
+        Real topRadius = 0;
+        Real bottomRadius = 0;
 
         virtual void GetMesh(std::string& primitive, std::vector<std::vector<int> >& indices, std::vector<std::vector<Real> >& vertices);
         virtual void SetGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& unit, double timeout = 5.0);
@@ -818,10 +843,10 @@ public:
         std::string name;
         std::string pk;
         std::string iktype;
-        Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-        Real translation[3];
-        Real direction[3];
-        Real angle;
+        Real quaternion[4] = {1, 0, 0, 0}; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        Real translation[3] = {0, 0, 0};
+        Real direction[3] = {0, 0, 0};
+        Real angle = 0;
     };
     typedef boost::shared_ptr<IkParamResource> IkParamResourcePtr;
 
@@ -852,9 +877,9 @@ public:
         std::string pk;
         std::string objectpk;
         std::string parentlinkpk;
-        Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-        Real translate[3];
-        bool collision;
+        Real quaternion[4] = {1, 0, 0, 0}; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        Real translate[3] = {0, 0, 0};
+        bool collision = true;
     };
     typedef boost::shared_ptr<LinkResource> LinkResourcePtr;
 
@@ -877,17 +902,17 @@ public:
     virtual int GetVisible();
 
     std::string name;
-    int nundof;
+    int nundof = 0;
     std::string datemodified;
     std::string geometry;
-    bool isrobot;
+    bool isrobot = false;
     std::string pk;
     std::string resource_uri;
     std::string scenepk;
     std::string unit;
     std::string uri;
-    Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-    Real translate[3];
+    Real quaternion[4] = {1, 0, 0, 0}; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+    Real translate[3] = {0, 0, 0};
 
 protected:
     ObjectResource(ControllerClientPtr controller, const std::string& resource, const std::string& pk);
@@ -907,9 +932,9 @@ public:
         std::string frame_origin;
         std::string frame_tip;
         std::string pk;
-        std::array<Real,3> direction;
-        std::array<Real,4> quaternion; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-        std::array<Real,3> translate;
+        std::array<Real,3> direction = {0, 0, 0};
+        std::array<Real,4> quaternion = {1, 0, 0, 0}; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        std::array<Real,3> translate = {0, 0, 0};
     };
     typedef boost::shared_ptr<ToolResource> ToolResourcePtr;
 
@@ -923,8 +948,8 @@ public:
         std::string frame_origin;
         std::string pk;
         //Real direction[3];
-        std::array<Real,4> quaternion; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-        std::array<Real,3> translate;
+        std::array<Real,4> quaternion = {1, 0, 0, 0}; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        std::array<Real,3> translate = {0, 0, 0};
         std::string sensortype;
 
         struct SensorData {
@@ -941,12 +966,12 @@ public:
             bool operator==(const SensorData& other) const {
                 return !operator!=(other);
             }
-            Real distortion_coeffs[5];
+            Real distortion_coeffs[5] = {0, 0, 0, 0, 0};
             std::string distortion_model;
-            Real focal_length;
-            int image_dimensions[3];
-            Real intrinsic[6];
-            Real measurement_time;
+            Real focal_length = 0;
+            int image_dimensions[3] = {0, 0, 0};
+            Real intrinsic[6] = {0, 0, 0, 0, 0, 0};
+            Real measurement_time = 0;
             std::vector<Real> extra_parameters;
         };
         SensorData sensordata;
@@ -964,7 +989,7 @@ public:
     // attachments
     // ikparams
     // images
-    int numdof;
+    int numdof = 0;
     std::string simulation_file;
 };
 
@@ -984,16 +1009,16 @@ public:
         class MUJINCLIENT_API Link {
 public:
             std::string name;
-            Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-            Real translate[3];
+            Real quaternion[4] = {1, 0, 0, 0}; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+            Real translate[3] = {0, 0, 0};
         };
 
         class MUJINCLIENT_API Tool {
 public:
             std::string name;
-            Real direction[3];
-            Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-            Real translate[3];
+            Real direction[3] = {0, 0, 0};
+            Real quaternion[4] = {1, 0, 0, 0}; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+            Real translate[3] = {0, 0, 0};
         };
 
         class MUJINCLIENT_API Grab {
@@ -1019,8 +1044,8 @@ public:
         class MUJINCLIENT_API AttachedSensor {
 public:
             std::string name;
-            Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-            Real translate[3];
+            Real quaternion[4] = {1, 0, 0, 0}; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+            Real translate[3] = {0, 0, 0};
         };
 
         void SetTransform(const Transform& t);
@@ -1035,8 +1060,8 @@ public:
         std::string object_pk;
         std::string reference_object_pk;
         std::string reference_uri;
-        Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-        Real translate[3];
+        Real quaternion[4] = {1, 0, 0, 0}; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        Real translate[3] = {0, 0, 0};
         std::vector<Grab> grabs;
         std::vector<Link> links;
         std::vector<Tool> tools;
@@ -1257,7 +1282,7 @@ public:
     std::string name;
     std::string pk;
     std::string resource_uri;
-    size_t size;
+    size_t size = 0;
 
 protected:
     DebugResource(ControllerClientPtr controller, const std::string& resource, const std::string& pk);
