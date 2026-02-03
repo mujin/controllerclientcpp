@@ -15,6 +15,8 @@
 #include "controllerclientimpl.h"
 #include <boost/thread.hpp> // for sleep
 #include <boost/algorithm/string.hpp>
+#include <netdb.h>
+#include <arpa/inet.h>
 
 #include <mujincontrollerclient/binpickingtask.h>
 
@@ -29,8 +31,127 @@ MUJIN_LOGGER("mujin.controllerclientcpp");
 
 namespace mujinclient {
 
-namespace mujinjson = mujinjson_external;
 using namespace mujinjson;
+
+void ControllerClientInfo::Reset()
+{
+    host.clear();
+    httpPort = 0;
+    username.clear();
+    password.clear();
+    additionalHeaders.clear();
+    unixEndpoint.clear();
+}
+
+void ControllerClientInfo::LoadFromJson(const rapidjson::Value& rClientInfo)
+{
+    mujinjson::LoadJsonValueByKey(rClientInfo, "host", host);
+    mujinjson::LoadJsonValueByKey(rClientInfo, "httpPort", httpPort);
+    mujinjson::LoadJsonValueByKey(rClientInfo, "username", username);
+    mujinjson::LoadJsonValueByKey(rClientInfo, "password", password);
+    mujinjson::LoadJsonValueByKey(rClientInfo, "additionalHeaders", additionalHeaders);
+    mujinjson::LoadJsonValueByKey(rClientInfo, "unixEndpoint", unixEndpoint);
+}
+
+void ControllerClientInfo::SaveToJson(rapidjson::Value& rClientInfo, rapidjson::Document::AllocatorType& alloc) const
+{
+    rClientInfo.SetObject();
+    if( !host.empty() ) {
+        mujinjson::SetJsonValueByKey(rClientInfo, "host", host, alloc);
+    }
+    if( httpPort != 0 ) {
+        mujinjson::SetJsonValueByKey(rClientInfo, "httpPort", httpPort, alloc);
+    }
+    if( !username.empty() ) {
+        mujinjson::SetJsonValueByKey(rClientInfo, "username", username, alloc);
+    }
+    if( !password.empty() ) {
+        mujinjson::SetJsonValueByKey(rClientInfo, "password", password, alloc);
+    }
+    if( !additionalHeaders.empty() ) {
+        mujinjson::SetJsonValueByKey(rClientInfo, "additionalHeaders", additionalHeaders, alloc);
+    }
+    if( !unixEndpoint.empty() ) {
+        mujinjson::SetJsonValueByKey(rClientInfo, "unixEndpoint", unixEndpoint, alloc);
+    }
+}
+
+void ControllerClientInfo::SaveToJson(rapidjson::Document& rClientInfo) const
+{
+    SaveToJson(rClientInfo, rClientInfo.GetAllocator());
+}
+
+bool ControllerClientInfo::operator==(const ControllerClientInfo &rhs) const
+{
+    return host == rhs.host &&
+           httpPort == rhs.httpPort &&
+           username == rhs.username &&
+           password == rhs.password &&
+           additionalHeaders == rhs.additionalHeaders &&
+           unixEndpoint == rhs.unixEndpoint;
+}
+
+std::string ResolveIpFromHostIfUnique(const std::string& host)
+{
+    struct addrinfo hints = {}, *addrs;
+
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;  // IPv4 only
+    hints.ai_socktype = SOCK_STREAM;
+
+    int status = getaddrinfo(host.c_str(), nullptr, &hints, &addrs);
+    if (status != 0) {
+        MUJIN_LOG_ERROR("host resolution failed for host " << host << ": " << gai_strerror(status));
+        return "";
+    }
+
+    std::set<std::string> uniqueIps;
+
+    for (struct addrinfo* addr = addrs; addr != nullptr; addr = addr->ai_next) {
+        char ipstr[INET_ADDRSTRLEN];
+        struct sockaddr_in* sockaddr = reinterpret_cast<struct sockaddr_in*>(addr->ai_addr);
+        inet_ntop(AF_INET, &(sockaddr->sin_addr), ipstr, sizeof(ipstr));
+
+        uniqueIps.insert(ipstr);
+    }
+
+    freeaddrinfo(addrs);
+
+    if (uniqueIps.size() == 1) {
+        return *uniqueIps.begin();
+    }
+
+    MUJIN_LOG_WARN("Couldn't find unique IP addresses for host " << host);
+    return "";
+}
+
+std::string ControllerClientInfo::GetURL(bool bIncludeNamePassword, bool bResolveIpFromHostIfUnique) const
+{
+    std::string url;
+    if( host.empty() ) {
+        return url;
+    }
+    url += "http://";
+    if( bIncludeNamePassword ) {
+        url += username;
+        url += ":";
+        url += password;
+        url += "@";
+    }
+
+    if (bResolveIpFromHostIfUnique) {
+        const std::string ip = ResolveIpFromHostIfUnique(host);
+        url += ip.empty() ? host : ip;
+    } else {
+        url += host;
+    }
+
+    if( httpPort != 0 ) {
+        url += ":";
+        url += std::to_string(httpPort);
+    }
+    return url;
+}
 
 void ExtractEnvironmentStateFromPTree(const rapidjson::Value& envstatejson, EnvironmentState& envstate)
 {
@@ -224,11 +345,13 @@ ObjectResource::GeometryResourcePtr ObjectResource::LinkResource::GetGeometryFro
                 /// geomtype ///
                 // mesh
                 // box: half_extents
-                // cylinder: height, radius
+                // cylinder: height, topRadius, bottomRadius
                 // sphere: radius
                 LoadJsonValueByKey(*it,"half_extents",geometry->half_extents);
                 LoadJsonValueByKey(*it,"height",geometry->height);
                 LoadJsonValueByKey(*it,"radius",geometry->radius);
+                LoadJsonValueByKey(*it,"topRadius",geometry->topRadius);
+                LoadJsonValueByKey(*it,"bottomRadius",geometry->bottomRadius);
                 return geometry;
             }
         }
@@ -261,6 +384,8 @@ void ObjectResource::LinkResource::GetGeometries(std::vector<ObjectResource::Geo
                 LoadJsonValueByKey(*it,"half_extents",geometry->half_extents);
                 LoadJsonValueByKey(*it,"height",geometry->height);
                 LoadJsonValueByKey(*it,"radius",geometry->radius);
+                LoadJsonValueByKey(*it,"topRadius",geometry->topRadius);
+                LoadJsonValueByKey(*it,"bottomRadius",geometry->bottomRadius);
                 geometries.push_back(geometry);
             }
         }
@@ -640,65 +765,75 @@ SceneResource::SceneResource(ControllerClientPtr controller, const std::string& 
 TaskResourcePtr SceneResource::GetOrCreateTaskFromName_UTF8(const std::string& taskname, const std::string& tasktype, int options)
 {
     GETCONTROLLERIMPL();
-    rapidjson::Document pt(rapidjson::kObjectType);
-    controller->CallGet(str(boost::format("scene/%s/task/?format=json&limit=1&name=%s&fields=pk,tasktype")%GetPrimaryKey()%controller->EscapeString(taskname)), pt);
-    // task exists
-    std::string pk;
-
     std::string tasktype_internal = tasktype;
     if( tasktype == "realtimeitlplanning" ) {
         tasktype_internal = "realtimeitlplanning3";
     }
 
-    if (pt.IsObject() && pt.HasMember("objects") && pt["objects"].IsArray() && pt["objects"].Size() > 0) {
-        rapidjson::Value& objects = pt["objects"];
-        pk = GetJsonValueByKey<std::string>(objects[0], "pk");
-        std::string currenttasktype = GetJsonValueByKey<std::string>(objects[0], "tasktype");
-        if( currenttasktype != tasktype_internal && (currenttasktype != "realtimeitlplanning" || tasktype_internal != "realtimeitlplanning3")) {
-            throw MUJIN_EXCEPTION_FORMAT("task pk %s exists and has type %s, expected is %s", pk%currenttasktype%tasktype_internal, MEC_InvalidState);
-        }
-    }
-    else {
-        pt.SetObject();
-        controller->CallPost(str(boost::format("scene/%s/task/?format=json&fields=pk")%GetPrimaryKey()), str(boost::format("{\"name\":\"%s\", \"tasktype\":\"%s\", \"scenepk\":\"%s\"}")%taskname%tasktype_internal%GetPrimaryKey()), pt);
-        LoadJsonValueByKey(pt, "pk", pk);
-    }
-
-    if( pk.size() == 0 ) {
-        return TaskResourcePtr();
-    }
-
-    if( tasktype_internal == "binpicking" || tasktype_internal == "realtimeitlplanning3") {
-        BinPickingTaskResourcePtr task;
-        if( options & 1 ) {
+    if( options & 1 ) {
+        if( tasktype_internal == "binpicking" || tasktype_internal == "realtimeitlplanning3" || tasktype_internal == "packing") {
+            BinPickingTaskResourcePtr task;
 #ifdef MUJIN_USEZMQ
-            task.reset(new BinPickingTaskZmqResource(GetController(), pk, GetPrimaryKey(), tasktype_internal));
+            task.reset(new BinPickingTaskZmqResource(GetController(), GetPrimaryKey(), GetPrimaryKey(), tasktype_internal));
 #else
             throw MujinException("cannot create binpicking zmq task since not compiled with zeromq library", MEC_Failed);
 #endif
+            return task;
         }
-        else {
-            task.reset(new BinPickingTaskResource(GetController(), pk, GetPrimaryKey()));
-        }
-        return task;
-    }
-    else if( tasktype_internal == "cablepicking" ) { // TODO create CablePickingTaskResource
-        BinPickingTaskResourcePtr task;
-        if( options & 1 ) {
+        else if( tasktype_internal == "cablepicking" ) {
+            BinPickingTaskResourcePtr task;
 #ifdef MUJIN_USEZMQ
-            task.reset(new BinPickingTaskZmqResource(GetController(), pk, GetPrimaryKey()));
+            task.reset(new BinPickingTaskZmqResource(GetController(), GetPrimaryKey(), GetPrimaryKey()));
 #else
             throw MujinException("cannot create binpicking zmq task since not compiled with zeromq library", MEC_Failed);
 #endif
+            return task;
         }
         else {
-            task.reset(new BinPickingTaskResource(GetController(), pk, GetPrimaryKey()));
+            TaskResourcePtr task(new TaskResource(GetController(), GetPrimaryKey()));
+            return task;
         }
-        return task;
     }
     else {
-        TaskResourcePtr task(new TaskResource(GetController(), pk));
-        return task;
+        rapidjson::Document pt(rapidjson::kObjectType);
+        controller->CallGet(str(boost::format("scene/%s/task/?format=json&limit=1&name=%s&fields=pk,tasktype")%GetPrimaryKey()%controller->EscapeString(taskname)), pt);
+        // task exists
+        std::string pk;
+
+        if (pt.IsObject() && pt.HasMember("objects") && pt["objects"].IsArray() && pt["objects"].Size() > 0) {
+            rapidjson::Value& objects = pt["objects"];
+            pk = GetJsonValueByKey<std::string>(objects[0], "pk");
+            std::string currenttasktype = GetJsonValueByKey<std::string>(objects[0], "tasktype");
+            if( currenttasktype != tasktype_internal && (currenttasktype != "realtimeitlplanning" || tasktype_internal != "realtimeitlplanning3")) {
+                throw MUJIN_EXCEPTION_FORMAT("task pk %s exists and has type %s, expected is %s", pk%currenttasktype%tasktype_internal, MEC_InvalidState);
+            }
+        }
+        else {
+            pt.SetObject();
+            controller->CallPost(str(boost::format("scene/%s/task/?format=json&fields=pk")%GetPrimaryKey()), str(boost::format("{\"name\":\"%s\", \"tasktype\":\"%s\", \"scenepk\":\"%s\"}")%taskname%tasktype_internal%GetPrimaryKey()), pt);
+            LoadJsonValueByKey(pt, "pk", pk);
+        }
+
+        if( pk.size() == 0 ) {
+            return TaskResourcePtr();
+        }
+
+        // NOTE: the packing task inherits some functionality its common base with binpicking (see the Python planning client).
+        // TODO(hemangandhi): resemble the Python class heirarchy?
+        if( tasktype_internal == "binpicking" || tasktype_internal == "realtimeitlplanning3" || tasktype_internal == "packing") {
+            BinPickingTaskResourcePtr task;
+            task.reset(new BinPickingTaskResource(GetController(), pk, GetPrimaryKey()));
+            return task;
+        }
+        else if( tasktype_internal == "cablepicking" ) { // TODO create CablePickingTaskResource
+            BinPickingTaskResourcePtr task;
+            task.reset(new BinPickingTaskResource(GetController(), pk, GetPrimaryKey()));
+            return task;
+        }
+        else {
+            TaskResourcePtr task(new TaskResource(GetController(), pk));
+            return task;
+        }
     }
 }
 
@@ -798,24 +933,22 @@ void SceneResource::GetTaskNames(std::vector<std::string>& taskkeys)
     }
 }
 
-void SceneResource::GetSensorMapping(std::map<std::string, std::string>& sensormapping)
+void SceneResource::GetAllSensorSelectionInfos(std::vector<mujin::SensorSelectionInfo>& allSensorSelectionInfos)
 {
     GETCONTROLLERIMPL();
-    sensormapping.clear();
+    allSensorSelectionInfos.clear();
     rapidjson::Document rInstObjects(rapidjson::kObjectType);
     controller->CallGet(str(boost::format("scene/%s/instobject/?format=json&limit=0&fields=attachedsensors,connectedBodies,object_pk,name")%GetPrimaryKey()), rInstObjects);
     for (rapidjson::Document::ConstValueIterator itInstObject = rInstObjects["objects"].Begin(); itInstObject != rInstObjects["objects"].End(); ++itInstObject) {
-        std::string cameracontainername = GetJsonValueByKey<std::string>(*itInstObject, "name");
-        std::string objectPk = GetJsonValueByKey<std::string>(*itInstObject, "object_pk");
+        const std::string sensorName = GetJsonValueByKey<std::string>(*itInstObject, "name");
+        const std::string objectPk = GetJsonValueByKey<std::string>(*itInstObject, "object_pk");
         if ( itInstObject->HasMember("attachedsensors") && (*itInstObject)["attachedsensors"].IsArray() && (*itInstObject)["attachedsensors"].Size() > 0) {
             rapidjson::Document rRobotAttachedSensors(rapidjson::kObjectType);
             controller->CallGet(str(boost::format("robot/%s/attachedsensor/?format=json")%objectPk), rRobotAttachedSensors);
             const rapidjson::Value& rAttachedSensors = rRobotAttachedSensors["attachedsensors"];
             for (rapidjson::Document::ConstValueIterator itAttachedSensor = rAttachedSensors.Begin(); itAttachedSensor != rAttachedSensors.End(); ++itAttachedSensor) {
-                std::string sensorname = GetJsonValueByKey<std::string>(*itAttachedSensor, "name");
-                std::string camerafullname = str(boost::format("%s/%s")%cameracontainername%sensorname);
-                std::string cameraid = GetJsonValueByPath<std::string>(*itAttachedSensor, "/sensordata/hardware_id");
-                sensormapping[camerafullname] = cameraid;
+                const std::string sensorLinkName = GetJsonValueByKey<std::string>(*itAttachedSensor, "linkName");
+                allSensorSelectionInfos.emplace_back(sensorName, sensorLinkName);
             }
         }
         if ( itInstObject->HasMember("connectedBodies") && (*itInstObject)["connectedBodies"].IsArray() && (*itInstObject)["connectedBodies"].Size() > 0 ) {
@@ -823,8 +956,8 @@ void SceneResource::GetSensorMapping(std::map<std::string, std::string>& sensorm
             controller->CallGet(str(boost::format("robot/%s/connectedBody/?format=json")%objectPk), rRobotConnectedBodies);
             rapidjson::Value& rConnectedBodies = rRobotConnectedBodies["connectedBodies"];
             for (rapidjson::Document::ConstValueIterator itConnectedBody = rConnectedBodies.Begin(); itConnectedBody != rConnectedBodies.End(); ++itConnectedBody) {
-                std::string connectedBodyScenePk = controller->GetScenePrimaryKeyFromURI_UTF8(GetJsonValueByKey<std::string>(*itConnectedBody, "url"));
-                std::string connectedBodyName = GetJsonValueByKey<std::string>(*itConnectedBody, "name");
+                const std::string connectedBodyScenePk = controller->GetScenePrimaryKeyFromURI_UTF8(GetJsonValueByKey<std::string>(*itConnectedBody, "url"));
+                const std::string connectedBodyName = GetJsonValueByKey<std::string>(*itConnectedBody, "name");
                 rapidjson::Document rConnectedBodyInstObjects(rapidjson::kObjectType);
                 controller->CallGet(str(boost::format("scene/%s/instobject/?format=json&limit=0&fields=attachedsensors,object_pk,name")%connectedBodyScenePk), rConnectedBodyInstObjects);
                 for (rapidjson::Document::ConstValueIterator itConnectedBodyInstObject = rConnectedBodyInstObjects["objects"].Begin(); itConnectedBodyInstObject != rConnectedBodyInstObjects["objects"].End(); ++itConnectedBodyInstObject) {
@@ -836,10 +969,8 @@ void SceneResource::GetSensorMapping(std::map<std::string, std::string>& sensorm
                     controller->CallGet(str(boost::format("robot/%s/attachedsensor/?format=json")%connectedBodyObjectPk), rConnectedBodyRobotAttachedSensors);
                     rapidjson::Value& rConnectedBodyAttachedSensors = rConnectedBodyRobotAttachedSensors["attachedsensors"];
                     for (rapidjson::Document::ConstValueIterator itConnectedBodyAttachedSensor = rConnectedBodyAttachedSensors.Begin(); itConnectedBodyAttachedSensor != rConnectedBodyAttachedSensors.End(); ++itConnectedBodyAttachedSensor) {
-                        std::string sensorname = GetJsonValueByKey<std::string>(*itConnectedBodyAttachedSensor, "name");
-                        std::string camerafullname = str(boost::format("%s/%s_%s")%cameracontainername%connectedBodyName%sensorname);
-                        std::string cameraid = GetJsonValueByPath<std::string>(*itConnectedBodyAttachedSensor, "/sensordata/hardware_id");
-                        sensormapping[camerafullname] = cameraid;
+                        const std::string sensorLinkName = GetJsonValueByKey<std::string>(*itConnectedBodyAttachedSensor, "linkName");
+                        allSensorSelectionInfos.emplace_back(sensorName, connectedBodyName+"_"+sensorLinkName);
                     }
                 }
             }

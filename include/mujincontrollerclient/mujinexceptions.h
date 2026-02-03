@@ -55,7 +55,8 @@ enum MujinErrorCode {
     MEC_AlreadyExists=15, ///< the resource already exists and overwriting terminated
     MEC_BinPickingError=16, ///< BinPicking failed
     MEC_HandEyeCalibrationError=17, ///< HandEye Calibration failed
-    MEC_ZMQNoResponse=20 ///< No response from the zmq server, using REQ-REP
+    MEC_ZMQNoResponse=20, ///< No response from the zmq server, using REQ-REP
+    MEC_GraphQueryError=21, ///< GraphQL failed to execute
 };
 
 inline const char* GetErrorCodeString(MujinErrorCode error)
@@ -75,6 +76,7 @@ inline const char* GetErrorCodeString(MujinErrorCode error)
     case MEC_BinPickingError: return "BinPickingError";
     case MEC_HandEyeCalibrationError: return "HandEyeCalibrationError";
     case MEC_ZMQNoResponse: return "NoResponse";
+    case MEC_GraphQueryError: return "GraphQueryError";
     }
     // should throw an exception?
     return "";
@@ -107,6 +109,24 @@ public:
 private:
     std::string _s;
     MujinErrorCode _error;
+};
+
+/// \brief Error that can be thrown by ExecuteGraphQuery API, use GetGraphQueryErrorCode to get detailed error code
+class MUJINCLIENT_API MujinGraphQueryError : public MujinException
+{
+public:
+    MujinGraphQueryError(const std::string& s, const std::string& graphQueryErrorCode) : MujinGraphQueryError(s, graphQueryErrorCode.c_str()) {}
+    MujinGraphQueryError(const std::string& s, const char* graphQueryErrorCode) : MujinException(s, MEC_GraphQueryError) {
+        _graphQueryErrorCode = graphQueryErrorCode;
+    }
+
+    /// \brief GraphQL error code, such as "not-found"
+    const std::string& GetGraphQueryErrorCode() const {
+        return _graphQueryErrorCode;
+    }
+
+private:
+    std::string _graphQueryErrorCode;    
 };
 
 } // namespace mujinclient

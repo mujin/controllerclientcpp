@@ -55,12 +55,44 @@
 #include <boost/weak_ptr.hpp>
 #include <boost/format.hpp>
 #include <boost/array.hpp>
+#include <mujincontrollerclient/config.h>
 #include <mujincontrollerclient/mujinexceptions.h>
 #include <mujincontrollerclient/mujinjson.h>
+#include <mujincontrollerclient/mujindefinitions.h>
+
 
 namespace mujinclient {
 
-#include <mujincontrollerclient/config.h>
+/// \brief connecting to a controller's webstack
+class MUJINCLIENT_API ControllerClientInfo : public mujinjson::JsonSerializable
+{
+public:
+    virtual void Reset();
+
+    void LoadFromJson(const rapidjson::Value& rClientInfo) override;
+    void SaveToJson(rapidjson::Value& rClientInfo, rapidjson::Document::AllocatorType& alloc) const override;
+    void SaveToJson(rapidjson::Document& rClientInfo) const override;
+
+    bool operator==(const ControllerClientInfo &rhs) const;
+    bool operator!=(const ControllerClientInfo &rhs) const {
+        return !operator==(rhs);
+    }
+    std::string GetURL(bool bIncludeNamePassword, bool bResolveIpFromHostIfUnique = false) const;
+
+    inline bool IsEnabled() const {
+        return !host.empty();
+    }
+
+    std::string host;
+    uint16_t httpPort = 0; ///< Post to communicate with the webstack. If 0, then use the default port
+    std::string username;
+    std::string password;
+    std::vector<std::string> additionalHeaders; ///< expect each value to be in the format of "Header-Name: header-value"
+    std::string unixEndpoint; ///< unix socket endpoint for communicating with HTTP server over unix socket
+    std::string userAgent;
+};
+
+typedef mujin::Transform Transform;
 
 enum TaskResourceOptions
 {
@@ -68,6 +100,7 @@ enum TaskResourceOptions
 };
 
 class ControllerClient;
+class GraphSubscriptionHandler;
 class ObjectResource;
 class RobotResource;
 class SceneResource;
@@ -82,12 +115,14 @@ class DebugResource;
 struct FileEntry
 {
     std::string filename;
-    double modified; // in epoch seconds
-    size_t size; // file size in bytes
+    double modified = 0; // in epoch seconds
+    size_t size = 0; // file size in bytes
 };
 
 typedef boost::shared_ptr<ControllerClient> ControllerClientPtr;
 typedef boost::weak_ptr<ControllerClient> ControllerClientWeakPtr;
+typedef boost::shared_ptr<GraphSubscriptionHandler> GraphSubscriptionHandlerPtr;
+typedef boost::weak_ptr<GraphSubscriptionHandler> GraphSubscriptionHandlerWeakPtr;
 typedef boost::shared_ptr<ObjectResource> ObjectResourcePtr;
 typedef boost::weak_ptr<ObjectResource> ObjectResourceWeakPtr;
 typedef boost::shared_ptr<RobotResource> RobotResourcePtr;
@@ -108,30 +143,34 @@ typedef boost::shared_ptr<DebugResource> DebugResourcePtr;
 typedef boost::weak_ptr<DebugResource> DebugResourceWeakPtr;
 typedef double Real;
 
-inline bool FuzzyEquals(Real p, Real q, double epsilon=1e-3) {
-    return fabs(double(p - q)) < epsilon;
-}
+/// \brief an attachment to a log entry
+struct LogEntryAttachment
+{
+    std::string filename; // filename
+    std::vector<unsigned char> data; // data for the attachment
 
-template<class T> inline bool FuzzyEquals(const std::vector<T>& p, const std::vector<T>& q, double epsilon=1e-3) {
-    if (p.size() != q.size()) {
-        return false;
-    }
-    for (size_t i = 0; i < p.size(); ++i) {
-        if (!FuzzyEquals(p[i], q[i], epsilon)) {
-            return false;
-        }
-    }
-    return true;
-}
+    // default constructor
+    LogEntryAttachment() = default;
 
-template<class T, size_t N> inline bool FuzzyEquals(const T (&p)[N], const T (&q)[N], double epsilon=1e-3) {
-    for (size_t i = 0; i < N; ++i) {
-        if (!FuzzyEquals(p[i], q[i], epsilon)) {
-            return false;
-        }
-    }
-    return true;
-}
+    // move constructor (delete copy constructor)
+    LogEntryAttachment(LogEntryAttachment&& other) = default;
+    LogEntryAttachment& operator=(LogEntryAttachment&& other) = default;
+};
+
+typedef boost::shared_ptr<LogEntryAttachment> LogEntryAttachmentPtr;
+typedef boost::weak_ptr<LogEntryAttachment> LogEntryAttachmentWeakPtr;
+
+/// \brief a log entry in mujin controller
+struct LogEntry
+{
+    rapidjson::Value rEntry; // log entry data in JSON format
+    std::string logType; // log type
+    std::vector<LogEntryAttachment> attachments; // a list of related attachments
+};
+
+typedef boost::shared_ptr<LogEntry> LogEntryPtr;
+typedef boost::weak_ptr<LogEntry> LogEntryWeakPtr;
+
 /// \brief status code for a job
 ///
 /// Definitions are very similar to http://ros.org/doc/api/actionlib_msgs/html/msg/GoalStatus.html
@@ -158,30 +197,13 @@ JobStatusCode GetStatusCode(const std::string& str);
 
 struct JobStatus
 {
-    JobStatus() : code(JSC_Unknown) {
+    JobStatus() : code(JSC_Unknown), elapsedtime(0.0) {
     }
     JobStatusCode code; ///< status code on whether the job is active
     std::string type; ///< the type of job running
     std::string message; ///< current message of the job
     double elapsedtime; ///< how long the job has been running for in seconds
     std::string pk; ///< the primary key to differentiate this job
-};
-
-/// \brief an affine transform
-struct Transform
-{
-    Transform() {
-        quaternion[0] = 1; quaternion[1] = 0; quaternion[2] = 0; quaternion[3] = 0;
-        translate[0] = 0; translate[1] = 0; translate[2] = 0;
-    }
-    bool operator!=(const Transform& other) const {
-        return !FuzzyEquals(quaternion, other.quaternion) || !FuzzyEquals(translate, other.translate);
-    }
-    bool operator==(const Transform& other) const {
-        return !operator!=(other);
-    }
-    Real quaternion[4]; ///< quaternion [cos(ang/2), axis*sin(ang/2)]
-    Real translate[3]; ///< translation x,y,z
 };
 
 struct InstanceObjectState
@@ -207,6 +229,8 @@ public:
     ITLPlanningTaskParameters() {
         SetDefaults();
     }
+    virtual ~ITLPlanningTaskParameters() {}
+
     virtual void SetDefaults() {
         startfromcurrent = 0;
         returnmode = "start";
@@ -364,23 +388,62 @@ public:
     /// Check out http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
     virtual void SetLanguage(const std::string& language) = 0;
 
+    /// \brief sets the user agent to be sent with each http request
+    virtual void SetUserAgent(const std::string& userAgent) = 0;
+
+    /// \brief sets additional http headers to be included on all requests
+    ///
+    /// \param additionalHeaders expect each value to be in the format of "Header-Name: header-value"
+    virtual void SetAdditionalHeaders(const std::vector<std::string>& additionalHeaders) = 0;
+
     /// \brief returns the username logged into this controller
     virtual const std::string& GetUserName() const = 0;
 
     /// \brief returns the URI used to setup the connection
     virtual const std::string& GetBaseURI() const = 0;
 
-    /// \brief If necessary, changes the proxy to communicate to the controller server
+    /// \brief full connection URI with username and password. http://username@password:path
+    virtual std::string GetURIWithUsernamePassword() const = 0;
+
+    /// \brief returns the client info used to construct this client
+    virtual const ControllerClientInfo& GetClientInfo() const = 0;
+
+    /// \brief If necessary, changes the proxy to communicate to the controller server. Setting proxy disables previously set unix endpoint.
     ///
     /// \param serverport Specify proxy server to use. To specify port number in this string, append :[port] to the end of the host name. The proxy string may be prefixed with [protocol]:// since any such prefix will be ignored. The proxy's port number may optionally be specified with the separate option. If not specified, will default to using port 1080 for proxies. Setting to empty string will disable the proxy.
     /// \param userpw If non-empty, [user name]:[password] to use for the connection to the HTTP proxy.
     virtual void SetProxy(const std::string& serverport, const std::string& userpw) = 0;
+
+    /// \brief If necessary, changes the unix domain socket to be used to communicate to the controller server. Setting unix endpoint disables previously set proxy.
+    ///
+    /// \param unixendpoint Specify the file path to the unix domain socket to connect to.
+    virtual void SetUnixEndpoint(const std::string& unixendpoint) = 0;
 
     /// \brief Restarts the MUJIN Controller Server and destroys any optimizaiton jobs.
     ///
     /// If the server is not responding, call this method to clear the server state and initialize everything.
     /// The method is blocking, when it returns the MUJIN Controller would have been restarted.
     virtual void RestartServer(double timeout = 5.0) = 0;
+
+    /// \brief Execute GraphQL query or mutation against Mujin Controller.
+    ///
+    /// Throws an exception if there are any errors
+    /// \param rResultData The "data" field of the result if the query returns without problems
+    virtual void ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResultData, rapidjson::Document::AllocatorType& rAlloc, double timeout = 60.0) = 0;
+
+    /// \brief Execute the GraphQL query or mutation against Mujin Controller and return any output as-is without doing any error processing
+    ///
+    /// \param rResult The entire result field of the query. Should have keys "data" and "errors". Each error should have keys: "message", "locations", "path", "extensions". And "extensions" has keys "errorCode".
+    virtual void ExecuteGraphQueryRaw(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout = 60.0) = 0;
+
+    /// \brief Execute GraphQL subscription query against Mujin Controller.
+    ///
+    /// Throws an exception if failed to start subscription, return a handler represents the graphql subscription
+    /// \param operationName The name of the subscription query
+    /// \param query The subscription query
+    /// \param rVariables The subscription query variables
+    /// \param onReadHandler The callback function invoked when receiving subscription result. The callback function should NOT destroy the handler, otherwise deadlock can happen. In case of an error, the callback function can be called more than once with the same or different error code. The callback function accepts errors and data in json format as parameter.
+    virtual GraphSubscriptionHandlerPtr ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, std::function<void(rapidjson::Value&&, rapidjson::Value&&)> onReadHandler) = 0;
 
     /// \brief returns the mujin controller version
     virtual std::string GetVersion() = 0;
@@ -497,8 +560,16 @@ public:
     ///
     /// Overwrites the destination uri if it already exists
     /// \param data binary data to upload to the uri
+    /// \param size binary data size in bytes
     /// \param desturi UTF-8 encoded destination file in the network filesystem. By default prefix with "mujin:/". Use the / separator for different paths.
-    virtual void UploadDataToController_UTF8(const std::vector<unsigned char>& vdata, const std::string& desturi) = 0;
+    virtual void UploadDataToController_UTF8(const void* data, size_t size, const std::string& desturi) = 0;
+
+    /// \brief \see UploadDataToController_UTF8
+    ///
+    /// \param data binary data to upload to the uri
+    /// \param size binary data size in bytes
+    /// \param desturi UTF-16 encoded
+    virtual void UploadDataToController_UTF16(const void* data, size_t size, const std::wstring& desturi) = 0;
 
     /// \brief Build a backup of config/media and download it.
     ///
@@ -670,7 +741,23 @@ public:
 
     /// \brief get debug infos
     virtual void GetDebugInfos(std::vector<DebugResourcePtr>& debuginfos, double timeout = 5) = 0;
+
+    /// \brief create log entries and attachments such as images, additional files, etc.
+    /// \param logEntries a vector of log entries to upload
+    /// \param createdLogEntryIds an optional vector for storing the created log entry ids
+    /// \param timeout timeout of uploading log entries in seconds
+    virtual void CreateLogEntries(const std::vector<LogEntry>& logEntries, std::vector<std::string>& createdLogEntryIds, double timeout = 5) = 0;
 };
+
+
+/// \brief A handler represents the graphql subscription, destroying the handler will automatically stop the subscription.
+class MUJINCLIENT_API GraphSubscriptionHandler
+{
+public:
+    virtual ~GraphSubscriptionHandler() {
+    }
+};
+
 
 class MUJINCLIENT_API WebResource
 {
@@ -694,7 +781,7 @@ public:
     inline T Get(const std::string& field, double timeout = 5.0) {
         rapidjson::Document pt(rapidjson::kObjectType);
         GetWrap(pt, field, timeout);
-        return mujinjson_external::GetJsonValueByKey<T>(pt, field.c_str());
+        return mujinjson::GetJsonValueByKey<T>(pt, field.c_str());
     }
 
     /// \brief sets an attribute of this web resource
@@ -729,14 +816,16 @@ public:
         std::string objectpk;
         std::string linkpk;
         std::string geomtype;
-        Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-        Real translate[3];
-        bool visible;
-        Real diffusecolor[4];
-        Real transparency;
-        Real half_extents[3];
-        Real height;
-        Real radius;
+        Real quaternion[4] = {1, 0, 0, 0}; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        Real translate[3] = {0, 0, 0};
+        bool visible = true;
+        Real diffusecolor[4] = {0, 0, 0, 0};
+        Real transparency = 0;
+        Real half_extents[3] = {0, 0, 0};
+        Real height = 0;
+        Real radius = 0;
+        Real topRadius = 0;
+        Real bottomRadius = 0;
 
         virtual void GetMesh(std::string& primitive, std::vector<std::vector<int> >& indices, std::vector<std::vector<Real> >& vertices);
         virtual void SetGeometryFromRawSTL(const std::vector<unsigned char>& rawstldata, const std::string& unit, double timeout = 5.0);
@@ -754,10 +843,10 @@ public:
         std::string name;
         std::string pk;
         std::string iktype;
-        Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-        Real translation[3];
-        Real direction[3];
-        Real angle;
+        Real quaternion[4] = {1, 0, 0, 0}; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        Real translation[3] = {0, 0, 0};
+        Real direction[3] = {0, 0, 0};
+        Real angle = 0;
     };
     typedef boost::shared_ptr<IkParamResource> IkParamResourcePtr;
 
@@ -788,9 +877,9 @@ public:
         std::string pk;
         std::string objectpk;
         std::string parentlinkpk;
-        Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-        Real translate[3];
-        bool collision;
+        Real quaternion[4] = {1, 0, 0, 0}; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        Real translate[3] = {0, 0, 0};
+        bool collision = true;
     };
     typedef boost::shared_ptr<LinkResource> LinkResourcePtr;
 
@@ -813,17 +902,17 @@ public:
     virtual int GetVisible();
 
     std::string name;
-    int nundof;
+    int nundof = 0;
     std::string datemodified;
     std::string geometry;
-    bool isrobot;
+    bool isrobot = false;
     std::string pk;
     std::string resource_uri;
     std::string scenepk;
     std::string unit;
     std::string uri;
-    Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-    Real translate[3];
+    Real quaternion[4] = {1, 0, 0, 0}; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+    Real translate[3] = {0, 0, 0};
 
 protected:
     ObjectResource(ControllerClientPtr controller, const std::string& resource, const std::string& pk);
@@ -843,9 +932,9 @@ public:
         std::string frame_origin;
         std::string frame_tip;
         std::string pk;
-        Real direction[3];
-        Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-        Real translate[3];
+        std::array<Real,3> direction = {0, 0, 0};
+        std::array<Real,4> quaternion = {1, 0, 0, 0}; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        std::array<Real,3> translate = {0, 0, 0};
     };
     typedef boost::shared_ptr<ToolResource> ToolResourcePtr;
 
@@ -859,8 +948,8 @@ public:
         std::string frame_origin;
         std::string pk;
         //Real direction[3];
-        Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-        Real translate[3];
+        std::array<Real,4> quaternion = {1, 0, 0, 0}; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        std::array<Real,3> translate = {0, 0, 0};
         std::string sensortype;
 
         struct SensorData {
@@ -877,12 +966,12 @@ public:
             bool operator==(const SensorData& other) const {
                 return !operator!=(other);
             }
-            Real distortion_coeffs[5];
+            Real distortion_coeffs[5] = {0, 0, 0, 0, 0};
             std::string distortion_model;
-            Real focal_length;
-            int image_dimensions[3];
-            Real intrinsic[6];
-            Real measurement_time;
+            Real focal_length = 0;
+            int image_dimensions[3] = {0, 0, 0};
+            Real intrinsic[6] = {0, 0, 0, 0, 0, 0};
+            Real measurement_time = 0;
             std::vector<Real> extra_parameters;
         };
         SensorData sensordata;
@@ -900,7 +989,7 @@ public:
     // attachments
     // ikparams
     // images
-    int numdof;
+    int numdof = 0;
     std::string simulation_file;
 };
 
@@ -920,16 +1009,16 @@ public:
         class MUJINCLIENT_API Link {
 public:
             std::string name;
-            Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-            Real translate[3];
+            Real quaternion[4] = {1, 0, 0, 0}; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+            Real translate[3] = {0, 0, 0};
         };
 
         class MUJINCLIENT_API Tool {
 public:
             std::string name;
-            Real direction[3];
-            Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-            Real translate[3];
+            Real direction[3] = {0, 0, 0};
+            Real quaternion[4] = {1, 0, 0, 0}; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+            Real translate[3] = {0, 0, 0};
         };
 
         class MUJINCLIENT_API Grab {
@@ -955,8 +1044,8 @@ public:
         class MUJINCLIENT_API AttachedSensor {
 public:
             std::string name;
-            Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-            Real translate[3];
+            Real quaternion[4] = {1, 0, 0, 0}; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+            Real translate[3] = {0, 0, 0};
         };
 
         void SetTransform(const Transform& t);
@@ -971,8 +1060,8 @@ public:
         std::string object_pk;
         std::string reference_object_pk;
         std::string reference_uri;
-        Real quaternion[4]; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
-        Real translate[3];
+        Real quaternion[4] = {1, 0, 0, 0}; // quaternion [w, x, y, z] = [cos(angle/2), sin(angle/2)*rotation_axis]
+        Real translate[3] = {0, 0, 0};
         std::vector<Grab> grabs;
         std::vector<Link> links;
         std::vector<Tool> tools;
@@ -1029,7 +1118,7 @@ public:
     virtual void GetTaskNames(std::vector<std::string>& names);
 
     /// \brief gets a list of all the instance objects of the scene
-    virtual void GetSensorMapping(std::map<std::string, std::string>& sensormapping);
+    virtual void GetAllSensorSelectionInfos(std::vector<mujin::SensorSelectionInfo>& allSensorSelectionInfos);
     virtual void GetInstObjects(std::vector<InstObjectPtr>& instobjects);
     virtual bool FindInstObject(const std::string& name, InstObjectPtr& instobject);
 
@@ -1193,7 +1282,7 @@ public:
     std::string name;
     std::string pk;
     std::string resource_uri;
-    size_t size;
+    size_t size = 0;
 
 protected:
     DebugResource(ControllerClientPtr controller, const std::string& resource, const std::string& pk);
@@ -1203,7 +1292,7 @@ protected:
 
     You must not call it when any other thread in the program (i.e. a thread sharing the same memory) is running.
     \param usernamepassword user:password
-    \param url the URI-encoded URL of controller server, it needs to have a trailing slash. It can also be in the form of https://username@server/ in order to force login of a particular user. If not specified, will use the default mujin controller URL
+    \param url the URI-encoded URL of controller server, it needs to have a trailing slash. It can also be in the form of https://username@server/ in order to force login of a particular user.
     \param proxyserverport Specify proxy server to use. To specify port number in this string, append :[port] to the end of the host name. The proxy string may be prefixed with [protocol]:// since any such prefix will be ignored. The proxy's port number may optionally be specified with the separate option. If not specified, will default to using port 1080 for proxies. Setting to empty string will disable the proxy.
     \param proxyuserpw If non-empty, [user name]:[password] to use for the connection to the HTTP proxy.
     \param options extra options for connecting to the controller. If 0x1 is set, the client will optimize usage to only allow GET calls. Set 0x80000000 if using a development server.
@@ -1212,13 +1301,13 @@ protected:
 
     この関数はスレッドセーフではないため、呼び出す時に他のスレッドが走っていないようにご注意ください。
     \param usernamepassword ユーザ:パスワード
-    \param url コントローラにアクセスするためのURLです。スラッシュ「/」で終わる必要があります。強制的にユーザも指定出来ます、例えば<b>https://username@server/</b>。指定されていなければデフォールトのMUJINコントローラURLが使用されます。
+    \param url コントローラにアクセスするためのURLです。スラッシュ「/」で終わる必要があります。強制的にユーザも指定出来ます、例えば<b>https://username@server/</b>。
     \param proxyserverport Specify proxy server to use. To specify port number in this string, append :[port] to the end of the host name. The proxy string may be prefixed with [protocol]:// since any such prefix will be ignored. The proxy's port number may optionally be specified with the separate option. If not specified, will default to using port 1080 for proxies. Setting to empty string will disable the proxy.
     \param proxyuserpw If non-empty, [user name]:[password] to use for the connection to the HTTP proxy.
     \param options １が指定されたら、クライアントがGETのみを呼び出し出来ます。それで初期化がもっと速くなれます。
     \param timeout set timeout in seconds for the initial login requests
  */
-MUJINCLIENT_API ControllerClientPtr CreateControllerClient(const std::string& usernamepassword, const std::string& url=std::string(), const std::string& proxyserverport=std::string(), const std::string& proxyuserpw=std::string(), int options=0, double timeout=3.0);
+MUJINCLIENT_API ControllerClientPtr CreateControllerClient(const std::string& usernamepassword, const std::string& url, const std::string& proxyserverport=std::string(), const std::string& proxyuserpw=std::string(), int options=0, double timeout=3.0);
 
 /// \brief called at the very end of an application to safely destroy all controller client resources
 MUJINCLIENT_API void DestroyControllerClient();

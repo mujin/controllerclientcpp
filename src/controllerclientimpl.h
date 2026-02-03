@@ -20,8 +20,15 @@
 #include <mujincontrollerclient/mujincontrollerclient.h>
 
 #include <boost/enable_shared_from_this.hpp>
+#include <boost/beast.hpp>
+#include <boost/asio.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 
 namespace mujinclient {
+
+class GraphSubscriptionWebSocketHandler;
+typedef boost::shared_ptr<GraphSubscriptionWebSocketHandler> GraphSubscriptionWebSocketHandlerPtr;
+typedef boost::weak_ptr<GraphSubscriptionWebSocketHandler> GraphSubscriptionWebSocketHandlerWeakPtr;
 
 class ControllerClientImpl : public ControllerClient, public boost::enable_shared_from_this<ControllerClientImpl>
 {
@@ -29,14 +36,27 @@ public:
     ControllerClientImpl(const std::string& usernamepassword, const std::string& baseuri, const std::string& proxyserverport, const std::string& proxyuserpw, int options, double timeout);
     virtual ~ControllerClientImpl();
 
-    virtual const std::string& GetUserName() const;
-    virtual const std::string& GetBaseURI() const;
+    const std::string& GetUserName() const override;
+    const std::string& GetBaseURI() const override;
+    const ControllerClientInfo& GetClientInfo() const override;
+
+    std::string GetURIWithUsernamePassword() const override
+    {
+        return _fulluri;
+    }
 
     virtual std::string GetVersion();
     virtual void SetCharacterEncoding(const std::string& newencoding);
     virtual void SetProxy(const std::string& serverport, const std::string& userpw);
+    virtual void SetUnixEndpoint(const std::string& unixendpoint) override;
     virtual void SetLanguage(const std::string& language);
+    virtual void SetUserAgent(const std::string& userAgent);
+    virtual void SetAdditionalHeaders(const std::vector<std::string>& additionalHeaders);
     virtual void RestartServer(double timeout);
+    virtual void _ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout, bool checkForErrors, bool returnRawResponse);
+    virtual void ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout);
+    virtual void ExecuteGraphQueryRaw(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout);
+    virtual GraphSubscriptionHandlerPtr ExecuteGraphSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, std::function<void(rapidjson::Value&&, rapidjson::Value&&)> onReadHandler);
     virtual void CancelAllJobs();
     virtual void GetRunTimeStatuses(std::vector<JobStatus>& statuses, int options);
     virtual void GetScenePrimaryKeys(std::vector<std::string>& scenekeys);
@@ -50,8 +70,8 @@ public:
 
     virtual void UploadFileToController_UTF8(const std::string& filename, const std::string& desturi);
     virtual void UploadFileToController_UTF16(const std::wstring& filename, const std::wstring& desturi);
-    virtual void UploadDataToController_UTF8(const std::vector<unsigned char>& vdata, const std::string& desturi);
-    virtual void UploadDataToController_UTF16(const std::vector<unsigned char>& vdata, const std::wstring& desturi);
+    virtual void UploadDataToController_UTF8(const void* data, size_t size, const std::string& desturi);
+    virtual void UploadDataToController_UTF16(const void* data, size_t size, const std::wstring& desturi);
     virtual void UploadDirectoryToController_UTF8(const std::string& copydir, const std::string& desturi);
     virtual void UploadDirectoryToController_UTF16(const std::wstring& copydir, const std::wstring& desturi);
     virtual void DownloadFileFromController_UTF8(const std::string& desturi, std::vector<unsigned char>& vdata);
@@ -156,6 +176,12 @@ public:
 
     void GetDebugInfos(std::vector<DebugResourcePtr>& debuginfos, double timeout = 5);
 
+    /// \brief create log entries and attachments such as images, additional files, etc.
+    /// \param logEntries a vector of log entries to upload
+    /// \param createdLogEntryIds an optional vector for storing the created log entry ids
+    /// \param timeout timeout of uploading log entries in seconds
+    void CreateLogEntries(const std::vector<LogEntry>& logEntries, std::vector<std::string>& createdLogEntryIds, double timeout = 5) override;
+
     inline std::string GetBaseUri() const
     {
         return _baseuri;
@@ -213,22 +239,17 @@ protected:
     //@{
 
     /// \param desturi expects the fully resolved URI to pass to curl
-    int _CallGet(const std::string& desturi, rapidjson::Document& pt, int expectedhttpcode=200, double timeout = 5.0);
+    int _CallGet(const std::string& desturi, rapidjson::Value& rRequest, rapidjson::Document::AllocatorType& alloc, int expectedhttpcode=200, double timeout = 5.0);
     int _CallGet(const std::string& desturi, std::string& outputdata, int expectedhttpcode=200, double timeout = 5.0);
     int _CallGet(const std::string& desturi, std::vector<unsigned char>& outputdata, int expectedhttpcode=200, double timeout = 5.0);
     int _CallGet(const std::string& desturi, std::ostream& outputStream, int expectedhttpcode=200, double timeout = 5.0);
-    int _CallPost(const std::string& desturi, const std::string& data, rapidjson::Document& pt, int expectedhttpcode=201, double timeout = 5.0);
+    int _CallPost(const std::string& desturi, const std::string& data, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& alloc, int expectedhttpcode=201, double timeout = 5.0);
+    int _CallPost(const std::string& desturi, const curl_httppost* data, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& alloc, int expectedhttpcode=201, double timeout = 5.0);
 
     /// \brief desturi is URL-encoded. Also assume _mutex is locked.
     virtual void _UploadFileToController_UTF8(const std::string& filename, const std::string& desturi);
     /// \brief desturi is URL-encoded. Also assume _mutex is locked.
     virtual void _UploadFileToController_UTF16(const std::wstring& filename, const std::string& desturi);
-
-    /// \brief uploads a single file, assumes the directory already exists
-    ///
-    /// overwrites the file if it already exists.
-    /// \param fd FILE pointer of binary reading file. does not close the handle
-    virtual void _UploadFileToController(FILE* fd, const std::string& uri);
 
     /// \brief uploads a single file, to dest location specified by filename
     ///
@@ -236,8 +257,12 @@ protected:
     /// \param inputStream the stream represententing the backup. It needs to be seekable to get the size (ifstream subclass is applicable to files).
     virtual void _UploadFileToControllerViaForm(std::istream& inputStream, const std::string& filename, const std::string& endpoint, double timeout = 0);
 
-    /// \brief desturi is URL-encoded. Also assume _mutex is locked.
-    virtual void _UploadDataToController(const std::vector<unsigned char>& vdata, const std::string& desturi);
+    /// \brief uploads a single file, to dest location specified by filename
+    ///
+    /// overwrites the file if it already exists.
+    /// \param data the buffer represententing the file
+    /// \param size the length of the buffer represententing the file
+    virtual void _UploadDataToControllerViaForm(const void* data, size_t size, const std::string& filename, const std::string& endpoint, double timeout = 0);
 
     /// \brief desturi is URL-encoded. Also assume _mutex is locked.
     virtual void _UploadDirectoryToController_UTF8(const std::string& copydir, const std::string& desturi);
@@ -266,20 +291,71 @@ protected:
     boost::mutex _mutex;
     std::stringstream _buffer;
     std::string _baseuri, _baseapiuri, _basewebdavuri, _uri, _username;
+    std::string _fulluri; ///< full connection URI with username and password. http://username@password:path
+    ControllerClientInfo _clientInfo;
 
     curl_slist *_httpheadersjson;
     curl_slist *_httpheadersstl;
     curl_slist *_httpheadersmultipartformdata;
     std::string _charset, _language;
     std::string _csrfmiddlewaretoken;
+    std::vector<std::string> _additionalHeaders; ///< list of "Header-Name: header-value" additional http headers
 
     rapidjson::Document _profile; ///< user profile and versioning
     std::string _errormessage; ///< set when an error occurs in libcurl
 
     std::string _defaultscenetype, _defaulttasktype;
+
+    rapidjson::StringBuffer _rRequestStringBufferCache; ///< cache for request string, protected by _mutex
+
+    GraphSubscriptionWebSocketHandlerWeakPtr _graphSubscriptionWebSocketHandler; ///< a weak pointer represents an opened subscription socket
 };
 
 typedef boost::shared_ptr<ControllerClientImpl> ControllerClientImplPtr;
+
+/// \brief A handler represents the graphql subscription, destroying the handler will automatically stop the subscription.
+class GraphSubscriptionHandlerImpl : public GraphSubscriptionHandler, public boost::enable_shared_from_this<GraphSubscriptionHandlerImpl>
+{
+public:
+    GraphSubscriptionHandlerImpl(GraphSubscriptionWebSocketHandlerPtr graphSubscriptionWebSocketHandler, const std::string subscriptionId);
+    virtual ~GraphSubscriptionHandlerImpl();
+
+protected:
+    GraphSubscriptionWebSocketHandlerPtr _graphSubscriptionWebSocketHandler;
+    const std::string _subscriptionId;
+};
+
+typedef boost::shared_ptr<GraphSubscriptionHandlerImpl> GraphSubscriptionHandlerImplPtr;
+
+class GraphSubscriptionWebSocketHandler : public boost::enable_shared_from_this<GraphSubscriptionWebSocketHandler>
+{
+public:
+    GraphSubscriptionWebSocketHandler(const ControllerClientInfo& clientInfo);
+    ~GraphSubscriptionWebSocketHandler();
+
+    bool IsStreamOpen(); ///> protected by _mutex
+    std::string StartSubscription(const std::string& operationName, const std::string& query, const rapidjson::Value& rVariables, std::function<void(rapidjson::Value&&, rapidjson::Value&&)> onReadHandler); ///> protected by _mutex
+    void StopSubscription(const std::string& subscriptionId); ///> protected by _mutex
+    void StopAllSubscriptions(); ///> protected by _mutex
+
+protected:
+    void _SendMessage(const std::string& message);
+
+    boost::shared_ptr<boost::asio::io_context> _ioContext;
+    boost::shared_ptr<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>> _tcpStream;
+    boost::shared_ptr<boost::beast::websocket::stream<boost::asio::local::stream_protocol::socket>> _unixSocketStream;
+    boost::shared_ptr<std::thread> _thread;
+
+    boost::beast::flat_buffer _subscriptionBuffer;
+    boost::uuids::random_generator _randomGenerator;
+
+    std::vector<uint8_t> _vQueryBuffer; ///< buffer used for rapidjson allocator
+    rapidjson::MemoryPoolAllocator<> _rQueryAlloc; ///< rapidjson allocator, for cache, protected by _mutex
+
+    boost::mutex _mutex;
+    std::unordered_map<std::string, std::function<void(rapidjson::Value&&, rapidjson::Value&&)>> _onReadHandlers; ///< protected by _mutex
+    rapidjson::StringBuffer _rSubscriptionStringBufferCache; ///< protected by _mutex
+};
 
 } // end namespace mujinclient
 
