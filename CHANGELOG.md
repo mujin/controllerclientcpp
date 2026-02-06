@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.82.3 (2026-02-04)
+
+- Set Accept-Encoding:gzip if the linked libcurl supports it
+
 ## 0.82.2 (2025-10-08)
 
 - Add support for std::optional
