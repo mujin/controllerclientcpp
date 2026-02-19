@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.83.0 (2026-02-19)
+
+- Add referenceuri to PickPlaceHistoryItem
+
 ## 0.82.3 (2026-02-04)
 
 - Set Accept-Encoding:gzip if the linked libcurl supports it
