@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.82.4 (2026-02-19)
+## 0.83.0 (2026-02-19)
 
 - Add referenceuri to PickPlaceHistoryItem
 
