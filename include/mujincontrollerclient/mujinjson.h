@@ -1122,7 +1122,7 @@ inline void LoadJsonValueByPath(const rapidjson::GenericValue<Encoding, Allocato
 template<typename T, typename U, typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> >
 T GetJsonValueByKey(const rapidjson::GenericValue<Encoding, Allocator>& v, const char* key, const U& t) {
     if (!v.IsObject()) {
-        throw MujinJSONException("Cannot get value of non-object.");
+        throw MujinJSONException("Cannot get value of non-object (\"" + std::string(GetJsonTypeName(v)) + "\") for key \"" + std::string(key) + "\".");
     }
 
     typename rapidjson::GenericValue<Encoding, Allocator>::ConstMemberIterator itMember = v.FindMember(key);
