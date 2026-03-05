@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.82.4 (2026-03-04)
+
+- Improve GetJsonValueByKey exception message to mention expected key and type.
+
 ## 0.82.3 (2026-02-04)
 
 - Set Accept-Encoding:gzip if the linked libcurl supports it
