@@ -15,12 +15,12 @@
 #include "common.h"
 #include "controllerclientimpl.h"
 #include "binpickingtaskzmq.h"
-#include "mujincontrollerclient/mujinzmq.h"
-
 #include <algorithm> // find
+#include <memory>
 
 #include "logging.h"
-#include "mujincontrollerclient/mujinjson.h"
+#include "mujincontrollerclient/mujinjsonmsgpack.h"
+#include "mujincontrollerclient/mujinmasterslaveclient.h"
 
 MUJIN_LOGGER("mujin.controllerclientcpp.binpickingtask.zmq");
 
@@ -30,25 +30,12 @@ namespace mujinclient {
 using namespace utils;
 using namespace mujinjson;
 
-class ZmqMujinControllerClient : public mujinzmq::ZmqClient
+class ZmqMujinControllerClient : public mujinmasterslaveclient::RequestSocket
 {
 
 public:
-    ZmqMujinControllerClient(boost::shared_ptr<zmq::context_t> context, const std::string& host, const int port);
-
-    virtual ~ZmqMujinControllerClient();
-
+    ZmqMujinControllerClient(zmq::context_t &context, const std::string& host, const int port): RequestSocket(context, (boost::format("tcp://%s:%d") % host % port).str()) {}
 };
-
-ZmqMujinControllerClient::ZmqMujinControllerClient(boost::shared_ptr<zmq::context_t> context, const std::string& host, const int port) : ZmqClient(host, port)
-{
-    _InitializeSocket(context);
-}
-
-ZmqMujinControllerClient::~ZmqMujinControllerClient()
-{
-    // _DestroySocket() is called in  ~ZmqClient()
-}
 
 BinPickingTaskZmqResource::BinPickingTaskZmqResource(ControllerClientPtr c, const std::string& pk, const std::string& scenepk, const std::string& tasktype) : BinPickingTaskResource(c, pk, scenepk, tasktype)
 {
@@ -61,16 +48,14 @@ BinPickingTaskZmqResource::~BinPickingTaskZmqResource()
 
 void BinPickingTaskZmqResource::Initialize(const std::string& defaultTaskParameters,  const int zmqPort, const int heartbeatPort, boost::shared_ptr<zmq::context_t> zmqcontext, const bool initializezmq, const double reinitializetimeout, const double timeout, const std::string& userinfo, const std::string& slaverequestid)
 {
+    _zmqmujincontrollerclient.reset();
     BinPickingTaskResource::Initialize(defaultTaskParameters, zmqPort, heartbeatPort, zmqcontext, initializezmq, reinitializetimeout, timeout, userinfo, slaverequestid);
 
     if (initializezmq) {
         InitializeZMQ(reinitializetimeout, timeout);
     }
 
-    _zmqmujincontrollerclient.reset(new ZmqMujinControllerClient(_zmqcontext, _mujinControllerIp, _zmqPort));
-    if (!_zmqmujincontrollerclient) {
-        throw MujinException(boost::str(boost::format("Failed to establish ZMQ connection to mujin controller at %s:%d")%_mujinControllerIp%_zmqPort), MEC_Failed);
-    }
+    _zmqmujincontrollerclient = std::make_unique<ZmqMujinControllerClient>(*_zmqcontext, _mujinControllerIp, _zmqPort);
     if (!_pHeartbeatMonitorThread) {
         _bShutdownHeartbeatMonitor = false;
         if (reinitializetimeout > 0 ) {
@@ -91,35 +76,9 @@ void _LogTaskParametersAndThrow(const std::string& taskparameters) {
 
 void BinPickingTaskZmqResource::ExecuteCommand(const std::string& taskparameters, rapidjson::Document &pt, const double timeout /* [sec] */, const bool getresult)
 {
-    std::stringstream ss; ss << std::setprecision(std::numeric_limits<double>::digits10+1);
-    ss << "{\"fnname\": \"";
-    ss << (_tasktype == "binpicking" ? "binpicking.RunCommand\", " : "RunCommand\", ");
-
-    ss << "\"stamp\": " << (GetMilliTime()*1e-3) << ", ";
-    ss << "\"callerid\": \"" << _GetCallerId() << "\", ";
-    ss << "\"taskparams\": {\"tasktype\": \"" << _tasktype << "\", ";
-
-    ss << "\"taskparameters\": " << taskparameters << ", ";
-    ss << "\"sceneparams\": " << _sceneparams_json << "}, ";
-    ss << "\"userinfo\": " << _userinfo_json;
-    if (_slaverequestid != "") {
-        ss << ", " << GetJsonString("slaverequestid", _slaverequestid);
-    }
-    ss << "}";
-    std::string result_ss;
-
-    try{
-        _ExecuteCommandZMQ(ss.str(), pt, timeout, getresult);
-    }
-    catch (const MujinException& e) {
-        MUJIN_LOG_ERROR(e.what());
-        if (e.GetCode() == MEC_Timeout) {
-            _LogTaskParametersAndThrow(taskparameters);
-        }
-        else {
-            throw;
-        }
-    }
+    rapidjson::Document parsing;
+    ParseJson(parsing, taskparameters.data(), taskparameters.size());
+    return ExecuteCommand(parsing, pt, timeout);
 }
 
 void BinPickingTaskZmqResource::ExecuteCommand(rapidjson::Value& rTaskParameters, rapidjson::Document& rOutput, const double timeout)
@@ -148,12 +107,25 @@ void BinPickingTaskZmqResource::ExecuteCommand(rapidjson::Value& rTaskParameters
         rCommand.AddMember(rapidjson::Document::StringRefType("userinfo"), rUserInfo, rCommand.GetAllocator());
     }
 
+    rapidjson::Value rServerCommand(rapidjson::kObjectType);
     if (!_slaverequestid.empty()) {
-        mujinjson::SetJsonValueByKey(rCommand, "slaverequestid", _slaverequestid);
+        rServerCommand.AddMember("slaverequestid", rapidjson::Document::StringRefType(_slaverequestid.data(), _slaverequestid.size()), rCommand.GetAllocator());
     }
 
+    if (!_bIsInitialized) {
+        throw MujinException("BinPicking task is not initialized, please call Initialzie() first.", MEC_Failed);
+    }
+
+    if (_zmqmujincontrollerclient == nullptr) {
+        MUJIN_LOG_ERROR("zmqcontrollerclient is not initialized! initialize");
+        _zmqmujincontrollerclient = std::make_unique<ZmqMujinControllerClient>(*_zmqcontext, _mujinControllerIp, _zmqPort);
+    }
+
+    GenericMsgpackParser parser(rOutput.GetAllocator());
     try {
-        _ExecuteCommandZMQ(mujinjson::DumpJson(rCommand), rOutput, timeout);
+        if (!mujinmasterslaveclient::SendAndReceive<rapidjson::Value, GenericMsgpackParser>(*_zmqmujincontrollerclient, rServerCommand, rCommand, parser, std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::duration<double>(timeout)))) {
+            throw MujinException("Cannot deserialize response", MEC_InvalidState);
+        }
     }
     catch (const MujinException& e) {
         MUJIN_LOG_ERROR(e.what());
@@ -164,62 +136,7 @@ void BinPickingTaskZmqResource::ExecuteCommand(rapidjson::Value& rTaskParameters
             throw;
         }
     }
-}
-
-void BinPickingTaskZmqResource::_ExecuteCommandZMQ(const std::string& command, rapidjson::Document& rOutput, const double timeout, const bool getresult)
-{
-    if (!_bIsInitialized) {
-        throw MujinException("BinPicking task is not initialized, please call Initialzie() first.", MEC_Failed);
-    }
-
-    if (!_zmqmujincontrollerclient) {
-        MUJIN_LOG_ERROR("zmqcontrollerclient is not initialized! initialize");
-        _zmqmujincontrollerclient.reset(new ZmqMujinControllerClient(_zmqcontext, _mujinControllerIp, _zmqPort));
-    }
-
-    std::string result_ss;
-    try {
-        result_ss = _zmqmujincontrollerclient->Call(command, timeout);
-    }
-    catch (const MujinException& e) {
-        MUJIN_LOG_ERROR(e.what());
-        if (e.GetCode() == MEC_ZMQNoResponse) {
-            MUJIN_LOG_INFO("reinitializing zmq connection with the slave");
-            _zmqmujincontrollerclient.reset(new ZmqMujinControllerClient(_zmqcontext, _mujinControllerIp, _zmqPort));
-            if (!_zmqmujincontrollerclient) {
-                throw MujinException(boost::str(boost::format("Failed to establish ZMQ connection to mujin controller at %s:%d")%_mujinControllerIp%_zmqPort), MEC_Failed);
-            }
-        }
-        else {
-            throw;
-        }
-    }
-
-    try {
-        ParseJson(rOutput, result_ss);
-    }
-    catch(const std::exception& ex) {
-        MUJIN_LOG_ERROR(str(boost::format("Could not parse result %s")%result_ss));
-        throw;
-    }
-    if( rOutput.IsObject() && rOutput.HasMember("error")) {
-        std::string error = GetJsonValueByKey<std::string>(rOutput["error"], "errorcode");
-        std::string description = GetJsonValueByKey<std::string>(rOutput["error"], "description");
-        if ( error.size() > 0 ) {
-            std::string serror;
-            if ( description.size() > 0 ) {
-                serror = description;
-            }
-            else {
-                serror = error;
-            }
-            if( serror.size() > 1000 ) {
-                MUJIN_LOG_ERROR(str(boost::format("truncated original error message from %d")%serror.size()));
-                serror = serror.substr(0,1000);
-            }
-            throw MujinException(str(boost::format("Error when calling binpicking.RunCommand: %s")%serror), MEC_BinPickingError);
-        }
-    }
+    parser.Extract().Swap(rOutput);
 }
 
 void BinPickingTaskZmqResource::InitializeZMQ(const double reinitializetimeout, const double timeout)
@@ -230,8 +147,9 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
 {
     MUJIN_LOG_DEBUG(str(boost::format("starting controller %s monitoring thread on port %d for slaverequestid=%s.")%_mujinControllerIp%_heartbeatPort%_slaverequestid));
     boost::shared_ptr<zmq::socket_t>  socket;
-    BinPickingTaskResource::ResultHeartBeat heartbeat;
-    heartbeat._slaverequestid = _slaverequestid;
+    ResultGetBinpickingState taskstate;
+    std::vector<uint8_t> buffer(1024 * 100);
+    rapidjson::Document::AllocatorType allocator(buffer.data(), buffer.size());
     while (!_bShutdownHeartbeatMonitor) {
         if (!!socket) {
             socket->close();
@@ -245,7 +163,7 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
         std::stringstream ss; ss << std::setprecision(std::numeric_limits<double>::digits10+1);
         ss << _heartbeatPort;
         socket->connect (("tcp://"+ _mujinControllerIp+":"+ss.str()).c_str());
-        socket->setsockopt(ZMQ_SUBSCRIBE, "", 0);
+        socket->set(zmq::sockopt::subscribe, "s"+_slaverequestid);
 
         zmq::pollitem_t pollitem;
         memset(&pollitem, 0, sizeof(zmq::pollitem_t));
@@ -256,29 +174,41 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
             zmq::poll(&pollitem,1, 50); // wait 50 ms for message
             if (pollitem.revents & ZMQ_POLLIN) {
                 zmq::message_t reply;
-                socket->recv(&reply);
-                std::string replystring((char *)reply.data (), (size_t)reply.size());
-                rapidjson::Document pt(rapidjson::kObjectType);
-                try{
-                    std::stringstream replystring_ss(replystring);
-                    ParseJson(pt, replystring_ss.str());
-                    heartbeat.Parse(pt);
-                    {
-                        boost::mutex::scoped_lock lock(_mutexTaskState);
-                        _taskstate = heartbeat.taskstate;
-                    }
-                    //BINPICKING_LOG_ERROR(replystring);
+                socket->recv(reply);
+                if (!reply.more()) {
+                    MUJIN_LOG_ERROR("unknown protocol");
+                    continue;
+                }
+                socket->recv(reply);
+                if (reply.more()) {
+                    MUJIN_LOG_ERROR("unknown protocol");
+                    continue;
+                }
 
-                    if (heartbeat.status != std::string("lost") && heartbeat.status.size() > 1) {
-                        lastheartbeat = GetMilliTime();
+                allocator.Clear();
+                GenericMsgpackParser parser(allocator);
+                try {
+                    if (!msgpack::parse(reply.data<char>(), reply.size(), parser)) {
+                        throw std::runtime_error("unable to parse");
+                    }
+                    const rapidjson::Value pt = parser.Extract();
+                    const rapidjson::Value::ConstMemberIterator iterator = pt.FindMember("taskstate");
+                    if (iterator != pt.MemberEnd()) {
+                        taskstate.Parse(iterator->value);
                     }
                 }
                 catch (std::exception const &e) {
-                    MUJIN_LOG_ERROR("HeartBeat reply is not JSON");
-                    MUJIN_LOG_ERROR(replystring);
+                    MUJIN_LOG_ERROR("HeartBeat reply is not expected");
                     MUJIN_LOG_ERROR(e.what());
                     continue;
                 }
+                {
+                    boost::mutex::scoped_lock lock(_mutexTaskState);
+                    _taskstate = taskstate;
+                }
+                //BINPICKING_LOG_ERROR(replystring);
+
+                lastheartbeat = GetMilliTime();
             }
         }
         if (!_bShutdownHeartbeatMonitor) {
