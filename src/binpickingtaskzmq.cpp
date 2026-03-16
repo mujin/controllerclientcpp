@@ -15,6 +15,7 @@
 #include "common.h"
 #include "controllerclientimpl.h"
 #include "binpickingtaskzmq.h"
+#include "mujinmsgpack.h"
 #include "mujincontrollerclient/mujinzmq.h"
 
 #include <algorithm> // find
@@ -257,11 +258,9 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
             if (pollitem.revents & ZMQ_POLLIN) {
                 zmq::message_t reply;
                 socket->recv(&reply);
-                std::string replystring((char *)reply.data (), (size_t)reply.size());
                 rapidjson::Document pt(rapidjson::kObjectType);
                 try{
-                    std::stringstream replystring_ss(replystring);
-                    ParseJson(pt, replystring_ss.str());
+                    mujinmsgpack::ParseMsgPack(pt, reply.data(), reply.size());
                     heartbeat.Parse(pt);
                     {
                         boost::mutex::scoped_lock lock(_mutexTaskState);
@@ -275,7 +274,7 @@ void BinPickingTaskZmqResource::_HeartbeatMonitorThread(const double reinitializ
                 }
                 catch (std::exception const &e) {
                     MUJIN_LOG_ERROR("HeartBeat reply is not JSON");
-                    MUJIN_LOG_ERROR(replystring);
+                    MUJIN_LOG_ERROR(std::string((char *)reply.data (), (size_t)reply.size()));
                     MUJIN_LOG_ERROR(e.what());
                     continue;
                 }
