@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.83.0 (2026-02-19)
+
+- Add referenceuri to PickPlaceHistoryItem
+
 ## 0.82.4 (2026-03-04)
 
 - Improve GetJsonValueByKey exception message to mention expected key and type.
