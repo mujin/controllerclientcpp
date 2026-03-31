@@ -2,7 +2,7 @@
 
 ## 0.84.0 (2026-03-31)
 
-- Remove `lastInsideContainerStampMS` from `LocationTrackingInfo` to migrate it to robotbridge
+- (BREAKING) Remove `lastInsideContainerStampMS` from `LocationTrackingInfo` to migrate it to robotbridge
 
 ## 0.83.0 (2026-02-19)
 
