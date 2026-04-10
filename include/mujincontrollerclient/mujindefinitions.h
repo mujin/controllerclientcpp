@@ -156,7 +156,6 @@ struct LocationExecutionInfo
     std::string locationName; ///< name of the location tracking
     std::string containerId; ///< containerId currently in the location
     uint64_t forceRequestStampMS=0; ///< ms, (linux epoch) of when the requestion for results (detection or point cloud) came in. If there is no request, then this will be 0
-    uint64_t lastInsideContainerStampMS = 0; ///< ms, (linux epoch) of when the robot (or something else) was inside the container and could have potentially disturbed the contents.
     std::string needContainerState; ///< one of: Unknown, NewContainerNeeded, ContainerNeeded, ContainerNotNeeded. If empty, then not initialized yet, so can assume Unknown.
 };
 
