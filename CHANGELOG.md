@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.85.0 (2026-04-10)
+
+- Add triggerTiming, currentTriggerIndex, and numTotalTriggers to TriggerDetectionCaptureInfo.
+
 ## 0.84.0 (2026-03-31)
 
 - (BREAKING) Remove `lastInsideContainerStampMS` from `LocationTrackingInfo` to migrate it to robotbridge
