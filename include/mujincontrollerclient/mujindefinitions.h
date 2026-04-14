@@ -133,6 +133,7 @@ public:
     std::string pickPlaceType; ///< the type of action that ocurred can be: "picked", "placed", "touched"
     std::string locationName; ///< the name of the location where picking occurred for "picked", where placing occurred when "placed", and where touching occurred for "touched"
     std::string containerName; ///< the name of the container where picking occurred for "picked", where placing occurred when "placed", and where touching occurred for "touched"
+    std::string containerId; ///< the id of the container where picking occurred for "picked", where placing occurred when "placed", and where touching occurred for "touched"
     unsigned long long eventTimeStampUS = 0; ///< time that the event ocurred in us (from Linux epoch). For "picked" this is the chuck time, for "placed this is the unchuck time, for "touched" this is the time when the robot supposedly stopped touching/disturbing the object.
     std::string object_uri; ///< the object uri
     std::string referenceuri; ///< the object uri
