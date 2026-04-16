@@ -23,6 +23,7 @@ void PickPlaceHistoryItem::Reset()
     pickPlaceType.clear();
     locationName.clear();
     containerName.clear();
+    containerId.clear();
     eventTimeStampUS = 0;
     object_uri.clear();
     referenceuri.clear();
@@ -53,6 +54,7 @@ void PickPlaceHistoryItem::LoadFromJson(const rapidjson::Value& rItem)
     mujinjson::LoadJsonValueByKey(rItem, "pickPlaceType", pickPlaceType);
     mujinjson::LoadJsonValueByKey(rItem, "locationName", locationName);
     mujinjson::LoadJsonValueByKey(rItem, "containerName", containerName);
+    mujinjson::LoadJsonValueByKey(rItem, "containerId", containerId);
     mujinjson::LoadJsonValueByKey(rItem, "eventTimeStampUS", eventTimeStampUS);
     mujinjson::LoadJsonValueByKey(rItem, "object_uri", object_uri);
     mujinjson::LoadJsonValueByKey(rItem, "referenceuri", referenceuri);
@@ -86,6 +88,7 @@ void PickPlaceHistoryItem::SaveToJson(rapidjson::Value& rItem, rapidjson::Docume
     mujinjson::SetJsonValueByKey(rItem, "pickPlaceType", pickPlaceType, alloc);
     mujinjson::SetJsonValueByKey(rItem, "locationName", locationName, alloc);
     mujinjson::SetJsonValueByKey(rItem, "containerName", containerName, alloc);
+    mujinjson::SetJsonValueByKey(rItem, "containerId", containerId, alloc);
     mujinjson::SetJsonValueByKey(rItem, "eventTimeStampUS", eventTimeStampUS, alloc);
     mujinjson::SetJsonValueByKey(rItem, "object_uri", object_uri, alloc);
     mujinjson::SetJsonValueByKey(rItem, "referenceuri", referenceuri, alloc);

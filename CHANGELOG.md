@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.86.0 (2026-04-14)
+
+- Add containerId to PickPlaceHistoryItem
+
 ## 0.85.0 (2026-04-10)
 
 - Add triggerTiming, currentTriggerIndex, and numTotalTriggers to TriggerDetectionCaptureInfo.
