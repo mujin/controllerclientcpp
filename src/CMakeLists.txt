@@ -29,6 +29,7 @@ set(SOURCE_FILES
   mujincontrollerclient.cpp
   mujindefinitions.cpp
   mujinjson.cpp
+  mujinmasterslaveclient.cpp
   utf8.h )
 
 if (libzmq_FOUND)
