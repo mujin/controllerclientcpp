@@ -74,3 +74,16 @@ if( OPT_BUILD_STATIC )
   target_link_libraries(libmujincontrollerclient_static ${CURL_LIBRARIES} ${EXTRA_LIBRARIES} ${libzmq_LIBRARIES} ${libzmq_LIBRARIES} ${LOG4CXX_LIBRARIES})
   install(TARGETS libmujincontrollerclient_static DESTINATION lib${LIB_SUFFIX})
 endif()
+
+find_package(Python3 3.9 REQUIRED COMPONENTS Interpreter Development)
+if( Python3_FOUND )
+  execute_process(
+    COMMAND ${Python3_EXECUTABLE} -c "import distutils.sysconfig as sysconf; import os; \
+      print(os.path.relpath(sysconf.get_python_lib(1, prefix='${CMAKE_INSTALL_PREFIX}'), '${CMAKE_INSTALL_PREFIX}'))"
+      OUTPUT_VARIABLE PYTHON3_INSTALL_DIR OUTPUT_STRIP_TRAILING_WHITESPACE
+      WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+  )
+  set(METADATA "${CMAKE_CURRENT_BINARY_DIR}/dist-info/METADATA")
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/dist-info/METADATA.in" "${METADATA}" IMMEDIATE @ONLY)
+  install(FILES ${METADATA} "${CMAKE_CURRENT_SOURCE_DIR}/dist-info/top_level.txt" DESTINATION ${PYTHON3_INSTALL_DIR}/mujincontrollerclient_int.dist-info/)
+endif()
