@@ -1,0 +1,5 @@
+Metadata-Version: 2.4
+Name: mujincontrollerclient_int
+Version: @MUJINCLIENT_VERSION@
+License-Expression: Apache-2.0
+Author: Mujin Inc.
