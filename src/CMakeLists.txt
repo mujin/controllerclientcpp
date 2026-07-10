@@ -29,6 +29,7 @@ set(SOURCE_FILES
   mujincontrollerclient.cpp
   mujindefinitions.cpp
   mujinjson.cpp
+  mujinmsgpack.cpp
   utf8.h )
 
 if (libzmq_FOUND)
@@ -70,7 +71,7 @@ if( OPT_BUILD_STATIC )
                                            CLEAN_DIRECT_OUTPUT 1
                                            COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} ${Boost_CFLAGS} -DMUJINCLIENT_DLL_EXPORTS -DMUJINCLIENT_DLL"
                                            LINK_FLAGS "")
-  
+
   target_link_libraries(libmujincontrollerclient_static ${CURL_LIBRARIES} ${EXTRA_LIBRARIES} ${libzmq_LIBRARIES} ${libzmq_LIBRARIES} ${LOG4CXX_LIBRARIES})
   install(TARGETS libmujincontrollerclient_static DESTINATION lib${LIB_SUFFIX})
 endif()

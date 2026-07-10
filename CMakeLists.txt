@@ -185,6 +185,15 @@ endif()
 include_directories(SYSTEM ${RapidJSON_INCLUDE_DIRS})
 add_definitions("-DRAPIDJSON_ASSERT=BOOST_ASSERT")
 
+# msgpack-cxx
+find_package(msgpack-cxx 6.0.0)
+if (NOT msgpack-cxx_FOUND)
+  message(FATAL_ERROR "could not find msgpack-cxx")
+endif()
+
+include_directories(${msgpack-cxx_INCLUDE_DIRS})
+set(MUJINCLIENT_LINK_DIRS ${MUJINCLIENT_LINK_DIRS} ${msgpack-cxx_LIBDIR})
+
 if( Boost_FOUND )
   include_directories(${Boost_INCLUDE_DIRS})
   set(MUJINCLIENT_LINK_DIRS ${MUJINCLIENT_LINK_DIRS} ${Boost_LIBRARY_DIRS})
