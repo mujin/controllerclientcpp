@@ -461,6 +461,7 @@ inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v,
     }
 }
 
+#ifndef _MSC_VER
 template <typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> >
 inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, uint64_t& t) {
     if (v.IsUint64()) {
@@ -486,6 +487,7 @@ inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v,
         throw MujinJSONException("Cannot convert json type " + GetJsonString(v) + " to Int64");
     }
 }
+#endif
 
 template <typename Encoding=rapidjson::UTF8<>, typename Allocator=rapidjson::MemoryPoolAllocator<> >
 inline void LoadJsonValue(const rapidjson::GenericValue<Encoding, Allocator>& v, double& t) {
@@ -802,10 +804,12 @@ inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const
     v.SetInt64(t);
 }
 
+#ifndef _MSC_VER
 template <typename Encoding, typename Allocator, typename Allocator2>
 inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const int64_t& t, Allocator2& alloc) {
     v.SetInt64(t);
 }
+#endif
 
 template <typename Encoding, typename Allocator, typename Allocator2>
 inline void SaveJsonValue(rapidjson::GenericValue<Encoding, Allocator>& v, const unsigned long long& t, Allocator2& alloc) {

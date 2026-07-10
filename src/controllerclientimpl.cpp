@@ -2291,7 +2291,7 @@ GraphSubscriptionWebSocketHandler::GraphSubscriptionWebSocketHandler(const Contr
         MUJIN_LOG_INFO(boost::format("Create TCP socket connected to host %s") % host);
         
         boost::asio::ip::tcp::socket socket(*ioContext);
-        boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string(host), port);
+        boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::make_address(host), port);
         socket.connect(endpoint);
         _tcpStream = boost::make_shared<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>>(std::move(socket));
     } else {
