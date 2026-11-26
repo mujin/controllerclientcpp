@@ -221,6 +221,19 @@ protected:
     /// \brief sets up http header for doing http operation with multipart/form-data data
     void _SetupHTTPHeadersMultipartFormData();
 
+    /// \brief performs the request set up on _curl, dropping the json web token cookie if the server rejected the request. Assumes _mutex is locked.
+    void _PerformRequest();
+
+    /// \brief drops the jwttoken cookie that webstack set on an earlier response, so that the next request uses basic auth. Assumes _mutex is locked.
+    /// \return true if there was a jwttoken cookie to drop
+    bool _DropJSONWebTokenCookie();
+
+    /// \brief replaces all stored cookies with the csrftoken cookie that every request needs. Assumes _mutex is locked.
+    void _ResetCookies();
+
+    /// \brief returns true if a graph API response carries an error with the "unauthorized" error code
+    static bool _IsUnauthorizedGraphResponse(const rapidjson::Value& rResponse);
+
     /// \brief given a raw uri with "mujin:/", return the real network uri
     ///
     /// mutex should be locked
@@ -299,6 +312,7 @@ protected:
     curl_slist *_httpheadersmultipartformdata;
     std::string _charset, _language;
     std::string _csrfmiddlewaretoken;
+    std::string _csrfTokenCookie; ///< "Set-Cookie" line for the csrftoken cookie, installed into the curl cookie engine
     std::vector<std::string> _additionalHeaders; ///< list of "Header-Name: header-value" additional http headers
 
     rapidjson::Document _profile; ///< user profile and versioning

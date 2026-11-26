@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.86.1 (2026-11-26)
+
+- Drop the `jwttoken` cookie when the controller rejects a request as unauthorized, and retry a graph query once without it. Webstack may reject a request carrying a token it cannot accept even though basic auth is sent along with it, for example after a cluster failover moves the controller address to a controller that did not issue the token, which left the client failing until it was recreated.
+
 ## 0.86.0 (2026-04-14)
 
 - Add containerId to PickPlaceHistoryItem
