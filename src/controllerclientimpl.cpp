@@ -295,7 +295,8 @@ ControllerClientImpl::ControllerClientImpl(const std::string& usernamepassword, 
         cookie += host;
     }
 #endif
-    CURL_OPTION_SETTER(_curl, CURLOPT_COOKIELIST, cookie.c_str());
+    _csrfTokenCookie = cookie;
+    _ResetCookies();
 
     _charset = "utf-8";
     _language = "en-us";
@@ -451,6 +452,14 @@ void ControllerClientImpl::_ExecuteGraphQuery(const char* operationName, const c
 
         _uri = _baseuri + "api/v2/graphql";
         _CallPost(_uri, rRequestStringBuffer.GetString(), rResultDoc, rAlloc, 200, timeout);
+
+        // The graph API reports a rejected token as an "unauthorized" error in a 200 response, which _PerformRequest cannot see.
+        // Webstack may reject a request carrying a token it cannot accept even though basic auth is sent along with it,
+        // so drop the token and retry once with basic auth alone.
+        if (_IsUnauthorizedGraphResponse(rResultDoc) && _DropJSONWebTokenCookie()) {
+            MUJIN_LOG_WARN(str(boost::format("graph query \"%s\" to %s was rejected as unauthorized, dropped the json web token cookie and retrying with basic auth")%operationName%_baseuri));
+            _CallPost(_uri, rRequestStringBuffer.GetString(), rResultDoc, rAlloc, 200, timeout);
+        }
     }
 
     // parse response
@@ -491,6 +500,76 @@ void ControllerClientImpl::_ExecuteGraphQuery(const char* operationName, const c
     }
 }
 
+bool ControllerClientImpl::_IsUnauthorizedGraphResponse(const rapidjson::Value& rResponse)
+{
+    if (!rResponse.IsObject()) {
+        return false;
+    }
+    const rapidjson::Value::ConstMemberIterator itErrors = rResponse.FindMember("errors");
+    if (itErrors == rResponse.MemberEnd() || !itErrors->value.IsArray()) {
+        return false;
+    }
+    for (rapidjson::Value::ConstValueIterator itError = itErrors->value.Begin(); itError != itErrors->value.End(); ++itError) {
+        if (!itError->IsObject()) {
+            continue;
+        }
+        const rapidjson::Value::ConstMemberIterator itExtensions = itError->FindMember("extensions");
+        if (itExtensions == itError->MemberEnd() || !itExtensions->value.IsObject()) {
+            continue;
+        }
+        const rapidjson::Value::ConstMemberIterator itErrorCode = itExtensions->value.FindMember("errorCode");
+        if (itErrorCode != itExtensions->value.MemberEnd() && itErrorCode->value.IsString() && std::strcmp(itErrorCode->value.GetString(), "unauthorized") == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void ControllerClientImpl::_PerformRequest()
+{
+    CURL_PERFORM(_curl);
+    long httpCode = 0;
+    CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &httpCode);
+    // Webstack may reject a request carrying a token it cannot accept even though basic auth is sent along with it,
+    // for example after a cluster failover hands the controller address to a controller that did not issue the token.
+    // Drop the token so that the next request authenticates with basic auth and receives a new one.
+    if (httpCode == 401 && _DropJSONWebTokenCookie()) {
+        MUJIN_LOG_WARN(str(boost::format("request to %s was rejected as unauthorized, dropped the json web token cookie so the next request uses basic auth")%_baseuri));
+    }
+}
+
+bool ControllerClientImpl::_DropJSONWebTokenCookie()
+{
+    curl_slist* pCookies = NULL;
+    CURL_INFO_GETTER(_curl, CURLINFO_COOKIELIST, &pCookies);
+    BOOST_SCOPE_EXIT_ALL(&pCookies) {
+        curl_slist_free_all(pCookies);
+    };
+    bool hasJSONWebTokenCookie = false;
+    for (const curl_slist* pCookie = pCookies; pCookie != NULL; pCookie = pCookie->next) {
+        // cookies are listed in netscape format, the name is the sixth tab separated field
+        std::vector<std::string> fields;
+        boost::split(fields, pCookie->data, boost::is_any_of("\t"));
+        if (fields.size() >= 6 && fields[5] == "jwttoken") {
+            hasJSONWebTokenCookie = true;
+            break;
+        }
+    }
+    if (!hasJSONWebTokenCookie) {
+        return false;
+    }
+    _ResetCookies();
+    return true;
+}
+
+void ControllerClientImpl::_ResetCookies()
+{
+    // Clearing everything is simpler than matching the exact domain and path the server stored the token cookie under,
+    // and the csrftoken cookie is the only one the client relies on.
+    CURL_OPTION_SETTER(_curl, CURLOPT_COOKIELIST, "ALL");
+    CURL_OPTION_SETTER(_curl, CURLOPT_COOKIELIST, _csrfTokenCookie.c_str());
+}
+
 void ControllerClientImpl::ExecuteGraphQuery(const char* operationName, const char* query, const rapidjson::Value& rVariables, rapidjson::Value& rResult, rapidjson::Document::AllocatorType& rAlloc, double timeout)
 {
     _ExecuteGraphQuery(operationName, query, rVariables, rResult, rAlloc, timeout, true, false);
@@ -528,7 +607,7 @@ void ControllerClientImpl::RestartServer(double timeout)
     _buffer.str("");
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEFUNCTION, NULL, _WriteStringStreamCallback);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEDATA, NULL, &_buffer);
-    CURL_PERFORM(_curl);
+    _PerformRequest();
     long http_code = 0;
     CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
     if( http_code != 200 ) {
@@ -806,7 +885,7 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, rapidjson::Value&
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEFUNCTION, NULL, _WriteStringStreamCallback);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEDATA, NULL, &_buffer);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPGET, 0L, 1L);
-    CURL_PERFORM(_curl);
+    _PerformRequest();
     long http_code = 0;
     CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
     if( _buffer.rdbuf()->in_avail() > 0 ) {
@@ -838,7 +917,7 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, std::string& outp
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEFUNCTION, NULL, _WriteStringStreamCallback);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEDATA, NULL, &_buffer);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPGET, 0L, 1L);
-    CURL_PERFORM(_curl);
+    _PerformRequest();
     long http_code = 0;
     CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
     outputdata = _buffer.str();
@@ -871,7 +950,7 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, std::ostream& out
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEFUNCTION, NULL, _WriteOStreamCallback);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEDATA, NULL, &outputStream);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPGET, 0L, 1L);
-    CURL_PERFORM(_curl);
+    _PerformRequest();
     long http_code = 0;
     CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
     if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
@@ -901,7 +980,7 @@ int ControllerClientImpl::_CallGet(const std::string& desturi, std::vector<unsig
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEDATA, NULL, &outputdata);
 
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPGET, 0L, 1L);
-    CURL_PERFORM(_curl);
+    _PerformRequest();
     long http_code = 0;
     CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
     if( expectedhttpcode != 0 && http_code != expectedhttpcode ) {
@@ -942,7 +1021,7 @@ int ControllerClientImpl::_CallPost(const std::string& desturi, const std::strin
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_POST, 0L, 1L);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_POSTFIELDSIZE, 0, data.size());
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_POSTFIELDS, NULL, data.size() > 0 ? data.c_str() : NULL);
-    CURL_PERFORM(_curl);
+    _PerformRequest();
     long http_code = 0;
     CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
     if( _buffer.rdbuf()->in_avail() > 0 ) {
@@ -968,7 +1047,7 @@ int ControllerClientImpl::_CallPost(const std::string& desturi, const curl_httpp
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEDATA, nullptr, &_buffer);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPPOST, nullptr, data);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPHEADER, nullptr, _httpheadersmultipartformdata);
-    CURL_PERFORM(_curl);
+    _PerformRequest();
     long http_code = 0;
     CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
     if( _buffer.rdbuf()->in_avail() > 0 ) {
@@ -1009,7 +1088,7 @@ int ControllerClientImpl::_CallPut(const std::string& relativeuri, const void* p
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_CUSTOMREQUEST, NULL, "PUT");
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_POSTFIELDSIZE, 0, nDataSize);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_POSTFIELDS, NULL, pdata);
-    CURL_PERFORM(_curl);
+    _PerformRequest();
     long http_code = 0;
     CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
     if( _buffer.rdbuf()->in_avail() > 0 ) {
@@ -1048,7 +1127,7 @@ void ControllerClientImpl::CallDelete(const std::string& relativeuri, int expect
     _buffer.str("");
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEFUNCTION, NULL, _WriteStringStreamCallback);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_WRITEDATA, NULL, &_buffer);
-    CURL_PERFORM(_curl);
+    _PerformRequest();
     long http_code = 0;
     CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
     if( http_code != expectedhttpcode ) {
@@ -1318,7 +1397,7 @@ void ControllerClientImpl::_EnsureWebDAVDirectories(const std::string& relativeu
         CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, _uri.c_str());
         _buffer.clear();
         _buffer.str("");
-        CURL_PERFORM(_curl);
+        _PerformRequest();
         long http_code = 0;
         CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
         /* creating directories
@@ -1493,7 +1572,7 @@ long ControllerClientImpl::GetModifiedTime(const std::string& uri, double timeou
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, apiendpoint.c_str());
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_FILETIME, 0L, 1L);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_NOBODY, 0L, 1L);
-    CURL_PERFORM(_curl);
+    _PerformRequest();
 
     long http_code = 0;
     CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
@@ -1710,7 +1789,7 @@ void ControllerClientImpl::_UploadDirectoryToController_UTF8(const std::string& 
         CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_CUSTOMREQUEST, NULL, "MKCOL");
         CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPHEADER, NULL, _httpheadersjson);
         CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, uri.c_str());
-        CURL_PERFORM(_curl);
+        _PerformRequest();
         long http_code = 0;
         CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
         if( http_code != 201 && http_code != 301 ) {
@@ -1826,7 +1905,7 @@ void ControllerClientImpl::_UploadDirectoryToController_UTF16(const std::wstring
         CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_CUSTOMREQUEST, NULL, "MKCOL");
         CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPHEADER, NULL, _httpheadersjson);
         CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, uri.c_str());
-        CURL_PERFORM(_curl);
+        _PerformRequest();
         long http_code = 0;
         CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
         if( http_code != 201 && http_code != 301 ) {
@@ -2036,7 +2115,7 @@ void ControllerClientImpl::_DeleteDirectoryOnController(const std::string& destu
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_CUSTOMREQUEST, NULL, "DELETE");
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_HTTPHEADER, NULL, _httpheadersjson);
     CURL_OPTION_SAVE_SETTER(_curl, CURLOPT_URL, NULL, desturi.c_str());
-    CURL_PERFORM(_curl);
+    _PerformRequest();
     long http_code = 0;
     CURL_INFO_GETTER(_curl, CURLINFO_RESPONSE_CODE, &http_code);
     MUJIN_LOG_INFO("response code: " << http_code);
